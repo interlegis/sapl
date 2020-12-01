@@ -461,8 +461,7 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
 
     def get_context_data(self, **kwargs):
 
-        context = super(RelatorioPresencaSessaoView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = _('Presença dos parlamentares nas sessões')
 
         # Verifica se os campos foram preenchidos
@@ -524,32 +523,28 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
 
             
         # Parlamentares com Mandato no intervalo de tempo (Ativos)
-        parlamentares_qs = parlamentares_ativos(
-            _range[0], _range[1]).order_by('nome_parlamentar')
-        parlamentares_id = parlamentares_qs.values_list(
-            'id', flat=True)
+        parlamentares_qs = parlamentares_ativos(_range[0], _range[1]).order_by('nome_parlamentar')
+        parlamentares_id = parlamentares_qs.values_list('id', flat=True)
 
         # Presenças de cada Parlamentar em Sessões
-        presenca_sessao = SessaoPlenariaPresenca.objects.filter(**param0).values_list(
-            'parlamentar_id').annotate(
-            sessao_count=Count('id'))
+        presenca_sessao = SessaoPlenariaPresenca.objects.filter(**param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
 
         # Presenças de cada Ordem do Dia
-        presenca_ordem = PresencaOrdemDia.objects.filter(**param0).values_list(
-            'parlamentar_id').annotate(
-            sessao_count=Count('id'))
+        presenca_ordem = PresencaOrdemDia.objects.filter(**param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
 
-        total_ordemdia = PresencaOrdemDia.objects.filter(
-            **param0).distinct('sessao_plenaria__id').order_by(
-            'sessao_plenaria__id').count()
+        total_ordemdia = PresencaOrdemDia.objects.filter(**param0).distinct('sessao_plenaria__id').order_by('sessao_plenaria__id').count()
 
         total_sessao = context['object_list'].count()
 
         username = self.request.user.username
 
+        context['exibir_somente_titular'] = self.request.GET.get('exibir_somente_titular') == 'on'
+        context['exibir_somente_ativo'] = self.request.GET.get('exibir_somente_ativo') == 'on'
+
         # Completa o dicionario as informacoes parlamentar/sessao/ordem
         parlamentares_presencas = []
-        for i, p in enumerate(parlamentares_qs):
+        for p in parlamentares_qs:
+            parlamentar = {}
             m = p.mandato_set.filter(Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__gte=_range[1]) |
                                      Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__isnull=True) |
                                      Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]) |
@@ -557,51 +552,78 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
                                      Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]))
 
             m = m.last()
-            parlamentares_presencas.append({
-                'parlamentar': p,
-                'titular': m.titular if m else False,
-                'sessao_porc': 0,
-                'ordemdia_porc': 0
-            })
+
+            if not context['exibir_somente_titular'] and not context['exibir_somente_ativo']:
+                parlamentar = {
+                    'parlamentar': p,
+                    'titular': m.titular if m else False,
+                    'sessao_porc': 0,
+                    'ordemdia_porc': 0
+                }
+            elif context['exibir_somente_titular'] and not context['exibir_somente_ativo']:
+                if m and m.titular:
+                    parlamentar = {
+                        'parlamentar': p,
+                        'titular': m.titular if m else False,
+                        'sessao_porc': 0,
+                        'ordemdia_porc': 0
+                    }
+                else:
+                    continue
+            elif not context['exibir_somente_titular'] and context['exibir_somente_ativo']:
+                if p.ativo:
+                    parlamentar = {
+                        'parlamentar': p,
+                        'titular': m.titular if m else False,
+                        'sessao_porc': 0,
+                        'ordemdia_porc': 0
+                    }
+                else:
+                    continue
+            elif context['exibir_somente_titular'] and context['exibir_somente_ativo']:
+                if m and m.titular and p.ativo:
+                    parlamentar = {
+                        'parlamentar': p,
+                        'titular': m.titular if m else False,
+                        'sessao_porc': 0,
+                        'ordemdia_porc': 0
+                    }
+                else:
+                    continue
+            else:
+                continue
+
             try:
-                self.logger.debug(
-                    'user=' + username + '. Tentando obter presença do parlamentar (pk={}).'.format(p.id))
+                self.logger.debug(F'user={username}. Tentando obter presença do parlamentar (pk={p.id}).')
                 sessao_count = presenca_sessao.get(parlamentar_id=p.id)[1]
             except ObjectDoesNotExist as e:
-                self.logger.error(
-                    'user=' + username + '. Erro ao obter presença do parlamentar (pk={}). Definido como 0. '.format(p.id) + str(e))
+                self.logger.error(F'user={username}. Erro ao obter presença do parlamentar (pk={p.id}). Definido como 0. {str(e)}')
                 sessao_count = 0
             try:
                 # Presenças de cada Ordem do Dia
-                self.logger.info(
-                    'user=' + username + '. Tentando obter PresencaOrdemDia para o parlamentar pk={}.'.format(p.id))
+                self.logger.info(F'user={username}. Tentando obter PresencaOrdemDia para o parlamentar pk={p.id}.')
                 ordemdia_count = presenca_ordem.get(parlamentar_id=p.id)[1]
             except ObjectDoesNotExist:
-                self.logger.error('user=' + username + '. Erro ao obter PresencaOrdemDia para o parlamentar pk={}. '
-                                  'Definido como 0.'.format(p.id))
+                self.logger.error(F'user={username}. Erro ao obter PresencaOrdemDia para o parlamentar pk={p.id}. Definido como 0.')
                 ordemdia_count = 0
 
-            parlamentares_presencas[i].update({
+            parlamentar.update({
                 'sessao_count': sessao_count,
                 'ordemdia_count': ordemdia_count
             })
 
             if total_sessao != 0:
-                parlamentares_presencas[i].update(
-                    {'sessao_porc': round(
-                        sessao_count * 100 / total_sessao, 2)})
+                parlamentar.update({'sessao_porc': round(sessao_count * 100 / total_sessao, 2)})
             if total_ordemdia != 0:
-                parlamentares_presencas[i].update(
-                    {'ordemdia_porc': round(
-                        ordemdia_count * 100 / total_ordemdia, 2)})
+                parlamentar.update({'ordemdia_porc': round(ordemdia_count * 100 / total_ordemdia, 2)})
+
+            parlamentares_presencas.append(parlamentar)
 
         context['date_range'] = _range
         context['total_ordemdia'] = total_ordemdia
         context['total_sessao'] = context['object_list'].count()
         context['parlamentares'] = parlamentares_presencas
-        context['periodo'] = (
-            self.request.GET['data_inicio_0'] +
-            ' - ' + self.request.GET['data_inicio_1'])
+        context['periodo'] = f"{self.request.GET['data_inicio_0']} - {self.request.GET['data_inicio_1']}"
         context['sessao_legislativa'] = ''
         context['legislatura'] = ''
         context['exibir_ordem'] = self.request.GET.get('exibir_ordem_dia') == 'on'

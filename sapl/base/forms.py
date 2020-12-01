@@ -1061,36 +1061,41 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
                   'legislatura']
 
     def __init__(self, *args, **kwargs):
-        super(RelatorioPresencaSessaoFilterSet, self).__init__(
-            *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(required=False,
-                                                                  label='Exibir presença das Ordens do Dia')
+        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(required=False, label='Exibir presença das Ordens do Dia')
         self.form.initial['exibir_ordem_dia'] = True
+
+        self.form.fields['exibir_somente_titular'] = forms.BooleanField(required=False, label='Exibir somente parlamentares titulares')
+        self.form.initial['exibir_somente_titular'] = False
+        
+        self.form.fields['exibir_somente_ativo'] = forms.BooleanField(required=False, label='Exibir somente parlamentares ativos')
+        self.form.initial['exibir_somente_ativo'] = False
+        
+        self.form.fields['legislatura'].required = True
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
 
-        self.form.fields['legislatura'].required = True
-
-        tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(
-            nome='Ordinária')
+        tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(nome='Ordinária')
         if tipo_sessao_ordinaria:
             self.form.initial['tipo'] = tipo_sessao_ordinaria.first()
 
         row1 = to_row([('legislatura', 4),
                        ('sessao_legislativa', 4),
                        ('tipo', 4)])
-        row2 = to_row([('exibir_ordem_dia', 12)])
+        row2 = to_row([('exibir_ordem_dia', 12),
+                       ('exibir_somente_titular', 12),
+                       ('exibir_somente_ativo', 12)])
         row3 = to_row([('data_inicio', 12)])
 
         buttons = FormActions(
             *[
                 HTML('''
-                                    <div class="form-check">
-                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
-                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
-                                    </div>
-                                ''')
+                        <div class="form-check">
+                            <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                            <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                        </div>
+                    ''')
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
