@@ -28,7 +28,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
-from haystack.views import SearchView
+from haystack.forms import FacetedSearchForm, FacetedModelSearchForm
+from haystack.views import SearchView, FacetedSearchView
 from haystack.query import SearchQuerySet
 
 from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_materia_por_autor,
@@ -2207,8 +2208,10 @@ class AppConfigCrud(CrudAux):
             return HttpResponseRedirect(reverse('sapl.base:appconfig_create'))
 
 
-class SaplSearchView(SearchView):
+class SaplSearchView(FacetedSearchView):
     results_per_page = 10
+    facet_fields = ['ano', 'tipo']
+    form_class = FacetedModelSearchForm
 
     def get_context(self):
         context = super(SaplSearchView, self).get_context()

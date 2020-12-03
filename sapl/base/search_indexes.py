@@ -7,7 +7,8 @@ from django.db.models.functions import Concat
 from django.template import loader
 from haystack import connections
 from haystack.constants import Indexable
-from haystack.fields import CharField
+from haystack.fields import CharField, IntegerField, FacetCharField, \
+    FacetIntegerField, FacetDateField
 from haystack.indexes import SearchIndex
 from haystack.utils import get_model_ct_tuple
 
@@ -119,6 +120,8 @@ class TextExtractField(CharField):
 
 class DocumentoAcessorioIndex(SearchIndex, Indexable):
     model = DocumentoAcessorio
+    tipo = FacetCharField(model_attr='tipo__descricao')
+    data = FacetDateField(model_attr='data')
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(
@@ -144,6 +147,9 @@ class DocumentoAcessorioIndex(SearchIndex, Indexable):
 
 class NormaJuridicaIndex(DocumentoAcessorioIndex):
     model = NormaJuridica
+    ano = FacetIntegerField(model_attr='ano')
+    tipo = FacetCharField(model_attr='tipo__sigla')
+    data = FacetDateField(model_attr='data', null=True)
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(
@@ -158,6 +164,9 @@ class NormaJuridicaIndex(DocumentoAcessorioIndex):
 
 class MateriaLegislativaIndex(DocumentoAcessorioIndex):
     model = MateriaLegislativa
+    ano = FacetIntegerField(model_attr='ano')
+    tipo = FacetCharField(model_attr='tipo__sigla')
+    data = FacetDateField(model_attr='data_publicacao')
     text = TextExtractField(
         document=True, use_template=True,
         model_attr=(

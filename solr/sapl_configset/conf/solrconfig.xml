@@ -1135,7 +1135,7 @@
   <updateProcessor class="solr.FieldNameMutatingUpdateProcessorFactory" name="field-name-mutating">
     <str name="pattern">[^\w-\.]</str>
     <str name="replacement">_</str>
-  </updateProcessor>
+  </updateProcessor>=
   <updateProcessor class="solr.ParseBooleanFieldUpdateProcessorFactory" name="parse-boolean"/>
   <updateProcessor class="solr.ParseLongFieldUpdateProcessorFactory" name="parse-long"/>
   <updateProcessor class="solr.ParseDoubleFieldUpdateProcessorFactory" name="parse-double"/>
@@ -1193,6 +1193,13 @@
   <!-- The update.autoCreateFields property can be turned to false to disable schemaless mode -->
   <updateRequestProcessorChain name="main-chain" default="true"
            processor="uuid,remove-blank,field-name-mutating,parse-boolean,parse-long,parse-double,parse-date">
+
+    <processor class="solr.RegexReplaceProcessorFactory" name="remove-whitespaces">
+        <str name="fieldName">text</str>
+        <str name="pattern">\s+</str>
+        <str name="replacement"> </str>
+        <bool name="literalReplacement">true</bool>
+    </processor>
     <processor class="solr.LogUpdateProcessorFactory"/>
     <processor class="solr.DistributedUpdateProcessorFactory"/>
     <processor class="solr.RunUpdateProcessorFactory"/>
