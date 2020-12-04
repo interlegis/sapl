@@ -29,7 +29,7 @@ from django.views.generic import (CreateView, DetailView, DeleteView, FormView, 
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.forms import FacetedModelSearchForm
-from haystack.views import SearchView, FacetedSearchView
+from haystack.generic_views import SearchView, FacetedSearchView
 from haystack.query import SearchQuerySet
 
 from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_materia_por_autor,
@@ -2207,20 +2207,43 @@ class AppConfigCrud(CrudAux):
         def get(self, request, *args, **kwargs):
             return HttpResponseRedirect(reverse('sapl.base:appconfig_create'))
 
-
-class SaplSearchView(FacetedSearchView):
-    results_per_page = 10
-    facet_fields = ['ano', 'tipo']
-    form_class = FacetedModelSearchForm
-
+class HackedFacetedModelSearchForm(FacetedModelSearchForm):
+    """
+        Este é um hack vindo de https://github.com/django-haystack/django-haystack/pull/705
+        para possibilitar o uso de FacetedSearchView com FacetedModelSearchView. QUANDO/SE
+        o PR https://github.com/django-haystack/django-haystack/pull/1400 for integrado ao
+        Haystack essa classe pode ser substituida por FacetedModelSearchForm
+    """
     def __init__(self, *args, **kwargs):
-        super(SaplSearchView).__init__(*args, **kwargs)
-        import ipdb; ipdb.set_trace()
+        self.selected_facets = kwargs.pop("selected_facets", [])
+        super().__init__(*args, **kwargs)
+
+
+# class SaplSearchView(FacetedSearchView):
+#     results_per_page = 10
+#     facet_fields = ['ano', 'tipo']
+#     form_class = HackedFacetedModelSearchForm
+#
+#     def get_context(self):
+#         context = super(SaplSearchView, self).get_context()
+#
+#         if 'models' in self.request.GET:
+#             models = self.request.GET.getlist('models')
+#         else:
+#             models = []
+#
+#         context['models'] = ''
+#
+#         for m in models:
+#             context['models'] = context['models'] + '&models=' + m
+#
+#         return context
+
+class SaplSearchView(SearchView):
+    results_per_page = 10
 
     def get_context(self):
         context = super(SaplSearchView, self).get_context()
-
-        import ipdb; ipdb.set_trace()
 
         if 'models' in self.request.GET:
             models = self.request.GET.getlist('models')
@@ -2234,10 +2257,6 @@ class SaplSearchView(FacetedSearchView):
 
         return context
 
-    def get_context_data(self, **kwargs):
-        context = super(SaplSearchView, self).get_context_data(**kwargs)
-        import ipdb; ipdb.set_trace()
-        return context
 
 class AlterarSenha(FormView):
     from sapl.settings import LOGIN_URL
