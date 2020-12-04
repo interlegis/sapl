@@ -33,16 +33,44 @@
     </div>
     </br>
     {% if query %}
+
+    <h2>Por ano</h2>
+
+    <div>
+        <dl>
+            {% if facets.fields.ano %}
+                <dt>ano</dt>
+                {% for ano in facets.fields.ano|slice:":5" %}
+                    <dd><a href="{{ request.get_full_path }}&amp;selected_facets=ano:{{ ano.0|urlencode }}">{{ ano.0 }}</a> ({{ ano.1 }})</dd>
+                {% endfor %}
+            {% else %}
+                <p>Sem facet de ano.</p>
+            {% endif %}
+        </dl>
+    </div>
+        <div>
+        <dl>
+            {% if facets.fields.tipo %}
+                <dt>tipo</dt>
+                {% for tipo in facets.fields.tipo|slice:":5" %}
+                    <dd><a href="{{ request.get_full_path }}&amp;selected_facets=tipo:{{ tipo.0|urlencode }}">{{ tipo.0 }}</a> ({{ tipo.1 }})</dd>
+                {% endfor %}
+            {% else %}
+                <p>Sem facet de tipo.</p>
+            {% endif %}
+        </dl>
+    </div>
+
       <table class="table table-striped table-bordered">
         <thead class="thead-default">
-          <tr><td><h3>Resultados - Foram encontrados {{ page.paginator.count }} registros <br/>
-            {% if page.paginator.count %}
-            Registros {{ page.start_index }} a {{ page.end_index }} de {{ page.paginator.count }}
+          <tr><td><h3>Resultados - Foram encontrados {{ page_obj.paginator.count }} registros <br/>
+            {% if page_obj.paginator.count %}
+            Registros {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }}
             {% endif %}
           </h3></td></tr>
         </thead>
 
-      {% for result in page.object_list %}
+      {% for result in page_obj.object_list %}
         <tr>
           <td>
             {% if result.object|search_get_model == 'm' %}
@@ -91,15 +119,15 @@
         {% endfor %}
       </table>
 
-      {% if page.has_previous or page.has_next %}
+      {% if page_obj.has_previous or page_obj.has_next %}
         <div>
-          {% if page.has_previous %}
-            <a href="?q={{ query }}&amp;page={{ page.previous_page_number }}{{ models }}">
-          {% endif %}&laquo; Anterior{% if page.has_previous %}</a>{% endif %}
+          {% if page_obj.has_previous %}
+            <a href="{{ request.get_full_path }}&amp;page={{ page_obj.previous_page_number }}{{ models }}">
+          {% endif %}&laquo; Anterior{% if page_obj.has_previous %}</a>{% endif %}
           |
-          {% if page.has_next %}
-            <a href="?q={{ query }}&amp;page={{ page.next_page_number }}{{ models }}">
-          {% endif %}Próxima &raquo;{% if page.has_next %}</a>{% endif %}
+          {% if page_obj.has_next %}
+            <a href="{{ request.get_full_path }}&amp;page={{ page_obj.next_page_number }}{{ models }}">
+          {% endif %}Próxima &raquo;{% if page_obj.has_next %}</a>{% endif %}
         </div>
       {% endif %}
     {% else %}

@@ -2207,6 +2207,7 @@ class AppConfigCrud(CrudAux):
         def get(self, request, *args, **kwargs):
             return HttpResponseRedirect(reverse('sapl.base:appconfig_create'))
 
+
 class HackedFacetedModelSearchForm(FacetedModelSearchForm):
     """
         Este é um hack vindo de https://github.com/django-haystack/django-haystack/pull/705
@@ -2219,28 +2220,10 @@ class HackedFacetedModelSearchForm(FacetedModelSearchForm):
         super().__init__(*args, **kwargs)
 
 
-# class SaplSearchView(FacetedSearchView):
-#     results_per_page = 10
-#     facet_fields = ['ano', 'tipo']
-#     form_class = HackedFacetedModelSearchForm
-#
-#     def get_context(self):
-#         context = super(SaplSearchView, self).get_context()
-#
-#         if 'models' in self.request.GET:
-#             models = self.request.GET.getlist('models')
-#         else:
-#             models = []
-#
-#         context['models'] = ''
-#
-#         for m in models:
-#             context['models'] = context['models'] + '&models=' + m
-#
-#         return context
-
-class SaplSearchView(SearchView):
+class SaplSearchView(FacetedSearchView):
     results_per_page = 10
+    facet_fields = ['ano', 'tipo']
+    form_class = HackedFacetedModelSearchForm
 
     def get_context(self):
         context = super(SaplSearchView, self).get_context()
