@@ -28,7 +28,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
-from haystack.forms import FacetedSearchForm, FacetedModelSearchForm
+from haystack.forms import FacetedModelSearchForm
 from haystack.views import SearchView, FacetedSearchView
 from haystack.query import SearchQuerySet
 
@@ -2213,8 +2213,14 @@ class SaplSearchView(FacetedSearchView):
     facet_fields = ['ano', 'tipo']
     form_class = FacetedModelSearchForm
 
+    def __init__(self, *args, **kwargs):
+        super(SaplSearchView).__init__(*args, **kwargs)
+        import ipdb; ipdb.set_trace()
+
     def get_context(self):
         context = super(SaplSearchView, self).get_context()
+
+        import ipdb; ipdb.set_trace()
 
         if 'models' in self.request.GET:
             models = self.request.GET.getlist('models')
@@ -2228,6 +2234,10 @@ class SaplSearchView(FacetedSearchView):
 
         return context
 
+    def get_context_data(self, **kwargs):
+        context = super(SaplSearchView, self).get_context_data(**kwargs)
+        import ipdb; ipdb.set_trace()
+        return context
 
 class AlterarSenha(FormView):
     from sapl.settings import LOGIN_URL
