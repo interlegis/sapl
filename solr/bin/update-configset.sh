@@ -5,4 +5,6 @@ if [[ -z $SOLR_HOME ]]; then
   exit
 fi
 
-$SOLR_HOME/bin/solr zk upconfig -n sapl_configset -d solr/sapl_configset/ -z localhost:9983
+ZK_HOST=${ZK_HOST-'localhost:9983'}
+
+$SOLR_HOME/bin/solr zk upconfig -n sapl_configset -d solr/sapl_configset/ -z $ZK_HOST
