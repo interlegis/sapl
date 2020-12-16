@@ -1547,42 +1547,94 @@ class ConfiguracoesAppForm(ModelForm):
     logger = logging.getLogger(__name__)
 
     mostrar_brasao_painel = forms.BooleanField(
-        help_text=_('Sugerimos fortemente que faça o upload de imagens com '
-                    'o fundo transparente.'),
+        help_text=_('Sugerimos fortemente que faça o upload de imagens com o fundo transparente.'),
         label=_('Mostrar brasão da Casa no painel?'),
         required=False)
 
     class Meta:
         model = AppConfig
-        fields = ['documentos_administrativos',
-                  'sequencia_numeracao_protocolo',
-                  'inicio_numeracao_protocolo',
-                  'sequencia_numeracao_proposicao',
-                  'esfera_federacao',
-                  # 'painel_aberto', # TODO: a ser implementado na versão 3.2
-                  'texto_articulado_proposicao',
-                  'texto_articulado_materia',
-                  'texto_articulado_norma',
-                  'proposicao_incorporacao_obrigatoria',
-                  'protocolo_manual',
-                  'cronometro_discurso',
-                  'cronometro_aparte',
-                  'cronometro_ordem',
-                  'cronometro_consideracoes',
-                  'mostrar_brasao_painel',
-                  'receber_recibo_proposicao',
-                  'assinatura_ata',
-                  'estatisticas_acesso_normas',
-                  'escolher_numero_materia_proposicao',
-                  'tramitacao_materia',
-                  'tramitacao_documento']
+        fields = [
+            # Configurações Gerais
+            'esfera_federacao',
+            'documentos_administrativos',
+    
+            # Módulo Proposições
+            'sequencia_numeracao_proposicao',
+            'sequencia_numeracao_protocolo',
+            'inicio_numeracao_protocolo',
+            'protocolo_manual',
+            'receber_recibo_proposicao',
+            'proposicao_incorporacao_obrigatoria',
+            'escolher_numero_materia_proposicao',
+
+            # Módulo Matéria Legislativa
+            'tramitacao_materia',
+            'tramitacao_documento',
+
+            # Módulo Textos Articulados
+            'texto_articulado_proposicao',
+            'texto_articulado_materia',
+            'texto_articulado_norma',
+
+            # Estatísticas de acesso
+            'estatisticas_acesso_normas',
+
+            # Assinaturas
+            'assinatura_ata',
+
+            # Módulo Painel
+            'cronometro_discurso',
+            'cronometro_aparte',
+            'cronometro_ordem',
+            'cronometro_consideracoes',
+            'mostrar_brasao_painel',
+
+            # 'painel_aberto', # TODO: a ser implementado na versão 3.2
+        ]
 
     def __init__(self, *args, **kwargs):
-        super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['cronometro_discurso'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_aparte'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_consideracoes'].widget.attrs['class'] = 'cronometro'
+
+        # Configurações Gerais
+        row1 = to_row([
+            ('esfera_federacao', 12),
+            ('documentos_administrativos', 12)])
+
+        # Módulo Proposições
+        row2 = to_row([
+            ('sequencia_numeracao_proposicao', 4), ('sequencia_numeracao_protocolo', 4), ('inicio_numeracao_protocolo', 4),
+            ('protocolo_manual', 6), ('receber_recibo_proposicao', 6),
+            ('proposicao_incorporacao_obrigatoria', 6), ('escolher_numero_materia_proposicao', 6)])
+
+        # Módulo Matéria Legislativa
+        row3 = to_row([('tramitacao_materia', 6), ('tramitacao_documento', 6)])
+
+        # Módulo Textos Articulados
+        row4 = to_row([('texto_articulado_proposicao', 4), ('texto_articulado_materia', 4), ('texto_articulado_norma', 4)])
+
+        # Estatísticas de acesso
+        row5 = to_row([('estatisticas_acesso_normas', 12)])
+
+        # Assinaturas
+        row6 = to_row([('assinatura_ata', 12)])
+
+        # Módulo Painel
+        row7 = to_row([
+            ('cronometro_discurso', 6), ('cronometro_aparte', 6),
+            ('cronometro_ordem', 6), ('cronometro_consideracoes', 6),
+            ('mostrar_brasao_painel', 12)])
+
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = Layout(
+            row1, row2, row3, row4, row5, row6, row7,
+            form_actions(label='Salvar')
+        )
+
 
     def clean(self):
         cleaned_data = super().clean()

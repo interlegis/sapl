@@ -16,44 +16,44 @@ AppConfig:
   - esfera_federacao
   - documentos_administrativos
   
-  #{% trans 'Módulo Parlamentares' %}:
+  # #{% trans 'Módulo Parlamentares' %}:
 
-  #{% trans 'Módulo Mesa Diretora' %}:
+  # #{% trans 'Módulo Mesa Diretora' %}:
   
-  #{% trans 'Módulo Comissões' %}:
+  # #{% trans 'Módulo Comissões' %}:
   
-  #{% trans 'Módulo Bancadas Parlamentares' %}:
+  # #{% trans 'Módulo Bancadas Parlamentares' %}:
 
-  # {% trans 'Módulo Normas Jurídicas' %}:
+  # # {% trans 'Módulo Normas Jurídicas' %}:
 
-  {% trans 'Módulo Proposições' %}:
-  - sequencia_numeracao_proposicao sequencia_numeracao_protocolo inicio_numeracao_protocolo
-  - protocolo_manual receber_recibo_proposicao
-  - proposicao_incorporacao_obrigatoria escolher_numero_materia_proposicao
+  # {% trans 'Módulo Proposições' %}:
+  # - sequencia_numeracao_proposicao sequencia_numeracao_protocolo inicio_numeracao_protocolo
+  # - protocolo_manual receber_recibo_proposicao
+  # - proposicao_incorporacao_obrigatoria escolher_numero_materia_proposicao
 
-  {% trans 'Módulo Matéria Legislativa' %}:
-  - tramitacao_materia tramitacao_documento
+  # {% trans 'Módulo Matéria Legislativa' %}:
+  # - tramitacao_materia tramitacao_documento
 
-  {% trans 'Módulo Textos Articulados' %}:
-  - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
+  # {% trans 'Módulo Textos Articulados' %}:
+  # - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
 
-  #{% trans 'Módulo Sessão Plenária' %}:
+  # #{% trans 'Módulo Sessão Plenária' %}:
   
-  #{% trans 'Módulo LexML' %}:
+  # #{% trans 'Módulo LexML' %}:
   
-  #{% trans 'Módulo Administrativo' %}:
+  # #{% trans 'Módulo Administrativo' %}:
 
 
-  {% trans 'Estatísticas de acesso' %}:
-  - estatisticas_acesso_normas
+  # {% trans 'Estatísticas de acesso' %}:
+  # - estatisticas_acesso_normas
   
-  {% trans 'Assinaturas' %}:
-  - assinatura_ata
+  # {% trans 'Assinaturas' %}:
+  # - assinatura_ata
 
-  {% trans 'Módulo Painel' %}:
-  - cronometro_discurso cronometro_aparte 
-  - cronometro_ordem cronometro_consideracoes
-  - mostrar_brasao_painel
+  # {% trans 'Módulo Painel' %}:
+  # - cronometro_discurso cronometro_aparte 
+  # - cronometro_ordem cronometro_consideracoes
+  # - mostrar_brasao_painel
 
 TipoAutor:
   {% trans 'Tipo Autor' %}:
