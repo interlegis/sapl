@@ -107,7 +107,7 @@ INSTALLED_APPS = (
 # https://github.com/interlegis/sapl/issues/2055
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable auto index
 SEARCH_BACKEND = ''
-SEARCH_URL = ['','']
+SEARCH_URL = ['', '']
 
 # SOLR
 USE_SOLR = config('USE_SOLR', cast=bool, default=False)
@@ -178,7 +178,6 @@ CACHES = {
 }
 
 
-
 ROOT_URLCONF = 'sapl.urls'
 
 TEMPLATES = [
@@ -242,7 +241,7 @@ EMAIL_RUNNING = None
 
 MAX_DOC_UPLOAD_SIZE = 150 * 1024 * 1024  # 150MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
-DATA_UPLOAD_MAX_MEMORY_SIZE= 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -270,18 +269,17 @@ LOCALE_PATHS = (
     'locale',
 )
 
-FRONTEND_CUSTOM = config('FRONTEND_CUSTOM', default=False, cast=bool)
-
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
         'BUNDLE_DIR_NAME': 'sapl/static/sapl/frontend',
-        'STATS_FILE':  (BASE_DIR if not FRONTEND_CUSTOM else PROJECT_DIR.child('frontend')).child('webpack-stats.json'),
+        'STATS_FILE':  PROJECT_DIR.child('frontend').child(f'{"dev-" if DEBUG else ""}webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
     }
 }
+
 
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
@@ -289,10 +287,6 @@ STATIC_ROOT = PROJECT_DIR.child("collected_static")
 STATICFILES_DIRS = (
     BASE_DIR.child('static'),
 )
-if FRONTEND_CUSTOM:
-    STATICFILES_DIRS = (
-        PROJECT_DIR.child('frontend').child('dist'),
-    )
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -368,6 +362,7 @@ def remove_warnings():
         'ignore', module='floppyforms',
         message='Unable to import floppyforms.gis'
     )
+
 
 LOGOUT_REDIRECT_URL = '/login'
 

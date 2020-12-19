@@ -26,14 +26,12 @@ dotenv.config({
   path: './sapl/.env'
 })
 
-var FRONTEND_CUSTOM = process.env.FRONTEND_CUSTOM === undefined ? false : process.env.FRONTEND_CUSTOM === 'True'
-
 var HOST_NAME = 'localhost'
 
 module.exports = {
   runtimeCompiler: true,
   publicPath: process.env.NODE_ENV === 'production' ? '/static/sapl/frontend' : `http://${HOST_NAME}:8080/`,
-  outputDir: FRONTEND_CUSTOM ? 'dist' : './sapl/static/sapl/frontend',
+  outputDir: './sapl/static/sapl/frontend',
 
   chainWebpack: config => {
     config.plugins.delete('html')
@@ -44,21 +42,21 @@ module.exports = {
       .alias.set('@', path.join(__dirname + "/frontend/", 'src'))
 
     config
-      .plugin('CopyPlugin')
-      .use(CopyPlugin, [{
-        patterns: [
+      .plugin('copy')
+      .use(CopyPlugin, [
+        [
           {
             from: path.join(__dirname + "/frontend/", 'public'),
             to: '.'
           },
-        ],
-      }])
+        ]
+      ])
 
     config
       .plugin('RelativeBundleTrackerPlugin')
       .use(RelativeBundleTrackerPlugin, [{
         path: '.',
-        filename: FRONTEND_CUSTOM ? './webpack-stats.json' : './sapl/webpack-stats.json'
+        filename: `./frontend/${process.env.DEBUG === 'True' && process.env.NODE_ENV !== 'production' ? 'dev-' : ''}webpack-stats.json`
       }])
 
     config
