@@ -145,7 +145,7 @@ Criação da `SECRET_KEY <https://docs.djangoproject.com/es/1.9/ref/settings/#st
       SERVER_EMAIL = [Insira este parâmetro]
 
       SOLR_URL = '[Insira este parâmetro]'
-      
+
       FRONTEND_CUSTOM = [True/False]
 
 
@@ -207,18 +207,16 @@ Instruções para criação do super usuário e de usuários de testes
     operador_materia
     operador_norma
     operador_sessao
-    operador_painel
     operador_geral
+    operador_painel
 
 
-Sapl-Frontend
+Frontend do SAPL
 =============
 
-* O Sapl foi separado em outro projeto, o SAPL Frontend que está aqui no github, no repositório do Interlegis. Veja Aqui: https://github.com/interlegis/sapl-frontend::
+* Se seu objetivo é preparar o ambiente de desenvolvimento para colaborar com o backend, você não precisa se preocupar com o tutorial abaixo pois na pasta https://github.com/interlegis/sapl/tree/3.1.x/sapl/static/sapl/frontend já está o código oficial de produção do Frontend
 
-* Se seu objetivo é preparar o ambiente de desenvolvimento para colaborar no backend, você não precisa se preocupar com o tutorial abaixo pois na pasta https://github.com/interlegis/sapl/tree/3.1.x/sapl/static já está o código oficial de produção exportado pelo projeto do Sapl-Frontend
-
-* Para colaborar com o Sapl-Frontend ou fazer seu próprio frontend a partir do oficial, siga os passos abaixo:
+* Para colaborar com o Frontend, siga os passos abaixo:
 
 Preparação do ambiente::
 ----------------------
@@ -239,58 +237,18 @@ Preparação do ambiente::
 
     yarn global add @vue/cli
 
+Sobre a organização do Frontend
 
-Ligando os projetos SAPL e Sapl-Frontend para implementação no Sapl-Frontend
------------------------------------------------------------------------------
-
-**É fundamental que o Sapl-Frontend esteja na mesma pasta que o Sapl**
-
-* Como orientado acima, o Sapl foi clonado na pasta `/var/interlegis`. O mesmo deve ser feito com o sapl-frontend, ficando assim::
-
-
-    /var/interlegis/sapl
-    /var/interlegis/sapl-frontend
-
-
-* para tal, execute::
-
-    cd /var/interlegis    
-    git clone git://github.com/interlegis/sapl-frontend
-    
-**Você pode também criar um Fork do sapl-frontend**
-
-* Para fazer um fork e depois clonar, siga as instruções em https://help.github.com/articles/fork-a-repo que basicamente são:
-
-  * Criar uma conta no github - é gratuíto.
-  * Acessar https://github.com/interlegis/sapl-frontend e clicar em **Fork**.
-
-* Será criado um domínio pelo qual será possível **clonar, corrigir, customizar, melhorar, contribuir, etc**::
-
-      cd /var/interlegis
-      git clone git://github.com/[SEU NOME]/sapl-frontend
-
-
-Feito isso, e você ativando a variável de ambiente FRONTEND_CUSTOM=True (vide acima criação do .env), o Sapl (backend) desativa a pasta *static* no seu ambiente de desenvolvimento e no seu ambiente de produção e passa a valer para o Sapl (backend) o que você customizar em sapl-frontend. Resumindo:
-
-* Se você está criando um fork do sapl-frontend para ter o sapl com sua cara, ou criando funcionalidades de seu interesse: 
-    
-    FRONTEND_CUSTOM=True
-
-* Se você está colaborando com a evolução oficial do sapl-frontend e enviará seu código para o repositório oficial através de um PR e, por consequência, gerará novos versão de produção a ser colocada na pasta static, então:
-    
-    FRONTEND_CUSTOM=False
-
-**Deste ponto em diante, é exigido o conhecimento que você pode adquirir em https://cli.vuejs.org/guide/ e em https://vuejs.org/v2/guide/ para colaborar com sapl-frontend**
+O Frontend está organizado modularmente segundo conceitos do webpack. Sendo independentes, podem possuir Vue ou não.
 
 Sobre a pasta static
 --------------------
-Após a separação do sapl em sapl e sapl-frontend, o conteúdo da pasta sapl/static/sapl/frontend é compilado e minificado. É gerado pelo build do sapl-frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta sapl/static/sapl/frontend.
+O conteúdo da pasta sapl/static/sapl/frontend é compilado e minificado. É gerado pelo build do Frontend e não deve-se tentar customizar ou criar elementos manipulando diretamente informações na pasta sapl/static/sapl/frontend.
 
 Para aplicar css e javascript sem sapl-frontend:
 
-1) Não altere diretamente o conteúdo da pasta sapl/static/sapl/frontend. Isso deve ser feito no projeto sapl-frontend. Você perderá qualquer manipulação dentro desta pasta.
+1) Não altere diretamente o conteúdo da pasta sapl/static/sapl/frontend. Isso deve ser feito na subpasta frontend/src.
 
 2) Caso venha a criar algum código css/js diretamente no django, crie seus arquivos na pasta sapl/static/sapl.
 
 3) Não crie nenhum novo conteúdo na pasta sapl/static. Projetos Django podem ser usados como app de outro projeto. É o que ocorre com o Sapl, que é usado como uma app em outros projetos. Qualquer conteúdo colocado dentro sapl/static e não em sapl/static/sapl, pode estar causando erro no uso do Sapl como app em outro projeto.
-
