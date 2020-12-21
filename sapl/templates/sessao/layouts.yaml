@@ -58,7 +58,7 @@ ExpedienteMateria:
   {% trans 'Matéria do Expediente' %}:
   - data_ordem numero_ordem
   - tipo_materia numero_materia ano_materia
-  - tipo_votacao
+  - tipo_votacao:4 situacao_pauta
   - apenas_leitura
   - observacao
 
@@ -66,7 +66,7 @@ OrdemDia:
   {% trans 'Matéria da Ordem do Dia' %}:
   - data_ordem numero_ordem
   - tipo_materia numero_materia ano_materia
-  - tipo_votacao
+  - tipo_votacao:4 situacao_pauta
   - apenas_leitura
   - observacao
 
@@ -74,14 +74,14 @@ ExpedienteMateriaDetail:
   {% trans 'Matérias do Expediente' %}:
   - materia
   - ementa
-  - tipo_votacao
+  - tipo_votacao:4 situacao_pauta
   - observacao
 
 OrdemDiaDetail:
   {% trans 'Matérias da Ordem do Dia' %}:
   - materia
   - ementa
-  - tipo_votacao
+  - tipo_votacao:4 situacao_pauta
   - observacao
 
 Bancada:

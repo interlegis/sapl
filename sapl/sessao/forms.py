@@ -283,7 +283,13 @@ class BancadaForm(ModelForm):
 class ExpedienteMateriaForm(ModelForm):
 
     _model = ExpedienteMateria
+
     data_atual = timezone.now()
+
+    data_ordem = forms.CharField(
+        label='Data Sessão',
+        initial=datetime.strftime(timezone.now(), '%d/%m/%Y'),
+        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
 
     tipo_materia = forms.ModelChoiceField(
         label=_('Tipo Matéria'),
@@ -302,28 +308,40 @@ class ExpedienteMateriaForm(ModelForm):
         required=True,
         widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
-    data_ordem = forms.CharField(
-        label='Data Sessão',
-        initial=datetime.strftime(timezone.now(), '%d/%m/%Y'),
-        widget=forms.TextInput(attrs={'readonly': 'readonly'}))
-
     apenas_leitura = forms.BooleanField(label='Apenas Leitura', required=False)
 
     class Meta:
         model = ExpedienteMateria
-        fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
-                  'numero_materia', 'ano_materia', 'tipo_votacao']
+        fields = [
+            'data_ordem',
+            'numero_ordem',
+            'tipo_materia',
+            'numero_materia',
+            'ano_materia',
+            'tipo_votacao',
+            'situacao_pauta',
+            'observacao'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.new_object = True if not self.instance.pk else False
+
+        if not self.new_object:
+            situacoes = self.instance.materia.tramitacao_set.order_by('-data_tramitacao')
+            if situacoes:
+                self.fields['situacao_pauta'].choices = [(s.pk, s) for s in situacoes]
+                self.fields['situacao_pauta'].initial = (self.instance.situacao_pauta.pk, self.instance.situacao_pauta)
+            else:
+                self.fields['situacao_pauta'].choices = [('', '---------')]
+        else:
+            self.fields['situacao_pauta'].widget = forms.HiddenInput()
 
     def clean_numero_ordem(self):
-        sessao = self.instance.sessao_plenaria
-
-        numero_ordem_exists = ExpedienteMateria.objects.filter(
-            sessao_plenaria=sessao,
-            numero_ordem=self.cleaned_data['numero_ordem']).exists()
-
+        numero_ordem_exists = ExpedienteMateria.objects.filter(sessao_plenaria=self.instance.sessao_plenaria,
+                                                               numero_ordem=self.cleaned_data['numero_ordem']).exists()
         if numero_ordem_exists and not self.instance.pk:
-            msg = _('Esse número de ordem já existe.')
-            raise ValidationError(msg)
+            raise ValidationError(_('Esse número de ordem já existe.'))
 
         return self.cleaned_data['numero_ordem']
 
@@ -331,30 +349,29 @@ class ExpedienteMateriaForm(ModelForm):
         return self.instance.sessao_plenaria.data_inicio
 
     def clean(self):
-        cleaned_data = super(ExpedienteMateriaForm, self).clean()
+        cleaned_data = super().clean()
         if not self.is_valid():
             return cleaned_data
 
-        sessao = self.instance.sessao_plenaria
-
         try:
-            materia = MateriaLegislativa.objects.get(
-                numero=self.cleaned_data['numero_materia'],
-                ano=self.cleaned_data['ano_materia'],
-                tipo=self.cleaned_data['tipo_materia'])
+            materia = MateriaLegislativa.objects.get(numero=self.cleaned_data['numero_materia'],
+                                                     ano=self.cleaned_data['ano_materia'],
+                                                     tipo=self.cleaned_data['tipo_materia'])
         except ObjectDoesNotExist:
-            msg = _('A matéria a ser inclusa não existe no cadastro'
-                    ' de matérias legislativas.')
-            raise ValidationError(msg)
+            raise ValidationError(_('A matéria a ser inclusa não existe no cadastro de matérias legislativas.'))
         else:
             cleaned_data['materia'] = materia
 
         return cleaned_data
 
     def save(self, commit=False):
-        expediente = super(ExpedienteMateriaForm, self).save(commit)
-        expediente.materia = self.cleaned_data['materia']
+        expediente = super().save(commit)
+        materia = self.cleaned_data['materia']
+        expediente.materia = materia
+        if self.new_object:
+            expediente.situacao_pauta = materia.tramitacao_set.order_by('-data_tramitacao').first()
         expediente.save()
+
         return expediente
 
 
@@ -364,36 +381,24 @@ class OrdemDiaForm(ExpedienteMateriaForm):
 
     class Meta:
         model = OrdemDia
-        fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
-                  'numero_materia', 'ano_materia', 'tipo_votacao']
-
-    def clean_data_ordem(self):
-        return self.instance.sessao_plenaria.data_inicio
+        fields = [
+            'data_ordem',
+            'numero_ordem',
+            'tipo_materia',
+            'numero_materia',
+            'ano_materia',
+            'tipo_votacao',
+            'situacao_pauta',
+            'observacao'
+        ]
 
     def clean_numero_ordem(self):
-        sessao = self.instance.sessao_plenaria
-
-        numero_ordem_exists = OrdemDia.objects.filter(
-            sessao_plenaria=sessao,
-            numero_ordem=self.cleaned_data['numero_ordem']).exists()
-
+        numero_ordem_exists = OrdemDia.objects.filter(sessao_plenaria=self.instance.sessao_plenaria,
+                                                      numero_ordem=self.cleaned_data['numero_ordem']).exists()
         if numero_ordem_exists and not self.instance.pk:
-            msg = _('Esse número de ordem já existe.')
-            raise ValidationError(msg)
+            raise ValidationError(_('Esse número de ordem já existe.'))
 
         return self.cleaned_data['numero_ordem']
-
-    def clean(self):
-        cleaned_data = super(OrdemDiaForm, self).clean()
-        if not self.is_valid():
-            return cleaned_data
-        return self.cleaned_data
-
-    def save(self, commit=False):
-        ordem = super(OrdemDiaForm, self).save(commit)
-        ordem.materia = self.cleaned_data['materia']
-        ordem.save()
-        return ordem
 
 
 class PresencaForm(forms.Form):
