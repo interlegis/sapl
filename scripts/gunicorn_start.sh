@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # As seen in http://tutos.readthedocs.org/en/latest/source/ndg.html
-# Arquivo inicializador para o gunicorn/supervisorctl
 
 SAPL_DIR="/var/interlegis/sapl"
 
@@ -12,12 +11,9 @@ then
     SAPL_DIR="$1"
 fi
 
-#Carrega as variáveis de ambiente
-export $(egrep -v '^#' $SAPL_DIR/sapl/.env | xargs)
-
 NAME="SAPL"                                     # Name of the application (*)
-DJANGODIR=/var/interlegis/sapl/                    # Django project directory (*)
-SOCKFILE=/var/interlegis/sapl/run/gunicorn.sock    # we will communicate using this unix socket (*)
+DJANGODIR=$SAPL_DIR/                            # Django project directory (*)
+SOCKFILE=$SAPL_DIR/run/gunicorn.sock            # we will communicate using this unix socket (*)
 USER=`whoami`                                   # the user to run as (*)
 GROUP=`whoami`                                  # the group to run as (*)
 NUM_WORKERS=3                                   # how many worker processes should Gunicorn spawn (*)
@@ -31,12 +27,8 @@ echo "Starting $NAME as `whoami` on base dir $SAPL_DIR"
 
 # Ativa ambiente virtual
 cd $DJANGODIR
-if [ "$SAPL_VIRTUAL_ENV" ]
-then
-source $SAPL_VIRTUAL_ENV/bin/activate
-else
-source /var/interlegis/.virtualenvs/sapl/bin/activate
-fi
+source $SAPL_DIR/../.virtualenvs/sapl/bin/activate
+
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 
