@@ -149,3 +149,19 @@ Bloco:
   - data_criacao data_extincao
   - partidos
   - descricao
+
+BlocoCargo:
+  {% trans 'Cargo' %}:
+  - nome_cargo cargo_unico:4
+
+BlocoMembro:
+  {% trans 'Membro'%}:
+  - bloco
+  - cargo:4 parlamentar
+  - data_entrada data_saida
+
+BlocoMembroList:
+  {% trans 'Membros'%}:
+  - id
+  - cargo:4 parlamentar
+  - data_entrada data_saida

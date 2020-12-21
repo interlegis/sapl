@@ -92,6 +92,9 @@
   - title: {% trans 'Bloco Parlamentar' %}
     url: sapl.parlamentares:bloco_list
     css_class: btn btn-link
+  - title: {% trans 'Cargo de Bloco Parlamentar' %}
+    url: sapl.parlamentares:blococargo_list
+    css_class: btn btn-link
 - title: {% trans 'Módulo Proposições' %}
   css_class: head_title
   children:

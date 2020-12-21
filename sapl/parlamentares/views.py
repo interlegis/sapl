@@ -36,24 +36,24 @@ from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
                     ParlamentarFilterSet, PartidoFilterSet, VincularParlamentarForm,
-                    BlocoForm, FrenteParlamentarForm)
+                    BlocoForm, FrenteParlamentarForm, BlocoMembroForm)
                     
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco, FrenteCargo, FrenteParlamentar)
+                     Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro)
 
 
 FrenteCargoCrud = CrudAux.build(FrenteCargo, 'frente_cargo')
+BlocoCargoCrud = CrudAux.build(BlocoCargo, 'bloco_cargo')
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
 TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
 
-DependenteCrud = MasterDetailCrud.build(
-    Dependente, 'parlamentar', 'dependente')
+DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', 'dependente')
 
 
 class SessaoLegislativaCrud(CrudAux):
@@ -1281,6 +1281,48 @@ class BlocoCrud(CrudAux):
 
         def get_success_url(self):
             return reverse('sapl.parlamentares:bloco_list')
+
+
+class BlocoMembroCrud(MasterDetailCrud):
+    model = BlocoMembro
+    parent_field = 'bloco'
+    help_topic = 'bloco_membros'
+    public = [RP_LIST, RP_DETAIL]
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = BlocoMembroForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+        def get_initial(self):
+            self.initial['bloco'] = Bloco.objects.get(pk=self.kwargs['pk'])
+            return self.initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = BlocoMembroForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+    class DetailView(MasterDetailCrud.DetailView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+    class ListView(MasterDetailCrud.ListView):
+        layout_key = 'BlocoMembroList'
+        ordering = ('-cargo__cargo_unico', 'parlamentar')
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
 
 
 def get_sessoes_legislatura(request):
