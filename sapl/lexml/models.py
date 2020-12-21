@@ -32,6 +32,7 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
     class Meta:
         verbose_name = _('Provedor Lexml')
         verbose_name_plural = _('Provedores Lexml')
+        ordering = ('id',)
 
     def __str__(self):
         return self.nome
@@ -62,6 +63,7 @@ class LexmlPublicador(models.Model):
     class Meta:
         verbose_name = _('Publicador Lexml')
         verbose_name_plural = _('Publicadores Lexml')
+        ordering = ('id',)
 
     def __str__(self):
         return self.nome

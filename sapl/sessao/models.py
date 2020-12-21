@@ -30,6 +30,7 @@ class CargoBancada(models.Model):
     class Meta:
         verbose_name = _('Cargo de Bancada')
         verbose_name_plural = _('Cargos de Bancada')
+        ordering = ('-cargo_unico', 'nome_cargo')
 
     def __str__(self):
         return self.nome_cargo
@@ -231,6 +232,7 @@ class SessaoPlenaria(models.Model):
     class Meta:
         verbose_name = _('Sessão Plenária')
         verbose_name_plural = _('Sessões Plenárias')
+        ordering = ('data_inicio', 'hora_inicio')
 
     def __str__(self):
 
@@ -403,6 +405,7 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
     class Meta:
         verbose_name = _('Expediente de Sessão Plenaria')
         verbose_name_plural = _('Expedientes de Sessão Plenaria')
+        ordering = ('id',)
 
     def __str__(self):
         return '%s - %s' % (self.tipo, self.sessao_plenaria)
@@ -418,6 +421,7 @@ class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
     class Meta:
         verbose_name = _('Ocorrência da Sessão Plenaria')
         verbose_name_plural = _('Ocorrências da Sessão Plenaria')
+        ordering = ('id',)
 
     def __str__(self):
         return '%s - %s' % (self.sessao_plenaria, self.conteudo)
@@ -433,6 +437,7 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
     class Meta:
         verbose_name = _('Participação em Mesa de Sessão Plenaria')
         verbose_name_plural = _('Participações em Mesas de Sessão Plenaria')
+        ordering = ('id',)
 
     def __str__(self):
         return '%s - %s' % (self.cargo, self.parlamentar)
@@ -482,6 +487,7 @@ class Orador(AbstractOrador):  # Oradores
     class Meta:
         verbose_name = _('Orador das Explicações Pessoais')
         verbose_name_plural = _('Oradores das Explicações Pessoais')
+        ordering = ('id',)
 
 
 @reversion.register()
@@ -490,6 +496,7 @@ class OradorExpediente(AbstractOrador):  # OradoresExpediente
     class Meta:
         verbose_name = _('Orador do Expediente')
         verbose_name_plural = _('Oradores do Expediente')
+        ordering = ('id',)
 
 
 @reversion.register()
@@ -498,6 +505,7 @@ class OradorOrdemDia(AbstractOrador):  # OradoresOrdemDia
     class Meta:
         verbose_name = _('Orador da Ordem do Dia')
         verbose_name_plural = _('Oradores da Ordem do Dia')
+        ordering = ('id',)
 
 
 @reversion.register()
@@ -541,6 +549,7 @@ class TipoResultadoVotacao(models.Model):
     class Meta:
         verbose_name = _('Tipo de Resultado de Votação')
         verbose_name_plural = _('Tipos de Resultado de Votação')
+        ordering = ('id',)
 
     def __str__(self):
         return self.nome
@@ -584,6 +593,7 @@ class RegistroVotacao(models.Model):
     class Meta:
         verbose_name = _('Votação')
         verbose_name_plural = _('Votações')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
@@ -642,6 +652,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     class Meta:
         verbose_name = _('Registro de Votação de Parlamentar')
         verbose_name_plural = _('Registros de Votações de Parlamentares')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {
@@ -745,6 +756,7 @@ class ResumoOrdenacao(models.Model):
     class Meta:
         verbose_name = _('Ordenação do Resumo de uma Sessão')
         verbose_name_plural = _('Ordenação do Resumo de uma Sessão')
+        ordering = ('id',)
 
     def __str__(self):
         return 'Ordenação do Resumo de uma Sessão'
@@ -814,6 +826,7 @@ class JustificativaAusencia(models.Model):
     class Meta:
         verbose_name = _('Justificativa de Ausência')
         verbose_name_plural = _('Justificativas de Ausências')
+        ordering = ('id',)
 
     def __str__(self):
         return 'Justificativa de Ausência'
@@ -879,6 +892,7 @@ class RetiradaPauta(models.Model):
     class Meta:
         verbose_name = _('Retirada de Pauta')
         verbose_name_plural = _('Retirada de Pauta')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Ordem: %(ordem)s - Requerente: %(requerente)s - '
@@ -929,6 +943,7 @@ class RegistroLeitura(models.Model):
     class Meta:
         verbose_name = _('Leitura')
         verbose_name_plural = _('Leituras')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Leitura - '

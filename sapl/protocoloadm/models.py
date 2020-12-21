@@ -132,6 +132,7 @@ class Protocolo(models.Model):
     class Meta:
         verbose_name = _('Protocolo')
         verbose_name_plural = _('Protocolos')
+        ordering = ('id',)
         permissions = (
             ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
         )
@@ -226,6 +227,7 @@ class DocumentoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Documento Administrativo')
         verbose_name_plural = _('Documentos Administrativos')
+        ordering = ('id',)
 
     def __str__(self):
         return _('%(tipo)s - %(assunto)s') % {
@@ -285,6 +287,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Documento Acessório')
         verbose_name_plural = _('Documentos Acessórios')
+        ordering = ('id',)
 
     def __str__(self):
         return self.nome
@@ -334,6 +337,7 @@ class StatusTramitacaoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Status de Tramitação')
         verbose_name_plural = _('Status de Tramitação')
+        ordering = ('id',)
 
     def __str__(self):
         return self.descricao
@@ -385,6 +389,7 @@ class TramitacaoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Tramitação de Documento Administrativo')
         verbose_name_plural = _('Tramitações de Documento Administrativo')
+        ordering = ('id',)
 
     def __str__(self):
         return _('%(documento)s - %(status)s') % {
@@ -412,6 +417,7 @@ class Anexado(models.Model):
     class Meta:
         verbose_name = _('Anexado')
         verbose_name_plural = _('Anexados')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Anexado: %(documento_anexado_tipo)s %(documento_anexado_numero)s'
@@ -436,6 +442,7 @@ class AcompanhamentoDocumento(models.Model):
     class Meta:
         verbose_name = _('Acompanhamento de Documento')
         verbose_name_plural = _('Acompanhamentos de Documento')
+        ordering = ('id',)
 
     def __str__(self):
         if self.data_cadastro is None:
