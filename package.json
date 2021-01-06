@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.13.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "axios-progress-bar": "^1.2.0",
     "bootstrap": "^4.4.1",
     "bootstrap-vue": "^2.12.0",
