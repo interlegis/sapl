@@ -279,6 +279,9 @@ WEBPACK_LOADER = {
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
     }
 }
+if DEBUG and not WEBPACK_LOADER['DEFAULT']['STATS_FILE'].exists():
+    WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = PROJECT_DIR.child(
+        'frontend').child(f'webpack-stats.json')
 
 
 STATIC_URL = '/static/'
