@@ -14,10 +14,12 @@ import 'jquery-ui/ui/i18n/datepicker-pt-BR'
 
 import 'jquery-ui-themes/themes/cupertino/jquery-ui.min.css'
 
-import 'tinymce/tinymce'
+import tinymce from 'tinymce/tinymce'
+
 import './js/tinymce/lang/pt_BR.js'
 
-import 'tinymce/themes/modern'
+import 'tinymce/themes/silver'
+import 'tinymce/icons/default'
 import 'tinymce/plugins/table'
 import 'tinymce/plugins/lists'
 import 'tinymce/plugins/code'
@@ -39,8 +41,10 @@ window.$ = $
 window.jQuery = $
 
 window.moment = moment
+window.tinymce = tinymce
 
 window.autorModal()
 window.refreshMask()
 window.refreshDatePicker()
-window.initTextRichEditor('texto-rico')
+
+window.initTextRichEditor('#texto-rico')

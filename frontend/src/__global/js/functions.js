@@ -1,4 +1,3 @@
-import skinTinymce from 'tinymce-light-skin'
 
 window.removeTinymce = function () {
   while (window.tinymce.editors.length > 0) {
@@ -9,31 +8,21 @@ window.removeTinymce = function () {
 window.initTextRichEditor = function (elements, readonly = false) {
   window.removeTinymce()
   const configTinymce = {
+    selector: elements === null || elements === undefined ? 'textarea' : elements,
     force_br_newlines: false,
     force_p_newlines: false,
     forced_root_block: '',
-    content_style: skinTinymce.contentStyle,
-    skin: false,
+    min_height: 200,
+    language: 'pt_BR',
     plugins: ['lists table code'],
-    menubar: 'file edit view format table tools',
-    toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent',
-    min_height: 200
-
+    menubar: 'edit view format table tools',
+    toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent'
   }
-
   if (readonly) {
     configTinymce.readonly = 1
     configTinymce.menubar = false
     configTinymce.toolbar = false
   }
-
-  if (elements != null) {
-    configTinymce.elements = elements
-    configTinymce.mode = 'exact'
-  } else {
-    configTinymce.mode = 'textareas'
-  }
-  skinTinymce.use()
   window.tinymce.init(configTinymce)
 }
 
