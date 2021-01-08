@@ -27,7 +27,6 @@
     "serialize-javascript": "^3.1.0",
     "terser": "^4.6.11",
     "tinymce": "^5.6.2",
-    "tinymce-light-skin": "^1.3.1",
     "vue": "^2.6.11",
     "webpack": "^4.43.0",
     "webpack-jquery-ui": "^2.0.1",
@@ -51,6 +50,7 @@
     "eslint-plugin-vue": "^6.2.2",
     "node-sass": "^4.13.1",
     "sass-loader": "^8.0.2",
+    "shelljs": "^0.8.4",
     "vue-template-compiler": "^2.6.11",
     "webpack-bundle-tracker": "^0.4.3"
   }

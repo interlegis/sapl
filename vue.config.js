@@ -1,5 +1,6 @@
-const path = require("path");
 const each = require("lodash/fp/each");
+const path = require("path");
+const shell = require('shelljs');
 
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin");
 const BundleTrackerPlugin = require("webpack-bundle-tracker");
@@ -79,39 +80,7 @@ module.exports = {
       },
     ]);
 
-    if (process.env.NODE_ENV === "production") {
-      config.optimization.minimizer("terser").tap((args) => {
-        args[0].terserOptions.compress.drop_console = true;
-        args[0].extractComments = true;
-        args[0].cache = true;
-        return args;
-      });
-
-      config.plugin("CompressionPlugin").use(CompressionPlugin, [{}]);
-    } else {
-      config.devtool("source-map");
-    }
-
     config.resolve.alias.set("__STATIC__", "static");
-
-    config.module
-      .rule("vue")
-      .use("vue-loader")
-      .loader("vue-loader")
-      .tap((options) => {
-        options.transformAssetUrls = {
-          img: "src",
-          image: "xlink:href",
-          "b-img": "src",
-          "b-img-lazy": ["src", "blank-src"],
-          "b-card": "img-src",
-          "b-card-img": "img-src",
-          "b-carousel-slide": "img-src",
-          "b-embed": "src",
-        };
-
-        return options;
-      });
 
     config.devServer
       .public("")
@@ -139,6 +108,22 @@ module.exports = {
         _: "lodash",
       },
     ]);
+
+    if (process.env.NODE_ENV === "production") {
+      config.optimization.minimizer("terser").tap((args) => {
+        args[0].terserOptions.compress.drop_console = true;
+        args[0].extractComments = true;
+        args[0].cache = true;
+        return args;
+      });
+
+      config.plugin("CompressionPlugin").use(CompressionPlugin, [{}]);
+
+      shell.rm('frontend/dev-webpack-stats.json')
+
+    } else {
+      config.devtool("source-map");
+    }
 
     config.entryPoints.delete("app");
 

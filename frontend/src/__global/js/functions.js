@@ -1,31 +1,4 @@
 
-window.removeTinymce = function () {
-  while (window.tinymce.editors.length > 0) {
-    window.tinymce.remove(window.tinymce.editors[0])
-  }
-}
-
-window.initTextRichEditor = function (elements, readonly = false) {
-  window.removeTinymce()
-  const configTinymce = {
-    selector: elements === null || elements === undefined ? 'textarea' : elements,
-    force_br_newlines: false,
-    force_p_newlines: false,
-    forced_root_block: '',
-    min_height: 200,
-    language: 'pt_BR',
-    plugins: ['lists table code'],
-    menubar: 'edit view format table tools',
-    toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent'
-  }
-  if (readonly) {
-    configTinymce.readonly = 1
-    configTinymce.menubar = false
-    configTinymce.toolbar = false
-  }
-  window.tinymce.init(configTinymce)
-}
-
 window.refreshDatePicker = function () {
   $.datepicker.setDefaults($.datepicker.regional['pt-BR'])
   $('.dateinput').datepicker()

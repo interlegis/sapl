@@ -14,20 +14,11 @@ import 'jquery-ui/ui/i18n/datepicker-pt-BR'
 
 import 'jquery-ui-themes/themes/cupertino/jquery-ui.min.css'
 
-import tinymce from 'tinymce/tinymce'
-
-import './js/tinymce/lang/pt_BR.js'
-
-import 'tinymce/themes/silver'
-import 'tinymce/icons/default'
-import 'tinymce/plugins/table'
-import 'tinymce/plugins/lists'
-import 'tinymce/plugins/code'
-
 import 'jquery-mask-plugin'
 
 import './scss/app.scss'
 
+import './js/tinymce'
 import './js/image_cropping'
 import './js/functions'
 
@@ -41,7 +32,6 @@ window.$ = $
 window.jQuery = $
 
 window.moment = moment
-window.tinymce = tinymce
 
 window.autorModal()
 window.refreshMask()
