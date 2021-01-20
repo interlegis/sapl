@@ -200,6 +200,10 @@ def abrir_votacao(request, pk, spk):
     return HttpResponseRedirect(success_url)
 
 
+# Tipo de Votação
+LEITURA = 4
+
+
 def customize_link_materia(context, pk, has_permission, is_expediente):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
@@ -243,8 +247,10 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         exist_retirada = obj.retiradapauta_set.filter(materia=obj.materia).exists()
         exist_leitura = obj.registroleitura_set.filter(materia=obj.materia).exists()
 
-        if (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or\
-                (obj.tipo_votacao == 4 and not exist_leitura):
+        if (
+            (obj.tipo_votacao != LEITURA and not exist_resultado and not exist_retirada) or
+            (obj.tipo_votacao == LEITURA and not exist_leitura and not exist_retirada)
+        ):
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
@@ -1928,17 +1934,27 @@ def get_materias_expediente(sessao_plenaria):
                 tramitacao = aux_tramitacao
                 break
 
+        rp = m.retiradapauta_set.first()
         rv = m.registrovotacao_set.first()
-        rp = m.retiradapauta_set.filter(materia=m.materia).first()
-        if rv:
-            resultado = rv.tipo_resultado_votacao.nome
-            resultado_observacao = rv.observacao
-        elif rp:
+        rl = m.registroleitura_set.first()
+
+        if rp:
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
+        elif m.tipo_votacao != LEITURA:
+            if rv:
+                resultado = rv.tipo_resultado_votacao.nome
+                resultado_observacao = rv.observacao
+            else:
+                resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
         else:
-            resultado = _('Matéria lida') if m.tipo_votacao == 4 else _('Matéria não votada')
-            resultado_observacao = _(' ')
+            if rl:
+                resultado = _('Matéria Lida')
+                resultado_observacao = rl.observacao
+            else:
+                resultado = _('Matéria não lida')
+                resultado_observacao = _(' ')
 
         materia_em_tramitacao = m.materia.materiaemtramitacao_set.first()
         materias_expediente.append({
@@ -2033,17 +2049,27 @@ def get_materias_ordem_do_dia(sessao_plenaria):
                 break
 
         # Verificar resultado
-        rv = o.registrovotacao_set.filter(materia=o.materia).first()
-        rp = o.retiradapauta_set.filter(materia=o.materia).first()
-        if rv:
-            resultado = rv.tipo_resultado_votacao.nome
-            resultado_observacao = rv.observacao
-        elif rp:
+        rp = o.retiradapauta_set.first()
+        rv = o.registrovotacao_set.first()
+        rl = o.registroleitura_set.first()
+
+        if rp:
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
+        elif o.tipo_votacao != LEITURA:
+            if rv:
+                resultado = rv.tipo_resultado_votacao.nome
+                resultado_observacao = rv.observacao
+            else:
+                resultado = _('Matéria não votada')
+                resultado_observacao = _(' ')
         else:
-            resultado = _('Matéria lida') if o.tipo_votacao == 4 else _('Matéria não votada')
-            resultado_observacao = _(' ')
+            if rl:
+                resultado = _('Matéria Lida')
+                resultado_observacao = rl.observacao
+            else:
+                resultado = _('Matéria não lida')
+                resultado_observacao = _(' ')
 
         voto_nominal = []
         if o.tipo_votacao == 2:
@@ -2078,7 +2104,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             'voto_nao': voto_nao,
             'voto_abstencoes': voto_abstencoes,
             'voto_nominal': voto_nominal,
-            'observacao': o.observacao          
+            'observacao': o.observacao
         })
 
     return {'materias_ordem': materias_ordem}
@@ -2161,7 +2187,8 @@ class ResumoView(DetailView):
 
             votacoes.append({
                 'titulo': titulo_materia,
-                'votos': votos_materia
+                # votos = 0 representa matéria retirada da pauta
+                'votos': votos_materia if not mevn.retiradapauta_set.first() else 0
             })
 
         context.update({'votos_nominais_materia_expediente': votacoes})
@@ -2207,7 +2234,8 @@ class ResumoView(DetailView):
 
             votacoes_od.append({
                 'titulo': t_materia,
-                'votos': votos_materia_od
+                # votos = 0 representa matéria retirada da pauta
+                'votos': votos_materia_od if not modvn.retiradapauta_set.first() else 0
             })
 
         context.update({'votos_nominais_materia_ordem_dia': votacoes_od})
