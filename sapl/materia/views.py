@@ -433,7 +433,7 @@ class PesquisarStatusTramitacaoView(FilterView):
         if data:
             url = '&' + str(self.request.META["QUERY_STRING"])
             if url.startswith("&page"):
-                ponto_comeco = url.find("sigla=") - 1
+                ponto_comeco = url.find("descricao=") - 1
                 url = url[ponto_comeco:]
 
         context = self.get_context_data(
