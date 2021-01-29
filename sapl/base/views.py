@@ -1911,7 +1911,7 @@ class DetailUsuarioView(PermissionRequiredMixin, DetailView):
                 {
                     "checked": "checked" if g in user.groups.all() else "unchecked",
                     "group": g.name
-                } for g in Group.objects.all().order_by("name")]
+                } for g in Group.objects.all().order_by("name") if g.name != 'Votante']
         })
 
         return context
