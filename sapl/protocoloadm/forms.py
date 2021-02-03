@@ -26,7 +26,8 @@ from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_protocolo, choice_force_optional,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
                         lista_anexados, RANGE_ANOS,
-                        validar_arquivo, YES_NO_CHOICES)
+                        validar_arquivo, YES_NO_CHOICES,
+                        GoogleRecapthaMixin)
 
 from .models import (Anexado, AcompanhamentoDocumento,
                      DocumentoAcessorioAdministrativo,
@@ -47,7 +48,7 @@ NATUREZA_PROCESSO = [('0', 'Administrativo'),
 EM_TRAMITACAO = [(0, 'Sim'), (1, 'Não')]
 
 
-class AcompanhamentoDocumentoForm(ModelForm):
+class AcompanhamentoDocumentoForm(GoogleRecapthaMixin, ModelForm):
 
     class Meta:
         model = AcompanhamentoDocumento
@@ -55,17 +56,10 @@ class AcompanhamentoDocumentoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row([('email', 12)])
+        kwargs['title_label'] = _('Acompanhamento de Documento por e-mail')
+        kwargs['action_label'] = _('Cadastrar')
 
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Acompanhamento de Documento por e-mail'),
-                row1,
-                form_actions(label='Cadastrar')
-            )
-        )
-        super(AcompanhamentoDocumentoForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class ProtocoloFilterSet(django_filters.FilterSet):

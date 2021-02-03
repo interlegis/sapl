@@ -42,7 +42,8 @@ from sapl.utils import (autor_label, autor_modal,
                         lista_anexados, MateriaPesquisaOrderingFilter,
                         models_with_gr_for_model, qs_override_django_filter,
                         SEPARADOR_HASH_PROPOSICAO,
-                        validar_arquivo, YES_NO_CHOICES)
+                        validar_arquivo, YES_NO_CHOICES,
+                        GoogleRecapthaMixin)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, Numeracao,
@@ -314,7 +315,7 @@ class UnidadeTramitacaoForm(ModelForm):
         return unidade
 
 
-class AcompanhamentoMateriaForm(ModelForm):
+class AcompanhamentoMateriaForm(GoogleRecapthaMixin, ModelForm):
 
     class Meta:
         model = AcompanhamentoMateria
@@ -322,17 +323,10 @@ class AcompanhamentoMateriaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row([('email', 12)])
+        kwargs['title_label'] = _('Acompanhamento de Matéria por e-mail')
+        kwargs['action_label'] = _('Cadastrar')
 
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Acompanhamento de Matéria por e-mail'),
-                row1,
-                form_actions(label='Cadastrar')
-            )
-        )
-        super(AcompanhamentoMateriaForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):

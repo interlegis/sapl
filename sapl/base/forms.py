@@ -36,7 +36,8 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
                         AnoNumeroOrderingFilter, ImageThumbnailFileInput,
                         models_with_gr_for_model, qs_override_django_filter,
-                        RangeWidgetOverride, RANGE_ANOS, YES_NO_CHOICES)
+                        RangeWidgetOverride, RANGE_ANOS, YES_NO_CHOICES,
+                        GoogleRecapthaMixin)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -1621,29 +1622,22 @@ class ConfiguracoesAppForm(ModelForm):
         return cleaned_data
 
 
-class RecuperarSenhaForm(PasswordResetForm):
+class RecuperarSenhaForm(GoogleRecapthaMixin, PasswordResetForm):
 
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
-        row1 = to_row(
-            [('email', 12)])
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Insira o e-mail cadastrado com a sua conta'),
-                     row1,
-                     form_actions(label='Enviar'))
-        )
 
-        super(RecuperarSenhaForm, self).__init__(*args, **kwargs)
+        kwargs['title_label'] = _('Insira o e-mail cadastrado com a sua conta')
+        kwargs['action_label'] = _('Enviar')
+
+        super().__init__(*args, **kwargs)
 
     def clean(self):
+
         super(RecuperarSenhaForm, self).clean()
 
-        if not self.is_valid():
-            return self.cleaned_data
-
-        email_existente = User.objects.filter(
+        email_existente = get_user_model().objects.filter(
             email=self.data['email']).exists()
 
         if not email_existente:
