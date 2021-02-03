@@ -1565,6 +1565,18 @@ class ConfiguracoesAppForm(ModelForm):
         label=_('Mostrar brasão da Casa no painel?'),
         required=False)
 
+    google_recaptcha_site_key = forms.CharField(
+        label=AppConfig._meta.get_field(
+            'google_recaptcha_site_key').verbose_name,
+        max_length=256,
+        required=False)
+
+    google_recaptcha_secret_key = forms.CharField(
+        label=AppConfig._meta.get_field(
+            'google_recaptcha_secret_key').verbose_name,
+        max_length=256,
+        required=False)
+
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
@@ -1588,7 +1600,9 @@ class ConfiguracoesAppForm(ModelForm):
                   'estatisticas_acesso_normas',
                   'escolher_numero_materia_proposicao',
                   'tramitacao_materia',
-                  'tramitacao_documento']
+                  'tramitacao_documento',
+                  'google_recaptcha_site_key',
+                  'google_recaptcha_secret_key']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)

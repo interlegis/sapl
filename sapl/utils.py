@@ -1010,6 +1010,13 @@ def mail_service_configured(request=None):
     return settings.EMAIL_RUNNING
 
 
+def google_recaptcha_configured():
+    logger = logging.getLogger(__name__)
+    from sapl.base.models import AppConfig
+
+    return not AppConfig.attr('google_recaptcha_site_key') == ''
+
+
 def lista_anexados(principal, isMateriaLegislativa=True):
     anexados_total = []
     if isMateriaLegislativa:  # MateriaLegislativa
@@ -1078,6 +1085,8 @@ class GoogleRecapthaMixin:
 
     def __init__(self, *args, **kwargs):
 
+        from sapl.base.models import AppConfig
+
         title_label = kwargs.pop('title_label')
         action_label = kwargs.pop('action_label')
 
@@ -1085,7 +1094,7 @@ class GoogleRecapthaMixin:
             [
                 (Div(
                  css_class="g-recaptcha float-right",  # if not settings.DEBUG else '',
-                 data_sitekey=settings.GOOGLE_RECAPTCHA_SITE_KEY
+                 data_sitekey=AppConfig.attr('google_recaptcha_site_key')
                  ), 5),
                 ('email', 7),
 
@@ -1114,6 +1123,8 @@ class GoogleRecapthaMixin:
             raise ValidationError(
                 _('Verificação do reCAPTCHA não efetuada.'))
 
+        from sapl.base.models import AppConfig
+
         import urllib3
         import json
 
@@ -1121,7 +1132,7 @@ class GoogleRecapthaMixin:
 
         url = ('https://www.google.com/recaptcha/api/siteverify?'
                'secret=%s'
-               '&response=%s' % (settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+               '&response=%s' % (AppConfig.attr('google_recaptcha_secret_key'),
                                  recaptcha))
 
         http = urllib3.PoolManager()

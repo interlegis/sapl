@@ -1,12 +1,12 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% block base_content %}
-  
+
   <!-- O bloco comentado é para ser implementado após as autorizacoes -->
   <!-- {% if next %}
     {% if user.is_authenticated %}
       <p>Você não tem acesso a esta página. Se quiser continuar, faça o Login.</p>
-      
+
       {% else %}
         <p>Por favor, faça o Login para acessar esta página.</p>
       {% endif %}
@@ -41,7 +41,12 @@
                                   </tr>
                               </table>
                           </p>
-                          <h5><a href="{% url 'sapl.base:recuperar_senha_email' %}"><center>Esqueceu sua senha?</center></a></h6>
+                          {% if google_recaptcha_configured %}
+                            <h5><a href="{% url 'sapl.base:recuperar_senha_email' %}"><center>Esqueceu sua senha?</center></a></h6>
+                          {% else %}
+                            <br>
+                          {% endif %}
+
                           <p class="bs-component">
                               <center>
                                   <input class="btn btn-lg btn-success btn-block" type="submit" value="login" />

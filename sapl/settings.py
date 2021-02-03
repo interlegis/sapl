@@ -195,6 +195,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'sapl.context_processors.parliament_info',
                 'sapl.context_processors.mail_service_configured',
+                'sapl.context_processors.google_recaptcha_configured',
+
             ],
             'debug': DEBUG
         },
