@@ -116,7 +116,8 @@ class UsuarioCreateForm(ModelForm):
 
         data = self.cleaned_data
         if data['password1'] != data['password2']:
-            self.logger.warning('Erro de validação. Senhas informadas são diferentes.')
+            self.logger.warning(
+                'Erro de validação. Senhas informadas são diferentes.')
             raise ValidationError('Senhas informadas são diferentes')
 
         return data
@@ -235,7 +236,8 @@ class UsuarioEditForm(ModelForm):
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             'username',
-            FieldWithButtons('token', StrictButton('Renovar', id="renovar-token", css_class="btn-outline-primary")),
+            FieldWithButtons('token', StrictButton(
+                'Renovar', id="renovar-token", css_class="btn-outline-primary")),
             rows,
             form_actions(
                 more=[
@@ -250,7 +252,8 @@ class UsuarioEditForm(ModelForm):
 
         data = self.cleaned_data
         if data['password1'] and data['password1'] != data['password2']:
-            self.logger.warning("Erro de validação. Senhas informadas são diferentes.")
+            self.logger.warning(
+                "Erro de validação. Senhas informadas são diferentes.")
             raise ValidationError('Senhas informadas são diferentes')
 
         return data
@@ -315,7 +318,8 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
         if numero <= ult and flag_edit:
             self.logger.warning(
                 'O número da SessaoLegislativa ({}) é menor ou igual '
-                'que o de Sessões Legislativas passadas ({})'.format(numero, ult)
+                'que o de Sessões Legislativas passadas ({})'.format(
+                    numero, ult)
             )
             raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
                                   'que o de Sessões Legislativas passadas')
@@ -325,7 +329,8 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
             self.logger.warning(
                 'A data de início ({}) da SessaoLegislativa está compreendida '
                 'fora da data início ({}) e fim ({}) da Legislatura '
-                'selecionada'.format(data_inicio, data_inicio_leg, data_fim_leg)
+                'selecionada'.format(
+                    data_inicio, data_inicio_leg, data_fim_leg)
             )
             raise ValidationError('A data de início da Sessão Legislativa deve estar compreendida '
                                   'entre a data início e fim da Legislatura selecionada')
@@ -342,13 +347,15 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         if data_inicio > data_fim:
             self.logger.warning(
-                'Data início ({}) superior à data fim ({}).'.format(data_inicio, data_fim)
+                'Data início ({}) superior à data fim ({}).'.format(
+                    data_inicio, data_fim)
             )
             raise ValidationError(
                 'Data início não pode ser superior à data fim')
 
         if data_fim.year > data_inicio.year + 1:
-            raise ValidationError('A Sessão Legislativa só pode ter, no máximo, dois anos de período.')
+            raise ValidationError(
+                'A Sessão Legislativa só pode ter, no máximo, dois anos de período.')
 
         data_inicio_intervalo = cleaned_data['data_inicio_intervalo']
         data_fim_intervalo = cleaned_data['data_fim_intervalo']
@@ -357,7 +364,8 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
                 data_inicio_intervalo > data_fim_intervalo:
             self.logger.warning(
                 'Data início de intervalo ({}) superior à '
-                'data fim de intervalo ({}).'.format(data_inicio_intervalo, data_fim_intervalo)
+                'data fim de intervalo ({}).'.format(
+                    data_inicio_intervalo, data_fim_intervalo)
             )
             raise ValidationError('Data início de intervalo não pode ser '
                                   'superior à data fim de intervalo')
@@ -766,7 +774,8 @@ class AutorForm(ModelForm):
 
 
 class AutorFilterSet(django_filters.FilterSet):
-    nome = django_filters.CharFilter(label=_('Nome do Autor'), lookup_expr='icontains')
+    nome = django_filters.CharFilter(
+        label=_('Nome do Autor'), lookup_expr='icontains')
 
     class Meta:
         model = Autor
@@ -1063,20 +1072,24 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(required=False, label='Exibir presença das Ordens do Dia')
+        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(
+            required=False, label='Exibir presença das Ordens do Dia')
         self.form.initial['exibir_ordem_dia'] = True
 
-        self.form.fields['exibir_somente_titular'] = forms.BooleanField(required=False, label='Exibir somente parlamentares titulares')
+        self.form.fields['exibir_somente_titular'] = forms.BooleanField(
+            required=False, label='Exibir somente parlamentares titulares')
         self.form.initial['exibir_somente_titular'] = False
-        
-        self.form.fields['exibir_somente_ativo'] = forms.BooleanField(required=False, label='Exibir somente parlamentares ativos')
+
+        self.form.fields['exibir_somente_ativo'] = forms.BooleanField(
+            required=False, label='Exibir somente parlamentares ativos')
         self.form.initial['exibir_somente_ativo'] = False
-        
+
         self.form.fields['legislatura'].required = True
 
         self.filters['data_inicio'].label = 'Período (Inicial - Final)'
 
-        tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(nome='Ordinária')
+        tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(
+            nome='Ordinária')
         if tipo_sessao_ordinaria:
             self.form.initial['tipo'] = tipo_sessao_ordinaria.first()
 
@@ -1341,7 +1354,6 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         label='Autor da Matéria',
         queryset=Autor.objects.all())
 
-
     @property
     def qs(self):
         parent = super(RelatorioMateriasTramitacaoFilterSet, self).qs
@@ -1353,7 +1365,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         model = MateriaEmTramitacao
         fields = ['materia__ano', 'materia__tipo',
                   'tramitacao__unidade_tramitacao_destino',
-                  'tramitacao__status','materia__autores']
+                  'tramitacao__status', 'materia__autores']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioMateriasTramitacaoFilterSet, self).__init__(
@@ -1385,7 +1397,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
-                     row1, row2, row3, row4,row5,
+                     row1, row2, row3, row4, row5,
                      buttons,)
         )
 
@@ -1637,7 +1649,8 @@ class RecuperarSenhaForm(PasswordResetForm):
         if not email_existente:
             msg = 'Não existe nenhum usuário cadastrado com este e-mail.'
             self.logger.warning(
-                'Não existe nenhum usuário cadastrado com este e-mail ({}).'.format(self.data['email'])
+                'Não existe nenhum usuário cadastrado com este e-mail ({}).'.format(
+                    self.data['email'])
             )
             raise ValidationError(msg)
 
@@ -1726,7 +1739,8 @@ class AlterarSenhaForm(Form):
 
         if user.is_anonymous:
             self.logger.warning(
-                'Não é possível alterar senha de usuário anônimo ({}).'.format(username)
+                'Não é possível alterar senha de usuário anônimo ({}).'.format(
+                    username)
             )
             raise ValidationError(
                 "Não é possível alterar senha de usuário anônimo")

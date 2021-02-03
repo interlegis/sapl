@@ -7,7 +7,7 @@ from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import F, Max, Q
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
@@ -15,9 +15,6 @@ from django.forms.models import ModelMultipleChoiceField
 from django.forms.widgets import CheckboxSelectMultiple, HiddenInput, Select
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_text
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
@@ -28,15 +25,15 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       SaplFormLayout, to_column, to_row)
-from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
+from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
                                  MateriaLegislativa, Orgao,
                                  RegimeTramitacao, StatusTramitacao,
                                  TipoDocumento, TipoProposicao,
-                                 UnidadeTramitacao, ConfigEtiquetaMateriaLegislativa)
+                                 ConfigEtiquetaMateriaLegislativa)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
-from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
-from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
+from sapl.parlamentares.models import Legislatura, Partido
+from sapl.protocoloadm.models import (DocumentoAdministrativo,
                                       Protocolo)
 from sapl.utils import (autor_label, autor_modal,
                         ChoiceWithoutValidationField,
@@ -44,7 +41,7 @@ from sapl.utils import (autor_label, autor_modal,
                         FilterOverridesMetaMixin, gerar_hash_arquivo,
                         lista_anexados, MateriaPesquisaOrderingFilter,
                         models_with_gr_for_model, qs_override_django_filter,
-                        RangeWidgetOverride, SEPARADOR_HASH_PROPOSICAO,
+                        SEPARADOR_HASH_PROPOSICAO,
                         validar_arquivo, YES_NO_CHOICES)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
@@ -2789,7 +2786,8 @@ class FichaSelecionaForm(forms.Form):
 
 
 class StatusTramitacaoFilterSet(django_filters.FilterSet):
-    descricao = django_filters.CharFilter(label=_("Descrição do Status"), method='multifield_filter')
+    descricao = django_filters.CharFilter(
+        label=_("Descrição do Status"), method='multifield_filter')
 
     class Meta:
         model = StatusTramitacao
@@ -2806,7 +2804,8 @@ class StatusTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = "GET"
         self.form.helper.layout = Layout(
-            Fieldset(_("Pesquisa de Status de Tramitacao"), row0, form_actions(label="Pesquisar"))
+            Fieldset(_("Pesquisa de Status de Tramitacao"),
+                     row0, form_actions(label="Pesquisar"))
         )
 
 

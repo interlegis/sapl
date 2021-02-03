@@ -2,12 +2,12 @@ import logging
 import re
 
 from crispy_forms.bootstrap import InlineRadios, Alert, FormActions
-from crispy_forms.layout import (Button, Column, Div, Fieldset, HTML,
+from crispy_forms.layout import (Button, Div, Fieldset, HTML,
                                  Layout, Submit)
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
@@ -20,13 +20,12 @@ from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
 from sapl.materia.models import (MateriaLegislativa,
                                  TipoMateriaLegislativa,
                                  UnidadeTramitacao)
-from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
                         choice_anos_com_materias,
                         choice_anos_com_protocolo, choice_force_optional,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
-                        lista_anexados, RangeWidgetOverride, RANGE_ANOS,
+                        lista_anexados, RANGE_ANOS,
                         validar_arquivo, YES_NO_CHOICES)
 
 from .models import (Anexado, AcompanhamentoDocumento,
