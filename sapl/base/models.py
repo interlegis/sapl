@@ -19,11 +19,11 @@ RELATORIO_ATOS_ACESSADOS = (('S', _('Sim')),
                             ('N', _('Não')))
 
 SEQUENCIA_NUMERACAO_PROTOCOLO = (('A', _('Sequencial por ano')),
-                       ('L', _('Sequencial por legislatura')),
-                       ('U', _('Sequencial único')))
+                                 ('L', _('Sequencial por legislatura')),
+                                 ('U', _('Sequencial único')))
 
 SEQUENCIA_NUMERACAO_PROPOSICAO = (('A', _('Sequencial por ano para cada autor')),
-                       ('B', _('Sequencial por ano indepententemente do autor')))
+                                  ('B', _('Sequencial por ano indepententemente do autor')))
 
 ESFERA_FEDERACAO_CHOICES = (('M', _('Municipal')),
                             ('E', _('Estadual')),
@@ -108,7 +108,7 @@ class AppConfig(models.Model):
         max_length=1,
         verbose_name=_('Sequência de numeração de protocolos'),
         choices=SEQUENCIA_NUMERACAO_PROTOCOLO, default='A')
-    
+
     inicio_numeracao_protocolo = models.PositiveIntegerField(
         verbose_name=_('Início da numeração de protocolo'),
         default=1
@@ -179,16 +179,26 @@ class AppConfig(models.Model):
         choices=YES_NO_CHOICES, default=False)
 
     escolher_numero_materia_proposicao = models.BooleanField(
-        verbose_name=_('Indicar número da matéria a ser gerada na proposição?'),
+        verbose_name=_(
+            'Indicar número da matéria a ser gerada na proposição?'),
         choices=YES_NO_CHOICES, default=False)
 
     tramitacao_materia = models.BooleanField(
-        verbose_name=_('Tramitar matérias anexadas junto com as matérias principais?'),
+        verbose_name=_(
+            'Tramitar matérias anexadas junto com as matérias principais?'),
         choices=YES_NO_CHOICES, default=True)
-    
+
     tramitacao_documento = models.BooleanField(
-        verbose_name=_('Tramitar documentos anexados junto com os documentos principais?'),
+        verbose_name=_(
+            'Tramitar documentos anexados junto com os documentos principais?'),
         choices=YES_NO_CHOICES, default=True)
+
+    google_recaptcha_site_key = models.CharField(
+        verbose_name=_('Chave pública gerada pelo Google Recaptcha'),
+        max_length=256, default='')
+    google_recaptcha_secret_key = models.CharField(
+        verbose_name=_('Chave privada gerada pelo Google Recaptcha'),
+        max_length=256, default='')
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')
@@ -219,7 +229,8 @@ class TipoAutor(models.Model):
     descricao = models.CharField(
         max_length=50,
         verbose_name=_('Descrição'),
-        help_text=_('Obs: Não crie tipos de autores semelhante aos tipos fixos. ')
+        help_text=_(
+            'Obs: Não crie tipos de autores semelhante aos tipos fixos. ')
     )
 
     content_type = models.OneToOneField(
@@ -325,4 +336,3 @@ class AuditLog(models.Model):
                                      self.model_name,
                                      self.username,
                                      )
-

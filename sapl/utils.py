@@ -1,23 +1,18 @@
-from itertools import groupby
-
-import django_filters
-import hashlib
-import logging
-import magic
-import os
-import re
-import unicodedata
-import platform
-import tempfile
-from crispy_forms.layout import Button, HTML
-from easy_thumbnails import source_generators
-from floppyforms import ClearableFileInput
 from functools import wraps
+import hashlib
+from itertools import groupby
+import logging
 from operator import itemgetter
-from reversion_compare.admin import CompareVersionAdmin
+import os
+import platform
+import re
+import requests
+import tempfile
 from unicodedata import normalize as unicodedata_normalize
-from unipath.path import Path
+import unicodedata
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Button, HTML, Fieldset, Div
 from django import forms
 from django.apps import apps
 from django.conf import settings
@@ -35,6 +30,12 @@ from django.forms.widgets import SplitDateTimeWidget
 from django.utils import six, timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+import django_filters
+from easy_thumbnails import source_generators
+from floppyforms import ClearableFileInput
+import magic
+from reversion_compare.admin import CompareVersionAdmin
+from unipath.path import Path
 
 from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       SaplFormLayout, to_row)
@@ -60,11 +61,11 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
         def sort_function(m): return m.tipo
     else:
         def sort_function(m): return m.materia.tipo
-        
+
     # select_related eh importante por questoes de desempenho, pois caso
     # contrario ele realizara uma consulta ao banco para cada iteracao,
     # na key do groupby (uma alternativa é só usar tipo_id, na chave).
-    qs2 = qs.select_related(attr_tipo).order_by(attr_tipo+'_id')
+    qs2 = qs.select_related(attr_tipo).order_by(attr_tipo + '_id')
 
     for key, values in groupby(qs2, key=sort_function):
         # poderia usar qtdes[key] = len(list(values)) aqui, mas
@@ -76,16 +77,16 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
 def validar_arquivo(arquivo, nome_campo):
     if len(arquivo.name) > 200:
         raise ValidationError(
-            "Certifique-se de que o nome do arquivo no " \
-            "campo '" + nome_campo + "' tenha no máximo 200 caracteres " \
+            "Certifique-se de que o nome do arquivo no "
+            "campo '" + nome_campo + "' tenha no máximo 200 caracteres "
             "(ele possui {})".format(len(arquivo.name))
         )
     if arquivo.size > MAX_DOC_UPLOAD_SIZE:
         raise ValidationError(
-            "O arquivo " + nome_campo + " deve ser menor que " \
+            "O arquivo " + nome_campo + " deve ser menor que "
             "{0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb".format(
-                (MAX_DOC_UPLOAD_SIZE/1024)/1024,
-                (arquivo.size/1024)/1024
+                (MAX_DOC_UPLOAD_SIZE / 1024) / 1024,
+                (arquivo.size / 1024) / 1024
             )
         )
 
@@ -96,18 +97,18 @@ def pil_image(source, exif_orientation=False, **options):
 
 def dont_break_out(value, max_part=50):
     _safe = value.split()
-    
+
     def chunkstring(string):
         return re.findall('.{%d}' % max_part, string)
-    
+
     def __map(a):
         if len(a) <= max_part:
             return a
         return '<br>' + '<br>'.join(chunkstring(a))
-            
+
     _safe = map(__map, _safe)
     _safe = ' '.join(_safe)
-    
+
     _safe = mark_safe(_safe)
     return value
 
@@ -178,7 +179,9 @@ def montar_row_autor(name):
 
     return autor_row
 
-#TODO: Esta função é utilizada?
+# TODO: Esta função é utilizada?
+
+
 def montar_helper_autor(self):
     autor_row = montar_row_autor('nome')
     self.helper = SaplFormHelper()
@@ -1008,14 +1011,21 @@ def mail_service_configured(request=None):
     return settings.EMAIL_RUNNING
 
 
+def google_recaptcha_configured():
+    from sapl.base.models import AppConfig
+
+    return not AppConfig.attr('google_recaptcha_site_key') == ''
+
+
 def lista_anexados(principal, isMateriaLegislativa=True):
     anexados_total = []
-    if isMateriaLegislativa: #MateriaLegislativa
+    if isMateriaLegislativa:  # MateriaLegislativa
         from sapl.materia.models import Anexada
         anexados_iterator = Anexada.objects.filter(materia_principal=principal)
-    else: #DocAdm
+    else:  # DocAdm
         from sapl.protocoloadm.models import Anexado
-        anexados_iterator = Anexado.objects.filter(documento_principal=principal)
+        anexados_iterator = Anexado.objects.filter(
+            documento_principal=principal)
 
     anexadas_temp = list(anexados_iterator)
 
@@ -1024,12 +1034,14 @@ def lista_anexados(principal, isMateriaLegislativa=True):
         if isMateriaLegislativa:
             if anx.materia_anexada not in anexados_total:
                 anexados_total.append(anx.materia_anexada)
-                anexados_anexado = Anexada.objects.filter(materia_principal=anx.materia_anexada)
+                anexados_anexado = Anexada.objects.filter(
+                    materia_principal=anx.materia_anexada)
                 anexadas_temp.extend(anexados_anexado)
         else:
             if anx.documento_anexado not in anexados_total:
                 anexados_total.append(anx.documento_anexado)
-                anexados_anexado = Anexado.objects.filter(documento_principal=anx.documento_anexado)
+                anexados_anexado = Anexado.objects.filter(
+                    documento_principal=anx.documento_anexado)
                 anexadas_temp.extend(anexados_anexado)
     if principal in anexados_total:
         anexados_total.remove(principal)
@@ -1058,10 +1070,84 @@ class OverwriteStorage(FileSystemStorage):
     Muda o comportamento padrão do Django e o faz sobrescrever arquivos de
     mesmo nome que foram carregados pelo usuário ao invés de renomeá-los.
     '''
+
     def get_available_name(self, name, max_length=None):
         if self.exists(name):
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
 
+
 def get_tempfile_dir():
     return '/tmp' if platform.system() == 'Darwin' else tempfile.gettempdir()
+
+
+class GoogleRecapthaMixin:
+
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+
+        from sapl.base.models import AppConfig
+
+        title_label = kwargs.pop('title_label')
+        action_label = kwargs.pop('action_label')
+
+        row1 = to_row(
+            [
+                (Div(
+                 css_class="g-recaptcha float-right",  # if not settings.DEBUG else '',
+                 data_sitekey=AppConfig.attr('google_recaptcha_site_key')
+                 ), 5),
+                ('email', 7),
+
+            ]
+        )
+
+        self.helper = FormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(
+                title_label,
+                row1
+            ),
+            actions=form_actions(label=action_label)
+        )
+
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+
+        super().clean()
+
+        cd = self.cleaned_data
+
+        recaptcha = self.data.get('g-recaptcha-response', '')
+        if not recaptcha:
+            raise ValidationError(
+                _('Verificação do reCAPTCHA não efetuada.'))
+
+        from sapl.base.models import AppConfig
+
+        url = ('https://www.google.com/recaptcha/api/siteverify?'
+               'secret=%s'
+               '&response=%s' % (AppConfig.attr('google_recaptcha_secret_key'),
+                                 recaptcha))
+
+        try:
+            r = requests.post(url)
+            if r.ok:
+                jdata = r.json()
+            else:
+                raise ValidationError(
+                    _('Ocorreu um erro na validação do reCAPTCHA.'))
+        except Exception as e:
+            logging.error(e)
+            raise ValidationError(
+                _('Ocorreu um erro na validação do reCAPTCHA.'))
+
+        if jdata['success']:
+            return cd
+        else:
+            raise ValidationError(
+                _('Ocorreu um erro na validação do reCAPTCHA.'))
+
+        return cd

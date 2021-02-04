@@ -56,7 +56,8 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
-                        show_results_filter_set, YES_NO_CHOICES, get_tempfile_dir)
+                        show_results_filter_set, YES_NO_CHOICES, get_tempfile_dir,
+                        google_recaptcha_configured)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -2090,6 +2091,10 @@ class AcompanhamentoMateriaView(CreateView):
             messages.error(request, _('Serviço de Acompanhamento de '
                                       'Matérias não foi configurado'))
             return redirect('/')
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
 
         pk = self.kwargs['pk']
         materia = MateriaLegislativa.objects.get(id=pk)
@@ -2105,6 +2110,11 @@ class AcompanhamentoMateriaView(CreateView):
             messages.error(request, _('Serviço de Acompanhamento de '
                                       'Matérias não foi configurado'))
             return redirect('/')
+
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
 
         form = AcompanhamentoMateriaForm(request.POST)
         pk = self.kwargs['pk']

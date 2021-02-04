@@ -3,7 +3,7 @@
 
 {% block sub_actions %}
     {{ block.super }}
-    {% if object.em_tramitacao and mail_service_configured %}
+    {% if object.em_tramitacao and mail_service_configured and google_recaptcha_configured %}
        <div class="actions btn-group btn-group-sm" role="group">
        <a href="{% url 'sapl.materia:acompanhar_materia' object.id %}" class="btn btn-outline-primary">Acompanhar Matéria</a>
        </div>

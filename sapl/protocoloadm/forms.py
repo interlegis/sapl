@@ -2,12 +2,12 @@ import logging
 import re
 
 from crispy_forms.bootstrap import InlineRadios, Alert, FormActions
-from crispy_forms.layout import (Button, Column, Div, Fieldset, HTML,
+from crispy_forms.layout import (Button, Div, Fieldset, HTML,
                                  Layout, Submit)
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
@@ -20,14 +20,14 @@ from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
 from sapl.materia.models import (MateriaLegislativa,
                                  TipoMateriaLegislativa,
                                  UnidadeTramitacao)
-from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
                         choice_anos_com_materias,
                         choice_anos_com_protocolo, choice_force_optional,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
-                        lista_anexados, RangeWidgetOverride, RANGE_ANOS,
-                        validar_arquivo, YES_NO_CHOICES)
+                        lista_anexados, RANGE_ANOS,
+                        validar_arquivo, YES_NO_CHOICES,
+                        GoogleRecapthaMixin)
 
 from .models import (Anexado, AcompanhamentoDocumento,
                      DocumentoAcessorioAdministrativo,
@@ -48,7 +48,7 @@ NATUREZA_PROCESSO = [('0', 'Administrativo'),
 EM_TRAMITACAO = [(0, 'Sim'), (1, 'Não')]
 
 
-class AcompanhamentoDocumentoForm(ModelForm):
+class AcompanhamentoDocumentoForm(GoogleRecapthaMixin, ModelForm):
 
     class Meta:
         model = AcompanhamentoDocumento
@@ -56,17 +56,10 @@ class AcompanhamentoDocumentoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row([('email', 12)])
+        kwargs['title_label'] = _('Acompanhamento de Documento por e-mail')
+        kwargs['action_label'] = _('Cadastrar')
 
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Acompanhamento de Documento por e-mail'),
-                row1,
-                form_actions(label='Cadastrar')
-            )
-        )
-        super(AcompanhamentoDocumentoForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class ProtocoloFilterSet(django_filters.FilterSet):

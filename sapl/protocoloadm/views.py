@@ -40,7 +40,8 @@ from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
-                        show_results_filter_set, mail_service_configured, from_date_to_datetime_utc)
+                        show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
+                        google_recaptcha_configured)
 
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
                     AnularProtocoloAdmForm, compara_tramitacoes_doc,
@@ -200,6 +201,11 @@ class AcompanhamentoDocumentoView(CreateView):
                                       'Documentos não foi configurado'))
             return redirect('/')
 
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
         pk = self.kwargs['pk']
         documento = DocumentoAdministrativo.objects.get(id=pk)
 
@@ -213,6 +219,11 @@ class AcompanhamentoDocumentoView(CreateView):
             messages.error(request, _('Serviço de Acompanhamento de '
                                       'Documentos não foi configurado'))
             return redirect('/')
+
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
 
         form = AcompanhamentoDocumentoForm(request.POST)
         pk = self.kwargs['pk']
