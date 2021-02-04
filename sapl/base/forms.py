@@ -1569,7 +1569,16 @@ class ConfiguracoesAppForm(ModelForm):
         label=AppConfig._meta.get_field(
             'google_recaptcha_site_key').verbose_name,
         max_length=256,
-        required=False)
+        required=False,
+        help_text=_(
+            'Acesse <a target="_blank" href="https://www.google.com/recaptcha">https://www.google.com/recaptcha</a> '
+            'para configurar um Recaptcha para sua casa legislativa. '
+            'Com Recaptcha configurado seu sapl disponibilizará '
+            'Acompanhamentos de Matérias e Documentos Administrativos '
+            'e Recuperação de Senha pela opção "Esqueceu sua Senha" '
+            'na tela de login. Esta melhoria na foi necessária com o '
+            'intuito de coibir recorrentes ataques ao serviço de email.'),
+    )
 
     google_recaptcha_secret_key = forms.CharField(
         label=AppConfig._meta.get_field(
