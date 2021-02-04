@@ -6,6 +6,7 @@ from operator import itemgetter
 import os
 import platform
 import re
+import requests
 import tempfile
 from unicodedata import normalize as unicodedata_normalize
 import unicodedata
@@ -1011,7 +1012,6 @@ def mail_service_configured(request=None):
 
 
 def google_recaptcha_configured():
-    logger = logging.getLogger(__name__)
     from sapl.base.models import AppConfig
 
     return not AppConfig.attr('google_recaptcha_site_key') == ''
@@ -1083,6 +1083,8 @@ def get_tempfile_dir():
 
 class GoogleRecapthaMixin:
 
+    logger = logging.getLogger(__name__)
+
     def __init__(self, *args, **kwargs):
 
         from sapl.base.models import AppConfig
@@ -1125,22 +1127,20 @@ class GoogleRecapthaMixin:
 
         from sapl.base.models import AppConfig
 
-        import urllib3
-        import json
-
-        #encoded_data = json.dumps(fields).encode('utf-8')
-
         url = ('https://www.google.com/recaptcha/api/siteverify?'
                'secret=%s'
                '&response=%s' % (AppConfig.attr('google_recaptcha_secret_key'),
                                  recaptcha))
 
-        http = urllib3.PoolManager()
         try:
-            r = http.request('POST', url)
-            data = r.data.decode('utf-8')
-            jdata = json.loads(data)
+            r = requests.post(url)
+            if r.ok:
+                jdata = r.json()
+            else:
+                raise ValidationError(
+                    _('Ocorreu um erro na validação do reCAPTCHA.'))
         except Exception as e:
+            logging.error(e)
             raise ValidationError(
                 _('Ocorreu um erro na validação do reCAPTCHA.'))
 
