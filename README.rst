@@ -15,6 +15,13 @@ Para obter mais informações sobre o projeto como um todo e a versão de trabal
 atual do sistema (2.5), visite a página do `projeto na Interlegis wiki <https://colab.interlegis.leg.br/wiki/ProjetoSapl>`_.
 
 
+IMPORTANTE: A partir da versão 3.1.162 do SAPL, as funcionalidades de recuperar senha,
+acompanhamento de matéria, e acompanhamento de documento exigirão o uso do `Google reCaptcha <https://www.google.com/recaptcha/>`_. Cada casa legislativa será responsável pela geração
+das chaves do reCaptcha e configuração no SAPL em Sistema -> Tabelas Auxiliares -> Configurações da Aplicação.
+Sem essa configuração não serão habilitados os recursos citados anteriormente.
+Veja mais detalhes sobre o processo de geração de chaves e configuração `neste link <​https://www.youtube.com/watch?v=6ZCCyBjSJ-c>`_
+e no caderno de exercícios do SAPL 3.1 disponível na `Wiki do projeto <https://colab.interlegis.leg.br/wiki/ProjetoSapl3.1>`_
+
 Instalação do Ambiente de Desenvolvimento
 =========================================
    `Instalação do Ambiente de Desenvolvimento <https://github.com/interlegis/sapl/blob/3.1.x/docs/instalacao31.rst>`_
