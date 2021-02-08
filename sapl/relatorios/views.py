@@ -626,18 +626,27 @@ def get_sessao_plenaria(sessao, casa):
         else:
             dic_expediente_materia["nom_autor"] = 'Desconhecido'
 
-        resultados = expediente_materia.registrovotacao_set.all()
-        if resultados:
-            for i in resultados:
-                dic_expediente_materia.update({
-                    "nom_resultado": i.tipo_resultado_votacao.nome,
-                    "votacao_observacao": i.observacao
-                })
+        rv = expediente_materia.registrovotacao_set.filter(
+            materia=expediente_materia.materia).first()
+        rp = expediente_materia.retiradapauta_set.filter(
+            materia=expediente_materia.materia).first()
+        if rv:
+            resultado = rv.tipo_resultado_votacao.nome
+            resultado_observacao = rv.observacao
+        elif rp:
+            resultado = rp.tipo_de_retirada.descricao
+            resultado_observacao = rp.observacao
         else:
-            dic_expediente_materia.update({
-                "nom_resultado": 'Matéria não votada',
-                "votacao_observacao": ' '
-            })
+            resultado = _('Matéria lida') \
+                if expediente_materia.tipo_votacao == 4 \
+                else _('Matéria não votada')
+            resultado_observacao = _(' ')
+
+        dic_expediente_materia.update({
+            "nom_resultado": resultado,
+            "votacao_observacao": resultado_observacao
+        })
+
         lst_expediente_materia.append(dic_expediente_materia)
 
     # Lista dos votos nominais das matérias do Expediente
@@ -723,15 +732,26 @@ def get_sessao_plenaria(sessao, casa):
         else:
             dic_votacao["nom_autor"] = 'Desconhecido'
 
-        dic_votacao["votacao_observacao"] = ' '
-        resultados = votacao.registrovotacao_set.all()
-        if resultados:
-            for i in resultados:
-                dic_votacao["nom_resultado"] = i.tipo_resultado_votacao.nome
-                if i.observacao:
-                    dic_votacao["votacao_observacao"] = i.observacao
+        rv = votacao.registrovotacao_set.filter(
+            materia=votacao.materia).first()
+        rp = votacao.retiradapauta_set.filter(
+            materia=votacao.materia).first()
+        if rv:
+            resultado = rv.tipo_resultado_votacao.nome
+            resultado_observacao = rv.observacao
+        elif rp:
+            resultado = rp.tipo_de_retirada.descricao
+            resultado_observacao = rp.observacao
         else:
-            dic_votacao["nom_resultado"] = "Matéria não votada"
+            resultado = _('Matéria lida') if \
+                votacao.tipo_votacao == 4 else _('Matéria não votada')
+            resultado_observacao = _(' ')
+
+        dic_votacao.update({
+            "nom_resultado": resultado,
+            "votacao_observacao": resultado_observacao
+        })
+
         lst_votacao.append(dic_votacao)
 
     # Lista dos votos nominais das matérias da Ordem do Dia
