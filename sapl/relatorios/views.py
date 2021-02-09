@@ -1225,8 +1225,23 @@ def get_pauta_sessao(sessao, casa):
     expedientes = []
     for e in expediente:
         tipo = e.tipo
-        conteudo = re.sub(
-            '&nbsp;', ' ', strip_tags(e.conteudo.replace('<br/>', '\n')))
+        conteudo = e.conteudo
+        if not is_empty(conteudo):
+            # unescape HTML codes
+            # https://github.com/interlegis/sapl/issues/1046
+            conteudo = re.sub('style=".*?"', '', conteudo)
+            conteudo = re.sub('class=".*?"', '', conteudo)
+            conteudo = re.sub('align=".*?"', '', conteudo)  # OSTicket Ticket #796450
+            conteudo = re.sub('<p\s+>', '<p>', conteudo)
+            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)  # OSTicket Ticket #796450
+            conteudo = html.unescape(conteudo)
+
+            # escape special character '&'
+            #   https://github.com/interlegis/sapl/issues/1009
+            conteudo = conteudo.replace('&', '&amp;')
+
+            # https://github.com/interlegis/sapl/issues/2386
+            conteudo = remove_html_comments(conteudo)
         ex = {'tipo': tipo, 'conteudo': conteudo}
         expedientes.append(ex)
 
