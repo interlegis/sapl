@@ -1928,7 +1928,7 @@ def get_materias_expediente(sessao_plenaria):
                 tramitacao = aux_tramitacao
                 break
 
-        rv = m.registrovotacao_set.first()
+        rv = m.registrovotacao_set.filter(materia=m.materia).first()
         rp = m.retiradapauta_set.filter(materia=m.materia).first()
         if rv:
             resultado = rv.tipo_resultado_votacao.nome
