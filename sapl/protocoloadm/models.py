@@ -287,7 +287,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Documento Acessório')
         verbose_name_plural = _('Documentos Acessórios')
-        ordering = ('id',)
+        ordering = ('data', 'id')
 
     def __str__(self):
         return self.nome
