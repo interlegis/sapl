@@ -897,7 +897,7 @@ def parlamentares_ativos(data_inicio, data_fim=None):
 
     parlamentares_id = mandatos_ativos.values_list(
         'parlamentar_id',
-        flat=True).distinct('parlamentar_id')
+        flat=True).distinct('parlamentar_id').order_by('parlamentar_id')
 
     return Parlamentar.objects.filter(id__in=parlamentares_id)
 
