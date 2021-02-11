@@ -1984,6 +1984,10 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
         cd = self.cleaned_data
 
+        texto_original = cd.get('texto_original', False)
+        if texto_original:
+            validar_arquivo(texto_original, 'Texto Original')
+
         tm, am, nm = (cd.get('tipo_materia', ''),
                       cd.get('ano_materia', ''),
                       cd.get('numero_materia', ''))
