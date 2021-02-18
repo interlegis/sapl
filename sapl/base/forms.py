@@ -470,7 +470,7 @@ class AutorForm(ModelForm):
         max_length=50)
 
     q = forms.CharField(
-        max_length=50, required=False,
+        max_length=120, required=False,
         label='Pesquise o nome do Autor com o '
         'tipo Selecionado e marque o escolhido.')
 
@@ -595,6 +595,8 @@ class AutorForm(ModelForm):
 
     def clean(self):
         super(AutorForm, self).clean()
+
+        import ipdb; ipdb.set_trace()
 
         if not self.is_valid():
             return self.cleaned_data
