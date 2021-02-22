@@ -596,8 +596,6 @@ class AutorForm(ModelForm):
     def clean(self):
         super(AutorForm, self).clean()
 
-        import ipdb; ipdb.set_trace()
-
         if not self.is_valid():
             return self.cleaned_data
 
