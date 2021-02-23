@@ -550,6 +550,8 @@ class TramitacaoForm(ModelForm):
 
     @transaction.atomic
     def save(self, commit=True):
+        from datetime import datetime
+        ini = datetime.now()
         tramitacao = super(TramitacaoForm, self).save(commit)
         materia = tramitacao.materia
         materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
@@ -559,16 +561,19 @@ class TramitacaoForm(ModelForm):
             'tramitacao_materia')
         if tramitar_anexadas:
             lista_tramitacao = []
-            anexadas_list = lista_anexados(materia)
-            for ma in anexadas_list:
-                if not ma.tramitacao_set.order_by('-data_tramitacao', '-id').all() \
-                        or ma.tramitacao_set.order_by('-data_tramitacao', '-id').first().unidade_tramitacao_destino \
+            materias_anexadas = lista_anexados(materia)
+            for mat in materias_anexadas:
+                ultima_tramitacao = mat.tramitacao_set.\
+                    select_related('unidade_tramitacao_destino').\
+                    order_by('-data_tramitacao', '-id').first()
+                if not ultima_tramitacao or \
+                        ultima_tramitacao.unidade_tramitacao_destino \
                         == tramitacao.unidade_tramitacao_local:
-                    ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
-                    ma.save()
+                    mat.em_tramitacao = False if \
+                        tramitacao.status.indicador == "F" else True
                     lista_tramitacao.append(Tramitacao(
                         status=tramitacao.status,
-                        materia=ma,
+                        materia=mat,
                         data_tramitacao=tramitacao.data_tramitacao,
                         unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
                         data_encaminhamento=tramitacao.data_encaminhamento,
@@ -582,7 +587,10 @@ class TramitacaoForm(ModelForm):
                         ultima_edicao=tramitacao.ultima_edicao
                     ))
             Tramitacao.objects.bulk_create(lista_tramitacao)
-
+            # Atualiza status 'em_tramitacao'
+            MateriaLegislativa.objects.bulk_update(materias_anexadas, ['em_tramitacao'])
+        print("Execucao total")
+        print(datetime.now() - ini)
         return tramitacao
 
 

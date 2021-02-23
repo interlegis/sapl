@@ -1018,34 +1018,38 @@ def google_recaptcha_configured():
 
 
 def lista_anexados(principal, isMateriaLegislativa=True):
-    anexados_total = []
+    from datetime import datetime
+    ini = datetime.now()
+
     if isMateriaLegislativa:  # MateriaLegislativa
         from sapl.materia.models import Anexada
-        anexados_iterator = Anexada.objects.filter(materia_principal=principal)
+        anexados = {a.materia_anexada for a in Anexada.objects.select_related(
+            'materia_anexada').filter(materia_principal=principal)}
     else:  # DocAdm
         from sapl.protocoloadm.models import Anexado
-        anexados_iterator = Anexado.objects.filter(
-            documento_principal=principal)
+        anexados = {a.documento_anexado for a in Anexado.objects.select_related(
+            'documento_anexado').filter(documento_principal=principal)}
 
-    anexadas_temp = list(anexados_iterator)
-
-    while anexadas_temp:
-        anx = anexadas_temp.pop()
+    anexados_total = set()
+    while anexados:
         if isMateriaLegislativa:
-            if anx.materia_anexada not in anexados_total:
-                anexados_total.append(anx.materia_anexada)
-                anexados_anexado = Anexada.objects.filter(
-                    materia_principal=anx.materia_anexada)
-                anexadas_temp.extend(anexados_anexado)
+            novos_anexados = {a.materia_anexada for a in
+                              Anexada.objects.filter(
+                                  materia_principal__in=anexados)
+                              if a.materia_anexada not in anexados_total}
         else:
-            if anx.documento_anexado not in anexados_total:
-                anexados_total.append(anx.documento_anexado)
-                anexados_anexado = Anexado.objects.filter(
-                    documento_principal=anx.documento_anexado)
-                anexadas_temp.extend(anexados_anexado)
+            novos_anexados = {a.documento_anexado for a in
+                              Anexado.objects.filter(
+                                  documento_principal__in=anexados)
+                              if a.documento_anexado not in anexados_total}
+        anexados_total.update(anexados)
+        anexados = novos_anexados
+
     if principal in anexados_total:
         anexados_total.remove(principal)
-    return anexados_total
+
+    print(datetime.now() - ini)
+    return list(anexados_total)
 
 
 def from_date_to_datetime_utc(data):

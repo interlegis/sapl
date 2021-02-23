@@ -1432,7 +1432,7 @@ class TramitacaoCrud(MasterDetailCrud):
         logger = logging.getLogger(__name__)
 
         def delete(self, request, *args, **kwargs):
-            tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
+            tramitacao = Tramitacao.objects.select_related('materia').get(id=self.kwargs['pk'])
             materia = tramitacao.materia
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': materia.id})
@@ -1449,31 +1449,26 @@ class TramitacaoCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacoes_deletar = [tramitacao]
+                tramitacoes_deletar = [tramitacao.id]
                 if materia.tramitacao_set.count() == 0:
                     materia.em_tramitacao = False
                     materia.save()
                 tramitar_anexadas = sapl.base.models.AppConfig.attr(
                     'tramitacao_materia')
                 if tramitar_anexadas:
-                    mat_anexadas = lista_anexados(materia)
-                    for ma in mat_anexadas:
-                        tram_anexada = ma.tramitacao_set.order_by(
+                    materias_anexadas = lista_anexados(materia)
+                    for materia in materias_anexadas:
+                        tram_anexada = materia.tramitacao_set.order_by(
                             '-data_tramitacao', '-id').first()
                         if compara_tramitacoes_mat(tram_anexada, tramitacao):
-                            tramitacoes_deletar.append(tram_anexada)
-                            if ma.tramitacao_set.count() == 0:
-                                ma.em_tramitacao = False
-                                ma.save()
-                Tramitacao.objects.filter(
-                    id__in=[t.id for t in tramitacoes_deletar]).delete()
-
-                # TODO: otimizar para passar a lista de matérias
-                # for tramitacao in tramitacoes_deletar:
-                #    post_delete_signal.send(sender=None,
-                #                            instance=tramitacao,
-                #                            operation='C',
-                #                            request=self.request)
+                            tramitacoes_deletar.append(tram_anexada.id)
+                            if materia.tramitacao_set.count() == 0:
+                                materia.em_tramitacao = False
+                                materia.save()
+                    # Atualiza status 'em_tramitacao'
+                    MateriaLegislativa.objects.\
+                        bulk_update(materias_anexadas, ['em_tramitacao'])
+                Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
 
                 return HttpResponseRedirect(url)
 
