@@ -685,6 +685,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
         return cd
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         ant_tram_principal = Tramitacao.objects.get(id=self.instance.id)

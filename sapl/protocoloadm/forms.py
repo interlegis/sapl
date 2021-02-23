@@ -22,7 +22,7 @@ from sapl.materia.models import (MateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
-                        choice_anos_com_materias,
+                        choice_anos_com_materias, timing,
                         choice_anos_com_protocolo, choice_force_optional,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
                         lista_anexados, RANGE_ANOS,
@@ -755,6 +755,7 @@ class TramitacaoAdmForm(ModelForm):
 
         return self.cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         tramitacao = super().save(commit)
@@ -877,6 +878,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
         return cd
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         ant_tram_principal = TramitacaoAdministrativo.objects.get(
@@ -1626,6 +1628,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
 
         return cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
