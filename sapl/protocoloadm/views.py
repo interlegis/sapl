@@ -1381,7 +1381,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     documento.save()
                 tramitar_anexados = AppConfig.attr('tramitacao_documento')
                 if tramitar_anexados:
-                    docs_anexados = lista_anexados(documento, False)
+                    docs_anexados = lista_anexados(documento)
                     for da in docs_anexados:
                         tram_anexada = da.tramitacaoadministrativo_set.last()
                         if compara_tramitacoes_doc(tram_anexada, tramitacao):

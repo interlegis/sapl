@@ -1017,19 +1017,21 @@ def google_recaptcha_configured():
     return not AppConfig.attr('google_recaptcha_site_key') == ''
 
 
-def lista_anexados(principal, isMateriaLegislativa=True):
-    if isMateriaLegislativa:  # MateriaLegislativa
-        from sapl.materia.models import Anexada
+def lista_anexados(principal):
+    from sapl.materia import MateriaLegislativa
+    from sapl.materia.models import Anexada
+    from sapl.protocoloadm.models import Anexado
+
+    if isinstance(principal, MateriaLegislativa):
         anexados = {a.materia_anexada for a in Anexada.objects.select_related(
             'materia_anexada').filter(materia_principal=principal)}
-    else:  # DocAdm
-        from sapl.protocoloadm.models import Anexado
+    else:
         anexados = {a.documento_anexado for a in Anexado.objects.select_related(
             'documento_anexado').filter(documento_principal=principal)}
 
     anexados_total = set()
     while anexados:
-        if isMateriaLegislativa:
+        if isinstance(principal, MateriaLegislativa):
             novos_anexados = {a.materia_anexada for a in
                               Anexada.objects.filter(
                                   materia_principal__in=anexados)

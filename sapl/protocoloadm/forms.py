@@ -765,7 +765,7 @@ class TramitacaoAdmForm(ModelForm):
         tramitar_anexados = AppConfig.attr('tramitacao_documento')
         if tramitar_anexados:
             lista_tramitacao = []
-            anexados_list = lista_anexados(documento, False)
+            anexados_list = lista_anexados(documento)
             for da in anexados_list:
                 if not da.tramitacaoadministrativo_set.all() \
                         or da.tramitacaoadministrativo_set.last() \
@@ -887,7 +887,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
         tramitar_anexados = AppConfig.attr('tramitacao_documento')
         if tramitar_anexados:
-            anexados_list = lista_anexados(documento, False)
+            anexados_list = lista_anexados(documento)
             for da in anexados_list:
                 tram_anexada = da.tramitacaoadministrativo_set.last()
                 if compara_tramitacoes_doc(ant_tram_principal, tram_anexada):
@@ -1655,7 +1655,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
 
             if tramitar_anexados:
                 lista_tramitacao = []
-                anexados = lista_anexados(doc, False)
+                anexados = lista_anexados(doc)
                 for da in anexados:
                     if not da.tramitacaoadministrativo_set.all() \
                             or da.tramitacaoadministrativo_set.last() \
