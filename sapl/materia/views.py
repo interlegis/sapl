@@ -37,7 +37,7 @@ import weasyprint
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
-from sapl.base.signals import tramitacao_signal
+# from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao, Participacao, Composicao
 from sapl.compilacao.models import STATUS_TA_IMMUTABLE_RESTRICT, STATUS_TA_PRIVATE
 from sapl.compilacao.views import IntegracaoTaView
@@ -1358,27 +1358,27 @@ class TramitacaoCrud(MasterDetailCrud):
 
             return context
 
-        def form_valid(self, form):
-
-            self.object = form.save()
-            username = self.request.user.username
-
-            try:
-                self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
-                                  .format(Tramitacao, self.object, self.request))
-                tramitacao_signal.send(sender=Tramitacao,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception as e:
-                msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                        'de matéria não enviado. Há problemas na configuração '
-                        'do e-mail.')
-                self.logger.warning('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento '
-                                    'de matéria não enviado. Há problemas na configuração '
-                                    'do e-mail. ' + str(e))
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
+        # def form_valid(self, form):
+        #
+        #     self.object = form.save()
+        #     username = self.request.user.username
+        #
+        #     try:
+        #         self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
+        #                           .format(Tramitacao, self.object, self.request))
+        #         # tramitacao_signal.send(sender=Tramitacao,
+        #         #                        post=self.object,
+        #         #                        request=self.request)
+        #     except Exception as e:
+        #         msg = _('Tramitação criada, mas e-mail de acompanhamento '
+        #                 'de matéria não enviado. Há problemas na configuração '
+        #                 'do e-mail.')
+        #         self.logger.warning('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento '
+        #                             'de matéria não enviado. Há problemas na configuração '
+        #                             'do e-mail. ' + str(e))
+        #         messages.add_message(self.request, messages.WARNING, msg)
+        #         return HttpResponseRedirect(self.get_success_url())
+        #     return super().form_valid(form)
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoUpdateForm
@@ -1397,26 +1397,25 @@ class TramitacaoCrud(MasterDetailCrud):
 
             return initial
 
-        def form_valid(self, form):
-            self.object = form.save()
-            user = self.request.user
-
-            try:
-                self.logger.debug("user=" + user.username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
-                                  .format(Tramitacao, self.object, self.request))
-                tramitacao_signal.send(sender=Tramitacao,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception:
-                msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
-                        'de matéria não enviado. Há problemas na configuração '
-                        'do e-mail.')
-                self.logger.warning('user=' + user.username + '. Tramitação atualizada, mas e-mail de acompanhamento '
-                                    'de matéria não enviado. Há problemas na configuração '
-                                    'do e-mail.')
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
+        # def form_valid(self, form):
+        #     self.object = form.save()
+            # user = self.request.user
+            # try:
+            #     self.logger.debug("user=" + user.username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
+            #                       .format(Tramitacao, self.object, self.request))
+            #     tramitacao_signal.send(sender=Tramitacao,
+            #                            post=self.object,
+            #                            request=self.request)
+            # except Exception:
+            #     msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
+            #             'de matéria não enviado. Há problemas na configuração '
+            #             'do e-mail.')
+            #     self.logger.warning('user=' + user.username + '. Tramitação atualizada, mas e-mail de acompanhamento '
+            #                         'de matéria não enviado. Há problemas na configuração '
+            #                         'do e-mail.')
+            #     messages.add_message(self.request, messages.WARNING, msg)
+            #     return HttpResponseRedirect(self.get_success_url())
+            # return super().form_valid(form)
 
     class ListView(MasterDetailCrud.ListView):
 

@@ -9,22 +9,36 @@ from django.utils import timezone
 
 from sapl.base.email_utils import do_envia_email_tramitacao
 from sapl.base.models import AuditLog
-from sapl.base.signals import tramitacao_signal
 from sapl.materia.models import Tramitacao
 from sapl.protocoloadm.models import TramitacaoAdministrativo
 from sapl.utils import get_base_url
 
 
-@receiver(tramitacao_signal)
+@receiver(post_save, sender=Tramitacao)
+@receiver(post_save, sender=TramitacaoAdministrativo)
 def handle_tramitacao_signal(sender, **kwargs):
-    tramitacao = kwargs.get("post")
-    request = kwargs.get("request")
-    if 'protocoloadm' in str(sender):
-        doc_mat = tramitacao.documento
-        tipo = "documento"
-    elif 'materia' in str(sender):
+    logger = logging.getLogger(__name__)
+
+    tramitacao = kwargs.get('instance')
+
+    if isinstance(tramitacao, Tramitacao):
         tipo = "materia"
         doc_mat = tramitacao.materia
+    else:
+        tipo = "documento"
+        doc_mat = tramitacao.documento
+
+    pilha_de_execucao = inspect.stack()
+    for i in pilha_de_execucao:
+        if i.function == 'migrate':
+            return
+        request = i.frame.f_locals.get('request', None)
+        if request:
+            break
+
+    if not request:
+        logger.warning("Objeto request não disponível")
+        return
 
     do_envia_email_tramitacao(
         get_base_url(request),

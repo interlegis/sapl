@@ -1018,7 +1018,7 @@ def google_recaptcha_configured():
 
 
 def lista_anexados(principal):
-    from sapl.materia import MateriaLegislativa
+    from sapl.materia.models import MateriaLegislativa
     from sapl.materia.models import Anexada
     from sapl.protocoloadm.models import Anexado
 
