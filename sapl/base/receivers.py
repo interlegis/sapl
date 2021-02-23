@@ -37,16 +37,19 @@ def handle_tramitacao_signal(sender, **kwargs):
             break
 
     if not request:
-        logger.warning("Objeto request não disponível")
+        logger.warning("Email não enviado, objeto request é None.")
         return
-
-    do_envia_email_tramitacao(
-        get_base_url(request),
-        tipo,
-        doc_mat,
-        tramitacao.status,
-        tramitacao.unidade_tramitacao_destino)
-
+    try:
+        do_envia_email_tramitacao(
+            get_base_url(request),
+            tipo,
+            doc_mat,
+            tramitacao.status,
+            tramitacao.unidade_tramitacao_destino)
+    except Exception as e:
+        logger.error(f'user={request.user.username}. Tramitação criada, mas e-mail de acompanhamento '
+                        'de matéria não enviado. Há problemas na configuração '
+                        'do e-mail. ' + str(e))
 
 @receiver(post_delete)
 def status_tramitacao_materia(sender, instance, **kwargs):
