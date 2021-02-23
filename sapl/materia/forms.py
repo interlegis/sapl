@@ -35,7 +35,7 @@ from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
 from sapl.parlamentares.models import Legislatura, Partido
 from sapl.protocoloadm.models import (DocumentoAdministrativo,
                                       Protocolo)
-from sapl.utils import (autor_label, autor_modal,
+from sapl.utils import (autor_label, autor_modal, timing,
                         ChoiceWithoutValidationField,
                         choice_anos_com_materias, FileFieldCheckMixin,
                         FilterOverridesMetaMixin, gerar_hash_arquivo,
@@ -548,6 +548,7 @@ class TramitacaoForm(ModelForm):
 
         return cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         tramitacao = super().save(commit)
@@ -584,6 +585,7 @@ class TramitacaoForm(ModelForm):
                         ip=tramitacao.ip,
                         ultima_edicao=tramitacao.ultima_edicao
                     ))
+            ## TODO: BULK UPDATE não envia Signal para Tramitacao
             Tramitacao.objects.bulk_create(lista_tramitacao)
             # Atualiza status 'em_tramitacao'
             MateriaLegislativa.objects.bulk_update(materias_anexadas, ['em_tramitacao'])
@@ -715,6 +717,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
                     ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     ma.save()
+                    ## TODO: refatorar?
         return nova_tram_principal
 
 
@@ -1814,6 +1817,7 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 ip=tramitacao.ip,
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
+                ## TODO: BULK UPDATE não envia Signal para Tramitacao
                 Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao

@@ -8,9 +8,6 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.utils import models_with_gr_for_model
 
 
-# tramitacao_signal = django.dispatch.Signal(providing_args=['post', 'request'])
-
-
 def cria_models_tipo_autor(app_config=None, verbosity=2, interactive=True,
                            using=DEFAULT_DB_ALIAS, **kwargs):
 

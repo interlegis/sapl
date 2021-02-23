@@ -8,6 +8,7 @@ import platform
 import re
 import requests
 import tempfile
+from time import time
 from unicodedata import normalize as unicodedata_normalize
 import unicodedata
 
@@ -1017,6 +1018,19 @@ def google_recaptcha_configured():
     return not AppConfig.attr('google_recaptcha_site_key') == ''
 
 
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        logger = logging.getLogger(__name__)
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        logger.info('funcao:%r args:[%r, %r] took: %2.4f sec' % \
+          (f.__name__, args, kw, te-ts))
+        return result
+    return wrap
+
+@timing
 def lista_anexados(principal):
     from sapl.materia.models import MateriaLegislativa
     from sapl.materia.models import Anexada

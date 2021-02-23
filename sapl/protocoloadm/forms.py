@@ -757,7 +757,7 @@ class TramitacaoAdmForm(ModelForm):
 
     @transaction.atomic
     def save(self, commit=True):
-        tramitacao = super(TramitacaoAdmForm, self).save(commit)
+        tramitacao = super().save(commit)
         documento = tramitacao.documento
         documento.tramitacao = False if tramitacao.status.indicador == "F" else True
         documento.save()
@@ -786,6 +786,7 @@ class TramitacaoAdmForm(ModelForm):
                                             ip=tramitacao.ip,
                                             ultima_edicao=tramitacao.ultima_edicao
                                             ))
+            ## TODO: BULK UPDATE não envia Signal para Tramitacao
             TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
@@ -906,6 +907,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
                     da.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     da.save()
+        ## TODO: refatorar?
         return nova_tram_principal
 
 
@@ -1676,6 +1678,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                                                 ip=tramitacao.ip,
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
+                ## TODO: BULK UPDATE não envia Signal para Tramitacao
                 TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
