@@ -550,9 +550,7 @@ class TramitacaoForm(ModelForm):
 
     @transaction.atomic
     def save(self, commit=True):
-        from datetime import datetime
-        ini = datetime.now()
-        tramitacao = super(TramitacaoForm, self).save(commit)
+        tramitacao = super().save(commit)
         materia = tramitacao.materia
         materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
         materia.save()
@@ -589,8 +587,6 @@ class TramitacaoForm(ModelForm):
             Tramitacao.objects.bulk_create(lista_tramitacao)
             # Atualiza status 'em_tramitacao'
             MateriaLegislativa.objects.bulk_update(materias_anexadas, ['em_tramitacao'])
-        print("Execucao total")
-        print(datetime.now() - ini)
         return tramitacao
 
 

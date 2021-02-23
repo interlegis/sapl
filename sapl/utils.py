@@ -1018,9 +1018,6 @@ def google_recaptcha_configured():
 
 
 def lista_anexados(principal, isMateriaLegislativa=True):
-    from datetime import datetime
-    ini = datetime.now()
-
     if isMateriaLegislativa:  # MateriaLegislativa
         from sapl.materia.models import Anexada
         anexados = {a.materia_anexada for a in Anexada.objects.select_related(
@@ -1048,7 +1045,6 @@ def lista_anexados(principal, isMateriaLegislativa=True):
     if principal in anexados_total:
         anexados_total.remove(principal)
 
-    print(datetime.now() - ini)
     return list(anexados_total)
 
 
