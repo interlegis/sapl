@@ -551,7 +551,7 @@ class TramitacaoForm(ModelForm):
     @timing
     @transaction.atomic
     def save(self, commit=True):
-        tramitacao = super().save(commit)
+        tramitacao = super(TramitacaoForm, self).save(commit)
         materia = tramitacao.materia
         materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
         materia.save()
