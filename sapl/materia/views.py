@@ -1420,7 +1420,6 @@ class TramitacaoCrud(MasterDetailCrud):
                             tramitacoes_deletar.append(tram_anexada.id)
                             if materia.tramitacao_set.count() == 0:
                                 materia.em_tramitacao = False
-                                materia.save()
                     # Atualiza status 'em_tramitacao'
                     MateriaLegislativa.objects.\
                         bulk_update(materias_anexadas, ['em_tramitacao'])
