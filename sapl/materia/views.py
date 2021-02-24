@@ -1405,21 +1405,39 @@ class TramitacaoCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacoes_deletar = [tramitacao.id]
-                if materia.tramitacao_set.count() == 0:
+
+                # recupera últimas duas tramitacoes
+                penultima_tramitacao = materia.tramitacao_set.order_by(
+                    '-data_tramitacao', '-id').exclude(
+                    id=ultima_tramitacao.id).first()
+                if not penultima_tramitacao or \
+                        penultima_tramitacao.status.indicador == "F":
                     materia.em_tramitacao = False
-                    materia.save()
+                else:
+                    materia.em_tramitacao = True
+                materia.save()
+
+                tramitacoes_deletar = [tramitacao.id]
+
                 tramitar_anexadas = sapl.base.models.AppConfig.attr(
                     'tramitacao_materia')
                 if tramitar_anexadas:
                     materias_anexadas = lista_anexados(materia)
                     for materia in materias_anexadas:
-                        tram_anexada = materia.tramitacao_set.order_by(
+                        ultima_tramitacao = materia.tramitacao_set.order_by(
                             '-data_tramitacao', '-id').first()
-                        if compara_tramitacoes_mat(tram_anexada, tramitacao):
-                            tramitacoes_deletar.append(tram_anexada.id)
-                            if materia.tramitacao_set.count() == 0:
+                        if compara_tramitacoes_mat(ultima_tramitacao,
+                                                   tramitacao):
+                            tramitacoes_deletar.append(ultima_tramitacao.id)
+                            # recupera últimas duas tramitacoes
+                            penultima_tramitacao = materia.tramitacao_set.order_by(
+                                '-data_tramitacao', '-id').exclude(
+                                id=ultima_tramitacao.id).first()
+                            if not penultima_tramitacao or \
+                                    penultima_tramitacao.status.indicador == "F":
                                 materia.em_tramitacao = False
+                            else:
+                                materia.em_tramitacao = True
                     # Atualiza status 'em_tramitacao'
                     MateriaLegislativa.objects.\
                         bulk_update(materias_anexadas, ['em_tramitacao'])
