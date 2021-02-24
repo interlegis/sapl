@@ -5,6 +5,7 @@
 		{% for m in materia_expediente %}
 			<b>{{m.numero}} - {{m.titulo}}</b>,
 			{{m.ementa|safe}}
+		    {% if m.observacao %} - Obs.: {{m.observacao}} {% endif %}
 			Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }},
 			{% if m.numero_protocolo %}
 				Número de Protocolo: {{ m.numero_protocolo }},

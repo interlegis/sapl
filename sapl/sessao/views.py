@@ -1938,7 +1938,7 @@ def get_materias_expediente(sessao_plenaria):
             resultado_observacao = rp.observacao
         else:
             resultado = _('Matéria lida') if m.tipo_votacao == 4 else _('Matéria não votada')
-            resultado_observacao = _(' ')
+            resultado_observacao = ''
 
         materia_em_tramitacao = m.materia.materiaemtramitacao_set.first()
         materias_expediente.append({
@@ -2043,7 +2043,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             resultado_observacao = rp.observacao
         else:
             resultado = _('Matéria lida') if o.tipo_votacao == 4 else _('Matéria não votada')
-            resultado_observacao = _(' ')
+            resultado_observacao = ''
 
         voto_nominal = []
         if o.tipo_votacao == 2:
