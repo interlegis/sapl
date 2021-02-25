@@ -29,7 +29,6 @@ from django_filters.views import FilterView
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig
-from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
@@ -1281,24 +1280,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     'unidade_tramitacao_local'].widget.attrs['readonly'] = True
             return context
 
-        def form_valid(self, form):
-            self.object = form.save()
-            username = self.request.user.username
-            try:
-                tramitacao_signal.send(sender=TramitacaoAdministrativo,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception as e:
-                self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
-                                  'não enviado. A não configuração do servidor de e-mail '
-                                  'impede o envio de aviso de tramitação. ' + str(e))
-                msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                        'de documento não enviado. A não configuração do'
-                        ' servidor de e-mail impede o envio de aviso de tramitação')
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
-
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
         logger = logging.getLogger(__name__)
@@ -1313,23 +1294,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
             return initial
 
-        def form_valid(self, form):
-            self.object = form.save()
-            username = self.request.user.username
-            try:
-                tramitacao_signal.send(sender=TramitacaoAdministrativo,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception as e:
-                self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
-                                  'não enviado. A não configuração do servidor de e-mail '
-                                  'impede o envio de aviso de tramitação. ' + str(e))
-                msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                        'de documento não enviado. A não configuração do'
-                        ' servidor de e-mail impede o envio de aviso de tramitação')
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
 
     class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
 
@@ -1381,7 +1345,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     documento.save()
                 tramitar_anexados = AppConfig.attr('tramitacao_documento')
                 if tramitar_anexados:
-                    docs_anexados = lista_anexados(documento, False)
+                    docs_anexados = lista_anexados(documento)
                     for da in docs_anexados:
                         tram_anexada = da.tramitacaoadministrativo_set.last()
                         if compara_tramitacoes_doc(tram_anexada, tramitacao):

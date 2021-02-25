@@ -37,7 +37,6 @@ import weasyprint
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
-from sapl.base.signals import tramitacao_signal
 from sapl.comissoes.models import Comissao, Participacao, Composicao
 from sapl.compilacao.models import STATUS_TA_IMMUTABLE_RESTRICT, STATUS_TA_PRIVATE
 from sapl.compilacao.views import IntegracaoTaView
@@ -1358,28 +1357,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
             return context
 
-        def form_valid(self, form):
-
-            self.object = form.save()
-            username = self.request.user.username
-
-            try:
-                self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
-                                  .format(Tramitacao, self.object, self.request))
-                tramitacao_signal.send(sender=Tramitacao,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception as e:
-                msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                        'de matéria não enviado. Há problemas na configuração '
-                        'do e-mail.')
-                self.logger.warning('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento '
-                                    'de matéria não enviado. Há problemas na configuração '
-                                    'do e-mail. ' + str(e))
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
-
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoUpdateForm
         logger = logging.getLogger(__name__)
@@ -1397,27 +1374,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
             return initial
 
-        def form_valid(self, form):
-            self.object = form.save()
-            user = self.request.user
-
-            try:
-                self.logger.debug("user=" + user.username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
-                                  .format(Tramitacao, self.object, self.request))
-                tramitacao_signal.send(sender=Tramitacao,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception:
-                msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
-                        'de matéria não enviado. Há problemas na configuração '
-                        'do e-mail.')
-                self.logger.warning('user=' + user.username + '. Tramitação atualizada, mas e-mail de acompanhamento '
-                                    'de matéria não enviado. Há problemas na configuração '
-                                    'do e-mail.')
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
-
     class ListView(MasterDetailCrud.ListView):
 
         def get_queryset(self):
@@ -1432,7 +1388,7 @@ class TramitacaoCrud(MasterDetailCrud):
         logger = logging.getLogger(__name__)
 
         def delete(self, request, *args, **kwargs):
-            tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
+            tramitacao = Tramitacao.objects.select_related('materia').get(id=self.kwargs['pk'])
             materia = tramitacao.materia
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': materia.id})
@@ -1449,31 +1405,43 @@ class TramitacaoCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacoes_deletar = [tramitacao]
-                if materia.tramitacao_set.count() == 0:
+
+                # recupera últimas duas tramitacoes
+                penultima_tramitacao = materia.tramitacao_set.order_by(
+                    '-data_tramitacao', '-id').exclude(
+                    id=ultima_tramitacao.id).first()
+                if not penultima_tramitacao or \
+                        penultima_tramitacao.status.indicador == "F":
                     materia.em_tramitacao = False
-                    materia.save()
+                else:
+                    materia.em_tramitacao = True
+                materia.save()
+
+                tramitacoes_deletar = [tramitacao.id]
+
                 tramitar_anexadas = sapl.base.models.AppConfig.attr(
                     'tramitacao_materia')
                 if tramitar_anexadas:
-                    mat_anexadas = lista_anexados(materia)
-                    for ma in mat_anexadas:
-                        tram_anexada = ma.tramitacao_set.order_by(
+                    materias_anexadas = lista_anexados(materia)
+                    for materia in materias_anexadas:
+                        ultima_tramitacao = materia.tramitacao_set.order_by(
                             '-data_tramitacao', '-id').first()
-                        if compara_tramitacoes_mat(tram_anexada, tramitacao):
-                            tramitacoes_deletar.append(tram_anexada)
-                            if ma.tramitacao_set.count() == 0:
-                                ma.em_tramitacao = False
-                                ma.save()
-                Tramitacao.objects.filter(
-                    id__in=[t.id for t in tramitacoes_deletar]).delete()
-
-                # TODO: otimizar para passar a lista de matérias
-                # for tramitacao in tramitacoes_deletar:
-                #    post_delete_signal.send(sender=None,
-                #                            instance=tramitacao,
-                #                            operation='C',
-                #                            request=self.request)
+                        if compara_tramitacoes_mat(ultima_tramitacao,
+                                                   tramitacao):
+                            tramitacoes_deletar.append(ultima_tramitacao.id)
+                            # recupera últimas duas tramitacoes
+                            penultima_tramitacao = materia.tramitacao_set.order_by(
+                                '-data_tramitacao', '-id').exclude(
+                                id=ultima_tramitacao.id).first()
+                            if not penultima_tramitacao or \
+                                    penultima_tramitacao.status.indicador == "F":
+                                materia.em_tramitacao = False
+                            else:
+                                materia.em_tramitacao = True
+                    # Atualiza status 'em_tramitacao'
+                    MateriaLegislativa.objects.\
+                        bulk_update(materias_anexadas, ['em_tramitacao'])
+                Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
 
                 return HttpResponseRedirect(url)
 

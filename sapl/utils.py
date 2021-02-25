@@ -8,6 +8,7 @@ import platform
 import re
 import requests
 import tempfile
+from time import time
 from unicodedata import normalize as unicodedata_normalize
 import unicodedata
 
@@ -1017,35 +1018,50 @@ def google_recaptcha_configured():
     return not AppConfig.attr('google_recaptcha_site_key') == ''
 
 
-def lista_anexados(principal, isMateriaLegislativa=True):
-    anexados_total = []
-    if isMateriaLegislativa:  # MateriaLegislativa
-        from sapl.materia.models import Anexada
-        anexados_iterator = Anexada.objects.filter(materia_principal=principal)
-    else:  # DocAdm
-        from sapl.protocoloadm.models import Anexado
-        anexados_iterator = Anexado.objects.filter(
-            documento_principal=principal)
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        logger = logging.getLogger(__name__)
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        logger.info('funcao:%r args:[%r, %r] took: %2.4f sec' % \
+          (f.__name__, args, kw, te-ts))
+        return result
+    return wrap
 
-    anexadas_temp = list(anexados_iterator)
+@timing
+def lista_anexados(principal):
+    from sapl.materia.models import MateriaLegislativa
+    from sapl.materia.models import Anexada
+    from sapl.protocoloadm.models import Anexado
 
-    while anexadas_temp:
-        anx = anexadas_temp.pop()
-        if isMateriaLegislativa:
-            if anx.materia_anexada not in anexados_total:
-                anexados_total.append(anx.materia_anexada)
-                anexados_anexado = Anexada.objects.filter(
-                    materia_principal=anx.materia_anexada)
-                anexadas_temp.extend(anexados_anexado)
+    if isinstance(principal, MateriaLegislativa):
+        anexados = {a.materia_anexada for a in Anexada.objects.select_related(
+            'materia_anexada').filter(materia_principal=principal)}
+    else:
+        anexados = {a.documento_anexado for a in Anexado.objects.select_related(
+            'documento_anexado').filter(documento_principal=principal)}
+
+    anexados_total = set()
+    while anexados:
+        if isinstance(principal, MateriaLegislativa):
+            novos_anexados = {a.materia_anexada for a in
+                              Anexada.objects.filter(
+                                  materia_principal__in=anexados)
+                              if a.materia_anexada not in anexados_total}
         else:
-            if anx.documento_anexado not in anexados_total:
-                anexados_total.append(anx.documento_anexado)
-                anexados_anexado = Anexado.objects.filter(
-                    documento_principal=anx.documento_anexado)
-                anexadas_temp.extend(anexados_anexado)
+            novos_anexados = {a.documento_anexado for a in
+                              Anexado.objects.filter(
+                                  documento_principal__in=anexados)
+                              if a.documento_anexado not in anexados_total}
+        anexados_total.update(anexados)
+        anexados = novos_anexados
+
     if principal in anexados_total:
         anexados_total.remove(principal)
-    return anexados_total
+
+    return list(anexados_total)
 
 
 def from_date_to_datetime_utc(data):

@@ -35,7 +35,7 @@ from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
 from sapl.parlamentares.models import Legislatura, Partido
 from sapl.protocoloadm.models import (DocumentoAdministrativo,
                                       Protocolo)
-from sapl.utils import (autor_label, autor_modal,
+from sapl.utils import (autor_label, autor_modal, timing,
                         ChoiceWithoutValidationField,
                         choice_anos_com_materias, FileFieldCheckMixin,
                         FilterOverridesMetaMixin, gerar_hash_arquivo,
@@ -548,6 +548,7 @@ class TramitacaoForm(ModelForm):
 
         return cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         tramitacao = super(TramitacaoForm, self).save(commit)
@@ -559,16 +560,19 @@ class TramitacaoForm(ModelForm):
             'tramitacao_materia')
         if tramitar_anexadas:
             lista_tramitacao = []
-            anexadas_list = lista_anexados(materia)
-            for ma in anexadas_list:
-                if not ma.tramitacao_set.order_by('-data_tramitacao', '-id').all() \
-                        or ma.tramitacao_set.order_by('-data_tramitacao', '-id').first().unidade_tramitacao_destino \
+            materias_anexadas = lista_anexados(materia)
+            for mat in materias_anexadas:
+                ultima_tramitacao = mat.tramitacao_set.\
+                    select_related('unidade_tramitacao_destino').\
+                    order_by('-data_tramitacao', '-id').first()
+                if not ultima_tramitacao or \
+                        ultima_tramitacao.unidade_tramitacao_destino \
                         == tramitacao.unidade_tramitacao_local:
-                    ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
-                    ma.save()
+                    mat.em_tramitacao = False if \
+                        tramitacao.status.indicador == "F" else True
                     lista_tramitacao.append(Tramitacao(
                         status=tramitacao.status,
-                        materia=ma,
+                        materia=mat,
                         data_tramitacao=tramitacao.data_tramitacao,
                         unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
                         data_encaminhamento=tramitacao.data_encaminhamento,
@@ -581,8 +585,10 @@ class TramitacaoForm(ModelForm):
                         ip=tramitacao.ip,
                         ultima_edicao=tramitacao.ultima_edicao
                     ))
+            ## TODO: BULK UPDATE não envia Signal para Tramitacao
             Tramitacao.objects.bulk_create(lista_tramitacao)
-
+            # Atualiza status 'em_tramitacao'
+            MateriaLegislativa.objects.bulk_update(materias_anexadas, ['em_tramitacao'])
         return tramitacao
 
 
@@ -679,6 +685,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
         return cd
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         ant_tram_principal = Tramitacao.objects.get(id=self.instance.id)
@@ -711,6 +718,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
                     ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     ma.save()
+                    ## TODO: refatorar?
         return nova_tram_principal
 
 
@@ -1810,6 +1818,7 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 ip=tramitacao.ip,
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
+                ## TODO: BULK UPDATE não envia Signal para Tramitacao
                 Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao

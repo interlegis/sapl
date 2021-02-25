@@ -22,7 +22,7 @@ from sapl.materia.models import (MateriaLegislativa,
                                  UnidadeTramitacao)
 from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
-                        choice_anos_com_materias,
+                        choice_anos_com_materias, timing,
                         choice_anos_com_protocolo, choice_force_optional,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
                         lista_anexados, RANGE_ANOS,
@@ -755,6 +755,7 @@ class TramitacaoAdmForm(ModelForm):
 
         return self.cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         tramitacao = super(TramitacaoAdmForm, self).save(commit)
@@ -765,7 +766,7 @@ class TramitacaoAdmForm(ModelForm):
         tramitar_anexados = AppConfig.attr('tramitacao_documento')
         if tramitar_anexados:
             lista_tramitacao = []
-            anexados_list = lista_anexados(documento, False)
+            anexados_list = lista_anexados(documento)
             for da in anexados_list:
                 if not da.tramitacaoadministrativo_set.all() \
                         or da.tramitacaoadministrativo_set.last() \
@@ -786,6 +787,7 @@ class TramitacaoAdmForm(ModelForm):
                                             ip=tramitacao.ip,
                                             ultima_edicao=tramitacao.ultima_edicao
                                             ))
+            ## TODO: BULK UPDATE não envia Signal para Tramitacao
             TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
@@ -876,6 +878,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
         return cd
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         ant_tram_principal = TramitacaoAdministrativo.objects.get(
@@ -887,7 +890,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
         tramitar_anexados = AppConfig.attr('tramitacao_documento')
         if tramitar_anexados:
-            anexados_list = lista_anexados(documento, False)
+            anexados_list = lista_anexados(documento)
             for da in anexados_list:
                 tram_anexada = da.tramitacaoadministrativo_set.last()
                 if compara_tramitacoes_doc(ant_tram_principal, tram_anexada):
@@ -906,6 +909,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
                     da.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     da.save()
+        ## TODO: refatorar?
         return nova_tram_principal
 
 
@@ -1624,6 +1628,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
 
         return cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
@@ -1655,7 +1660,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
 
             if tramitar_anexados:
                 lista_tramitacao = []
-                anexados = lista_anexados(doc, False)
+                anexados = lista_anexados(doc)
                 for da in anexados:
                     if not da.tramitacaoadministrativo_set.all() \
                             or da.tramitacaoadministrativo_set.last() \
@@ -1676,6 +1681,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                                                 ip=tramitacao.ip,
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
+                ## TODO: BULK UPDATE não envia Signal para Tramitacao
                 TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao

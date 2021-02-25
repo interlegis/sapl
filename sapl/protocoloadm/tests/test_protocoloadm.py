@@ -507,7 +507,7 @@ def test_lista_documentos_anexados():
             data_anexacao="2020-11-05"
     )
 
-    lista = lista_anexados(documento_principal, False)
+    lista = lista_anexados(documento_principal)
     
     assert len(lista) == 2
     assert lista[0] == documento_anexado
