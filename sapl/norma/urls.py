@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import include, url
 
 from sapl.norma.views import (AnexoNormaJuridicaCrud, AssuntoNormaCrud,
@@ -8,6 +9,7 @@ from sapl.norma.views import (AnexoNormaJuridicaCrud, AssuntoNormaCrud,
                               PesquisarAssuntoNormaView)
 
 from .apps import AppConfig
+
 
 app_name = AppConfig.name
 
@@ -31,11 +33,10 @@ urlpatterns = [
     url(r'^sistema/norma/vinculo/', include(
         TipoVinculoNormaJuridicaCrud.get_urls())),
 
-    url(r'^norma/pesquisar$',
+    url(r'^norma/pesquisar$' if not settings.SAPL_AS_SAPN else r'^$',
         NormaPesquisaView.as_view(), name='norma_pesquisa'),
 
     url(r'^norma/recuperar-norma$', recuperar_norma, name="recuperar_norma"),
     url(r'^norma/recuperar-numero-norma$', recuperar_numero_norma,
         name="recuperar_numero_norma"),
-
 ]
