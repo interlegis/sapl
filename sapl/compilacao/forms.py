@@ -13,10 +13,8 @@ from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
-from image_cropping.widgets import CropWidget, ImageCropWidget,\
-    get_attrs
+from image_cropping.widgets import CropWidget, ImageCropWidget
 from model_utils.choices import Choices
-from prompt_toolkit.key_binding.bindings.named_commands import self_insert
 
 from sapl import utils
 from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
