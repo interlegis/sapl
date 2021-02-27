@@ -90,7 +90,7 @@
               <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
               alt="Logo" class="img-responsive" >
               <span class="vcenter">{% if nome %}{{ nome }}{% else %}{% trans 'Câmara/Assembléia não configurada'%}{% endif %}
-                <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
+                <br/><small>{{nome_sistema}}</small>
               </span>
             </a>
           </div>
@@ -226,7 +226,7 @@
 
       {% block webpack_loader_js %}
         {% render_chunk_vendors 'js' %}
-        {% render_bundle  'global' 'js' %}      
+        {% render_bundle  'global' 'js' %}
       {% endblock webpack_loader_js %}
 
       {% block webpack_loader_chunks_js %}

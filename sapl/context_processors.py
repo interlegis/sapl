@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.utils import google_recaptcha_configured as google_recaptcha_configured_utils
@@ -32,3 +33,12 @@ def google_recaptcha_configured(request):
         logger.warning(_('Google Recaptcha não configurado.'))
         return {'google_recaptcha_configured': False}
     return {'google_recaptcha_configured': True}
+
+
+def sapl_as_sapn(request):
+    return {
+        'sapl_as_sapn': settings.SAPL_AS_SAPN,
+        'nome_sistema': _('Sistema de Apoio ao Processo Legislativo')
+        if not settings.SAPL_AS_SAPN
+        else _('Sistema de Apoio a Publicação de Normas')
+    }
