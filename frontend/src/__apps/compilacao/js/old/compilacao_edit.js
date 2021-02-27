@@ -228,6 +228,10 @@ window.DispositivoEdit = function () {
         dpt.find('.btn-group-inserts').removeClass('open show')
       })
 
+      // Para ativar image_cropping dentro do editor dinâmico descolmentar linha abaixo
+      // e retirar restrição do backend que adiciona input image apenas o editor avançado
+      // window.image_cropping.init()
+
       instance.gc()
     })
   }

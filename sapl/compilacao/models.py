@@ -1,5 +1,3 @@
-
-from bs4 import BeautifulSoup
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -13,11 +11,13 @@ from django.utils import timezone
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
+from image_cropping.fields import ImageCropField, ImageRatioField
 import reversion
 
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
                                    int_to_roman)
-from sapl.utils import YES_NO_CHOICES, get_settings_auth_user_model
+from sapl.utils import YES_NO_CHOICES, get_settings_auth_user_model,\
+    texto_upload_path, restringe_tipos_de_arquivo_img
 
 
 @reversion.register()
@@ -965,6 +965,10 @@ class Publicacao(TimestampedMixin):
             self.ta)
 
 
+def imagem_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath='')
+
+
 @reversion.register()
 class Dispositivo(BaseModel, TimestampedMixin):
     TEXTO_PADRAO_DISPOSITIVO_REVOGADO = force_text(_('(Revogado)'))
@@ -1185,6 +1189,17 @@ class Dispositivo(BaseModel, TimestampedMixin):
         choices=YES_NO_CHOICES,
         verbose_name=_('Contagem contínua')
     )
+
+    imagem = ImageCropField(
+        verbose_name=_('Imagem'),
+        upload_to=imagem_upload_path,
+        validators=[restringe_tipos_de_arquivo_img], null=True, blank=True)
+
+    imagem_cropping = ImageRatioField(
+        'imagem', '100x100', verbose_name=_('Recorte de Imagem'),
+        free_crop=True, size_warning=True,
+        help_text=_('O recorte de imagem '
+                    'é possível após a atualização.'))
 
     class Meta:
         verbose_name = _('Dispositivo')

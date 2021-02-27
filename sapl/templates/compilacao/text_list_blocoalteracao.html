@@ -1,5 +1,4 @@
-{% load compilacao_filters %}
-{% load common_tags %}
+{% load compilacao_filters cropping common_tags %}
 {% for ch in dpt.pk|get_bloco_atualizador %}
   {% spaceless %}
     {% if ch.visibilidade %}
@@ -30,6 +29,13 @@
               {{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}
               {{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{% if ch.texto_atualizador %}{{ ch.texto_atualizador|safe }}{%else%}{{ ch.texto|safe }}{% endif %}
             {% endif %}
+
+            {% if ch.imagem %}
+              <div class="dpt-img">
+                <img src="{% cropped_thumbnail ch 'imagem_cropping' %}">
+              </div>
+            {% endif %}
+
           </div>
         </div>
     {% endif %}

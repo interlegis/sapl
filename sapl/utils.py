@@ -6,7 +6,6 @@ from operator import itemgetter
 import os
 import platform
 import re
-import requests
 import tempfile
 from time import time
 from unicodedata import normalize as unicodedata_normalize
@@ -35,6 +34,7 @@ import django_filters
 from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 import magic
+import requests
 from reversion_compare.admin import CompareVersionAdmin
 from unipath.path import Path
 
@@ -592,6 +592,7 @@ def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
 restringe_tipos_de_arquivo_txt = fabrica_validador_de_tipos_de_arquivo(
     TIPOS_TEXTO_PERMITIDOS, 'restringe_tipos_de_arquivo_txt')
+
 restringe_tipos_de_arquivo_img = fabrica_validador_de_tipos_de_arquivo(
     TIPOS_IMG_PERMITIDOS, 'restringe_tipos_de_arquivo_img')
 
@@ -1025,10 +1026,11 @@ def timing(f):
         ts = time()
         result = f(*args, **kw)
         te = time()
-        logger.info('funcao:%r args:[%r, %r] took: %2.4f sec' % \
-          (f.__name__, args, kw, te-ts))
+        logger.info('funcao:%r args:[%r, %r] took: %2.4f sec' %
+                    (f.__name__, args, kw, te - ts))
         return result
     return wrap
+
 
 @timing
 def lista_anexados(principal):

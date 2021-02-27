@@ -271,6 +271,7 @@ class Parlamentar(models.Model):
         verbose_name=_('Ativo na Casa?'))
     biografia = models.TextField(
         blank=True, verbose_name=_('Biografia'))
+
     fotografia = ImageCropField(
         verbose_name=_('Fotografia'), upload_to=foto_upload_path,
         validators=[restringe_tipos_de_arquivo_img], null=True, blank=True)

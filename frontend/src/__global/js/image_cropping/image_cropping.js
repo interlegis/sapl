@@ -1,4 +1,4 @@
-/* eslint-disable */ 
+/* eslint-disable */
 var image_cropping = (function ($) {
     var jcrop = {}
     function init() {
@@ -184,7 +184,7 @@ var image_cropping = (function ($) {
     }
 
 })(jQuery)
-
+window.image_cropping = image_cropping
 jQuery(function() {
   /*var image_cropping_jquery_url = jQuery('.image-ratio:first').data('jquery-url')
   if (image_cropping_jquery_url == "None") {

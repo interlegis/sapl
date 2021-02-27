@@ -1,5 +1,5 @@
 {% load i18n %}
-{% load compilacao_filters %}
+{% load compilacao_filters cropping%}
 {% load common_tags %}
 
 {% dispositivotree dispositivos_list %}
@@ -53,11 +53,18 @@
             </a>
           {% endif %}
       </div>
+
+      {% if node.dpt.imagem %}
+        <div class="alert alert-info m-2">
+          <strong>Dispositivo possui imagem anexada.</strong><br>
+          A visualização junto ao texto é possível no <i>PreView</i> e/ou após publicado. Ou no Editor Avançado do dispositivo acima.
+        </div>
+      {% endif %}
       <div class="dpt-form clearfix"></div>
       <div class="dpt-actions-bottom btn-group"></div>
       {% if node.alts or node.td.dispositivo_de_alteracao and node.td.dispositivo_de_articulacao %}
         <div class="dpt-alts">{{ alts }}
-        
+
         </div>
           {% if node.td.dispositivo_de_alteracao %}
             <div class="dpt-actions-fixed bottom">

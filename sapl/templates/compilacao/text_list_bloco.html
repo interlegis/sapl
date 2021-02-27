@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load compilacao_filters %}
 {% load common_tags %}
+{% load cropping %}
 
 {% for dpt in object_list %}
   {% if dpt.tipo_dispositivo.dispositivo_de_alteracao and not dpt.tipo_dispositivo.dispositivo_de_articulacao%}
@@ -28,7 +29,7 @@
               {{ dpt.tipo_dispositivo.rotulo_prefixo_html|safe }}
               <a class="dpt-link" name="{{dpt.pk}}" title="{{dpt.pk}}">{{ dpt.rotulo }}</a>{{ dpt.tipo_dispositivo.rotulo_sufixo_html|safe }}
             {% endif %}
-          
+
           {% endif %}
 
           <span class="dtxt" id="d{% if not dpt.dispositivo_subsequente_id and dpt.dispositivo_substituido_id %}a{% endif %}{{dpt.pk}}" pks="{{dpt.dispositivo_substituido_id|default:''}}" pk="{{dpt.pk}}">{{ dpt.tipo_dispositivo.texto_prefixo_html|safe }}{%if dpt.texto %}{{ dpt.texto|safe }}{%else%}{%if not dpt.tipo_dispositivo.dispositivo_de_articulacao %}&nbsp;{% endif %}{% endif %}</span>
@@ -177,6 +178,13 @@
             </ul>
           </div>
         {% endif%}
+
+        {% if dpt.imagem %}
+          <div class="dpt-img">
+            <img src="{% cropped_thumbnail dpt 'imagem_cropping' %}">
+          </div>
+        {% endif %}
+
       </div>
       {% if dpt.ta_publicado_id %}
         <div class="clearfix"></div>
