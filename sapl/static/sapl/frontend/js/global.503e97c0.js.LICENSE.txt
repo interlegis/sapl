@@ -1,5 +1,0 @@
-/*!
- * jQuery-runner - v2.3.3 - 2014-08-06
- * https://github.com/jylauril/jquery-runner/
- * Copyright (c) 2014 Jyrki Laurila <https://github.com/jylauril>
- */
