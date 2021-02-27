@@ -27,6 +27,7 @@ host = socket.gethostbyname_ex(socket.gethostname())[0]
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
+SAPL_AS_SAPN = config('SAPL_AS_SAPN', default=False, cast=bool)
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
