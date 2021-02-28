@@ -38,12 +38,6 @@ import sapl.sessao.urls
 
 urlpatterns = []
 
-if not settings.SAPL_AS_SAPN:
-    urlpatterns = [
-        url(r'^$', TemplateView.as_view(template_name='index.html'),
-            name='sapl_index'),
-    ]
-
 urlpatterns += [
     url(r'^message$', TemplateView.as_view(template_name='base.html')),
     url(r'^admin/', admin.site.urls),
@@ -60,6 +54,8 @@ urlpatterns += [
     url(r'', include(sapl.relatorios.urls)),
     url(r'', include(sapl.audiencia.urls)),
 
+    url(r'^$', TemplateView.as_view(template_name='index.html'),
+        name='sapl_index'),
     # must come at the end
     #   so that base /sistema/ url doesn't capture its children
     url(r'', include(sapl.base.urls)),

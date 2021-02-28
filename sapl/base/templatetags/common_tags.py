@@ -51,6 +51,13 @@ def model_verbose_name_plural(class_name):
     model = get_class(class_name)
     return model._meta.verbose_name_plural
 
+@register.filter
+def meta_model_value(instance, attr):
+    try:
+        return getattr(instance._meta, attr)
+    except:
+        return ''
+
 
 @register.filter
 def split(value, arg):
@@ -324,12 +331,12 @@ def render_chunk_vendors(extension=None):
         return mark_safe('\n'.join(tags))
     except:
         return ''
-    
-   
+
+
 @register.filter(is_safe=True)
-@stringfilter 
+@stringfilter
 def dont_break_out(value):
     _safe = '<div class="dont-break-out">{}</div>'.format(value)
     _safe = mark_safe(_safe)
-    return _safe    
+    return _safe
 
