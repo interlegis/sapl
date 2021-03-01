@@ -60,7 +60,7 @@ from sapl.sessao.models import (
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured, parlamentares_ativos,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo,
-                        google_recaptcha_configured)
+                        google_recaptcha_configured, sapl_as_sapn)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet,
@@ -75,6 +75,13 @@ from .models import AppConfig, CasaLegislativa
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class IndexView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        if sapl_as_sapn():
+            return redirect('/norma/pesquisar')
+        return TemplateView.get(self, request, *args, **kwargs)
 
 
 class ConfirmarEmailView(TemplateView):

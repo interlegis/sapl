@@ -26,7 +26,8 @@ from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
-from sapl.utils import show_results_filter_set, get_client_ip
+from sapl.utils import show_results_filter_set, get_client_ip,\
+    sapl_as_sapn
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm,

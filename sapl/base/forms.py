@@ -1611,7 +1611,8 @@ class ConfiguracoesAppForm(ModelForm):
                   'tramitacao_materia',
                   'tramitacao_documento',
                   'google_recaptcha_site_key',
-                  'google_recaptcha_secret_key']
+                  'google_recaptcha_secret_key',
+                  'sapl_as_sapn']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)

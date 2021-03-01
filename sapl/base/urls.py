@@ -11,7 +11,8 @@ from django.views.generic.base import RedirectView, TemplateView
 
 from sapl.base.views import (AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica, DetailUsuarioView,
                              PesquisarAutorView, RecuperarSenhaEmailView, RecuperarSenhaFinalizadoView,
-                             RecuperarSenhaConfirmaView, RecuperarSenhaCompletoView, RelatorioMateriaAnoAssuntoView)
+                             RecuperarSenhaConfirmaView, RecuperarSenhaCompletoView, RelatorioMateriaAnoAssuntoView,
+                             IndexView)
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL, LOGOUT_REDIRECT_URL
 
 from .apps import AppConfig
@@ -35,10 +36,14 @@ app_name = AppConfig.name
 
 admin_user = [
     url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
-    url(r'^sistema/usuario/create$', CreateUsuarioView.as_view(), name='user_create'),
-    url(r'^sistema/usuario/(?P<pk>\d+)$', DetailUsuarioView.as_view(), name='user_detail'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/edit$', EditUsuarioView.as_view(), name='user_edit'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/delete$', DeleteUsuarioView.as_view(), name='user_delete')
+    url(r'^sistema/usuario/create$',
+        CreateUsuarioView.as_view(), name='user_create'),
+    url(r'^sistema/usuario/(?P<pk>\d+)$',
+        DetailUsuarioView.as_view(), name='user_detail'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/edit$',
+        EditUsuarioView.as_view(), name='user_edit'),
+    url(r'^sistema/usuario/(?P<pk>\d+)/delete$',
+        DeleteUsuarioView.as_view(), name='user_delete')
 ]
 
 alterar_senha = [
@@ -49,17 +54,23 @@ alterar_senha = [
 ]
 
 recuperar_senha = [
-    url(r'^recuperar-senha/email/$', RecuperarSenhaEmailView.as_view(), name='recuperar_senha_email'),
-    url(r'^recuperar-senha/finalizado/$', RecuperarSenhaFinalizadoView.as_view(), name='recuperar_senha_finalizado'),
+    url(r'^recuperar-senha/email/$', RecuperarSenhaEmailView.as_view(),
+        name='recuperar_senha_email'),
+    url(r'^recuperar-senha/finalizado/$',
+        RecuperarSenhaFinalizadoView.as_view(), name='recuperar_senha_finalizado'),
     url(r'^recuperar-senha/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$', RecuperarSenhaConfirmaView.as_view(),
         name='recuperar_senha_confirma'),
-    url(r'^recuperar-senha/completo/$', RecuperarSenhaCompletoView.as_view(), name='recuperar_senha_completo'),
+    url(r'^recuperar-senha/completo/$',
+        RecuperarSenhaCompletoView.as_view(), name='recuperar_senha_completo'),
 ]
 
 urlpatterns = [
+    url(r'^$', IndexView.as_view(template_name='index.html')),
+
     url(r'^sistema/autor/tipo/', include(TipoAutorCrud.get_urls())),
     url(r'^sistema/autor/', include(AutorCrud.get_urls())),
-    url(r'^sistema/autor/pesquisar-autor/', PesquisarAutorView.as_view(), name='pesquisar_autor'),
+    url(r'^sistema/autor/pesquisar-autor/',
+        PesquisarAutorView.as_view(), name='pesquisar_autor'),
 
     url(r'^sistema/ajuda/(?P<topic>\w+)$',
         HelpTopicView.as_view(), name='help_topic'),
@@ -70,7 +81,7 @@ urlpatterns = [
     url(r'^sistema/app-config/', include(AppConfigCrud.get_urls())),
 
     # TODO mover estas telas para a app 'relatorios'
-    url(r'^sistema/relatorios/$', 
+    url(r'^sistema/relatorios/$',
         RelatoriosListView.as_view(), name='relatorios_list'),
     url(r'^sistema/relatorios/materia-por-autor$',
         RelatorioMateriasPorAutorView.as_view(), name='materia_por_autor'),
@@ -174,9 +185,10 @@ urlpatterns = [
         (TemplateView.as_view(template_name='sistema.html')),
         name='sistema'),
 
-    url(r'^login/$', views.LoginView.as_view(template_name= 'base/login.html', authentication_form= LoginForm),
+    url(r'^login/$', views.LoginView.as_view(template_name='base/login.html', authentication_form=LoginForm),
         name='login'),
-    url(r'^logout/$', views.LogoutView.as_view(), {'next_page': LOGOUT_REDIRECT_URL}, name='logout'),
+    url(r'^logout/$', views.LogoutView.as_view(),
+        {'next_page': LOGOUT_REDIRECT_URL}, name='logout'),
 
     url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
 

@@ -8,6 +8,7 @@ from sapl.norma.views import (AnexoNormaJuridicaCrud, AssuntoNormaCrud,
                               recuperar_numero_norma, AutoriaNormaCrud,
                               PesquisarAssuntoNormaView)
 
+
 from .apps import AppConfig
 
 
@@ -33,7 +34,7 @@ urlpatterns = [
     url(r'^sistema/norma/vinculo/', include(
         TipoVinculoNormaJuridicaCrud.get_urls())),
 
-    url(r'^norma/pesquisar$' if not settings.SAPL_AS_SAPN else r'^$',
+    url(r'^norma/pesquisar$',
         NormaPesquisaView.as_view(), name='norma_pesquisa'),
 
     url(r'^norma/recuperar-norma$', recuperar_norma, name="recuperar_norma"),
