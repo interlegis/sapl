@@ -2007,6 +2007,11 @@ class MateriaLegislativaPesquisaView(FilterView):
                                      "autoria_set__autor",
                                      "tipo",)
 
+        # retorna somente MateriaLegislativa sem MateriaAssunto se True
+        materia_assunto_null = self.request.GET.get("materiaassunto_null", False)
+        if materia_assunto_null:
+            qs = qs.filter(materiaassunto__isnull=True)
+
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', 'tipo__sigla', '-numero')
 

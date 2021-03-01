@@ -1108,15 +1108,16 @@ class RelatorioMateriaAnoAssuntoView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('Matérias por Ano e Assunto')
-        mat = MateriaLegislativa.objects.exclude(id__in=
-                                           MateriaAssunto.objects.distinct(
-                                               'materia_id').values_list(
-                                               'materia_id',
-                                               flat=True
-                                           ).order_by(
-                                               'materia_id'
-                                           )).values(
-            'ano').annotate(total=Count('ano')).order_by('-ano')
+
+        # In[10]: MateriaAssunto.objects.all().values(
+        #     ...:             'materia__ano').annotate(
+        #     ...: total = Count('materia__ano')).order_by('-materia__ano')
+
+        mat = MateriaLegislativa.objects.filter(
+            materiaassunto__isnull=True).values(
+            'ano').annotate(
+            total=Count('ano')).order_by('-ano')
+
         context.update({"materias_sem_assunto": mat})
         return context
 
