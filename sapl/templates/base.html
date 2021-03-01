@@ -94,6 +94,15 @@
                   </div>
                 </header>
         {% endif %}
+      {% else %}
+        <div class="container">
+          <div class="row justify-content-end px-3">
+
+            {% if sapl_as_sapn and not user.is_authenticated%}
+              <small><a href="{% url 'sapl.base:login' %}">Acessar</a></small>
+            {% endif %}
+          </div>
+        </div>
       {% endif %}
       {% if not request|has_iframe %}
         {# Header #}
@@ -209,12 +218,7 @@
                   <br>
                   <a href="{{endereco_web}}" class="url">{% trans 'Site' %}</a> |
                   <a href="mailto:{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
-                  <br>
-                  {% if sapl_as_sapn and not user.is_authenticated%}
-                    <a href="{% url 'sapl.base:login' %}">Acessar</a>
-                  {% elif sapl_as_sapn and user.is_authenticated%}
-                    <a href="{% url 'sapl.base:logout' %}">Sair</a>
-                  {% endif %}
+
                 </small>
               </address>
               {% else %}

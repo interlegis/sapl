@@ -38,10 +38,6 @@ import sapl.sessao.urls
 
 urlpatterns = []
 
-if not settings.SAPL_AS_SAPN:
-    urlpatterns = [
-    ]
-
 urlpatterns += [
     url(r'^message$', TemplateView.as_view(template_name='base.html')),
     url(r'^admin/', admin.site.urls),
