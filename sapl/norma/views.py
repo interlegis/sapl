@@ -26,6 +26,7 @@ from sapl.base.models import AppConfig
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
+from sapl.materia.models import Orgao
 from sapl.utils import show_results_filter_set, get_client_ip,\
     sapl_as_sapn
 
@@ -455,9 +456,14 @@ def recuperar_norma(request):
 def recuperar_numero_norma(request):
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
+    orgao = request.GET.get('orgao', '')
+
     param = {'tipo': tipo,
-             'ano': ano if ano else timezone.now().year
+             'ano': ano if ano else timezone.now().year,
              }
+    if orgao:
+        param['orgao'] = Orgao.objects.get(pk=orgao)
+
     norma = NormaJuridica.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', flat=True)
     if norma:

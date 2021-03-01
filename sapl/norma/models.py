@@ -250,8 +250,9 @@ class NormaJuridica(models.Model):
         if numero_norma.isnumeric():
             numero_norma = '{0:,}'.format(int(self.numero)).replace(',', '.')
 
-        return _('%(tipo)s nº %(numero)s, de %(data)s') % {
+        return _('%(tipo)s%(orgao_sigla)s nº %(numero)s, de %(data)s') % {
             'tipo': self.tipo,
+            'orgao_sigla': f'-{self.orgao.sigla}' if self.orgao else '',
             'numero': numero_norma,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
 
