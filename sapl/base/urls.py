@@ -65,7 +65,7 @@ recuperar_senha = [
 ]
 
 urlpatterns = [
-    url(r'^$', IndexView.as_view(template_name='index.html')),
+    url(r'^$', IndexView.as_view(template_name='index.html'), name='sapl_index'),
 
     url(r'^sistema/autor/tipo/', include(TipoAutorCrud.get_urls())),
     url(r'^sistema/autor/', include(AutorCrud.get_urls())),

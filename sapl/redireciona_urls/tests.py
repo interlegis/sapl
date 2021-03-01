@@ -1,5 +1,6 @@
-from django.urls import reverse
 from django.test import TestCase
+from django.urls import reverse
+
 
 MovedPermanentlyHTTPStatusCode = 301
 EMPTY_STRING = ''
@@ -11,7 +12,7 @@ class RedirecionaURLsTests(TestCase):
         response = self.client.get(reverse(
             'sapl.redireciona_urls:redireciona_sapl_index')
         )
-        url_e = reverse('sapl_index')
+        url_e = reverse('sapl.base:sapl_index')
         self.assertEqual(response.status_code, MovedPermanentlyHTTPStatusCode)
         self.assertEqual(response.url, url_e)
 
