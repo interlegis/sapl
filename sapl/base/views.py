@@ -15,7 +15,7 @@ from django.contrib.auth.views import (PasswordResetView, PasswordResetConfirmVi
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.db import connection
-from django.db.models import Count, Q, ProtectedError, Max
+from django.db.models import Count, Q, ProtectedError, Max, F
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import TemplateDoesNotExist
@@ -42,7 +42,7 @@ from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio, MateriaEmTramitacao, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento, TipoMateriaLegislativa, UnidadeTramitacao,
-                                 Tramitacao)
+                                 MateriaAssunto, Tramitacao)
 from sapl.norma.models import NormaJuridica, TipoNormaJuridica
 from sapl.parlamentares.models import (
     Filiacao, Legislatura, Mandato, Parlamentar, SessaoLegislativa)
@@ -1092,6 +1092,32 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
             self.request.GET['data_apresentacao_0'] +
             ' - ' + self.request.GET['data_apresentacao_1'])
 
+        return context
+
+
+class RelatorioMateriaAnoAssuntoView(ListView):
+    template_name = 'base/RelatorioMateriasAnoAssunto.html'
+
+    def get_queryset(self):
+        return MateriaAssunto.objects.all().values(
+            'assunto_id',
+            assunto_materia=F('assunto__assunto'),
+            ano=F('materia__ano')).annotate(
+            total=Count('assunto_id')).order_by('-materia__ano', 'assunto_id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Matérias por Ano e Assunto')
+        mat = MateriaLegislativa.objects.exclude(id__in=
+                                           MateriaAssunto.objects.distinct(
+                                               'materia_id').values_list(
+                                               'materia_id',
+                                               flat=True
+                                           ).order_by(
+                                               'materia_id'
+                                           )).values(
+            'ano').annotate(total=Count('ano')).order_by('-ano')
+        context.update({"materias_sem_assunto": mat})
         return context
 
 

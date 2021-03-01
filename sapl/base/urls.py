@@ -11,7 +11,7 @@ from django.views.generic.base import RedirectView, TemplateView
 
 from sapl.base.views import (AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica, DetailUsuarioView,
                              PesquisarAutorView, RecuperarSenhaEmailView, RecuperarSenhaFinalizadoView,
-                             RecuperarSenhaConfirmaView, RecuperarSenhaCompletoView)
+                             RecuperarSenhaConfirmaView, RecuperarSenhaCompletoView, RelatorioMateriaAnoAssuntoView)
 from sapl.settings import EMAIL_SEND_USER, MEDIA_URL, LOGOUT_REDIRECT_URL
 
 from .apps import AppConfig
@@ -86,6 +86,9 @@ urlpatterns = [
     url(r'^sistema/relatorios/materia-por-tramitacao$',
         RelatorioMateriasTramitacaoView.as_view(),
         name='materia_por_tramitacao'),
+    url(r'^sistema/relatorios/materia-por-assunto$',
+        RelatorioMateriaAnoAssuntoView.as_view(),
+        name='materia_por_ano_assunto'),
     url(r'^sistema/relatorios/historico-tramitacoes$',
         RelatorioHistoricoTramitacaoView.as_view(),
         name='historico_tramitacoes'),
