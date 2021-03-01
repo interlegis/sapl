@@ -29,7 +29,7 @@ from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
                                  MateriaLegislativa, Orgao,
                                  RegimeTramitacao, StatusTramitacao,
                                  TipoDocumento, TipoProposicao,
-                                 ConfigEtiquetaMateriaLegislativa)
+                                 ConfigEtiquetaMateriaLegislativa, HistoricoProposicao)
 from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
 from sapl.parlamentares.models import Legislatura, Partido
@@ -2084,7 +2084,13 @@ class DevolverProposicaoForm(forms.ModelForm):
         fields = [
             'justificativa_devolucao',
             'observacao',
+            'user',
+            'ip'
         ]
+        widgets = {
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput(),
+        }
 
     def __init__(self, *args, **kwargs):
 
@@ -2139,6 +2145,13 @@ class DevolverProposicaoForm(forms.ModelForm):
             ta.editing_locked = False
             ta.save()
 
+        observacao = self.instance.justificativa_devolucao
+        HistoricoProposicao.objects.create(proposicao=self.instance,
+                                           status='D',
+                                           user=self.initial['user'],
+                                           ip=self.initial['ip'],
+                                           observacao=observacao)
+
         self.instance.results = {
             'messages': {
                 'success': [_('Devolução efetuada com sucesso.'), ]
@@ -2181,13 +2194,17 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             'observacao',
             'gerar_protocolo',
             'numero_de_paginas',
-            'numero_materia_futuro'
+            'numero_materia_futuro',
+            'user',
+            'ip'
         ]
         widgets = {
             'descricao': widgets.Textarea(
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -2395,6 +2412,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         proposicao = self.instance
         conteudo_gerado = None
 
+        HistoricoProposicao.objects.create(proposicao=proposicao,
+                                           status='R',
+                                           user=self.initial['user'],
+                                           ip=self.initial['ip'],
+                                           )
+
         if self.instance.tipo.content_type.model_class(
         ) == TipoMateriaLegislativa:
 
@@ -2591,6 +2614,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             protocolo.tipo_processo = '0'
 
         protocolo.save()
+        HistoricoProposicao.objects.create(proposicao=proposicao,
+                                           status='E')
 
         self.instance.results['messages']['success'].append(_(
             'Protocolo realizado com sucesso'))

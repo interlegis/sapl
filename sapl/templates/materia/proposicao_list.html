@@ -1,0 +1,12 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% block base_content %}
+{% block sub_actions %}
+  <div class="actions btn-group btn-group-sm" role="group">
+    <a href="{% url 'sapl.materia:historico-proposicao' %}" class="btn btn-outline-primary">
+      {% blocktrans with verbose_name=view.verbose_name %} Histórico de {{ verbose_name }} {% endblocktrans %}
+    </a>
+  </div>
+{% endblock sub_actions %}
+  {{ block.super }}
+{% endblock %}

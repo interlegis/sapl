@@ -31,7 +31,7 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 DespachoInicialMultiCreateView,
                                 get_zip_docacessorios, get_pdf_docacessorios,
                                 configEtiquetaMateriaLegislativaCrud,
-                                PesquisarStatusTramitacaoView)
+                                PesquisarStatusTramitacaoView, HistoricoProposicaoView)
 from sapl.norma.views import NormaPesquisaSimplesView
 from sapl.protocoloadm.views import (
     FichaPesquisaAdmView, FichaSelecionaAdmView
@@ -156,6 +156,8 @@ urlpatterns_proposicao = [
         name='proposicao_texto'),
     url(r'^proposicao/(?P<pk>\d+)/retornar', RetornarProposicao.as_view(),
         name='retornar-proposicao'),
+    url(r'^proposicao/historico', HistoricoProposicaoView.as_view(),
+        name='historico-proposicao'),
 
 ]
 
