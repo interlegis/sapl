@@ -187,6 +187,11 @@
   - title: {% trans 'Adicionar Assunto de Norma Jurídica' %}
     url: sapl.norma:assuntonorma_create
     css_class: btn btn-link
+{% if sapl_as_sapn %}
+  - title: {% trans 'Órgão' %}
+    url: sapl.materia:orgao_list
+    css_class: btn btn-link
+{% endif %}
 
 - title: {% trans 'Módulo Textos Articulados' %}
   css_class: head_title
