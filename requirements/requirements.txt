@@ -14,6 +14,7 @@ django-speedinfo==1.4.0
 django-extensions==2.1.4
 django-image-cropping==1.2
 django-webpack-loader==0.6.0
+django-ratelimit==3.0.1
 drf-yasg==1.13.0
 easy-thumbnails==2.5
 python-decouple==3.1
@@ -34,4 +35,3 @@ whitenoise==5.1.0
 
 git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped
-django-ratelimit==3.0.1

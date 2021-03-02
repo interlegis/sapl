@@ -87,7 +87,8 @@ class IndexView(TemplateView):
 
 
 @method_decorator(ratelimit(key='ip', rate='20/m',
-                            method=ratelimit.UNSAFE, block=True), name='dispatch')
+                            method=ratelimit.UNSAFE,
+                            block=True), name='dispatch')
 class LoginSapl(views.LoginView):
     template_name = 'base/login.html'
     authentication_form = LoginForm
