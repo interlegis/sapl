@@ -1065,6 +1065,14 @@ class HistoricoProposicao(models.Model):
         verbose_name = _('Histórico de Proposição')
         verbose_name_plural = _('Histórico de Proposições')
         ordering = ('-data_hora', '-proposicao')
+        permissions = (
+            ('detail_proposicao_enviada',
+             _('Pode acessar detalhes de uma proposição enviada.')),
+            ('detail_proposicao_devolvida',
+             _('Pode acessar detalhes de uma proposição devolvida.')),
+            ('detail_proposicao_incorporada',
+             _('Pode acessar detalhes de uma proposição incorporada.')),
+        )
 
     def __str__(self):
         return f'{self.data_hora} - {self.STATUS_PROPOSICAO[self.status]} - {str(self.proposicao)}'
