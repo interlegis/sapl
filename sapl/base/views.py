@@ -6,7 +6,7 @@ import logging
 import os
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, views
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.tokens import default_token_generator
@@ -22,6 +22,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
@@ -31,12 +32,13 @@ from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.query import SearchQuerySet
 from haystack.views import SearchView
+from ratelimit.decorators import ratelimit
 from rest_framework.authtoken.models import Token
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.forms import (AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
-                             NovaSenhaForm)
+                             NovaSenhaForm, LoginForm)
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination
@@ -82,6 +84,13 @@ class IndexView(TemplateView):
         if sapl_as_sapn():
             return redirect('/norma/pesquisar')
         return TemplateView.get(self, request, *args, **kwargs)
+
+
+@method_decorator(ratelimit(key='ip', rate='20/m',
+                            method=ratelimit.UNSAFE, block=True), name='dispatch')
+class LoginSapl(views.LoginView):
+    template_name = 'base/login.html'
+    authentication_form = LoginForm
 
 
 class ConfirmarEmailView(TemplateView):
