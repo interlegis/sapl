@@ -14,7 +14,7 @@ from sapl.settings import MEDIA_URL, LOGOUT_REDIRECT_URL
 
 from .apps import AppConfig
 from .forms import LoginForm
-from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
+from .views import (LoginSapl, AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     HelpTopicView, LogotipoView, RelatorioAtasView,
                     RelatorioAudienciaView, RelatorioDataFimPrazoTramitacaoView, RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView, RelatorioMateriasPorAutorView,
@@ -173,8 +173,7 @@ urlpatterns = [
         (TemplateView.as_view(template_name='sistema.html')),
         name='sistema'),
 
-    url(r'^login/$', views.LoginView.as_view(template_name='base/login.html', authentication_form=LoginForm),
-        name='login'),
+    url(r'^login/$', LoginSapl.as_view(), name='login'),
     url(r'^logout/$', views.LogoutView.as_view(),
         {'next_page': LOGOUT_REDIRECT_URL}, name='logout'),
 
