@@ -6,7 +6,7 @@ import logging
 import os
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, views
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
@@ -23,6 +23,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
@@ -32,11 +33,12 @@ from django_filters.views import FilterView
 from haystack.query import SearchQuerySet
 from haystack.views import SearchView
 
+from ratelimit.decorators import ratelimit
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
                              NovaSenhaForm, UserAdminForm,
-                             OperadorAutorForm)
+                             OperadorAutorForm, LoginForm)
 from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination, Crud,\
@@ -62,7 +64,7 @@ from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured, parlamentares_ativos,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo,
                         google_recaptcha_configured, sapl_as_sapn,
-                        groups_remove_user, groups_add_user)
+                        groups_remove_user, groups_add_user, get_client_ip)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet,
@@ -84,6 +86,15 @@ class IndexView(TemplateView):
         if sapl_as_sapn():
             return redirect('/norma/pesquisar')
         return TemplateView.get(self, request, *args, **kwargs)
+
+
+@method_decorator(ratelimit(key=lambda group, request: get_client_ip(request),
+                            rate='20/m',
+                            method=ratelimit.UNSAFE,
+                            block=True), name='dispatch')
+class LoginSapl(views.LoginView):
+    template_name = 'base/login.html'
+    authentication_form = LoginForm
 
 
 class ConfirmarEmailView(TemplateView):
