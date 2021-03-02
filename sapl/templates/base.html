@@ -34,83 +34,96 @@
   <body>
     <div class="page fadein">
 
-      {% if not request|has_iframe %}
-      {% block navigation %}
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-          <div class="container">
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNav">
-              {% block sections_navbar %} {% navbar 'navbar.yaml' %}{% endblock sections_navbar %}
+      {% if not sapl_as_sapn or user.is_authenticated%}
+        {% if not request|has_iframe %}
+          {% block navigation %}
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+              <div class="container">
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarNav">
 
-              <ul class="nav navbar-nav justify-content-end" id="autenticacao">
-                <li class="nav-item dropdown pesquisa">
-                  <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% webpack_static 'img/search.png' %}"><span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                      <li class="dropdown-item">
-                        <form id="formulario-lexml" class="navbar-form search-form" method="get" action="">
-                          <input id="input-lexml" type="text" class="form-control" placeholder="Pesquisar no LexML" />
-                        </form>
+                  {% block sections_navbar %} {% navbar 'navbar.yaml' %} {% endblock sections_navbar %}
+
+                  <ul class="nav navbar-nav justify-content-end" id="autenticacao">
+                    <li class="nav-item dropdown pesquisa">
+                      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="{% webpack_static 'img/search.png' %}"><span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                          <li class="dropdown-item">
+                            <form id="formulario-lexml" class="navbar-form search-form" method="get" action="">
+                              <input id="input-lexml" type="text" class="form-control" placeholder="Pesquisar no LexML" />
+                            </form>
+                          </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link"href="/sistema/ajuda"><img src="{% webpack_static 'img/manual.png' %}"></a></li>
+                    {% if not user.is_authenticated %}
+                      <li class="nav-item"><a class="nav-link" href="{% url 'sapl.base:login' %}"><img src="{% webpack_static 'img/user.png' %}"></a></li>
+                    {% else %}
+                      <li class="nav-item dropdown">
+                          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img height="30" width="30" src="{% webpack_static 'img/authenticated.png' %}"><span class="caret"></span></a>
+                        </a>
+                        <ul class="dropdown-menu">
+                          <li class="dropdown-item"><a>{{user.username}}</a></li>
+                          {% if not sapl_as_sapn and 'parlamentares.can_vote' in request.user.get_all_permissions %}
+                            <li class="dropdown-item"><a href="" onclick="window.open('{% url 'sapl.painel:voto_individual' %}','Voto Individual','width=1000, height=800, scrollbars=yes')";>
+                              Votar Matéria
+                            </a></li>
+                          {% endif %}
+                          <li class="dropdown-item"><a href="{% url 'sapl.base:alterar_senha' %}">Alterar senha</a></li>
+                          <li class="dropdown-item"><a href="{% url 'sapl.base:logout' %}">Sair</a></li>
+                        </ul>
                       </li>
-                    </ul>
-                </li>
-                <li class="nav-item"><a class="nav-link"href="/sistema/ajuda"><img src="{% webpack_static 'img/manual.png' %}"></a></li>
-                {% if not user.is_authenticated %}
-                  <li class="nav-item"><a class="nav-link" href="{% url 'sapl.base:login' %}"><img src="{% webpack_static 'img/user.png' %}"></a></li>
-                {% else %}
-                  <li class="nav-item dropdown">
-                      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img height="30" width="30" src="{% webpack_static 'img/authenticated.png' %}"><span class="caret"></span></a>
-                    </a>
-                    <ul class="dropdown-menu">
-                      <li class="dropdown-item"><a>{{user.username}}</a></li>
-                      {% if 'parlamentares.can_vote' in request.user.get_all_permissions %}
-                        <li class="dropdown-item"><a href="" onclick="window.open('{% url 'sapl.painel:voto_individual' %}','Voto Individual','width=1000, height=800, scrollbars=yes')";>
-                          Votar Matéria
-                        </a></li>
-                      {% endif %}
-                      <li class="dropdown-item"><a href="{% url 'sapl.base:alterar_senha' %}">Alterar senha</a></li>
-                      <li class="dropdown-item"><a href="{% url 'sapl.base:logout' %}">Sair</a></li>
-                    </ul>
-                  </li>
-                {% endif %}
-              </ul>
+                    {% endif %}
+                  </ul>
 
-            </div><!--/.nav-collapse -->
-          </div>
-        </nav>
-      {% endblock navigation %}
-
-      {# Header #}
-      {% block main_header %}
-      <header class="masthead">
+                </div><!--/.nav-collapse -->
+              </div>
+            </nav>
+          {% endblock navigation %}
+        {% else %}
+                <div class="btn-cancel-iframe">
+                  <a href="?iframe=0" target="_blank"><i class="fa fa-2x fa-arrows-alt"></i></a>
+                </div>
+                <header class="masthead">
+                  <div class="container">
+                    <div class="hidden-print">
+                      {% subnav %}
+                    </div>
+                  </div>
+                </header>
+        {% endif %}
+      {% else %}
         <div class="container">
-          <div class="navbar-header">
-            <a class="navbar-brand" href="/">
-              <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
-              alt="Logo" class="img-responsive" >
-              <span class="vcenter">{% if nome %}{{ nome }}{% else %}{% trans 'Câmara/Assembléia não configurada'%}{% endif %}
-                <br/><small>{% trans 'Sistema de Apoio ao Processo Legislativo' %}</small>
-              </span>
-            </a>
-          </div>
-          <div class="hidden-print">
-            {% block sections_nav %} {% subnav %} {% endblock sections_nav %}
+          <div class="row justify-content-end px-3">
+
+            {% if sapl_as_sapn and not user.is_authenticated%}
+              <small><a href="{% url 'sapl.base:login' %}">Acessar</a></small>
+            {% endif %}
           </div>
         </div>
-      </header>
-      {% endblock main_header %}
-      {% else %}
-              <div class="btn-cancel-iframe">
-                <a href="?iframe=0" target="_blank"><i class="fa fa-2x fa-arrows-alt"></i></a>
-              </div>
-              <header class="masthead">
-                <div class="container">
-                  <div class="hidden-print">
-                    {% subnav %}
-                  </div>
-                </div>
-              </header>
+      {% endif %}
+      {% if not request|has_iframe %}
+        {# Header #}
+        {% block main_header %}
+        <header class="masthead">
+          <div class="container">
+            <div class="navbar-header">
+              <a class="navbar-brand" href="/">
+                <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
+                alt="Logo" class="img-responsive" >
+                <span class="vcenter">{% if nome %}{{ nome }}{% else %}{% trans 'Câmara/Assembléia não configurada'%}{% endif %}
+                  <br/><small>{{nome_sistema}}</small>
+                </span>
+              </a>
+            </div>
+            <div class="hidden-print">
+              {% block sections_nav %} {% subnav %} {% endblock sections_nav %}
+            </div>
+          </div>
+        </header>
+        {% endblock main_header %}
       {% endif %}
 
       {# Main content #}
@@ -205,6 +218,7 @@
                   <br>
                   <a href="{{endereco_web}}" class="url">{% trans 'Site' %}</a> |
                   <a href="mailto:{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
+
                 </small>
               </address>
               {% else %}
@@ -214,6 +228,9 @@
                   <a href="{% url 'sapl.base:casalegislativa_list' %}">Favor configurar clicando aqui</a>
                 {% endif %}
               {% endif %}
+
+
+
             </div>
           </div>
         </div>
@@ -226,7 +243,7 @@
 
       {% block webpack_loader_js %}
         {% render_chunk_vendors 'js' %}
-        {% render_bundle  'global' 'js' %}      
+        {% render_bundle  'global' 'js' %}
       {% endblock webpack_loader_js %}
 
       {% block webpack_loader_chunks_js %}

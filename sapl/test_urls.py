@@ -1,4 +1,3 @@
-import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
@@ -6,12 +5,14 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
+import pytest
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from sapl.rules.apps import AppConfig, update_groups
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
+
 
 pytestmark = pytest.mark.django_db
 
@@ -159,7 +160,9 @@ apps_url_patterns_prefixs_and_users = {
             '/recuperar-senha',
             '/sapl',
             '/XSLT',
-        ]},
+        ],
+        'exact': ['/']
+    },
     'comissoes': {
         'users': {'operador_geral': ['/sistema', '/comissao'],
                   'operador_comissoes': ['/comissao']},
@@ -276,12 +279,19 @@ def test_urlpatterns(url_item, admin_client):
 
         if app_name in apps_url_patterns_prefixs_and_users:
             prefixs = apps_url_patterns_prefixs_and_users[app_name]['prefixs']
+            exacts = apps_url_patterns_prefixs_and_users[app_name].get(
+                'exact', [])
 
             isvalid = False
             for prefix in prefixs:
                 if url.startswith(prefix):
                     isvalid = True
                     break
+            if not isvalid:
+                for exact in exacts:
+                    if url == exact:
+                        isvalid = True
+                        break
 
             assert isvalid, """
                 O prefixo da url (%s) não está no padrão de sua app (%s).

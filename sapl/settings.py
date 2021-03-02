@@ -196,6 +196,7 @@ TEMPLATES = [
                 'sapl.context_processors.parliament_info',
                 'sapl.context_processors.mail_service_configured',
                 'sapl.context_processors.google_recaptcha_configured',
+                'sapl.context_processors.sapl_as_sapn',
 
             ],
             'debug': DEBUG

@@ -1192,8 +1192,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     imagem = ImageCropField(
         verbose_name=_('Imagem'),
-        upload_to=imagem_upload_path,
-        validators=[restringe_tipos_de_arquivo_img], null=True, blank=True)
+        upload_to=imagem_upload_path, null=True, blank=True)
 
     imagem_cropping = ImageRatioField(
         'imagem', '100x100', verbose_name=_('Recorte de Imagem'),

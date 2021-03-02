@@ -6,6 +6,7 @@ from operator import itemgetter
 import os
 import platform
 import re
+import sys
 import tempfile
 from time import time
 from unicodedata import normalize as unicodedata_normalize
@@ -27,6 +28,7 @@ from django.db import models
 from django.db.models import Q
 from django.forms import BaseForm
 from django.forms.widgets import SplitDateTimeWidget
+from django.urls.base import clear_url_caches
 from django.utils import six, timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -1017,6 +1019,11 @@ def google_recaptcha_configured():
     from sapl.base.models import AppConfig
 
     return not AppConfig.attr('google_recaptcha_site_key') == ''
+
+
+def sapl_as_sapn():
+    from sapl.base.models import AppConfig
+    return AppConfig.attr('sapl_as_sapn')
 
 
 def timing(f):

@@ -200,6 +200,11 @@ class AppConfig(models.Model):
         verbose_name=_('Chave privada gerada pelo Google Recaptcha'),
         max_length=256, default='')
 
+    sapl_as_sapn = models.BooleanField(
+        verbose_name=_(
+            'Utilizar SAPL como SAPN?'),
+        choices=YES_NO_CHOICES, default=False)
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')

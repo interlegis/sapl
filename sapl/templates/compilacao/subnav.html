@@ -4,7 +4,9 @@
   <ul class="nav nav-tabs justify-content-end">
     {%if object %}
       <li class="nav-item">
-        {% if request.GET.back_type == 'history' and object.content_object %}
+        {% if object.content_object|meta_model_value:'model_name' == 'normajuridica' %}
+          <a class="nav-link" href="{% url object|urldetail_content_type:object.content_object object.content_object.pk %}?display" title="{% trans 'Dados Complementares '%}">{% trans 'Dados Complementares '%}</a>
+        {% elif request.GET.back_type == 'history' and object.content_object %}
           <a class="nav-link" href="javascript:window.history.back()" title="{% trans 'Voltar para '%}{{object}}">{% trans 'Voltar para '%}{{object}}</a>
         {% elif object.content_object%}
           <a class="nav-link" href="{% url object|urldetail_content_type:object.content_object object.content_object.pk %}" title="{% trans 'Voltar para '%}{{object}}">{% trans 'Voltar para '%}{{object}}</a>

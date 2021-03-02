@@ -8,7 +8,7 @@ import reversion
 
 from sapl.base.models import Autor
 from sapl.compilacao.models import TextoArticulado
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, Orgao
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         restringe_tipos_de_arquivo_txt,
                         texto_upload_path,
@@ -151,6 +151,9 @@ class NormaJuridica(models.Model):
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Matéria'))
+    orgao = models.ForeignKey(
+        Orgao, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Órgão'))
     numero = models.CharField(
         max_length=8,
         verbose_name=_('Número'))
@@ -247,8 +250,9 @@ class NormaJuridica(models.Model):
         if numero_norma.isnumeric():
             numero_norma = '{0:,}'.format(int(self.numero)).replace(',', '.')
 
-        return _('%(tipo)s nº %(numero)s, de %(data)s') % {
+        return _('%(tipo)s%(orgao_sigla)s nº %(numero)s, de %(data)s') % {
             'tipo': self.tipo,
+            'orgao_sigla': f'-{self.orgao.sigla}' if self.orgao else '',
             'numero': numero_norma,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
 

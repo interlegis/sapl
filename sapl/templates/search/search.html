@@ -12,19 +12,22 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-md-8">
-        <h3> Em quais tipos de documento deseja pesquisar?</h3>
-        <br/>
-        <div class="checkbox" id="check_all">
-          <label for="id_check_all">
-            <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
-          </label>
+    {% if not sapl_as_sapn %}
+
+      <div class="row">
+        <div class="col-md-8">
+          <h3> Em quais tipos de documento deseja pesquisar?</h3>
+          <br/>
+          <div class="checkbox" id="check_all">
+            <label for="id_check_all">
+              <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
+            </label>
+          </div>
+          <br/>
+          {{ form.models }}
         </div>
-        <br/>
-        {{ form.models }}
       </div>
-    </div>
+    {% endif %}
 
     <div  class="row">
       <div class="col-md-12">
@@ -117,8 +120,8 @@
 		function checkAll(elem) {
       let checkboxes = document.getElementsByName('models');
       for (let i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].type == 'checkbox') 
-            checkboxes[i].checked = elem.checked; 
+        if (checkboxes[i].type == 'checkbox')
+            checkboxes[i].checked = elem.checked;
       }
     }
   </script>

@@ -17,6 +17,7 @@
   - title: {% trans 'Tipo de Autor' %}
     url: sapl.base:tipoautor_list
     css_class: btn btn-link
+{% if not sapl_as_sapn%}
 - title: {% trans 'Módulo Parlamentares' %}
   css_class: head_title
   children:
@@ -137,39 +138,6 @@
   - title: {% trans 'Configuração Etiqueta Materia Legislativa' %}
     url: sapl.materia:configEtiquetaMateriaLegislativaCrud
     css_class: btn btn-link
-- title: {% trans 'Módulo Normas Jurídicas' %}
-  css_class: head_title
-  children:
-  - title: {% trans 'Tipo de Norma Jurídica' %}
-    url: sapl.norma:tiponormajuridica_list
-    css_class: btn btn-link
-  - title: {% trans 'Tipo de Vínculo' %}
-    url: sapl.norma:tipovinculonormajuridica_list
-    css_class: btn btn-link
-  - title: {% trans 'Pesquisar Assunto de Norma Jurídica' %}
-    url: sapl.norma:pesquisar_assuntonorma
-    css_class: btn btn-link
-  - title: {% trans 'Adicionar Assunto de Norma Jurídica' %}
-    url: sapl.norma:assuntonorma_create
-    css_class: btn btn-link
-- title: {% trans 'Módulo Textos Articulados' %}
-  css_class: head_title
-  children:
-  - title: {% trans 'Tipos de Textos Articulados' %}
-    url: sapl.compilacao:tipotextoarticulado_list
-    css_class: btn btn-link
-  - title: {% trans 'Tipos de Publicação' %}
-    url: sapl.compilacao:tipopublicacao_list
-    css_class: btn btn-link
-  - title: {% trans 'Veículos de Publicação' %}
-    url: sapl.compilacao:veiculopublicacao_list
-    css_class: btn btn-link
-  - title: {% trans 'Tipos de Notas' %}
-    url: sapl.compilacao:tiponota_list
-    css_class: btn btn-link
-  - title: {% trans 'Tipos de Vides' %}
-    url: sapl.compilacao:tipovide_list
-    css_class: btn btn-link
 - title: {% trans 'Módulo Sessão Plenária' %}
   css_class: head_title
   children:
@@ -191,15 +159,6 @@
   - title: {% trans 'Tipo de Justificativa' %}
     url: sapl.sessao:tipojustificativa_list
     css_class: btn btn-link
-- title: {% trans 'Módulo LexML' %}
-  css_class: head_title
-  children:
-  - title: {% trans 'Provedor' %}
-    url: sapl.lexml:lexmlprovedor_list
-    css_class: btn btn-link
-  - title: {% trans 'Publicador' %}
-    url: sapl.lexml:lexmlpublicador_list
-    css_class: btn btn-link
 - title: {% trans 'Módulo Administrativo' %}
   css_class: head_title
   children:
@@ -211,4 +170,53 @@
     css_class: btn btn-link
   - title: {% trans 'Apagar Protocolos' %}
     url: sapl.protocoloadm:apaga_protocolos_view
+    css_class: btn btn-link
+{% endif %}
+- title: {% trans 'Módulo Normas Jurídicas' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tipo de Norma Jurídica' %}
+    url: sapl.norma:tiponormajuridica_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipo de Vínculo' %}
+    url: sapl.norma:tipovinculonormajuridica_list
+    css_class: btn btn-link
+  - title: {% trans 'Pesquisar Assunto de Norma Jurídica' %}
+    url: sapl.norma:pesquisar_assuntonorma
+    css_class: btn btn-link
+  - title: {% trans 'Adicionar Assunto de Norma Jurídica' %}
+    url: sapl.norma:assuntonorma_create
+    css_class: btn btn-link
+{% if sapl_as_sapn %}
+  - title: {% trans 'Órgão' %}
+    url: sapl.materia:orgao_list
+    css_class: btn btn-link
+{% endif %}
+
+- title: {% trans 'Módulo Textos Articulados' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Tipos de Textos Articulados' %}
+    url: sapl.compilacao:tipotextoarticulado_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipos de Publicação' %}
+    url: sapl.compilacao:tipopublicacao_list
+    css_class: btn btn-link
+  - title: {% trans 'Veículos de Publicação' %}
+    url: sapl.compilacao:veiculopublicacao_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipos de Notas' %}
+    url: sapl.compilacao:tiponota_list
+    css_class: btn btn-link
+  - title: {% trans 'Tipos de Vides' %}
+    url: sapl.compilacao:tipovide_list
+    css_class: btn btn-link
+- title: {% trans 'Módulo LexML' %}
+  css_class: head_title
+  children:
+  - title: {% trans 'Provedor' %}
+    url: sapl.lexml:lexmlprovedor_list
+    css_class: btn btn-link
+  - title: {% trans 'Publicador' %}
+    url: sapl.lexml:lexmlpublicador_list
     css_class: btn btn-link

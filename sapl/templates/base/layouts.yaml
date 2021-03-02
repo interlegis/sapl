@@ -13,8 +13,7 @@ CasaLegislativa:
 AppConfig:
 
   {% trans 'Configurações Gerais' %}:
-  - esfera_federacao
-  - documentos_administrativos
+  - esfera_federacao documentos_administrativos sapl_as_sapn
 
   #{% trans 'Módulo Parlamentares' %}:
 

@@ -37,16 +37,17 @@
   function recuperar_norma() {
     var tipo = $("#id_tipo").val();
     var ano = $("#id_ano").val();
+    var orgao = $("#id_orgao").val();
 
     if (tipo) {
-      $.get("/norma/recuperar-numero-norma", { tipo: tipo, ano: ano },
+      $.get("/norma/recuperar-numero-norma", { tipo: tipo, ano: ano , orgao: orgao },
           (data, status) => {
             $("#id_numero").val(data.numero);
             $("#id_ano").val(data.ano);
           });
     }
   }
-  var fields = ["#id_tipo", "#id_ano"];
+  var fields = ["#id_tipo", "#id_ano", "#id_orgao"];
   for (i = 0; i < fields.length; i++) {
     $(fields[i]).change(recuperar_norma);
   }
@@ -116,7 +117,7 @@
     let ano = $("select#id_ano.select").val();
     let data_apresentacao = $("input#id_data.dateinput").val();
     let ano_apresentacao = data_apresentacao.substr(data_apresentacao.length - 4);
-    
+
     if(ano && ano_apresentacao && ano_apresentacao != ano){
       $('#fundo_modal').fadeIn();
     }
