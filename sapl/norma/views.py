@@ -8,14 +8,13 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
-from django.template import RequestContext, loader
+from django.template import loader
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, UpdateView
-from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
@@ -23,6 +22,7 @@ import weasyprint
 from sapl import settings
 import sapl
 from sapl.base.models import AppConfig
+from sapl.compilacao.models import STATUS_TA_PUBLIC
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
@@ -275,10 +275,12 @@ class NormaCrud(Crud):
                                                  ano=timezone.now().year,
                                                  horario_acesso=timezone.now())
 
-            if not 'display' in request.GET and not request.user.has_perm('norma.change_normajuridica') and \
-                    self.get_object().texto_articulado.exists():
-                return redirect(reverse('sapl.norma:norma_ta',
-                                        kwargs={'pk': self.kwargs['pk']}))
+            if not 'display' in request.GET and \
+                    not request.user.has_perm('norma.change_normajuridica'):
+                ta = self.get_object().texto_articulado.first()
+                if ta and ta.privacidade == STATUS_TA_PUBLIC:
+                    return redirect(reverse('sapl.norma:norma_ta',
+                                            kwargs={'pk': self.kwargs['pk']}))
             return super().get(request, *args, **kwargs)
 
     class DeleteView(Crud.DeleteView):
