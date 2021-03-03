@@ -7,3 +7,5 @@
   url: proposicao-devolvida
 - title: {% trans 'Proposições Incorporadas' %}
   url: proposicao-recebida
+- title: {% trans 'Histórico Proposições' %}
+  url: historico-proposicao

@@ -75,7 +75,7 @@ from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria, De
                      DocumentoAcessorio, MateriaAssunto, MateriaLegislativa, Numeracao, Orgao,
                      Origem, Proposicao, RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
-                     Tramitacao, UnidadeTramitacao, ConfigEtiquetaMateriaLegislativa)
+                     Tramitacao, UnidadeTramitacao, ConfigEtiquetaMateriaLegislativa, HistoricoProposicao)
 
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
@@ -680,6 +680,12 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     form_class = ConfirmarProposicaoForm, DevolverProposicaoForm
     logger = logging.getLogger(__name__)
 
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['ip'] = get_client_ip(self.request)
+        initial['user'] = self.request.user
+        return initial
+
     def get_success_url(self):
         msgs = self.object.results['messages']
 
@@ -897,6 +903,11 @@ class ProposicaoCrud(Crud):
                         p.data_devolucao = None
                         p.data_envio = timezone.now()
                         p.save()
+                        HistoricoProposicao.objects.create(
+                            proposicao=p,
+                            status='E',
+                            ip=get_client_ip(self.request),
+                            user=self.request.user)
 
                         messages.success(request, _(
                             'Proposição enviada com sucesso.'))
@@ -939,6 +950,12 @@ class ProposicaoCrud(Crud):
                     else:
                         p.data_envio = None
                         p.save()
+                        HistoricoProposicao.objects.create(
+                            proposicao=p,
+                            status='T',
+                            ip=get_client_ip(self.request),
+                            user=self.request.user)
+
                         if p.texto_articulado.exists():
                             ta = p.texto_articulado.first()
                             ta.privacidade = STATUS_TA_PRIVATE
@@ -1214,6 +1231,34 @@ class ReciboProposicaoView(TemplateView):
 
         return redirect(reverse('sapl.materia:proposicao_detail',
                                 kwargs={'pk': proposicao.pk}))
+
+
+class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
+    logger = logging.getLogger(__name__)
+    template_name = "materia/historico_proposicao.html"
+    ordering = ['-data_hora']
+    paginate_by = 10
+    model = HistoricoProposicao
+    permission_required = ('materia.detail_proposicao', )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if not user.is_superuser:
+            autores = Autor.objects.filter(user=user)
+            qs = qs.filter(proposicao__autor__in=autores)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super(HistoricoProposicaoView, self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhuma proposição'
+        if self.request.user.is_superuser:
+            context['subnav_template_name'] = 'materia/subnav_prop.yaml'
+        return context
 
 
 class RelatoriaCrud(MasterDetailCrud):

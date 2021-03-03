@@ -1025,6 +1025,51 @@ class Proposicao(models.Model):
                                  update_fields=update_fields)
 
 
+class HistoricoProposicao(models.Model):
+    STATUS_PROPOSICAO = Choices(('E', 'ENVIADA', _('Enviada')),
+                                ('R', 'RECEBIDA', _('Recebida')),
+                                ('T', 'RETORNADA', _('Retornada')),
+                                ('D', 'DEVOLVIDA', _('Devolvida')))
+
+    proposicao = models.ForeignKey(Proposicao,
+                                   verbose_name=_('Proposição'),
+                                   db_index=True,
+                                   on_delete=models.CASCADE)
+    status = models.CharField(max_length=1,
+                              verbose_name=_('Status de Proposição'),
+                              db_index=True,
+                              choices=STATUS_PROPOSICAO)
+    data_hora = models.DateTimeField(null=True,
+                                     blank=True,
+                                     default=timezone.now,
+                                     db_index=True,
+                                     verbose_name=_('Data/Hora'))
+    observacao = models.CharField(max_length=200,
+                                  blank=True,
+                                  verbose_name=_('Observação'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             verbose_name=_('Usuário'),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=60,
+                          blank=True,
+                          default='')
+
+    @property
+    def status_descricao(self):
+        return self.STATUS_PROPOSICAO[self.status]
+
+    class Meta:
+        verbose_name = _('Histórico de Proposição')
+        verbose_name_plural = _('Histórico de Proposições')
+        ordering = ('-data_hora', '-proposicao')
+
+    def __str__(self):
+        return f'{self.data_hora} - {self.STATUS_PROPOSICAO[self.status]} - {str(self.proposicao)}'
+
+
 @reversion.register()
 class StatusTramitacao(models.Model):
     INDICADOR_CHOICES = Choices(('F', 'fim', _('Fim')),

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load tz %}
+{% block base_content %}
+  <fieldset>
+  <legend>Histórico de Proposições</legend>
+    {% if not object_list %}
+      <p>{{ NO_ENTRIES_MSG }}</p>
+    {% else %}
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Status</th>
+            <th>Operador</th>
+            <th>Proposição</th>
+            <th>Descrição</th>
+            <th>Autor</th>
+            <th>Observação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for hist in object_list %}
+            <tr>
+              <td>{{ hist.data_hora|localtime|date:"d/m/Y H:i:s" }}</td>
+              <td>{{ hist.status_descricao}}</td>
+              <td>{{ hist.user }}</td>
+              <td>
+                    <a href="{% url 'sapl.materia:proposicao_detail' hist.proposicao.pk %}">
+                      {{ hist.proposicao.numero_proposicao }}/{{ hist.proposicao.ano }}
+                    </a>
+                </td>
+              <td>{{ hist.proposicao.descricao }}</td>
+              <td>{{ hist.proposicao.autor }}</td>
+              <td>{{ hist.observacao }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </fieldset>
+  {% include 'paginacao.html'%}
+{% endblock %}
+
