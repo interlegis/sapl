@@ -324,17 +324,22 @@ class ParlamentarCreateForm(ParlamentarForm):
         return cleaned_data
 
     @transaction.atomic
-    def save(self, commit=True):
+    def save(self, commit=False):
         parlamentar = super(ParlamentarCreateForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Parlamentar)
-        object_id = parlamentar.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=parlamentar.nome_parlamentar
-        )
+
+        if not self.instance.pk:
+            parlamentar.save()
+            content_type = ContentType.objects.get_for_model(Parlamentar)
+            object_id = parlamentar.pk
+            tipo = TipoAutor.objects.get(content_type=content_type)
+            Autor.objects.create(
+                content_type=content_type,
+                object_id=object_id,
+                tipo=tipo,
+                nome=parlamentar.nome_parlamentar
+            )
+        else:
+            parlamentar.save()
         return parlamentar
 
 
@@ -495,11 +500,11 @@ class FrenteForm(ModelForm):
         return cd
 
     @transaction.atomic
-    def save(self, commit=True):
+    def save(self, commit=False):
         frente = super(FrenteForm, self).save(commit)
 
         if not self.instance.pk:
-            frente = super(FrenteForm, self).save(commit)
+            frente.save()
             content_type = ContentType.objects.get_for_model(Frente)
             object_id = frente.pk
             tipo = TipoAutor.objects.get(descricao__icontains='Frente')
@@ -509,6 +514,8 @@ class FrenteForm(ModelForm):
                 tipo=tipo,
                 nome=frente.nome
             )
+        else:
+            frente.save()
         return frente
 
 
@@ -693,16 +700,19 @@ class BlocoForm(ModelForm):
     @transaction.atomic
     def save(self, commit=False):
         bloco = super(BlocoForm, self).save(commit)
-        bloco.save()
-        content_type = ContentType.objects.get_for_model(Bloco)
-        object_id = bloco.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=bloco.nome
-        )
+        if not self.instance.pk:
+            bloco.save()
+            content_type = ContentType.objects.get_for_model(Bloco)
+            object_id = bloco.pk
+            tipo = TipoAutor.objects.get(content_type=content_type)
+            Autor.objects.create(
+                content_type=content_type,
+                object_id=object_id,
+                tipo=tipo,
+                nome=bloco.nome
+            )
+        else:
+            bloco.save()
         return bloco
 
 

@@ -266,17 +266,22 @@ class BancadaForm(ModelForm):
         return self.cleaned_data
 
     @transaction.atomic
-    def save(self, commit=True):
+    def save(self, commit=False):
         bancada = super(BancadaForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Bancada)
-        object_id = bancada.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=bancada.nome
-        )
+
+        if not self.instance.pk:
+            bancada.save()
+            content_type = ContentType.objects.get_for_model(Bancada)
+            object_id = bancada.pk
+            tipo = TipoAutor.objects.get(content_type=content_type)
+            Autor.objects.create(
+                content_type=content_type,
+                object_id=object_id,
+                tipo=tipo,
+                nome=bancada.nome
+            )
+        else:
+            bancada.save()
         return bancada
 
 

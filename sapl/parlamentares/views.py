@@ -1282,6 +1282,12 @@ class BlocoCrud(CrudAux):
         def get_success_url(self):
             return reverse('sapl.parlamentares:bloco_list')
 
+    class UpdateView(CrudAux.UpdateView):
+        form_class = BlocoForm
+
+        def get_success_url(self):
+            return reverse('sapl.parlamentares:bloco_list')
+
 
 class BlocoMembroCrud(MasterDetailCrud):
     model = BlocoMembro

@@ -1113,6 +1113,12 @@ class BancadaCrud(CrudAux):
         def get_success_url(self):
             return reverse('sapl.sessao:bancada_list')
 
+    class UpdateView(CrudAux.UpdateView):
+        form_class = BancadaForm
+
+        def get_success_url(self):
+            return reverse('sapl.sessao:bancada_list')
+
 
 def recuperar_numero_sessao_view(request):
     try:
