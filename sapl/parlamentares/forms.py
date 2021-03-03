@@ -691,8 +691,9 @@ class BlocoForm(ModelForm):
         return self.cleaned_data
 
     @transaction.atomic
-    def save(self, commit=True):
+    def save(self, commit=False):
         bloco = super(BlocoForm, self).save(commit)
+        bloco.save()
         content_type = ContentType.objects.get_for_model(Bloco)
         object_id = bloco.pk
         tipo = TipoAutor.objects.get(content_type=content_type)

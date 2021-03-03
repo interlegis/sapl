@@ -53,8 +53,6 @@ urlpatterns = [
     url(r'^parlamentar/coligacao-legislatura/', coligacao_legislatura, name="coligacao_legislatura"),
     url(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),  
     url(r'^sistema/pesquisar-coligacao/', PesquisarColigacaoView.as_view(), name='pesquisar_coligacao'),
-    
-    url(r'^sistema/bloco/', include(BlocoCrud.get_urls())),
 
     url(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),    
 

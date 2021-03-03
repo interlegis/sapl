@@ -665,7 +665,7 @@ class Bloco(models.Model):
     class Meta:
         verbose_name = _('Bloco Parlamentar')
         verbose_name_plural = _('Blocos Parlamentares')
-        ordering = ('partidos__nome', 'nome')
+        ordering = ('nome',)
 
     def __str__(self):
         return self.nome
