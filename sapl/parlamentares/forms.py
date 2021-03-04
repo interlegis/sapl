@@ -491,7 +491,7 @@ class FrenteForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        if cd['data_extincao'] and cd['data_criacao'] >= cd['data_extincao']:
+        if cd['data_extincao'] and cd['data_criacao'] > cd['data_extincao']:
             self.logger.error("Data Dissolução ({}) não pode ser anterior a Data Criação ({})."
                               .format(cd['data_extincao'], cd['data_criacao']))
             raise ValidationError(

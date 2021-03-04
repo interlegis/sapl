@@ -68,7 +68,7 @@ class Bancada(models.Model):
     class Meta:
         verbose_name = _('Bancada Parlamentar')
         verbose_name_plural = _('Bancadas Parlamentares')
-        ordering = ('-legislatura__numero', )
+        ordering = ('-legislatura__numero', 'nome')
 
     def __str__(self):
         return self.nome
