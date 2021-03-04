@@ -2129,8 +2129,8 @@ class EditUsuarioView(PermissionRequiredMixin, UpdateView):
 
         user.save()
 
-        for g in user.groups.all():
-            g.user_set.remove(user)
+        for g in user.groups.all().exclude(name='Votante'):
+                g.user_set.remove(user)
 
         groups = Group.objects.filter(id__in=data['roles'])
         for g in groups:
