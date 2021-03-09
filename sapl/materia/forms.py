@@ -358,7 +358,7 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        arquivo = self.cleaned_data.get('arquivo', False)
+        arquivo = self.cleaned_data.get('arquivo')
 
         if arquivo:
             validar_arquivo(arquivo, "Texto Integral")
