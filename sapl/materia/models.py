@@ -548,10 +548,13 @@ class TipoDocumento(models.Model):
 @reversion.register()
 class DocumentoAcessorio(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
-    tipo = models.ForeignKey(TipoDocumento, on_delete=models.PROTECT, verbose_name=_('Tipo'))
+    tipo = models.ForeignKey(
+        TipoDocumento, on_delete=models.PROTECT, verbose_name=_('Tipo'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
-    data = models.DateField(blank=True, null=True, default=None, verbose_name=_('Data'))
-    autor = models.CharField(max_length=200, blank=True, verbose_name=_('Autor'))
+    data = models.DateField(blank=True, null=True,
+                            default=None, verbose_name=_('Data'))
+    autor = models.CharField(
+        max_length=200, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
@@ -563,7 +566,8 @@ class DocumentoAcessorio(models.Model):
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     proposicao = GenericRelation('Proposicao', related_query_name='proposicao')
-    data_ultima_atualizacao = models.DateTimeField(blank=True, null=True, auto_now=True, verbose_name=_('Data'))
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True, auto_now=True, verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Documento Acessório')
@@ -661,8 +665,8 @@ class Numeracao(models.Model):
 
 @reversion.register()
 class Orgao(models.Model):
-    nome = models.CharField(max_length=60, verbose_name=_('Nome'))
-    sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
+    nome = models.CharField(max_length=256, verbose_name=_('Nome'))
+    sigla = models.CharField(max_length=15, verbose_name=_('Sigla'))
     unidade_deliberativa = models.BooleanField(
         choices=YES_NO_CHOICES,
         verbose_name=(_('Unidade Deliberativa')),
@@ -1123,7 +1127,8 @@ class UnidadeTramitacao(models.Model):
     class Meta:
         verbose_name = _('Unidade de Tramitação')
         verbose_name_plural = _('Unidades de Tramitação')
-        ordering = ('orgao__nome', 'comissao__sigla', 'parlamentar__nome_parlamentar')
+        ordering = ('orgao__nome', 'comissao__sigla',
+                    'parlamentar__nome_parlamentar')
 
     def __str__(self):
         if self.orgao and self.comissao and self.parlamentar:
@@ -1232,7 +1237,8 @@ class Tramitacao(models.Model):
 
 
 class MateriaEmTramitacao(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.DO_NOTHING)
+    materia = models.ForeignKey(
+        MateriaLegislativa, on_delete=models.DO_NOTHING)
     tramitacao = models.ForeignKey(Tramitacao, on_delete=models.DO_NOTHING)
 
     class Meta:
@@ -1250,7 +1256,7 @@ class ConfigEtiquetaMateriaLegislativa(models.Model):
 
     class Meta:
         ordering = ('id',)
-        
+
     def save(self, *args, **kwargs):
         self.id = 1
         return super().save(*args, **kwargs)
