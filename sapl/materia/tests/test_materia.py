@@ -324,6 +324,10 @@ def test_documento_acessorio_submit(admin_client):
     tipo = baker.make(TipoDocumento,
                       descricao='Teste')
 
+    arquivo = SimpleUploadedFile("file.pdf",
+                                 b'conteudo do arquivo',
+                                 content_type="application/pdf")
+
     # Testa POST
     response = admin_client.post(reverse(
         'sapl.materia:documentoacessorio_create',
@@ -332,6 +336,7 @@ def test_documento_acessorio_submit(admin_client):
          'nome': 'teste_nome',
          'data_materia': '2016-03-21',
          'autor': autor,
+         'arquivo': arquivo,
          'ementa': 'teste_ementa',
          'data': '2016-03-21',
          'salvar': 'salvar'},
