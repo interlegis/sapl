@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
+# SCRIPT DE INICIALIZAÇÃO VIA SOKEFILE
+
 # As seen in http://tutos.readthedocs.org/en/latest/source/ndg.html
+
 
 SAPL_DIR="/var/interlegis/sapl"
 
@@ -48,3 +51,4 @@ exec gunicorn ${DJANGO_WSGI_MODULE}:application \
   --access-logfile /var/log/sapl/access.log \
   --error-logfile /var/log/sapl/error.log \
   --bind=unix:$SOCKFILE
+  
