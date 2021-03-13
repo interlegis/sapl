@@ -467,18 +467,21 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             break
 
                     ss = ''
-                    if m:
-                        ss = get_field_display(m, n[-1])[1]
-                        ss = (
-                            ('<br>' if '<ul>' in ss else ' - ') + ss)\
-                            if ss and j != 0 and s else ss
-
-                    hook = 'hook_{}'.format(''.join(n))
-                    if hasattr(self, hook):
-                        hs, url = getattr(self, hook)(obj, ss, url)
-                        s += str(hs)
-                    else:
-                        s += ss
+                    try:
+                        if m:
+                            ss = get_field_display(m, n[-1])[1]
+                            ss = (
+                                ('<br>' if '<ul>' in ss else ' - ') + ss)\
+                                if ss and j != 0 and s else ss
+                    except:
+                        pass
+                    finally:
+                        hook = 'hook_{}'.format(''.join(n))
+                        if hasattr(self, hook):
+                            hs, url = getattr(self, hook)(obj, ss, url)
+                            s += str(hs)
+                        else:
+                            s += ss
 
                 r.append((s, url))
         return r

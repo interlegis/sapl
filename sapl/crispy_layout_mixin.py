@@ -190,8 +190,9 @@ class CrispyLayoutFormMixin:
             return getattr(obj.model,
                            obj.model_set).field.model.__name__
 
-    def get_layout(self):
-        yaml_layout = '%s/layouts.yaml' % self.model._meta.app_config.label
+    def get_layout(self, yaml_layout=None):
+        if not yaml_layout:
+            yaml_layout = '%s/layouts.yaml' % self.model._meta.app_config.label
         return read_layout_from_yaml(yaml_layout, self.layout_key)
 
     def get_layout_set(self):
