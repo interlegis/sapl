@@ -1959,6 +1959,7 @@ class UserCrud(Crud):
 
     class CreateView(Crud.CreateView):
         form_class = UserAdminForm
+        layout_key = None
 
     class UpdateView(Crud.UpdateView):
         form_class = UserAdminForm
@@ -2017,6 +2018,7 @@ class UserCrud(Crud):
         def get_context_data(self, **kwargs):
             context = Crud.ListView.get_context_data(self, **kwargs)
             context['subnav_template_name'] = None
+            context['title'] = _('Usuários')
             return context
 
         def hook_header_usuario(self, *args, **kwargs):
@@ -2025,8 +2027,8 @@ class UserCrud(Crud):
         def hook_header_groups(self, *args, **kwargs):
             return 'Grupos'
 
-        def hook_header_active(self, *args, **kwargs):
-            return 'is_active'
+        def hook_header_is_active(self, *args, **kwargs):
+            return 'Ativo'
 
         def hook_usuario(self, *args, **kwargs):
             return '{} <i>({})</i><br><small>{}</small>'.format(
@@ -2046,9 +2048,6 @@ class UserCrud(Crud):
                 qs = qs.filter(q)
 
             return qs
-
-        def dispatch(self, request, *args, **kwargs):
-            return Crud.ListView.dispatch(self, request, *args, **kwargs)
 
 
 class CasaLegislativaCrud(CrudAux):

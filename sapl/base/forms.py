@@ -79,11 +79,6 @@ class UserAdminForm(ModelForm):
         widget=forms.PasswordInput(),
         help_text='Deixe os campos em branco para não fazer alteração de senha')
 
-    autor = forms.ModelChoiceField(
-        label=_('Operador de Autor'),
-        queryset=Autor.objects.all(),
-        required=False)
-
     token = forms.CharField(
         required=False,
         label="Token",
@@ -103,7 +98,8 @@ class UserAdminForm(ModelForm):
             'new_password1',
             'new_password2',
             'groups',
-            'user_permissions'
+
+            'user_permissions',
         ]
 
         if get_user_model().USERNAME_FIELD != 'email':
@@ -113,6 +109,7 @@ class UserAdminForm(ModelForm):
 
         self.user_session = kwargs.pop('user_session', None)
         self.granular = kwargs.pop('granular', None)
+        self.instance = kwargs.get('instance', None)
 
         row_pwd = to_row(
             [
@@ -121,18 +118,19 @@ class UserAdminForm(ModelForm):
                 ('is_active', 2),
                 ('first_name', 6),
                 ('last_name', 6),
-                ('new_password1', 3),
-                ('new_password2', 3),
+                ('new_password1', 3 if self.instance and self.instance.pk else 6),
+                ('new_password2', 3 if self.instance and self.instance.pk else 6),
                 (
                     FieldWithButtons(
                         'token',
                         StrictButton(
                             'Renovar',
                             id="renovar-token",
-                            css_class="btn-outline-primary")
-                    ),
+                            css_class="btn-outline-primary"),
+                        css_class='' if self.instance and self.instance.pk else 'd-none'),
                     6
                 ),
+
                 ('groups', 12),
 
             ] + ([('user_permissions', 12)] if not self.granular is None else [])
@@ -142,17 +140,21 @@ class UserAdminForm(ModelForm):
         self.helper.layout = SaplFormLayout(row_pwd)
         super(UserAdminForm, self).__init__(*args, **kwargs)
 
-        if self.instance.pk:
+        self.fields['groups'].widget = forms.CheckboxSelectMultiple()
 
+        if not self.instance.pk:
+            self.fields['groups'].choices = [
+                (g.id, g) for g in Group.objects.exclude(name__in=['Autor', 'Votante']).order_by('name')
+            ]
+
+        else:
             self.fields['token'].initial = self.instance.auth_token.key
 
-            self.fields[
-                'groups'].widget = forms.CheckboxSelectMultiple()
             self.fields['groups'].choices = [
-                (g.id, g) for g in self.instance.groups.exclude(name='Votante').order_by('name')
+                (g.id, g) for g in self.instance.groups.exclude(name__in=['Autor', 'Votante']).order_by('name')
             ] + [
                 (g.id, g) for g in Group.objects.exclude(
-                    user=self.instance).exclude(name='Votante').order_by('name')
+                    user=self.instance).exclude(name__in=['Autor', 'Votante']).order_by('name')
             ]
 
             self.fields[
@@ -186,11 +188,15 @@ class UserAdminForm(ModelForm):
         if self.instance.id:
             inst_old = get_user_model().objects.get(pk=self.instance.pk)
             votante = inst_old.groups.filter(name='Votante').first()
+            autor = inst_old.groups.filter(name='Autor').first()
 
         inst_new = super().save(commit)
 
         if votante:
             inst_new.groups.add(votante)
+
+        if autor:
+            inst_new.groups.add(autor)
 
         return inst_new
 
@@ -211,6 +217,19 @@ class UserAdminForm(ModelForm):
             if new_password1 and new_password2:
                 password_validation.validate_password(
                     new_password2, self.instance)
+
+        if 'email' in data and data['email']:
+            duplicidade = get_user_model().objects.filter(email=data['email'])
+            if self.instance.id:
+                duplicidade = duplicidade.exclude(id=self.instance.id)
+
+            if duplicidade.exists():
+                raise forms.ValidationError(
+                    "Email já cadastrado para: {}".format(
+                        ', '.join(map(lambda x: str(x), duplicidade.all())),
+                    )
+                )
+
         return data
 
 
