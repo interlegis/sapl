@@ -10,6 +10,13 @@ CasaLegislativa:
   - email
   - informacao_geral
 
+UserDetail:
+  {% trans 'Usuário' %}:
+  - usuario username:3 is_active:2
+  - auth_token
+  - groups
+  - user_permissions
+
 AppConfig:
 
   {% trans 'Configurações Gerais' %}:

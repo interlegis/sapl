@@ -3,11 +3,9 @@
 
 {% block base_content %}
 
-  <div class="d-flex context-actions justify-content-between align-items-center">
+  <div class="context-actions clearfix">
     {% block actions %}
-
       {% block sub_actions %}
-
         <div class="actions btn-group btn-group-sm" role="group">
           {% if view.list_url %}
             <a href="{{ view.list_url }}" class="btn btn-outline-primary">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
@@ -23,10 +21,10 @@
         </div>
           {% if view.extras_url %}
             <div class="actions btn-group btn-group-sm" role="group">
-          {% for href, css_class, text in view.extras_url %}
-              <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
-                {{text}}
-              </a>
+              {% for href, css_class, text in view.extras_url %}
+                <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
+                  {{text}}
+                </a>
               {% endfor %}
             </div>
           {% endif %}
@@ -35,7 +33,7 @@
       {% block extra_actions %}
       {% endblock extra_actions %}
 
-      <div class="editons">
+      <div class="editons float-right">
         {% block editions %}
           {% if view.update_url or view.delete_url %}
             <div class="actions btn-group" role="group">

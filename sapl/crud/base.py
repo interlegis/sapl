@@ -157,7 +157,7 @@ class ListWithSearchForm(forms.Form):
             FieldWithButtons(
                 Field('q',
                       placeholder=_('Filtrar Lista'),
-                      css_class='input-lg'),
+                      css_class='form-control-lg'),
                 StrictButton(
                     _('Filtrar'), css_class='btn-outline-primary btn-lg',
                     type='submit'))

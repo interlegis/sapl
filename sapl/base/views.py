@@ -36,13 +36,14 @@ from rest_framework.authtoken.models import Token
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.forms import (AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
-                             NovaSenhaForm)
+                             NovaSenhaForm, UserAdminForm)
 from sapl.base.models import Autor, TipoAutor
 from sapl.comissoes.models import Comissao, Reuniao
-from sapl.crud.base import CrudAux, make_pagination
+from sapl.crud.base import CrudAux, make_pagination, Crud,\
+    ListWithSearchForm
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio, MateriaEmTramitacao, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento, TipoMateriaLegislativa, UnidadeTramitacao,
-                                 MateriaAssunto, Tramitacao)
+                                 MateriaAssunto)
 from sapl.norma.models import NormaJuridica, TipoNormaJuridica
 from sapl.parlamentares.models import (
     Filiacao, Legislatura, Mandato, Parlamentar, SessaoLegislativa)
@@ -66,9 +67,9 @@ from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm,
                     RelatorioAudienciaFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet,
                     RelatorioHistoricoTramitacaoFilterSet, RelatorioMateriasPorAnoAutorTipoFilterSet,
                     RelatorioMateriasPorAutorFilterSet, RelatorioMateriasTramitacaoFilterSet,
-                    RelatorioPresencaSessaoFilterSet, RelatorioReuniaoFilterSet, UsuarioCreateForm, UsuarioEditForm,
+                    RelatorioPresencaSessaoFilterSet, RelatorioReuniaoFilterSet,
                     RelatorioNormasMesFilterSet, RelatorioNormasVigenciaFilterSet, EstatisticasAcessoNormasForm,
-                    UsuarioFilterSet, RelatorioHistoricoTramitacaoAdmFilterSet, RelatorioDocumentosAcessoriosFilterSet,
+                    RelatorioHistoricoTramitacaoAdmFilterSet, RelatorioDocumentosAcessoriosFilterSet,
                     RelatorioNormasPorAutorFilterSet)
 from .models import AppConfig, CasaLegislativa
 
@@ -1936,208 +1937,118 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
         return context
 
 
-class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
+class UserCrud(Crud):
     model = get_user_model()
-    filterset_class = UsuarioFilterSet
-    permission_required = ('base.list_appconfig',)
-    paginate_by = 10
 
-    def get_filterset_kwargs(self, filterset_class):
-        super(PesquisarUsuarioView,
-              self).get_filterset_kwargs(filterset_class)
+    class BaseMixin(Crud.BaseMixin):
+        list_field_names = [
+            'usuario', 'groups', 'is_active'
+        ]
 
-        kwargs = {'data': self.request.GET or None}
+        def resolve_url(self, suffix, args=None):
+            return reverse('sapl.base:%s' % self.url_name(suffix),
+                           args=args)
 
-        qs = self.get_queryset().order_by('username').distinct()
+        def get_layout(self):
+            return super().get_layout(
+                'base/layouts.yaml'
+            )
 
-        kwargs.update({
-            'queryset': qs,
-        })
-        return kwargs
+        def get_context_object_name(self, *args, **kwargs):
+            return None
 
-    def get_context_data(self, **kwargs):
-        context = super(PesquisarUsuarioView, self).get_context_data(**kwargs)
+    class CreateView(Crud.CreateView):
+        form_class = UserAdminForm
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
+    class UpdateView(Crud.UpdateView):
+        form_class = UserAdminForm
+        layout_key = None
 
-        context.update({
-            "page_range": make_pagination(page_obj.number, paginator.num_pages),
-            "NO_ENTRIES_MSG": "Nenhum usuário encontrado!",
-            "title": _("Usuários")
-        })
+        def get_form_kwargs(self):
+            kwargs = Crud.UpdateView.get_form_kwargs(self)
+            kwargs['user_session'] = self.request.user
+            granular = self.request.GET.get('granular', None)
+            if not granular is None:
+                kwargs['granular'] = granular
+            return kwargs
 
-        return context
+    class DetailView(Crud.DetailView):
+        layout_key = 'UserDetail'
 
-    def get(self, request, *args, **kwargs):
-        super(PesquisarUsuarioView, self).get(request)
+        def hook_usuario(self, obj):
+            return 'Usuário', '{}<br><small>{}</small>'.format(
+                obj.get_full_name() or '...',
+                obj.email
+            )
 
-        data = self.filterset.data
-        url = ''
-        if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('username=') - 1
-                url = url[ponto_comeco:]
+        def hook_auth_token(self, obj):
+            return 'Token', str(obj.auth_token)
 
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
-                                        filter_url=url,
-                                        numero_res=len(self.object_list)
-                                        )
+        def hook_username(self, obj):
+            return 'username', obj.username
 
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
+        def get_context_data(self, **kwargs):
+            context = Crud.DetailView.get_context_data(self, **kwargs)
+            context['title'] = '{} <i>({})</i><br><small>{}</small>'.format(
+                self.object.get_full_name() or '...',
+                self.object.username,
+                self.object.email
+            )
+            return context
 
-        return self.render_to_response(context)
-
-
-class DetailUsuarioView(PermissionRequiredMixin, DetailView):
-    model = get_user_model()
-    template_name = "base/usuario_detail.html"
-    permission_required = ('base.detail_appconfig',)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = get_user_model().objects.get(id=self.kwargs['pk'])
-
-        context.update({
-            "user": user,
-            "token": Token.objects.filter(user=user)[0],
-            "roles": [
-                {
-                    "checked": "checked" if g in user.groups.all() else "unchecked",
-                    "group": g.name
-                } for g in Group.objects.all().order_by("name") if g.name != 'Votante']
-        })
-
-        return context
-
-
-class CreateUsuarioView(PermissionRequiredMixin, CreateView):
-    model = get_user_model()
-    form_class = UsuarioCreateForm
-    success_message = 'Usuário criado com sucesso!'
-    fail_message = 'Usuário não criado!'
-    permission_required = ('base.add_appconfig',)
-
-    def get_success_url(self, pk):
-        return reverse('sapl.base:user_detail', kwargs={"pk": pk})
-
-    def form_valid(self, form):
-        data = form.cleaned_data
-
-        new_user = get_user_model().objects.create(
-            username=data['username'],
-            email=data['email'],
-            first_name=data['firstname'],
-            last_name=data['lastname'],
-            is_superuser=False,
-            is_staff=False
-        )
-        new_user.set_password(data['password1'])
-        new_user.save()
-
-        groups = Group.objects.filter(id__in=data['roles'])
-        for g in groups:
-            g.user_set.add(new_user)
-
-        messages.success(self.request, self.success_message)
-        return HttpResponseRedirect(self.get_success_url(new_user.pk))
-
-    def form_invalid(self, form):
-        messages.error(self.request, self.fail_message)
-        return super().form_invalid(form)
-
-
-class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
-    model = get_user_model()
-    template_name = "crud/confirm_delete.html"
-    permission_required = ('base.delete_appconfig',)
-    success_url = reverse_lazy('sapl.base:usuario')
-    success_message = "Usuário removido com sucesso!"
-
-    def delete(self, request, *args, **kwargs):
-        try:
-            super(DeleteUsuarioView, self).delete(request, *args, **kwargs)
-        except ProtectedError as exception:
-            error_url = reverse_lazy('sapl.base:user_delete', kwargs={
-                                     'pk': self.kwargs['pk']})
-            error_message = "O usuário não pode ser removido, pois é referenciado por:<br><ul>"
-
-            for e in exception.protected_objects:
-                error_message += '<li>{} - {}</li>'.format(
-                    e._meta.verbose_name, e
+        @property
+        def extras_url(self):
+            btns = [
+                (
+                    '{}?granular'.format(reverse('sapl.base:user_update',
+                                                 kwargs={'pk': self.object.pk})),
+                    'btn-outline-primary',
+                    _('Edição granular')
                 )
-            error_message += '</ul>'
-            messages.error(self.request, error_message)
-            return HttpResponseRedirect(error_url)
+            ]
 
-        messages.success(self.request, self.success_message)
-        return HttpResponseRedirect(self.success_url)
+            return btns
 
-    @property
-    def cancel_url(self):
-        return reverse('sapl.base:user_edit',
-                       kwargs={'pk': self.kwargs['pk']})
+    class ListView(Crud.ListView):
+        form_search_class = ListWithSearchForm
+        ordered_list = None
+        paginate_by = 300
 
+        def get_context_data(self, **kwargs):
+            context = Crud.ListView.get_context_data(self, **kwargs)
+            context['subnav_template_name'] = None
+            return context
 
-class EditUsuarioView(PermissionRequiredMixin, UpdateView):
-    model = get_user_model()
-    form_class = UsuarioEditForm
-    template_name = "base/usuario_edit.html"
-    success_message = 'Usuário editado com sucesso!'
-    permission_required = ('base.change_appconfig',)
+        def hook_header_usuario(self, *args, **kwargs):
+            return 'Usuário'
 
-    def get_success_url(self):
-        return reverse('sapl.base:user_detail', kwargs={"pk": self.kwargs['pk']})
+        def hook_header_groups(self, *args, **kwargs):
+            return 'Grupos'
 
-    def get_initial(self):
-        initial = super().get_initial()
+        def hook_header_active(self, *args, **kwargs):
+            return 'is_active'
 
-        user = get_user_model().objects.get(id=self.kwargs['pk'])
-        roles = [str(g.id) for g in user.groups.all()]
+        def hook_usuario(self, *args, **kwargs):
+            return '{} <i>({})</i><br><small>{}</small>'.format(
+                args[0].get_full_name() or '...',
+                args[0].username,
+                args[0].email
+            ), args[2]
 
-        initial.update({
-            "token": Token.objects.filter(user=user)[0],
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "roles": roles,
-            "user_active": user.is_active
-        })
+        def get_queryset(self):
+            qs = self.model.objects.all()
+            q_param = self.request.GET.get('q', '')
+            if q_param:
+                q = Q(first_name__icontains=q_param)
+                q |= Q(last_name__icontains=q_param)
+                q |= Q(email__icontains=q_param)
+                q |= Q(username__icontains=q_param)
+                qs = qs.filter(q)
 
-        return initial
+            return qs
 
-    def form_valid(self, form):
-
-        user = form.save(commit=False)
-        data = form.cleaned_data
-
-        if 'first_name' in data and data['first_name'] != user.first_name:
-            user.first_name = data['first_name']
-
-        if 'last_name' in data and data['last_name'] != user.last_name:
-            user.last_name = data['last_name']
-
-        if data['password1']:
-            user.set_password(data['password1'])
-
-        if data['user_active'] == 'True' and not user.is_active:
-            user.is_active = True
-        elif data['user_active'] == 'False' and user.is_active:
-            user.is_active = False
-
-        user.save()
-
-        for g in user.groups.all().exclude(name='Votante'):
-                g.user_set.remove(user)
-
-        groups = Group.objects.filter(id__in=data['roles'])
-        for g in groups:
-            g.user_set.add(user)
-
-        messages.success(self.request, self.success_message)
-        return super(EditUsuarioView, self).form_valid(form)
+        def dispatch(self, request, *args, **kwargs):
+            return Crud.ListView.dispatch(self, request, *args, **kwargs)
 
 
 class CasaLegislativaCrud(CrudAux):

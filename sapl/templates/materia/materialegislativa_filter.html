@@ -5,7 +5,7 @@
 
   {% block actions %}
 
-    <div class="actions btn-group float-right" role="group">
+    <div class="actions btn-group" role="group">
       {% if USE_SOLR %}
           <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-primary">
               Pesquisa Textual
@@ -79,9 +79,9 @@
                   {% endfor %}
                   </br>
                 {% endif %}
-                
+
                 {% if not tipo_listagem or tipo_listagem == '1' %}
-                  
+
                   {% if m.tramitacao_set.first.unidade_tramitacao_destino %}
                   <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.first.unidade_tramitacao_destino}}</br>
                   {% endif %}

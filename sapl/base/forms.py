@@ -6,10 +6,10 @@ from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton,
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
                                        SetPasswordForm)
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group, User, Permission
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
@@ -57,206 +57,160 @@ STATUS_USER_CHOICE = [
 ]
 
 
-def get_roles():
-    roles = [(g.id, g.name) for g in Group.objects.all().order_by('name')
-             if g.name != 'Votante']
-    return roles
+class UserAdminForm(ModelForm):
 
+    is_active = forms.TypedChoiceField(label=_('Usuário Ativo'),
+                                       choices=YES_NO_CHOICES,
+                                       coerce=lambda x: x == 'True')
 
-class UsuarioCreateForm(ModelForm):
-    logger = logging.getLogger(__name__)
-    firstname = forms.CharField(
-        required=True,
-        label="Nome",
-        max_length=30
-    )
-    lastname = forms.CharField(
-        required=True,
-        label="Sobrenome",
-        max_length=30
-    )
-    password1 = forms.CharField(
-        required=True,
-        widget=forms.PasswordInput,
-        label='Senha',
-        min_length=6,
-        max_length=128
-    )
-    password2 = forms.CharField(
-        required=True,
-        widget=forms.PasswordInput,
+    new_password1 = forms.CharField(
+        label='Nova senha',
+        max_length=50,
+        strip=False,
+        required=False,
+        widget=forms.PasswordInput(),
+        help_text='Deixe os campos em branco para não fazer alteração de senha')
+
+    new_password2 = forms.CharField(
         label='Confirmar senha',
-        min_length=6,
-        max_length=128
-    )
-    user_active = forms.ChoiceField(
-        required=True,
-        choices=YES_NO_CHOICES,
-        label="Usuário ativo?",
-        initial='True'
-    )
-    roles = forms.MultipleChoiceField(
-        required=True,
-        widget=forms.CheckboxSelectMultiple(),
-        choices=get_roles
-    )
+        max_length=50,
+        strip=False,
+        required=False,
+        widget=forms.PasswordInput(),
+        help_text='Deixe os campos em branco para não fazer alteração de senha')
 
-    class Meta:
-        model = get_user_model()
-        fields = [
-            get_user_model().USERNAME_FIELD, 'firstname', 'lastname',
-            'password1', 'password2', 'user_active', 'roles'
-        ] + (['email']
-             if get_user_model().USERNAME_FIELD != 'email' else [])
-
-    def clean(self):
-        super().clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
-
-        data = self.cleaned_data
-        if data['password1'] != data['password2']:
-            self.logger.warning(
-                'Erro de validação. Senhas informadas são diferentes.')
-            raise ValidationError('Senhas informadas são diferentes')
-
-        return data
-
-    def __init__(self, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        row0 = to_row([('username', 12)])
-
-        row1 = to_row([('firstname', 6),
-                       ('lastname', 6)])
-
-        row2 = to_row([('email', 6),
-                       ('user_active', 6)])
-        row3 = to_row(
-            [('password1', 6),
-             ('password2', 6)])
-
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            row0,
-            row1,
-            row3,
-            row2,
-            'roles',
-            form_actions(label='Confirmar'))
-
-
-class UsuarioFilterSet(django_filters.FilterSet):
-
-    username = django_filters.CharFilter(
-        label=_('Nome de Usuário'),
-        lookup_expr='icontains')
-
-    class Meta:
-        model = User
-        fields = ['username']
-
-    def __init__(self, *args, **kwargs):
-        super(UsuarioFilterSet, self).__init__(*args, **kwargs)
-
-        row0 = to_row([('username', 12)])
-
-        self.form.helper = SaplFormHelper()
-        self.form.helper.form_method = 'GET'
-        self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa de Usuário'),
-                     row0,
-                     form_actions(label='Pesquisar'))
-        )
-
-
-class UsuarioEditForm(ModelForm):
-    logger = logging.getLogger(__name__)
-    # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
-    ROLES = []
+    autor = forms.ModelChoiceField(
+        label=_('Operador de Autor'),
+        queryset=Autor.objects.all(),
+        required=False)
 
     token = forms.CharField(
         required=False,
         label="Token",
         max_length=40,
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
-    first_name = forms.CharField(
-        required=False,
-        label="Nome",
-        max_length=30)
-    last_name = forms.CharField(
-        required=False,
-        label="Sobrenome",
-        max_length=30)
-    password1 = forms.CharField(
-        required=False,
-        widget=forms.PasswordInput,
-        label='Senha')
-    password2 = forms.CharField(
-        required=False, widget=forms.PasswordInput,
-        label='Confirmar senha')
-    user_active = forms.ChoiceField(
-        choices=YES_NO_CHOICES,
-        required=True,
-        label="Usuário ativo?",
-        initial='True')
-    roles = forms.MultipleChoiceField(
-        required=True,
-        widget=forms.CheckboxSelectMultiple(),
-        choices=get_roles)
 
     class Meta:
         model = get_user_model()
         fields = [
             get_user_model().USERNAME_FIELD,
-            "token",
-            "first_name",
-            "last_name",
-            'password1',
-            'password2',
-            'user_active',
-            'roles']
+            'first_name',
+            'last_name',
+            'is_active',
+
+            'token',
+
+            'new_password1',
+            'new_password2',
+            'groups',
+            'user_permissions'
+        ]
 
         if get_user_model().USERNAME_FIELD != 'email':
             fields.extend(['email'])
 
     def __init__(self, *args, **kwargs):
-        super(UsuarioEditForm, self).__init__(*args, **kwargs)
 
-        rows = to_row((
-            ('first_name', 6),
-            ('last_name', 6),
-            ('email', 6),
-            ('user_active', 6),
-            ('password1', 6),
-            ('password2', 6),
-            ('roles', 12)))
+        self.user_session = kwargs.pop('user_session', None)
+        self.granular = kwargs.pop('granular', None)
+
+        row_pwd = to_row(
+            [
+                ('username', 4),
+                ('email', 6),
+                ('is_active', 2),
+                ('first_name', 6),
+                ('last_name', 6),
+                ('new_password1', 3),
+                ('new_password2', 3),
+                (
+                    FieldWithButtons(
+                        'token',
+                        StrictButton(
+                            'Renovar',
+                            id="renovar-token",
+                            css_class="btn-outline-primary")
+                    ),
+                    6
+                ),
+                ('groups', 12),
+
+            ] + ([('user_permissions', 12)] if not self.granular is None else [])
+        )
 
         self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            'username',
-            FieldWithButtons('token', StrictButton(
-                'Renovar', id="renovar-token", css_class="btn-outline-primary")),
-            rows,
-            form_actions(
-                more=[
-                    HTML("<a href='{% url 'sapl.base:user_detail' object.pk %}' "
-                         "class='btn btn-dark'>Cancelar</a>")],
-                label='Salvar Alterações'))
+        self.helper.layout = SaplFormLayout(row_pwd)
+        super(UserAdminForm, self).__init__(*args, **kwargs)
+
+        if self.instance.pk:
+
+            self.fields['token'].initial = self.instance.auth_token.key
+
+            self.fields[
+                'groups'].widget = forms.CheckboxSelectMultiple()
+            self.fields['groups'].choices = [
+                (g.id, g) for g in self.instance.groups.exclude(name='Votante').order_by('name')
+            ] + [
+                (g.id, g) for g in Group.objects.exclude(
+                    user=self.instance).exclude(name='Votante').order_by('name')
+            ]
+
+            self.fields[
+                'user_permissions'].widget = forms.CheckboxSelectMultiple()
+
+            if not self.granular is None:
+                self.fields['user_permissions'].choices = [
+                    (p.id, p) for p in self.instance.user_permissions.all(
+                    ).order_by('content_type__app_label',
+                               'content_type__model',
+                               'codename')
+                ] + [
+                    (p.id, p) for p in Permission.objects.filter(
+                        content_type__app_label__in=list(
+                            map(lambda x: x.split('.')[-1], settings.SAPL_APPS))
+                    ).exclude(
+                        user=self.instance
+                    ).order_by('content_type__app_label',
+                               'content_type__model',
+                               'codename')
+                ]
+
+        # self.fields['user_permissions'].queryset = self.fields[
+        #    'user_permissions'].queryset.all().order_by('name')
+
+    def save(self, commit=True):
+        if self.cleaned_data['new_password1']:
+            self.instance.set_password(self.cleaned_data['new_password1'])
+
+        votante = None
+        if self.instance.id:
+            inst_old = get_user_model().objects.get(pk=self.instance.pk)
+            votante = inst_old.groups.filter(name='Votante').first()
+
+        inst_new = super().save(commit)
+
+        if votante:
+            inst_new.groups.add(votante)
+
+        return inst_new
 
     def clean(self):
-        super().clean()
-        if not self.is_valid():
-            return self.cleaned_data
+        data = super().clean()
 
-        data = self.cleaned_data
-        if data['password1'] and data['password1'] != data['password2']:
-            self.logger.warning(
-                "Erro de validação. Senhas informadas são diferentes.")
-            raise ValidationError('Senhas informadas são diferentes')
+        if self.errors:
+            return data
 
+        new_password1 = data.get('new_password1', '')
+        new_password2 = data.get('new_password2', '')
+
+        if new_password1 != new_password2:
+            raise forms.ValidationError(
+                _("As senhas informadas são diferentes"),
+            )
+        else:
+            if new_password1 and new_password2:
+                password_validation.validate_password(
+                    new_password2, self.instance)
         return data
 
 

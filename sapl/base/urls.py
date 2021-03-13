@@ -3,22 +3,19 @@ import os
 from django.conf.urls import include, url
 from django.contrib.auth import views
 from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.views import (PasswordResetView, PasswordResetCompleteView, PasswordResetConfirmView,
-                                       PasswordResetDoneView)
 
-from django.urls.base import reverse_lazy
 from django.views.generic.base import RedirectView, TemplateView
 
-from sapl.base.views import (AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica, DetailUsuarioView,
+from sapl.base.views import (AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica,
                              PesquisarAutorView, RecuperarSenhaEmailView, RecuperarSenhaFinalizadoView,
                              RecuperarSenhaConfirmaView, RecuperarSenhaCompletoView, RelatorioMateriaAnoAssuntoView,
-                             IndexView)
-from sapl.settings import EMAIL_SEND_USER, MEDIA_URL, LOGOUT_REDIRECT_URL
+                             IndexView, UserCrud)
+from sapl.settings import MEDIA_URL, LOGOUT_REDIRECT_URL
 
 from .apps import AppConfig
-from .forms import LoginForm, NovaSenhaForm, RecuperarSenhaForm
-from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud, CreateUsuarioView, DeleteUsuarioView,
-                    EditUsuarioView, HelpTopicView, PesquisarUsuarioView, LogotipoView, RelatorioAtasView,
+from .forms import LoginForm
+from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
+                    HelpTopicView, LogotipoView, RelatorioAtasView,
                     RelatorioAudienciaView, RelatorioDataFimPrazoTramitacaoView, RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView, RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView, RelatorioPresencaSessaoView, RelatorioReuniaoView, SaplSearchView,
@@ -35,15 +32,8 @@ from .views import (AlterarSenha, AppConfigCrud, CasaLegislativaCrud, CreateUsua
 app_name = AppConfig.name
 
 admin_user = [
-    url(r'^sistema/usuario/$', PesquisarUsuarioView.as_view(), name='usuario'),
-    url(r'^sistema/usuario/create$',
-        CreateUsuarioView.as_view(), name='user_create'),
-    url(r'^sistema/usuario/(?P<pk>\d+)$',
-        DetailUsuarioView.as_view(), name='user_detail'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/edit$',
-        EditUsuarioView.as_view(), name='user_edit'),
-    url(r'^sistema/usuario/(?P<pk>\d+)/delete$',
-        DeleteUsuarioView.as_view(), name='user_delete')
+    url(r'^sistema/usuario/', include(UserCrud.get_urls())),
+
 ]
 
 alterar_senha = [

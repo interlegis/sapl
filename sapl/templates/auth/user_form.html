@@ -1,19 +1,20 @@
-{% extends "base.html" %}
-{% load i18n crispy_forms_tags %}
+{% extends "crud/form.html" %}
+{% load i18n %}
 
-{% block base_content %}
+{% block extra_js %}
+<script type="text/javascript">
+  $(() => {
+    var $crf_token = $('[name="csrfmiddlewaretoken"]').attr('value');
+    $("#renovar-token").click(() => {
+      $.ajax({
+        url: "{% url 'sapl.api:recria_token' object.id %}",
+        type: "POST",
+        headers: { "X-CSRFToken": $crf_token },
+        dataType: "json",
+        success: (res) => $("#id_token").val(res.token)
+      });
+    });
+  });
+</script>
 
-    <form action="" method="post">
-        {% csrf_token %}
-        {% if object.pk %}
-        <div class="actions btn-group float-left" role="group">
-			<a href="{% url 'sapl.base:usuario' %}" class="btn btn-outline-primary">{% trans 'Pesquisar usuários' %}</a>
-			<a href="{% url 'sapl.base:user_create' %}" class="btn btn-outline-primary">{% trans 'Criar usuário' %}</a>
-        </div>
-            <a href="{% url 'sapl.base:user_delete' object.pk %}" class="btn btn-outline-danger float-right">{% trans 'Remover usuário' %}</a>
-            <br /> <br />
-        {% endif %}
-        {%  crispy form %}
-    </form>
-	<br /><br /><br />
-{% endblock base_content %}
+{% endblock %}
