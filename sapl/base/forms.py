@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 import django_filters
 
 from sapl.audiencia.models import AudienciaPublica
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Reuniao
 from sapl.crispy_layout_mixin import (form_actions, to_column, to_row,
                                       SaplFormHelper, SaplFormLayout)
@@ -445,11 +445,6 @@ class AutorForm(ModelForm):
         required=False,
         label=_('Confirmar Email'))
 
-    username = forms.CharField(label=get_user_model()._meta.get_field(
-        get_user_model().USERNAME_FIELD).verbose_name.capitalize(),
-        required=False,
-        max_length=50)
-
     q = forms.CharField(
         max_length=120, required=False,
         label='Pesquise o nome do Autor com o '
@@ -459,20 +454,13 @@ class AutorForm(ModelForm):
                                                  required=False,
                                                  widget=forms.RadioSelect())
 
-    action_user = forms.ChoiceField(
-        label=_('Usuário com acesso ao Sistema para este Autor'),
-        choices=ACTION_CREATE_USERS_AUTOR_CHOICE,
-        widget=forms.RadioSelect())
-
     class Meta:
         model = Autor
         fields = ['tipo',
                   'nome',
                   'cargo',
                   'autor_related',
-                  'q',
-                  'action_user',
-                  'username']
+                  'q', ]
 
     def __init__(self, *args, **kwargs):
 
@@ -499,72 +487,10 @@ class AutorForm(ModelForm):
                                css_class='radiogroup-autor-related hidden'),
                                12)))
 
-        row2 = Row(to_column((InlineRadios('action_user'), 8)),
-                   to_column((Div('username'), 4)))
-
-        row3 = Row(to_column(('senha', 3)),
-                   to_column(('senha_confirma', 3)),
-                   to_column(('email', 3)),
-                   to_column(('confirma_email', 3)),
-                   css_class='new_user_fields hidden')
-
-        row4 = Row(to_column((
-            Div(InlineRadios('status_user'),
-                css_class='radiogroup-status hidden'),
-            12))) if 'status_user' in self.Meta.fields else None
-
-        controle_acesso = [row2, row3]
-
-        if row4:
-            controle_acesso.append(row4)
-        controle_acesso = Fieldset(_('Controle de Acesso do Autor'),
-                                   *controle_acesso)
-
         self.helper = SaplFormHelper()
-        self.helper.layout = SaplFormLayout(autor_select, controle_acesso)
+        self.helper.layout = SaplFormLayout(autor_select)
 
         super(AutorForm, self).__init__(*args, **kwargs)
-
-        self.fields['action_user'].initial = 'N'
-
-        if self.instance.pk:
-            if self.instance.autor_related:
-                self.fields['autor_related'].choices = [
-                    (self.instance.autor_related.pk,
-                     self.instance.autor_related)]
-
-                self.fields['q'].initial = ''
-
-            self.fields['autor_related'].initial = self.instance.autor_related
-
-            if self.instance.user:
-                self.fields['username'].initial = getattr(
-                    self.instance.user,
-                    get_user_model().USERNAME_FIELD)
-                self.fields['action_user'].initial = 'A'
-
-                self.fields['username'].label = "{} ({})".format(self.fields['username'].label,
-                                                                 getattr(self.instance.user,
-                                                                         get_user_model().USERNAME_FIELD))
-
-                if 'status_user' in self.Meta.fields:
-                    self.fields['status_user'].initial = 'R'
-                    self.fields['status_user'].label = "{} ({})".format(self.fields['status_user'].label,
-                                                                        getattr(self.instance.user,
-                                                                                get_user_model().USERNAME_FIELD))
-
-            self.fields['username'].widget.attrs.update({
-                'data': getattr(
-                    self.instance.user,
-                    get_user_model().USERNAME_FIELD)
-                if self.instance.user else ''})
-
-            if 'status_user' in self.Meta.fields:
-                self.fields['status_user'].widget.attrs.update({
-                    'data': getattr(
-                        self.instance.user,
-                        get_user_model().USERNAME_FIELD)
-                    if self.instance.user else ''})
 
     def valida_igualdade(self, texto1, texto2, msg):
         if texto1 != texto2:
@@ -583,73 +509,11 @@ class AutorForm(ModelForm):
         User = get_user_model()
         cd = self.cleaned_data
 
-        if 'action_user' not in cd or not cd['action_user']:
-            self.logger.warning(
-                'Não Informado se o Autor terá usuário '
-                'vinculado para acesso ao Sistema.'
-            )
-            raise ValidationError(_('Informe se o Autor terá usuário '
-                                    'vinculado para acesso ao Sistema.'))
-
-        if 'status_user' in self.Meta.fields:
-            if self.instance.pk and self.instance.user_id:
-                if getattr(
-                        self.instance.user,
-                        get_user_model().USERNAME_FIELD) != cd['username']:
-                    if 'status_user' not in cd or not cd['status_user']:
-                        self.logger.warning(
-                            'Foi trocado ou removido o usuário deste Autor ({}), '
-                            'mas não foi informado como se deve proceder '
-                            'com o usuário que está sendo desvinculado? ({})'.format(
-                                cd['username'], get_user_model().USERNAME_FIELD
-                            )
-                        )
-                        raise ValidationError(
-                            _('Foi trocado ou removido o usuário deste Autor, '
-                              'mas não foi informado como se deve proceder '
-                              'com o usuário que está sendo desvinculado?'))
-
-        qs_user = User.objects.all()
         qs_autor = Autor.objects.all()
 
         if self.instance.pk:
             qs_autor = qs_autor.exclude(pk=self.instance.pk)
-            if self.instance.user:
-                qs_user = qs_user.exclude(pk=self.instance.user.pk)
 
-        if cd['action_user'] == 'A':
-            param_username = {get_user_model().USERNAME_FIELD: cd['username']}
-            if not User.objects.filter(**param_username).exists():
-                self.logger.warning(
-                    'Não existe usuário com username "%s". ' % cd['username']
-                )
-                raise ValidationError(
-                    _('Não existe usuário com username "%s". '
-                      'Para utilizar esse username você deve selecionar '
-                      '"Criar novo Usuário".') % cd['username'])
-
-        if cd['action_user'] != 'N':
-
-            if 'username' not in cd or not cd['username']:
-                self.logger.warning('Username não informado.')
-                raise ValidationError(_('O username deve ser informado.'))
-
-            param_username = {
-                'user__' + get_user_model().USERNAME_FIELD: cd['username']}
-
-            autor_vinculado = qs_autor.filter(**param_username)
-            if autor_vinculado.exists():
-                nome = autor_vinculado[0].nome
-                error_msg = 'Já existe um autor para este ' \
-                            'usuário ({}): {}'.format(cd['username'], nome)
-                self.logger.warning(error_msg)
-                raise ValidationError(_(error_msg))
-
-        """
-        'if' não é necessário por ser campo obrigatório e o framework já
-        mostrar a mensagem de obrigatório junto ao campo. mas foi colocado
-        ainda assim para renderizar um message.danger no topo do form.
-        """
         if 'tipo' not in cd or not cd['tipo']:
             self.logger.warning('Tipo do Autor não selecionado.')
             raise ValidationError(
@@ -702,19 +566,6 @@ class AutorForm(ModelForm):
     def save(self, commit=False):
         autor = super(AutorForm, self).save(commit)
 
-        user_old = autor.user if autor.user_id else None
-
-        u = None
-        param_username = {
-            get_user_model().USERNAME_FIELD: self.cleaned_data['username']}
-        if self.cleaned_data['action_user'] == 'A':
-            u = get_user_model().objects.get(**param_username)
-            if not u.is_active:
-                u.is_active = settings.DEBUG
-                u.save()
-
-        autor.user = u
-
         if not autor.tipo.content_type:
             autor.content_type = None
             autor.object_id = None
@@ -725,32 +576,6 @@ class AutorForm(ModelForm):
             autor.nome = str(autor.autor_related)
 
         autor.save()
-
-        # FIXME melhorar captura de grupo de Autor, levando em conta,
-        # no mínimo, a tradução.
-        grupo = Group.objects.filter(name='Autor')[0]
-        if self.cleaned_data['action_user'] != 'N':
-            autor.user.groups.add(grupo)
-            if user_old and user_old != autor.user:
-                user_old.groups.remove(grupo)
-
-        else:
-            if 'status_user' in self.Meta.fields:
-                if 'status_user' in self.cleaned_data and user_old:
-                    if self.cleaned_data['status_user'] == 'X':
-                        user_old.delete()
-
-                    elif self.cleaned_data['status_user'] == 'D':
-                        user_old.groups.remove(grupo)
-                        user_old.is_active = False
-                        user_old.save()
-
-                    elif self.cleaned_data['status_user'] == 'R':
-                        user_old.groups.remove(grupo)
-                elif user_old:
-                    user_old.groups.remove(grupo)
-            elif user_old:
-                user_old.groups.remove(grupo)
 
         return autor
 
@@ -776,26 +601,36 @@ class AutorFilterSet(django_filters.FilterSet):
                      form_actions(label='Pesquisar')))
 
 
-class AutorFormForAdmin(AutorForm):
-    status_user = forms.ChoiceField(
-        label=_('Bloqueio do Usuário Existente'),
-        choices=STATUS_USER_CHOICE,
-        widget=forms.RadioSelect(),
-        required=False,
-        help_text=_('Se vc está trocando ou removendo o usuário deste Autor, '
-                    'como o Sistema deve proceder com o usuário que está sendo'
-                    ' desvinculado?'))
+class OperadorAutorForm(ModelForm):
 
     class Meta:
-        model = Autor
-        fields = ['tipo',
-                  'nome',
-                  'cargo',
-                  'autor_related',
-                  'q',
-                  'action_user',
-                  'username',
-                  'status_user']
+        model = OperadorAutor
+        fields = ['user', ]
+
+    def __init__(self, *args, **kwargs):
+
+        row = to_row([('user', 12)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Operador'), row))
+
+        super(OperadorAutorForm, self).__init__(*args, **kwargs)
+
+        self.fields['user'].choices = [
+            (
+                u.id,
+                '{} - {} - {}'.format(
+                    u.get_full_name(),
+                    getattr(u, u.USERNAME_FIELD),
+                    u.email
+                )
+            )
+            for u in get_user_model().objects.all().order_by(
+                get_user_model().USERNAME_FIELD
+            )
+        ]
+        self.fields['user'].widget = forms.RadioSelect()
 
 
 class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):

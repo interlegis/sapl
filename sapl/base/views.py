@@ -8,16 +8,17 @@ import os
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import (PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView,
                                        PasswordResetDoneView)
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.db import connection
-from django.db.models import Count, Q, ProtectedError, Max, F
+from django.db.models import Count, Q, Max, F
+from django.forms.utils import ErrorList
 from django.http import Http404, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.urls import reverse, reverse_lazy
@@ -25,22 +26,21 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (
-    CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
+from django.views.generic import (FormView, ListView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.query import SearchQuerySet
 from haystack.views import SearchView
-from rest_framework.authtoken.models import Token
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
-from sapl.base.forms import (AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
-                             NovaSenhaForm, UserAdminForm)
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
+                             NovaSenhaForm, UserAdminForm,
+                             OperadorAutorForm)
+from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination, Crud,\
-    ListWithSearchForm
+    ListWithSearchForm, MasterDetailCrud
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio, MateriaEmTramitacao, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento, TipoMateriaLegislativa, UnidadeTramitacao,
                                  MateriaAssunto)
@@ -61,7 +61,8 @@ from sapl.sessao.models import (
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured, parlamentares_ativos,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo,
-                        google_recaptcha_configured, sapl_as_sapn)
+                        google_recaptcha_configured, sapl_as_sapn,
+                        groups_remove_user, groups_add_user)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet,
@@ -193,20 +194,30 @@ class AutorCrud(CrudAux):
     help_topic = 'autor'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['tipo', 'nome', 'user']
+        list_field_names = ['tipo', 'nome', 'operadores']
+
+    class DetailView(CrudAux.DetailView):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = 'base/subnav_autor.yaml'
+            return context
 
     class DeleteView(CrudAux.DeleteView):
 
         def delete(self, *args, **kwargs):
             self.object = self.get_object()
 
-            if self.object.user:
-                # FIXME melhorar captura de grupo de Autor, levando em conta
-                # trad
-                grupo = Group.objects.filter(name='Autor')[0]
-                self.object.user.groups.remove(grupo)
+            grupo = Group.objects.filter(name='Autor')[0]
+            lista_operadores = list(self.object.operadores.all())
 
-            return CrudAux.DeleteView.delete(self, *args, **kwargs)
+            response = CrudAux.DeleteView.delete(self, *args, **kwargs)
+
+            if not Autor.objects.filter(pk=kwargs['pk']).exists():
+                for u in lista_operadores:
+                    u.groups.remove(grupo)
+
+            return response
 
     class UpdateView(CrudAux.UpdateView):
         logger = logging.getLogger(__name__)
@@ -217,87 +228,48 @@ class AutorCrud(CrudAux):
             # devido a implement do form o form_valid do Crud deve ser pulado
             return super(CrudAux.UpdateView, self).form_valid(form)
 
-        def post(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.UpdateView.post(self, request, *args, **kwargs)
-
-        def get(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.UpdateView.get(self, request, *args, **kwargs)
-
-        def get_success_url(self):
+        """def get_success_url(self):
             username = self.request.user.username
             pk_autor = self.object.id
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
 
-            if not mail_service_configured():
-                self.logger.warning(_('Registro de Autor sem envio de email. '
-                                      'Servidor de email não configurado.'))
-                return url_reverse
-
-            try:
-                self.logger.debug('user={}. Enviando email na edição '
-                                  'de Autores.'.format(username))
-                kwargs = {}
-                user = self.object.user
-
-                if not user:
-                    return url_reverse
-
-                kwargs['token'] = default_token_generator.make_token(user)
-                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-                assunto = "SAPL - Confirmação de Conta"
-                full_url = self.request.get_raw_uri()
-                url_base = full_url[:full_url.find('sistema') - 1]
-
-                mensagem = (
-                    "Este e-mail foi utilizado para fazer cadastro no " +
-                    "SAPL com o perfil de Autor. Agora você pode " +
-                    "criar/editar/enviar Proposições.\n" +
-                    "Seu nome de usuário é: " +
-                    self.request.POST['username'] + "\n"
-                    "Caso você não tenha feito este cadastro, por favor " +
-                    "ignore esta mensagem. Caso tenha, clique " +
-                    "no link abaixo\n" + url_base +
-                    reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = settings.EMAIL_SEND_USER
-                destinatario = [user.email]
-                send_mail(assunto, mensagem, remetente, destinatario,
-                          fail_silently=False)
-            except Exception as e:
-                self.logger.error('user={}. Erro no envio de email na edição de'
-                                  ' Autores. {}'.format(username, str(e)))
-
-            return url_reverse
+            return url_reverse"""
 
     class CreateView(CrudAux.CreateView):
         logger = logging.getLogger(__name__)
         form_class = AutorForm
         layout_key = None
 
-        def post(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.CreateView.post(self, request, *args, **kwargs)
-
-        def get(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.CreateView.get(self, request, *args, **kwargs)
-
-        def get_success_url(self):
+        """def get_success_url(self):
             username = self.request.user.username
             pk_autor = self.object.id
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
 
+            return url_reverse"""
+
+
+class OperadorAutorCrud(MasterDetailCrud):
+    parent_field = 'autor'
+    model = OperadorAutor
+    help_path = 'operadorautor'
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context[
+                'subnav_template_name'] = 'base/subnav_autor.yaml'
+            return context
+
+        def send_mail_operador(self):
+            username = self.request.user.username
+
             if not mail_service_configured():
                 self.logger.warning(_('Registro de Autor sem envio de email. '
                                       'Servidor de email não configurado.'))
-                return url_reverse
+                return
 
             try:
                 self.logger.debug('user=' + username +
@@ -306,8 +278,11 @@ class AutorCrud(CrudAux):
                 kwargs = {}
                 user = self.object.user
 
-                if not user:
-                    return url_reverse
+                if not user.email:
+                    self.logger.warning(
+                        _('Registro de Autor sem envio de email. '
+                          'Usuário sem um email cadastrado.'))
+                    return
 
                 kwargs['token'] = default_token_generator.make_token(user)
                 kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
@@ -335,7 +310,68 @@ class AutorCrud(CrudAux):
                 self.logger.error(
                     'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
 
-            return url_reverse
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = OperadorAutorForm
+
+        # TODO tornar operador readonly na edição
+        def form_valid(self, form):
+            old = OperadorAutor.objects.get(pk=self.object.pk)
+
+            groups_remove_user(old.user, 'Autor')
+
+            response = super().form_valid(form)
+
+            groups_add_user(self.object.user, 'Autor')
+
+            self.send_mail_operador()
+
+            return response
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = OperadorAutorForm
+
+        def form_valid(self, form):
+            self.object = form.save(commit=False)
+            oper = OperadorAutor.objects.filter(
+                user_id=self.object.user_id,
+                autor_id=self.object.autor_id
+            ).exists()
+
+            if oper:
+                form._errors['user'] = ErrorList([_(
+                    'Este Operador já está registrado '
+                    'para este Autor.')])
+                return self.form_invalid(form)
+
+            oper = OperadorAutor.objects.filter(
+                user_id=self.object.user_id).exclude(
+                autor_id=self.object.autor_id
+            ).exists()
+
+            if oper:
+                form._errors['user'] = ErrorList([_(
+                    'Este Operador já está registrado '
+                    'para outro Autor.')])
+                return self.form_invalid(form)
+
+            response = super().form_valid(form)
+
+            groups_add_user(self.object.user, 'Autor')
+
+            self.send_mail_operador()
+
+            return response
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def post(self, request, *args, **kwargs):
+
+            self.object = self.get_object()
+
+            groups_remove_user(self.object.user, 'Autor')
+
+            return MasterDetailCrud.DeleteView.post(
+                self, request, *args, **kwargs)
 
 
 class PesquisarAutorView(FilterView):

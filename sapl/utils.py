@@ -28,7 +28,6 @@ from django.db import models
 from django.db.models import Q
 from django.forms import BaseForm
 from django.forms.widgets import SplitDateTimeWidget
-from django.urls.base import clear_url_caches
 from django.utils import six, timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -49,6 +48,32 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 # por conta dos leitores de códigos de barra, que trocavam
 # a '/' por '&' ou ';'
 SEPARADOR_HASH_PROPOSICAO = 'K'
+
+
+def groups_remove_user(user, groups_name):
+    from django.contrib.auth.models import Group
+
+    if not isinstance(groups_name, list):
+        groups_name = [groups_name, ]
+    for group_name in groups_name:
+        if not group_name or not user.groups.filter(
+                name=group_name).exists():
+            continue
+        g = Group.objects.get_or_create(name=group_name)[0]
+        user.groups.remove(g)
+
+
+def groups_add_user(user, groups_name):
+    from django.contrib.auth.models import Group
+
+    if not isinstance(groups_name, list):
+        groups_name = [groups_name, ]
+    for group_name in groups_name:
+        if not group_name or user.groups.filter(
+                name=group_name).exists():
+            continue
+        g = Group.objects.get_or_create(name=group_name)[0]
+        user.groups.add(g)
 
 
 def num_materias_por_tipo(qs, attr_tipo='tipo'):

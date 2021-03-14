@@ -9,7 +9,7 @@ from django.views.generic.base import RedirectView, TemplateView
 from sapl.base.views import (AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_estatistica,
                              PesquisarAutorView, RecuperarSenhaEmailView, RecuperarSenhaFinalizadoView,
                              RecuperarSenhaConfirmaView, RecuperarSenhaCompletoView, RelatorioMateriaAnoAssuntoView,
-                             IndexView, UserCrud)
+                             IndexView, UserCrud, OperadorAutorCrud)
 from sapl.settings import MEDIA_URL, LOGOUT_REDIRECT_URL
 
 from .apps import AppConfig
@@ -58,7 +58,9 @@ urlpatterns = [
     url(r'^$', IndexView.as_view(template_name='index.html'), name='sapl_index'),
 
     url(r'^sistema/autor/tipo/', include(TipoAutorCrud.get_urls())),
-    url(r'^sistema/autor/', include(AutorCrud.get_urls())),
+    url(r'^sistema/autor/', include(AutorCrud.get_urls() +
+                                    OperadorAutorCrud.get_urls())),
+
     url(r'^sistema/autor/pesquisar-autor/',
         PesquisarAutorView.as_view(), name='pesquisar_autor'),
 

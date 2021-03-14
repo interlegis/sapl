@@ -263,7 +263,8 @@ class Autor(models.Model):
         through='OperadorAutor',
         through_fields=('autor', 'user'),
         symmetrical=False,
-        related_name='autor_set')
+        related_name='autor_set',
+        verbose_name='Operadores')
 
     tipo = models.ForeignKey(
         TipoAutor,
@@ -325,7 +326,7 @@ class OperadorAutor(models.Model):
     @property
     def user_name(self):
         return '%s - %s' % (
-            self.user.get_display_name(),
+            self.user,
             self.user.email)
 
     class Meta:

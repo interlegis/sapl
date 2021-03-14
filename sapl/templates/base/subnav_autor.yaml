@@ -1,0 +1,5 @@
+{% load i18n %}
+- title: {% trans 'Início' %}
+  url: autor_detail
+- title: {% trans 'Operadores' %}
+  url: operadorautor_list
