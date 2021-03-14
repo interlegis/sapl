@@ -2012,8 +2012,7 @@ class UserCrud(Crud):
 
     class ListView(Crud.ListView):
         form_search_class = ListWithSearchForm
-        ordered_list = None
-        paginate_by = 300
+        paginate_by = 256
 
         def get_context_data(self, **kwargs):
             context = Crud.ListView.get_context_data(self, **kwargs)
@@ -2045,9 +2044,10 @@ class UserCrud(Crud):
                 q |= Q(last_name__icontains=q_param)
                 q |= Q(email__icontains=q_param)
                 q |= Q(username__icontains=q_param)
+                q |= Q(groups__name__icontains=q_param)
                 qs = qs.filter(q)
 
-            return qs
+            return qs.order_by('-id')
 
 
 class CasaLegislativaCrud(CrudAux):
