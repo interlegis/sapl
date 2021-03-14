@@ -2047,7 +2047,7 @@ class UserCrud(Crud):
                 q |= Q(groups__name__icontains=q_param)
                 qs = qs.filter(q)
 
-            return qs.order_by('-id')
+            return qs.distinct('id').order_by('-id')
 
 
 class CasaLegislativaCrud(CrudAux):
