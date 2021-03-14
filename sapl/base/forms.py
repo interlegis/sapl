@@ -134,6 +134,7 @@ class UserAdminForm(ModelForm):
                 ('groups', 12),
 
             ] + ([('user_permissions', 12)] if not self.granular is None else [])
+
         )
 
         self.helper = SaplFormHelper()
@@ -185,10 +186,14 @@ class UserAdminForm(ModelForm):
             self.instance.set_password(self.cleaned_data['new_password1'])
 
         votante = None
+        permissions = None
         if self.instance.id:
             inst_old = get_user_model().objects.get(pk=self.instance.pk)
             votante = inst_old.groups.filter(name='Votante').first()
             autor = inst_old.groups.filter(name='Autor').first()
+
+            if self.granular is None:
+                permissions = list(inst_old.user_permissions.all())
 
         inst_new = super().save(commit)
 
@@ -197,6 +202,9 @@ class UserAdminForm(ModelForm):
 
         if autor:
             inst_new.groups.add(autor)
+
+        if permissions:
+            inst_new.user_permissions.add(*permissions)
 
         return inst_new
 
