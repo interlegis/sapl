@@ -4,15 +4,16 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.urls import reverse, reverse_lazy
 from django.db.models import F, Q
 from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from django.templatetags.static import static
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
@@ -22,7 +23,6 @@ from django.views.generic.edit import UpdateView
 from django_filters.views import FilterView
 from image_cropping.utils import get_backend
 
-
 from sapl.base.forms import SessaoLegislativaForm, PartidoForm
 from sapl.base.models import Autor
 from sapl.comissoes.models import Participacao
@@ -31,13 +31,13 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
+from sapl.rules import SAPL_GROUP_VOTANTE
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
                     ParlamentarFilterSet, PartidoFilterSet, VincularParlamentarForm,
                     BlocoForm, FrenteParlamentarForm, BlocoMembroForm)
-                    
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
@@ -53,7 +53,8 @@ NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')
 TipoAfastamentoCrud = CrudAux.build(TipoAfastamento, 'tipo_afastamento')
 TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
 
-DependenteCrud = MasterDetailCrud.build(Dependente, 'parlamentar', 'dependente')
+DependenteCrud = MasterDetailCrud.build(
+    Dependente, 'parlamentar', 'dependente')
 
 
 class SessaoLegislativaCrud(CrudAux):
@@ -101,6 +102,10 @@ class VotanteView(MasterDetailCrud):
 
         def delete(self, *args, **kwargs):
             obj = self.get_object()
+
+            g = Group.objects.filter(name=SAPL_GROUP_VOTANTE)[0]
+            obj.user.groups.remove(g)
+
             obj.delete()
             return HttpResponseRedirect(
                 reverse('sapl.parlamentares:votante_list',
@@ -247,9 +252,9 @@ class PesquisarColigacaoView(FilterView):
             'queryset': self.get_queryset().order_by('nome').distinct()
         })
 
-
     def get_context_data(self, **kwargs):
-        context = super(PesquisarColigacaoView, self).get_context_data(**kwargs)
+        context = super(PesquisarColigacaoView,
+                        self).get_context_data(**kwargs)
 
         paginator = context['paginator']
         page_obj = context['page_obj']
@@ -278,7 +283,8 @@ class PesquisarColigacaoView(FilterView):
                                         filter_url=url,
                                         numero_res=len(self.object_list))
 
-        context['show_results'] = show_results_filter_set(self.request.GET.copy())
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
         return self.render_to_response(context)
 
@@ -295,7 +301,6 @@ class PesquisarPartidoView(FilterView):
             'data': self.request.GET or None,
             'queryset': self.get_queryset().order_by('nome').distinct()
         })
-
 
     def get_context_data(self, **kwargs):
         context = super(PesquisarPartidoView, self).get_context_data(**kwargs)
@@ -326,7 +331,8 @@ class PesquisarPartidoView(FilterView):
                                         object_list=self.object_list,
                                         filter_url=url,
                                         numero_res=len(self.object_list))
-        context['show_results'] = show_results_filter_set(self.request.GET.copy())
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
         return self.render_to_response(context)
 
@@ -355,17 +361,17 @@ class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
             comissoes = []
             for p in object_list:
-                    comissao = [
-                        (p.composicao.comissao.nome, reverse(
-                            'sapl.comissoes:comissao_detail', kwargs={
-                                'pk': p.composicao.comissao.pk})),
-                        (p.cargo.nome, None),
-                        (p.composicao.periodo.data_inicio.strftime(
-                         "%d/%m/%Y") + ' a ' +
-                         p.composicao.periodo.data_fim.strftime("%d/%m/%Y"),
-                         None)
-                    ]
-                    comissoes.append(comissao)
+                comissao = [
+                    (p.composicao.comissao.nome, reverse(
+                        'sapl.comissoes:comissao_detail', kwargs={
+                            'pk': p.composicao.comissao.pk})),
+                    (p.cargo.nome, None),
+                    (p.composicao.periodo.data_inicio.strftime(
+                     "%d/%m/%Y") + ' a ' +
+                     p.composicao.periodo.data_fim.strftime("%d/%m/%Y"),
+                     None)
+                ]
+                comissoes.append(comissao)
             return comissoes
 
         def get_headers(self):
@@ -417,11 +423,13 @@ class ColigacaoCrud(CrudAux):
 
 def coligacao_legislatura(request):
     try:
-        coligacoes = Coligacao.objects.filter(legislatura=request.GET['legislatura']).order_by('nome')
+        coligacoes = Coligacao.objects.filter(
+            legislatura=request.GET['legislatura']).order_by('nome')
     except:
         coligacoes = []
 
-    lista_coligacoes = [(coligacao.id, str(coligacao)) for coligacao in coligacoes]
+    lista_coligacoes = [(coligacao.id, str(coligacao))
+                        for coligacao in coligacoes]
 
     return JsonResponse({'coligacoes': lista_coligacoes})
 
@@ -746,7 +754,8 @@ class ParlamentarCrud(Crud):
                                   ". Tentando obter id da legislatura.")
                 return int(self.request.GET['pk'])
             except:
-                self.logger.warning("User=" + username + ". Legislatura não possui ID. Buscando em todas as entradas.")
+                self.logger.warning(
+                    "User=" + username + ". Legislatura não possui ID. Buscando em todas as entradas.")
                 legislaturas = Legislatura.objects.all()
                 for l in legislaturas:
                     if l.atual():
@@ -974,8 +983,9 @@ def altera_field_mesa(request):
     # é alterado o campo de sessão ou feita alguma operação
     # de inclusão/remoção.
     if request.GET['sessao']:
-        sessao_selecionada = SessaoLegislativa.objects.get(id=request.GET['sessao'])
-        
+        sessao_selecionada = SessaoLegislativa.objects.get(
+            id=request.GET['sessao'])
+
     # Caso a mudança tenha sido no campo legislatura, a sessão
     # atual deve ser a primeira daquela legislatura
     else:
@@ -1183,19 +1193,21 @@ def altera_field_mesa_public_view(request):
     else:
         legislatura = Legislatura.objects.order_by('-data_inicio').first()
 
-    sessoes = legislatura.sessaolegislativa_set.filter(tipo='O').order_by('-data_inicio')
-
+    sessoes = legislatura.sessaolegislativa_set.filter(
+        tipo='O').order_by('-data_inicio')
 
     if not sessoes:
         return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
-    # Verifica se já tem uma sessão selecionada. Ocorre quando é alterado o campo de sessão
-    
+    # Verifica se já tem uma sessão selecionada. Ocorre quando é alterado o
+    # campo de sessão
+
     sessao_selecionada = request.GET.get('sessao')
     if not sessao_selecionada:
         try:
             year = timezone.now().year
-            logger.info(f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
+            logger.info(
+                f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
             sessao_selecionada = sessoes.get(data_inicio__year=year).id
         except ObjectDoesNotExist:
             logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
@@ -1205,9 +1217,12 @@ def altera_field_mesa_public_view(request):
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
 
-    composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(sessao_legislativa=sessao_selecionada).order_by('cargo_id')
-    cargos_ocupados = list(composicao_mesa.values_list('cargo__id', 'cargo__descricao'))
-    parlamentares_ocupados = list(composicao_mesa.values_list('parlamentar__id', 'parlamentar__nome_parlamentar'))
+    composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
+        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
+    cargos_ocupados = list(composicao_mesa.values_list(
+        'cargo__id', 'cargo__descricao'))
+    parlamentares_ocupados = list(composicao_mesa.values_list(
+        'parlamentar__id', 'parlamentar__nome_parlamentar'))
 
     lista_fotos = []
     lista_partidos = []
@@ -1215,7 +1230,8 @@ def altera_field_mesa_public_view(request):
     sessao = SessaoLegislativa.objects.get(id=sessao_selecionada)
     for p in parlamentares_ocupados:
         parlamentar = Parlamentar.objects.get(id=p[0])
-        lista_partidos.append(partido_parlamentar_sessao_legislativa(sessao, parlamentar))
+        lista_partidos.append(
+            partido_parlamentar_sessao_legislativa(sessao, parlamentar))
         if parlamentar.fotografia:
             try:
                 thumbnail_url = get_backend().get_thumbnail_url(
@@ -1230,7 +1246,8 @@ def altera_field_mesa_public_view(request):
                 lista_fotos.append(thumbnail_url)
             except Exception as e:
                 logger.error(e)
-                logger.error(F'erro processando arquivo: {parlamentar.fotografia.path}')
+                logger.error(
+                    F'erro processando arquivo: {parlamentar.fotografia.path}')
         else:
             lista_fotos.append(None)
 
@@ -1242,7 +1259,7 @@ def altera_field_mesa_public_view(request):
         'lista_fotos': lista_fotos,
         'sessao_selecionada': sessao_selecionada,
         'msg': ('', 1)
-        })
+    })
 
 
 class VincularParlamentarView(PermissionRequiredMixin, FormView):
@@ -1262,7 +1279,8 @@ class VincularParlamentarView(PermissionRequiredMixin, FormView):
             'data_fim_mandato': form.cleaned_data['legislatura'].data_fim
         }
 
-        data_expedicao_diploma = form.cleaned_data.get('data_expedicao_diploma')
+        data_expedicao_diploma = form.cleaned_data.get(
+            'data_expedicao_diploma')
         if data_expedicao_diploma:
             kwargs.update({'data_expedicao_diploma': data_expedicao_diploma})
 
@@ -1337,6 +1355,6 @@ def get_sessoes_legislatura(request):
 
     json_response = {'sessoes_legislativas': []}
     for s in SessaoLegislativa.objects.filter(legislatura_id=legislatura_id):
-        json_response['sessoes_legislativas'].append( (s.id, str(s)) )
+        json_response['sessoes_legislativas'].append((s.id, str(s)))
 
     return JsonResponse(json_response)
