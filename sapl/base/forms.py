@@ -523,11 +523,10 @@ class AutorForm(ModelForm):
                 u
             )
             for u in get_user_model().objects.filter(
-                is_active=True,
                 operadorautor_set__autor=self.instance
-            ).order_by(
-                get_user_model().USERNAME_FIELD
-            ) if self.instance.id
+            ).order_by('-is_active',
+                       get_user_model().USERNAME_FIELD
+                       ) if self.instance.id
         ] + [
             (
                 u.id,
@@ -535,11 +534,10 @@ class AutorForm(ModelForm):
                 u
             )
             for u in get_user_model().objects.filter(
-                is_active=True,
                 operadorautor_set__isnull=True
-            ).order_by(
-                get_user_model().USERNAME_FIELD
-            )
+            ).order_by('-is_active',
+                       get_user_model().USERNAME_FIELD
+                       )
         ]
 
         if self.instance.pk:

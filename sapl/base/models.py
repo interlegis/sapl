@@ -304,8 +304,10 @@ class Autor(models.Model):
                     return '{} - {}'.format(self.nome, self.cargo)
                 else:
                     return str(self.nome)
-        if self.user:
-            return str(self.user.username)
+
+        if self.operadores.exists():
+            return str(self.operadores.first())
+
         return '?'
 
 

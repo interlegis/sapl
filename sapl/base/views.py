@@ -317,6 +317,8 @@ class AutorCrud(CrudAux):
                 q = Q(nome__icontains=q_param)
                 q |= Q(cargo__icontains=q_param)
                 q |= Q(tipo__descricao__icontains=q_param)
+                q |= Q(operadores__username__icontains=q_param)
+                q |= Q(operadores__email__icontains=q_param)
                 qs = qs.filter(q)
             return qs.distinct('nome', 'id').order_by('nome', 'id')
 

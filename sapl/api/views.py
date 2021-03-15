@@ -182,63 +182,63 @@ class SaplApiViewSetConstrutor():
 SaplApiViewSetConstrutor.build_class()
 
 """
-1. Constroi uma rest_framework.viewsets.ModelViewSet para 
+1. Constroi uma rest_framework.viewsets.ModelViewSet para
    todos os models de todas as apps do sapl
 2. Define DjangoFilterBackend como ferramenta de filtro dos campos
 3. Define Serializer como a seguir:
     3.1 - Define um Serializer genérico para cada módel
     3.2 - Recupera Serializer customizado em sapl.api.serializers
-    3.3 - Para todo model é opcional a existência de 
+    3.3 - Para todo model é opcional a existência de
           sapl.api.serializers.{model}Serializer.
           Caso não seja definido um Serializer customizado, utiliza-se o trivial
 4. Define um FilterSet como a seguir:
     4.1 - Define um FilterSet genérico para cada módel
     4.2 - Recupera FilterSet customizado em sapl.api.forms
-    4.3 - Para todo model é opcional a existência de 
+    4.3 - Para todo model é opcional a existência de
           sapl.api.forms.{model}FilterSet.
           Caso não seja definido um FilterSet customizado, utiliza-se o trivial
-    4.4 - todos os campos que aceitam lookup 'exact' 
+    4.4 - todos os campos que aceitam lookup 'exact'
           podem ser filtrados por default
-    
+
 5. SaplApiViewSetConstrutor não cria padrões e/ou exige conhecimento alem dos
-    exigidos pela DRF. 
-    
+    exigidos pela DRF.
+
 6. As rotas são criadas seguindo nome da app e nome do model
     http://localhost:9000/api/{applabel}/{model_name}/
     e seguem as variações definidas em:
     https://www.django-rest-framework.org/api-guide/routers/#defaultrouter
-    
+
 7. Todas as viewsets construídas por SaplApiViewSetConstrutor e suas rotas
     (paginate list, detail, edit, create, delete)
    bem como testes em ambiente de desenvolvimento podem ser conferidas em:
-   http://localhost:9000/api/ 
+   http://localhost:9000/api/
    desde que settings.DEBUG=True
 
 **SaplApiViewSetConstrutor._built_sets** é um dict de dicts de models conforme:
     {
         ...
-    
+
         'audiencia': {
             'tipoaudienciapublica': TipoAudienciaPublicaViewSet,
             'audienciapublica': AudienciaPublicaViewSet,
             'anexoaudienciapublica': AnexoAudienciaPublicaViewSet
-            
+
             ...
-            
+
             },
-            
+
         ...
-        
+
         'base': {
             'casalegislativa': CasaLegislativaViewSet,
             'appconfig': AppConfigViewSet,
-            
+
             ...
-            
+
         }
-        
+
         ...
-        
+
     }
 """
 
@@ -315,17 +315,17 @@ class customize(object):
 @customize(Autor)
 class _AutorViewSet:
     """
-    Neste exemplo de customização do que foi criado em 
-    SaplApiViewSetConstrutor além do ofertado por 
+    Neste exemplo de customização do que foi criado em
+    SaplApiViewSetConstrutor além do ofertado por
     rest_framework.viewsets.ModelViewSet, dentre outras customizações
     possíveis, foi adicionado as rotas referentes aos relacionamentos genéricos
 
     * padrão de ModelViewSet
         /api/base/autor/       POST   - create
-        /api/base/autor/       GET    - list     
-        /api/base/autor/{pk}/  GET    - detail          
-        /api/base/autor/{pk}/  PUT    - update      
-        /api/base/autor/{pk}/  PATCH  - partial_update 
+        /api/base/autor/       GET    - list
+        /api/base/autor/{pk}/  GET    - detail
+        /api/base/autor/{pk}/  PUT    - update
+        /api/base/autor/{pk}/  PATCH  - partial_update
         /api/base/autor/{pk}/  DELETE - destroy
 
     * rotas desta classe local criadas pelo método build:
@@ -336,7 +336,7 @@ class _AutorViewSet:
         /api/base/autor/bloco
             devolve apenas autores que são blocos parlamentares
         /api/base/autor/bancada
-            devolve apenas autores que são bancadas parlamentares        
+            devolve apenas autores que são bancadas parlamentares
         /api/base/autor/frente
             devolve apenas autores que são Frene parlamentares
         /api/base/autor/orgao
@@ -485,7 +485,7 @@ class _ProposicaoViewSet:
         * Permissões:
 
             * Usuário Dono:
-                * Pode listar todas suas Proposições 
+                * Pode listar todas suas Proposições
 
             * Usuário Conectado ou Anônimo:
                 * Pode listar todas as Proposições incorporadas
@@ -496,7 +496,7 @@ class _ProposicaoViewSet:
         * Permissões:
 
             * Usuário Dono:
-                * Pode recuperar qualquer de suas Proposições 
+                * Pode recuperar qualquer de suas Proposições
 
             * Usuário Conectado ou Anônimo:
                 * Pode recuperar qualquer das proposições incorporadas
@@ -524,7 +524,17 @@ class _ProposicaoViewSet:
 
         q = Q(data_recebimento__isnull=False, object_id__isnull=False)
         if not self.request.user.is_anonymous:
-            q |= Q(autor__user=self.request.user)
+
+            autor_do_usuario_logado = self.request.user.autor_set.first()
+
+            # se usuário logado é operador de algum autor
+            if autor_do_usuario_logado:
+                q = Q(autor=autor_do_usuario_logado)
+
+            # se é operador de protocolo, ve qualquer coisa enviada
+            if self.request.user.has_perm('protocoloadm.list_protocolo'):
+                q = Q(data_envio__isnull=False) | Q(
+                    data_devolucao__isnull=False)
 
         qs = qs.filter(q)
         return qs
@@ -586,7 +596,7 @@ class _DocumentoAdministrativoViewSet:
                     """
                     Diante da lógica implementada na manutenção de documentos
                     administrativos:
-                    - Se o comportamento é doc adm ostensivo, deve passar pelo 
+                    - Se o comportamento é doc adm ostensivo, deve passar pelo
                       teste de permissões sem avaliá-las
                     - se o comportamento é doc adm restritivo, deve passar pelo
                       teste de permissões avaliando-as
@@ -599,7 +609,7 @@ class _DocumentoAdministrativoViewSet:
         """
         mesmo tendo passado pelo teste de permissões, deve ser filtrado,
         pelo campo restrito. Sendo este igual a True, disponibilizar apenas
-        a um usuário conectado. Apenas isso, sem critérios outros de permissão, 
+        a um usuário conectado. Apenas isso, sem critérios outros de permissão,
         conforme implementado em DocumentoAdministrativoCrud
         """
         qs = super().get_queryset()

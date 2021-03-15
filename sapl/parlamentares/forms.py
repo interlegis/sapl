@@ -219,11 +219,12 @@ class ParlamentarForm(FileFieldCheckMixin, ModelForm):
     def save(self, commit=True):
         parlamentar = super().save()
         autor = parlamentar.autor.first()
-        usuario = autor.user if autor else None
 
-        if autor and usuario:
-            usuario.is_active = parlamentar.ativo
-            usuario.save()
+        if autor:
+            usuarios = autor.operadores.all()
+            for u in usuarios:
+                u.is_active = parlamentar.ativo
+                u.save()
 
         return parlamentar
 
