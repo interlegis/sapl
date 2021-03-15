@@ -196,12 +196,54 @@ class AutorCrud(CrudAux):
     class BaseMixin(CrudAux.BaseMixin):
         list_field_names = ['tipo', 'nome', 'operadores']
 
-    class DetailView(CrudAux.DetailView):
+        def send_mail_operadores(self):
+            username = self.request.user.username
 
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context['subnav_template_name'] = 'base/subnav_autor.yaml'
-            return context
+            if not mail_service_configured():
+                self.logger.warning(_('Registro de Autor sem envio de email. '
+                                      'Servidor de email não configurado.'))
+                return
+
+            try:
+                self.logger.debug('user=' + username +
+                                  '. Enviando email na criação de Autores.')
+
+                kwargs = {}
+
+                for user in self.object.operadores.all():
+
+                    if not user.email:
+                        self.logger.warning(
+                            _('Registro de Autor sem envio de email. '
+                              'Usuário sem um email cadastrado.'))
+                        continue
+
+                    kwargs['token'] = default_token_generator.make_token(user)
+                    kwargs['uidb64'] = urlsafe_base64_encode(
+                        force_bytes(user.pk))
+                    assunto = "SAPL - Confirmação de Conta"
+                    full_url = self.request.get_raw_uri()
+                    url_base = full_url[:full_url.find('sistema') - 1]
+
+                    mensagem = (
+                        "Este e-mail foi utilizado para fazer cadastro no " +
+                        "SAPL com o perfil de Autor. Agora você pode " +
+                        "criar/editar/enviar Proposições.\n" +
+                        "Seu nome de usuário é: " +
+                        self.request.POST['username'] + "\n"
+                        "Caso você não tenha feito este cadastro, por favor " +
+                        "ignore esta mensagem. Caso tenha, clique " +
+                        "no link abaixo\n" + url_base +
+                        reverse('sapl.base:confirmar_email', kwargs=kwargs))
+                    remetente = settings.EMAIL_SEND_USER
+                    destinatario = [user.email]
+                    send_mail(assunto, mensagem, remetente, destinatario,
+                              fail_silently=False)
+            except Exception as e:
+                print(
+                    _('Erro no envio de email na criação de Autores.'))
+                self.logger.error(
+                    'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
 
     class DeleteView(CrudAux.DeleteView):
 
@@ -228,150 +270,30 @@ class AutorCrud(CrudAux):
             # devido a implement do form o form_valid do Crud deve ser pulado
             return super(CrudAux.UpdateView, self).form_valid(form)
 
-        """def get_success_url(self):
+        def get_success_url(self):
             username = self.request.user.username
             pk_autor = self.object.id
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
 
-            return url_reverse"""
+            self.send_mail_operadores()
+
+            return url_reverse
 
     class CreateView(CrudAux.CreateView):
         logger = logging.getLogger(__name__)
         form_class = AutorForm
         layout_key = None
 
-        """def get_success_url(self):
+        def get_success_url(self):
             username = self.request.user.username
             pk_autor = self.object.id
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
 
-            return url_reverse"""
+            self.send_mail_operadores()
 
-
-class OperadorAutorCrud(MasterDetailCrud):
-    parent_field = 'autor'
-    model = OperadorAutor
-    help_path = 'operadorautor'
-
-    class BaseMixin(MasterDetailCrud.BaseMixin):
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context[
-                'subnav_template_name'] = 'base/subnav_autor.yaml'
-            return context
-
-        def send_mail_operador(self):
-            username = self.request.user.username
-
-            if not mail_service_configured():
-                self.logger.warning(_('Registro de Autor sem envio de email. '
-                                      'Servidor de email não configurado.'))
-                return
-
-            try:
-                self.logger.debug('user=' + username +
-                                  '. Enviando email na criação de Autores.')
-
-                kwargs = {}
-                user = self.object.user
-
-                if not user.email:
-                    self.logger.warning(
-                        _('Registro de Autor sem envio de email. '
-                          'Usuário sem um email cadastrado.'))
-                    return
-
-                kwargs['token'] = default_token_generator.make_token(user)
-                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-                assunto = "SAPL - Confirmação de Conta"
-                full_url = self.request.get_raw_uri()
-                url_base = full_url[:full_url.find('sistema') - 1]
-
-                mensagem = (
-                    "Este e-mail foi utilizado para fazer cadastro no " +
-                    "SAPL com o perfil de Autor. Agora você pode " +
-                    "criar/editar/enviar Proposições.\n" +
-                    "Seu nome de usuário é: " +
-                    self.request.POST['username'] + "\n"
-                    "Caso você não tenha feito este cadastro, por favor " +
-                    "ignore esta mensagem. Caso tenha, clique " +
-                    "no link abaixo\n" + url_base +
-                    reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = settings.EMAIL_SEND_USER
-                destinatario = [user.email]
-                send_mail(assunto, mensagem, remetente, destinatario,
-                          fail_silently=False)
-            except Exception as e:
-                print(
-                    _('Erro no envio de email na criação de Autores.'))
-                self.logger.error(
-                    'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
-
-    class UpdateView(MasterDetailCrud.UpdateView):
-        form_class = OperadorAutorForm
-
-        # TODO tornar operador readonly na edição
-        def form_valid(self, form):
-            old = OperadorAutor.objects.get(pk=self.object.pk)
-
-            groups_remove_user(old.user, 'Autor')
-
-            response = super().form_valid(form)
-
-            groups_add_user(self.object.user, 'Autor')
-
-            self.send_mail_operador()
-
-            return response
-
-    class CreateView(MasterDetailCrud.CreateView):
-        form_class = OperadorAutorForm
-
-        def form_valid(self, form):
-            self.object = form.save(commit=False)
-            oper = OperadorAutor.objects.filter(
-                user_id=self.object.user_id,
-                autor_id=self.object.autor_id
-            ).exists()
-
-            if oper:
-                form._errors['user'] = ErrorList([_(
-                    'Este Operador já está registrado '
-                    'para este Autor.')])
-                return self.form_invalid(form)
-
-            oper = OperadorAutor.objects.filter(
-                user_id=self.object.user_id).exclude(
-                autor_id=self.object.autor_id
-            ).exists()
-
-            if oper:
-                form._errors['user'] = ErrorList([_(
-                    'Este Operador já está registrado '
-                    'para outro Autor.')])
-                return self.form_invalid(form)
-
-            response = super().form_valid(form)
-
-            groups_add_user(self.object.user, 'Autor')
-
-            self.send_mail_operador()
-
-            return response
-
-    class DeleteView(MasterDetailCrud.DeleteView):
-
-        def post(self, request, *args, **kwargs):
-
-            self.object = self.get_object()
-
-            groups_remove_user(self.object.user, 'Autor')
-
-            return MasterDetailCrud.DeleteView.post(
-                self, request, *args, **kwargs)
+            return url_reverse
 
 
 class PesquisarAutorView(FilterView):
