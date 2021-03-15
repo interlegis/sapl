@@ -15,8 +15,10 @@ from django.db import models, transaction
 from django.db.models import Q
 from django.forms import Form, ModelForm
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
+from hamcrest.core.core.isnone import none
 
 from sapl.audiencia.models import AudienciaPublica
 from sapl.base.models import Autor, TipoAutor, OperadorAutor
@@ -28,8 +30,10 @@ from sapl.materia.models import (DocumentoAcessorio, MateriaEmTramitacao,
                                  MateriaLegislativa, UnidadeTramitacao,
                                  StatusTramitacao)
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import Partido, SessaoLegislativa
+from sapl.parlamentares.models import Partido, SessaoLegislativa,\
+    Parlamentar, Votante
 from sapl.protocoloadm.models import DocumentoAdministrativo
+from sapl.rules import SAPL_GROUP_AUTOR, SAPL_GROUP_VOTANTE
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
@@ -38,7 +42,7 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         AnoNumeroOrderingFilter, ImageThumbnailFileInput,
                         models_with_gr_for_model, qs_override_django_filter,
                         RangeWidgetOverride, RANGE_ANOS, YES_NO_CHOICES,
-                        GoogleRecapthaMixin)
+                        GoogleRecapthaMixin, parlamentares_ativos)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -86,6 +90,18 @@ class UserAdminForm(ModelForm):
         max_length=40,
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
 
+    parlamentar = forms.ModelChoiceField(
+        label=_('Este usuário é um Parlamentar Votante?'),
+        queryset=Parlamentar.objects.all(),
+        required=False,
+        help_text='Se o usuário que está sendo cadastrado (ou em edição) é um usuário para que um parlamentar possa votar, você pode selecionar o parlamentar nas opções acima.')
+
+    autor = forms.ModelChoiceField(
+        label=_('Este usuário registrará proposições para um Autor?'),
+        queryset=Autor.objects.all(),
+        required=False,
+        help_text='Se o usuário que está sendo cadastrado (ou em edição) é um usuário para cadastro de proposições, você pode selecionar para que autor ele registrará proposições.')
+
     class Meta:
         model = get_user_model()
         fields = [
@@ -98,8 +114,11 @@ class UserAdminForm(ModelForm):
 
             'new_password1',
             'new_password2',
-            'groups',
 
+            'parlamentar',
+            'autor',
+
+            'groups',
             'user_permissions',
         ]
 
@@ -112,15 +131,18 @@ class UserAdminForm(ModelForm):
         self.granular = kwargs.pop('granular', None)
         self.instance = kwargs.get('instance', None)
 
-        row_pwd = to_row(
-            [
-                ('username', 4),
-                ('email', 6),
-                ('is_active', 2),
-                ('first_name', 6),
-                ('last_name', 6),
-                ('new_password1', 3 if self.instance and self.instance.pk else 6),
-                ('new_password2', 3 if self.instance and self.instance.pk else 6),
+        row_pwd = [
+            ('username', 4),
+            ('email', 6),
+            ('is_active', 2),
+            ('first_name', 6),
+            ('last_name', 6),
+            ('new_password1', 3 if self.instance and self.instance.pk else 6),
+            ('new_password2', 3 if self.instance and self.instance.pk else 6),
+        ]
+
+        if self.instance and self.instance.pk:
+            row_pwd += [
                 (
                     FieldWithButtons(
                         'token',
@@ -130,13 +152,18 @@ class UserAdminForm(ModelForm):
                             css_class="btn-outline-primary"),
                         css_class='' if self.instance and self.instance.pk else 'd-none'),
                     6
-                ),
+                )
+            ]
 
-                ('groups', 12),
+        row_pwd += [
 
-            ] + ([('user_permissions', 12)] if not self.granular is None else [])
+            ('parlamentar', 6),
+            ('autor', 6),
+            ('groups', 12),
 
-        )
+        ] + ([('user_permissions', 12)] if not self.granular is None else [])
+
+        row_pwd = to_row(row_pwd)
 
         self.helper = SaplFormHelper()
         self.helper.layout = SaplFormLayout(row_pwd)
@@ -144,19 +171,33 @@ class UserAdminForm(ModelForm):
 
         self.fields['groups'].widget = forms.CheckboxSelectMultiple()
 
+        self.fields['parlamentar'].choices = [('', '---------')] + [
+            (p.id, p) for p in parlamentares_ativos(timezone.now())
+        ]
+
         if not self.instance.pk:
             self.fields['groups'].choices = [
-                (g.id, g) for g in Group.objects.exclude(name__in=['Autor', 'Votante']).order_by('name')
+                (g.id, g) for g in Group.objects.exclude(
+                    name__in=['Autor', 'Votante']
+                ).order_by('name')
             ]
 
         else:
+            operadorautor = self.instance.operadorautor_set.first()
+            votante = self.instance.votante_set.first()
             self.fields['token'].initial = self.instance.auth_token.key
+            self.fields['autor'].initial = operadorautor.autor if operadorautor else None
+            self.fields['parlamentar'].initial = votante.parlamentar if votante else None
 
             self.fields['groups'].choices = [
-                (g.id, g) for g in self.instance.groups.exclude(name__in=['Autor', 'Votante']).order_by('name')
+                (g.id, g) for g in self.instance.groups.exclude(
+                    name__in=['Autor', 'Votante']
+                ).order_by('name')
             ] + [
                 (g.id, g) for g in Group.objects.exclude(
-                    user=self.instance).exclude(name__in=['Autor', 'Votante']).order_by('name')
+                    user=self.instance).exclude(
+                        name__in=['Autor', 'Votante']
+                ).order_by('name')
             ]
 
             self.fields[
@@ -179,35 +220,61 @@ class UserAdminForm(ModelForm):
                                'codename')
                 ]
 
-        # self.fields['user_permissions'].queryset = self.fields[
-        #    'user_permissions'].queryset.all().order_by('name')
-
     def save(self, commit=True):
         if self.cleaned_data['new_password1']:
             self.instance.set_password(self.cleaned_data['new_password1'])
-
-        votante = None
         permissions = None
+        votante = None
+        operadorautor = None
         if self.instance.id:
             inst_old = get_user_model().objects.get(pk=self.instance.pk)
-            votante = inst_old.groups.filter(name='Votante').first()
-            autor = inst_old.groups.filter(name='Autor').first()
-
             if self.granular is None:
                 permissions = list(inst_old.user_permissions.all())
 
-        inst_new = super().save(commit)
+            votante = inst_old.votante_set.first()
+            operadorautor = inst_old.operadorautor_set.first()
 
-        if votante:
-            inst_new.groups.add(votante)
-
-        if autor:
-            inst_new.groups.add(autor)
+        inst = super().save(commit)
 
         if permissions:
-            inst_new.user_permissions.add(*permissions)
+            inst.user_permissions.add(*permissions)
 
-        return inst_new
+        g_autor = Group.objects.get(name=SAPL_GROUP_AUTOR)
+        g_votante = Group.objects.get(name=SAPL_GROUP_VOTANTE)
+
+        if not self.cleaned_data['autor']:
+            inst.groups.remove(g_autor)
+            if operadorautor:
+                operadorautor.delete()
+        else:
+            inst.groups.add(g_autor)
+            if operadorautor:
+                if operadorautor.autor != self.cleaned_data['autor']:
+                    operadorautor.autor = self.cleaned_data['autor']
+                    operadorautor.save()
+            else:
+                operadorautor = OperadorAutor()
+                operadorautor.user = inst
+                operadorautor.autor = self.cleaned_data['autor']
+                operadorautor.save()
+
+        if not self.cleaned_data['parlamentar']:
+            inst.groups.remove(g_votante)
+            if votante:
+                votante.delete()
+        else:
+            inst.groups.add(g_votante)
+            if votante:
+                if votante.parlamentar != self.cleaned_data['parlamentar']:
+                    votante.parlamentar = self.cleaned_data['parlamentar']
+                    votante.save()
+            else:
+                votante = Votante()
+                votante.user = inst
+                votante.parlamentar = self.cleaned_data['parlamentar']
+                votante.save()
+
+        return inst
 
     def clean(self):
         data = super().clean()
@@ -227,6 +294,29 @@ class UserAdminForm(ModelForm):
                 password_validation.validate_password(
                     new_password2, self.instance)
 
+        parlamentar = data.get('parlamentar', None)
+        if parlamentar and parlamentar.votante_set.exists() and \
+                parlamentar.votante_set.first().user != self.instance:
+            raise forms.ValidationError(
+                mark_safe(
+                    'O Parlamentar <strong>{}</strong> '
+                    'já está associado a outro usuário: <strong>{}</strong>.<br>'
+                    'Para realizar nova associação, você precisa '
+                    'primeiro cancelar esta já existente.'.format(
+                        parlamentar,
+                        parlamentar.votante_set.first().user
+                    ))
+            )
+
+        autor = data.get('autor', None)
+        if parlamentar and autor:
+            if autor.autor_related != parlamentar:
+                raise forms.ValidationError(
+                    'Um usuário não deve ser Votante de um parlamentar, e operador de um Autor que possui um parlamentar diferente, ou mesmo outro tipo de Autor.'
+                )
+
+        """
+        
         if 'email' in data and data['email']:
             duplicidade = get_user_model().objects.filter(email=data['email'])
             if self.instance.id:
@@ -237,7 +327,7 @@ class UserAdminForm(ModelForm):
                     "Email já cadastrado para: {}".format(
                         ', '.join(map(lambda x: str(x), duplicidade.all())),
                     )
-                )
+                )"""
 
         return data
 
@@ -423,15 +513,6 @@ class TipoAutorForm(ModelForm):
                                         'por ser equivalente a um tipo já existente'))
 
 
-class UserCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
-    #template_name = 'base/checkbox_select.html'
-    #option_template_name = 'base/radio_option.html'
-
-    def render(self, name, value, attrs=None, renderer=None):
-
-        super().render(name, value, attrs, renderer)
-
-
 class AutorForm(ModelForm):
     logger = logging.getLogger(__name__)
 
@@ -466,7 +547,7 @@ class AutorForm(ModelForm):
 
     operadores = forms.ModelMultipleChoiceField(
         queryset=get_user_model().objects.all(),
-        widget=UserCheckboxSelectMultiple(),
+        widget=forms.CheckboxSelectMultiple(),
         label=_('Usuários do SAPL ligados ao autor acima selecionado'),
         required=False,
     )
