@@ -9,7 +9,7 @@ def remove_grupo_votante_de_usuario(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
     User = apps.get_model('auth', 'User')
 
-    g = Group.objects.get(name='Votante')
+    g, created = Group.objects.get_or_create(name='Votante')
 
     # usuários do grupo votante sem vínculo com parlamentar
     users_votantes = g.user_set.filter(votante_set__isnull=True)
