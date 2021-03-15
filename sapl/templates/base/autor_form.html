@@ -89,6 +89,7 @@ $(document).ready(function(){
 
   if (flag_create)
     $('input[name=autor_related]').closest('.radio').remove();
+
   var pk = $('#id_tipo').val();
   if (pk)
     update_search(pk, $('#id_q').val().length > 0)

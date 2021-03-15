@@ -1,7 +1,7 @@
 import logging
 import os
 
-
+from _pytest.tmpdir import get_user
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
@@ -22,7 +22,8 @@ from sapl.audiencia.models import AudienciaPublica
 from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Reuniao
 from sapl.crispy_layout_mixin import (form_actions, to_column, to_row,
-                                      SaplFormHelper, SaplFormLayout)
+                                      SaplFormHelper, SaplFormLayout,
+                                      to_fieldsets)
 from sapl.materia.models import (DocumentoAcessorio, MateriaEmTramitacao,
                                  MateriaLegislativa, UnidadeTramitacao,
                                  StatusTramitacao)
@@ -422,6 +423,15 @@ class TipoAutorForm(ModelForm):
                                         'por ser equivalente a um tipo já existente'))
 
 
+class UserCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
+    #template_name = 'base/checkbox_select.html'
+    #option_template_name = 'base/radio_option.html'
+
+    def render(self, name, value, attrs=None, renderer=None):
+
+        super().render(name, value, attrs, renderer)
+
+
 class AutorForm(ModelForm):
     logger = logging.getLogger(__name__)
 
@@ -454,13 +464,22 @@ class AutorForm(ModelForm):
                                                  required=False,
                                                  widget=forms.RadioSelect())
 
+    operadores = forms.ModelMultipleChoiceField(
+        queryset=get_user_model().objects.filter(is_active=True),
+        widget=UserCheckboxSelectMultiple(),
+        label=_('Usuários do SAPL ligados ao autor acima selecionado'),
+        required=False,
+    )
+
     class Meta:
         model = Autor
         fields = ['tipo',
                   'nome',
                   'cargo',
                   'autor_related',
-                  'q', ]
+                  'q',
+                  'operadores'
+                  ]
 
     def __init__(self, *args, **kwargs):
 
@@ -486,11 +505,37 @@ class AutorForm(ModelForm):
                                Field('autor_related'),
                                css_class='radiogroup-autor-related hidden'),
                                12)))
+        operadores_select = to_row(
+            [
+                ('operadores', 12)
+            ]
+        )
 
         self.helper = SaplFormHelper()
-        self.helper.layout = SaplFormLayout(autor_select)
+        self.helper.layout = SaplFormLayout(autor_select, *operadores_select)
 
         super(AutorForm, self).__init__(*args, **kwargs)
+
+        self.fields['operadores'].choices = [
+            (
+                u.id,
+                u.username,
+                u
+            )
+            for u in get_user_model().objects.all().order_by(
+                get_user_model().USERNAME_FIELD
+            )
+        ]
+
+        if self.instance.pk:
+            if self.instance.autor_related:
+                self.fields['autor_related'].choices = [
+                    (self.instance.autor_related.pk,
+                     self.instance.autor_related)]
+
+                self.fields['q'].initial = ''
+
+            self.fields['autor_related'].initial = self.instance.autor_related
 
     def valida_igualdade(self, texto1, texto2, msg):
         if texto1 != texto2:
