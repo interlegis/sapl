@@ -435,6 +435,10 @@ def recuperar_norma(request):
     logger = logging.getLogger(__name__)
     username = request.user.username
 
+    orgao = None
+    if 'orgao' in request.GET and request.GET['orgao']:
+        orgao = Orgao.objects.get(pk=request.GET['orgao'])
+
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     numero = request.GET['numero']
     ano = request.GET['ano']
@@ -444,7 +448,8 @@ def recuperar_norma(request):
                     .format(tipo, ano, numero))
         norma = NormaJuridica.objects.get(tipo=tipo,
                                           ano=ano,
-                                          numero=numero)
+                                          numero=numero,
+                                          orgao=orgao)
         response = JsonResponse({'ementa': norma.ementa,
                                  'id': norma.id})
     except ObjectDoesNotExist:

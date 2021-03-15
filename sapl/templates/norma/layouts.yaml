@@ -62,7 +62,7 @@ TipoVinculoNormaJuridica:
 
 NormaRelacionada:
   {% trans 'Norma Relacionada' %}:
-  - tipo numero ano
+  - orgao tipo:4 numero:3 ano:2
   - tipo_vinculo
   - ementa
 

@@ -14,7 +14,7 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
 from sapl.materia.forms import choice_anos_com_materias
 from sapl.materia.models import (MateriaLegislativa,
-                                 TipoMateriaLegislativa)
+                                 TipoMateriaLegislativa, Orgao)
 from sapl.utils import (ANO_CHOICES,  choice_anos_com_normas,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
                         NormaPesquisaOrderingFilter, RangeWidgetOverride,
@@ -338,6 +338,12 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
 
 class NormaRelacionadaForm(ModelForm):
 
+    orgao = forms.ModelChoiceField(
+        label='Órgão',
+        required=False,
+        queryset=Orgao.objects.all(),
+        empty_label='----------',
+    )
     tipo = forms.ModelChoiceField(
         label='Tipo',
         required=True,
@@ -354,7 +360,7 @@ class NormaRelacionadaForm(ModelForm):
 
     class Meta:
         model = NormaRelacionada
-        fields = ['tipo', 'numero', 'ano', 'ementa', 'tipo_vinculo']
+        fields = ['orgao', 'tipo', 'numero', 'ano', 'ementa', 'tipo_vinculo']
 
     def __init__(self, *args, **kwargs):
         super(NormaRelacionadaForm, self).__init__(*args, **kwargs)
@@ -367,20 +373,21 @@ class NormaRelacionadaForm(ModelForm):
         cleaned_data = self.cleaned_data
 
         try:
-            self.logger.debug("Tentando obter objeto NormaJuridica com numero={}, ano={}, tipo={}.".format(
-                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            self.logger.debug("Tentando obter objeto NormaJuridica com numero={}, ano={}, tipo={}, orgao={}.".format(
+                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo'], cleaned_data['orgao']))
             norma_relacionada = NormaJuridica.objects.get(
                 numero=cleaned_data['numero'],
                 ano=cleaned_data['ano'],
-                tipo=cleaned_data['tipo'])
+                tipo=cleaned_data['tipo'],
+                orgao=cleaned_data['orgao'])
         except ObjectDoesNotExist:
-            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={} não existe.".format(
-                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={}, orgao={} não existe.".format(
+                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo'], cleaned_data['orgao']))
             msg = _('A norma a ser relacionada não existe.')
             raise ValidationError(msg)
         else:
-            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={} obtida com sucesso.".format(
-                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={} , orgao={} obtida com sucesso.".format(
+                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo'], cleaned_data['orgao']))
             cleaned_data['norma_relacionada'] = norma_relacionada
 
         return cleaned_data

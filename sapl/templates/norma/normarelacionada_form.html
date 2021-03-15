@@ -5,23 +5,30 @@
 
 {% block extra_js %}
   <script language="Javascript">
+
+  $(document).ready(function() {
     function recuperar_norma() {
+      var orgao = $("#id_orgao").val()
       var tipo = $("#id_tipo").val()
       var numero = $("#id_numero").val()
       var ano = $("#id_ano").val()
 
       if (tipo && numero && ano) {
-        $.get("{% url 'sapl.norma:recuperar_norma' %}",{tipo: tipo,
-                                        numero: numero,
-                                        ano: ano},
-                                  function(data, status) {
-                                    $("#id_ementa").val(data.ementa);
-                                  });
+        $.get(
+          "{% url 'sapl.norma:recuperar_norma' %}",
+          {
+            orgao: orgao,
+            tipo: tipo,
+            numero: numero,
+            ano: ano
+          },
+          function(data, status) {
+            $("#id_ementa").val(data.ementa);
+          }
+        );
       }
     }
-    var fields = ["#id_tipo", "#id_numero", "#id_ano"]
-    for (i = 0; i < fields.length; i++) {
-      $(fields[i]).change(recuperar_norma);
-    }
+    $("#id_tipo, #id_numero, #id_ano, #id_orgao").change(recuperar_norma);
+  });
   </script>
 {% endblock %}
