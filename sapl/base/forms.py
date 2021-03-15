@@ -1,7 +1,6 @@
 import logging
 import os
 
-from _pytest.tmpdir import get_user
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
@@ -18,14 +17,12 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
-from hamcrest.core.core.isnone import none
 
 from sapl.audiencia.models import AudienciaPublica
 from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Reuniao
 from sapl.crispy_layout_mixin import (form_actions, to_column, to_row,
-                                      SaplFormHelper, SaplFormLayout,
-                                      to_fieldsets)
+                                      SaplFormHelper, SaplFormLayout)
 from sapl.materia.models import (DocumentoAcessorio, MateriaEmTramitacao,
                                  MateriaLegislativa, UnidadeTramitacao,
                                  StatusTramitacao)
@@ -39,9 +36,8 @@ from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         choice_anos_com_normas, choice_anos_com_materias,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
-                        AnoNumeroOrderingFilter, ImageThumbnailFileInput,
-                        models_with_gr_for_model, qs_override_django_filter,
-                        RangeWidgetOverride, RANGE_ANOS, YES_NO_CHOICES,
+                        ImageThumbnailFileInput, qs_override_django_filter,
+                        RANGE_ANOS, YES_NO_CHOICES,
                         GoogleRecapthaMixin, parlamentares_ativos)
 
 from .models import AppConfig, CasaLegislativa
