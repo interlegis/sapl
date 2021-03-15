@@ -326,8 +326,8 @@ class OperadorAutor(models.Model):
     @property
     def user_name(self):
         return '%s - %s' % (
-            self.user,
-            self.user.email)
+            self.autor,
+            self.user)
 
     class Meta:
         verbose_name = _('Operador do Autor')

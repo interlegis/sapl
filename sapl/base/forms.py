@@ -465,7 +465,9 @@ class AutorForm(ModelForm):
                                                  widget=forms.RadioSelect())
 
     operadores = forms.ModelMultipleChoiceField(
-        queryset=get_user_model().objects.filter(is_active=True),
+        queryset=get_user_model().objects.filter(
+            is_active=True,
+            operadorautor_set__isnull=True),
         widget=UserCheckboxSelectMultiple(),
         label=_('Usuários do SAPL ligados ao autor acima selecionado'),
         required=False,
@@ -522,7 +524,10 @@ class AutorForm(ModelForm):
                 u.username,
                 u
             )
-            for u in get_user_model().objects.all().order_by(
+            for u in get_user_model().objects.filter(
+                is_active=True,
+                operadorautor_set__isnull=True
+            ).order_by(
                 get_user_model().USERNAME_FIELD
             )
         ]
