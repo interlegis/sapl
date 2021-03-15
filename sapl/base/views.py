@@ -266,12 +266,7 @@ class AutorCrud(CrudAux):
         layout_key = None
         form_class = AutorForm
 
-        def form_valid(self, form):
-            # devido a implement do form o form_valid do Crud deve ser pulado
-            return super(CrudAux.UpdateView, self).form_valid(form)
-
         def get_success_url(self):
-            username = self.request.user.username
             pk_autor = self.object.id
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
@@ -286,7 +281,6 @@ class AutorCrud(CrudAux):
         layout_key = None
 
         def get_success_url(self):
-            username = self.request.user.username
             pk_autor = self.object.id
             url_reverse = reverse('sapl.base:autor_detail',
                                   kwargs={'pk': pk_autor})
@@ -294,6 +288,19 @@ class AutorCrud(CrudAux):
             self.send_mail_operadores()
 
             return url_reverse
+
+    class ListView(CrudAux.ListView):
+        form_search_class = ListWithSearchForm
+        paginate_by = 256
+
+        def get_queryset(self):
+            qs = self.model.objects.all()
+            q_param = self.request.GET.get('q', '')
+            if q_param:
+                q = Q(nome__icontains=q_param)
+                #q |= Q(cargo__icontains=q_param)
+                qs = qs.filter(q)
+            return qs
 
 
 class PesquisarAutorView(FilterView):
