@@ -194,7 +194,7 @@ class AutorCrud(CrudAux):
     help_topic = 'autor'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['tipo', 'nome', 'operadores']
+        list_field_names = ['nome', 'tipo', 'operadores']
 
         def send_mail_operadores(self):
             username = self.request.user.username
@@ -261,19 +261,30 @@ class AutorCrud(CrudAux):
 
             return response
 
+    class DetailView(CrudAux.DetailView):
+
+        def hook_operadores(self, obj):
+            r = '<ul>{}</ul>'.format(
+                ''.join(
+                    [
+                        '<li>{} - <i>({})</i> - '
+                        '<small>{}</small>'
+                        '</li>'.format(u.first_name, u, u.email)
+                        for u in obj.operadores.all()
+                    ]
+                )
+
+            )
+            return 'Operadores', r
+
     class UpdateView(CrudAux.UpdateView):
         logger = logging.getLogger(__name__)
         layout_key = None
         form_class = AutorForm
 
         def get_success_url(self):
-            pk_autor = self.object.id
-            url_reverse = reverse('sapl.base:autor_detail',
-                                  kwargs={'pk': pk_autor})
-
             self.send_mail_operadores()
-
-            return url_reverse
+            return super().get_success_url()
 
     class CreateView(CrudAux.CreateView):
         logger = logging.getLogger(__name__)
@@ -281,26 +292,33 @@ class AutorCrud(CrudAux):
         layout_key = None
 
         def get_success_url(self):
-            pk_autor = self.object.id
-            url_reverse = reverse('sapl.base:autor_detail',
-                                  kwargs={'pk': pk_autor})
-
             self.send_mail_operadores()
-
-            return url_reverse
+            return super().get_success_url()
 
     class ListView(CrudAux.ListView):
         form_search_class = ListWithSearchForm
-        paginate_by = 256
+
+        def hook_operadores(self, *args, **kwargs):
+            r = '<ul>{}</ul>'.format(
+                ''.join(
+                    [
+                        '<li>{} - <i>({})</i></li>'.format(u.first_name, u)
+                        for u in args[0].operadores.all()
+                    ]
+                )
+
+            )
+            return r, ''
 
         def get_queryset(self):
             qs = self.model.objects.all()
             q_param = self.request.GET.get('q', '')
             if q_param:
                 q = Q(nome__icontains=q_param)
-                #q |= Q(cargo__icontains=q_param)
+                q |= Q(cargo__icontains=q_param)
+                q |= Q(tipo__descricao__icontains=q_param)
                 qs = qs.filter(q)
-            return qs
+            return qs.distinct('nome', 'id').order_by('nome', 'id')
 
 
 class RelatoriosListView(TemplateView):
