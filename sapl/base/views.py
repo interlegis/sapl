@@ -303,60 +303,6 @@ class AutorCrud(CrudAux):
             return qs
 
 
-class PesquisarAutorView(FilterView):
-    model = Autor
-    filterset_class = AutorFilterSet
-    paginate_by = 10
-
-    def get_filterset_kwargs(self, filterset_class):
-        super().get_filterset_kwargs(filterset_class)
-
-        kwargs = {'data': self.request.GET or None}
-
-        qs = self.get_queryset().order_by('nome').distinct()
-
-        kwargs.update({
-            'queryset': qs,
-        })
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        paginator = context['paginator']
-        page_obj = context['page_obj']
-
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
-
-        context['NO_ENTRIES_MSG'] = 'Nenhum Autor encontrado!'
-
-        context['title'] = _('Autores')
-
-        return context
-
-    def get(self, request, *args, **kwargs):
-        super().get(request)
-
-        data = self.filterset.data
-        url = ''
-        if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('nome=') - 1
-                url = url[ponto_comeco:]
-
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
-                                        filter_url=url,
-                                        numero_res=len(self.object_list))
-
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
-
-        return self.render_to_response(context)
-
-
 class RelatoriosListView(TemplateView):
     template_name = 'base/relatorios_list.html'
 
