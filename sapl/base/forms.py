@@ -465,9 +465,7 @@ class AutorForm(ModelForm):
                                                  widget=forms.RadioSelect())
 
     operadores = forms.ModelMultipleChoiceField(
-        queryset=get_user_model().objects.filter(
-            is_active=True,
-            operadorautor_set__isnull=True),
+        queryset=get_user_model().objects.all(),
         widget=UserCheckboxSelectMultiple(),
         label=_('Usuários do SAPL ligados ao autor acima selecionado'),
         required=False,
@@ -526,6 +524,18 @@ class AutorForm(ModelForm):
             )
             for u in get_user_model().objects.filter(
                 is_active=True,
+                operadorautor_set__autor=self.instance
+            ).order_by(
+                get_user_model().USERNAME_FIELD
+            ) if self.instance.id
+        ] + [
+            (
+                u.id,
+                u.username,
+                u
+            )
+            for u in get_user_model().objects.filter(
+                is_active=True,
                 operadorautor_set__isnull=True
             ).order_by(
                 get_user_model().USERNAME_FIELD
@@ -556,7 +566,6 @@ class AutorForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        User = get_user_model()
         cd = self.cleaned_data
 
         qs_autor = Autor.objects.all()
@@ -613,8 +622,8 @@ class AutorForm(ModelForm):
         return self.cleaned_data
 
     @transaction.atomic
-    def save(self, commit=False):
-        autor = super(AutorForm, self).save(commit)
+    def save(self, commit=True):
+        autor = self.instance
 
         if not autor.tipo.content_type:
             autor.content_type = None
@@ -625,7 +634,7 @@ class AutorForm(ModelForm):
             ).objects.get(pk=self.cleaned_data['autor_related'])
             autor.nome = str(autor.autor_related)
 
-        autor.save()
+        autor = super(AutorForm, self).save(commit)
 
         return autor
 
