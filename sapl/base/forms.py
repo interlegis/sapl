@@ -546,6 +546,8 @@ class AutorForm(ModelForm):
         widget=forms.CheckboxSelectMultiple(),
         label=_('Usuários do SAPL ligados ao autor acima selecionado'),
         required=False,
+        help_text=_(
+            'Para ser listado aqui, o usuário não pode estar em nenhum outro autor e deve estar marcado como ativo.')
     )
 
     class Meta:
@@ -611,7 +613,8 @@ class AutorForm(ModelForm):
                 u
             )
             for u in get_user_model().objects.filter(
-                operadorautor_set__isnull=True
+                operadorautor_set__isnull=True,
+                is_active=True
             ).order_by('-is_active',
                        get_user_model().USERNAME_FIELD
                        )
