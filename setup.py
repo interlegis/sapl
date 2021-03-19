@@ -12,7 +12,7 @@ install_requires = [
     'django>=1.11.19,<2.0',
     'django-haystack==2.8.1',
     'django-filter==2.0.0',
-    'djangorestframework==3.9.1',
+    'djangorestframework==3.11.2',
     'dj-database-url==0.5.0',
     'django-braces==1.9.0',
     'django-crispy-forms==1.7.2',
