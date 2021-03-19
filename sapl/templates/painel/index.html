@@ -445,7 +445,7 @@
                 var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
                 console.log(resultado_votacao_upper, data['tipo_resultado']);
                 if (resultado_votacao_upper.search("APROV") != -1){
-                  $("#resultado_votacao").css("color", "green");
+                  $("#resultado_votacao").css("color", "#7CFC00");
                   $("#mat_em_votacao").text("Matéria Votada");
                 }
                 else if (resultado_votacao_upper.search("REJEIT") != -1){
