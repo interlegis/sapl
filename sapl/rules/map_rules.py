@@ -230,6 +230,7 @@ rules_group_geral = {
          [RP_ADD], __perms_publicas__),
         (base.TipoAutor, __base__, __perms_publicas__),
         (base.Autor, __base__, __perms_publicas__),
+        (base.OperadorAutor, __base__, __perms_publicas__),
         (base.AuditLog, __base__, set()),
 
         (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),
