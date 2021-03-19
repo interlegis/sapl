@@ -305,9 +305,6 @@ class Autor(models.Model):
                 else:
                     return str(self.nome)
 
-        if self.operadores.exists():
-            return str(self.operadores.first())
-
         return '?'
 
 
