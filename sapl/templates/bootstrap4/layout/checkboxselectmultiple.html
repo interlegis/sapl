@@ -1,0 +1,34 @@
+{% load crispy_forms_filters common_tags %}
+{% load l10n %}
+
+<div class="{% if inline_class %}form-check{% endif %}{% if field_class %} {{ field_class }}{% endif %}"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
+  {% include 'bootstrap4/layout/field_errors_block.html' %}
+
+  {% for choice in field.field.choices %}
+      {% if choice.2 %}
+        <div class="form-check">
+            {% if choice.2|meta_model_value:'label' == 'auth.User' %}
+            <label class="form-check-label d-flex align-items-center py-2"  id="id_{{ field.id_for_label }}_{{ forloop.counter }}" for="id_{{ field.html_name }}_{{ forloop.counter }}">
+
+                <input type="checkbox" class="form-check-input"{% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} checked="checked"{% endif %} name="{{ field.html_name }}" id="id_{{ field.html_name }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>
+                <div class="d-inline-block">
+                  {{choice.2.get_full_name}}
+                  <i>({{choice.2}})</i><br>
+                  <small>{{choice.2.email}}</small>
+                </div>
+            </label>
+            {% endif %}
+
+        </div>
+      {% else %}
+        {% if not inline_class %}<div class="form-check">{% endif %}
+        <label id="id_{{ field.id_for_label }}_{{ forloop.counter }}" class="form-check-{% if inline_class %}{{ inline_class }}{% else %}label{% endif %}" for="id_{{ field.html_name }}_{{ forloop.counter }}">
+          <input type="checkbox" class="form-check-input"{% if choice.0 in field.value or choice.0|stringformat:"s" in field.value or choice.0|stringformat:"s" == field.value|default_if_none:""|stringformat:"s" %} checked="checked"{% endif %} name="{{ field.html_name }}" id="id_{{ field.html_name }}_{{ forloop.counter }}" value="{{ choice.0|unlocalize }}" {{ field.field.widget.attrs|flatatt }}>
+          {{ choice.1|unlocalize }}
+        </label>
+        {% if not inline_class %}</div>{% endif %}
+      {% endif %}
+  {% endfor %}
+
+  {% include 'bootstrap4/layout/help_text.html' %}
+</div>

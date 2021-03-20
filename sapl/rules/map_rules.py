@@ -41,7 +41,7 @@ from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL, RP_LIST,
                         SAPL_GROUP_AUTOR, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_LOGIN_SOCIAL,
                         SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
-                        SAPL_GROUP_PAINEL, SAPL_GROUP_PARLAMENTAR,
+                        SAPL_GROUP_PAINEL,
                         SAPL_GROUP_PROTOCOLO, SAPL_GROUP_SESSAO,
                         SAPL_GROUP_VOTANTE)
 from sapl.sessao import models as sessao
@@ -211,11 +211,6 @@ rules_group_autor = {
     ]
 }
 
-rules_group_parlamentar = {
-    'group': SAPL_GROUP_PARLAMENTAR,
-    'rules': []
-}
-
 rules_group_votante = {
     'group': SAPL_GROUP_VOTANTE,
     'rules': [
@@ -235,6 +230,7 @@ rules_group_geral = {
          [RP_ADD], __perms_publicas__),
         (base.TipoAutor, __base__, __perms_publicas__),
         (base.Autor, __base__, __perms_publicas__),
+        (base.OperadorAutor, __base__, __perms_publicas__),
         (base.AuditLog, __base__, set()),
 
         (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),
@@ -261,7 +257,7 @@ rules_group_geral = {
         (materia.StatusTramitacao, __base__, __perms_publicas__),
         (materia.UnidadeTramitacao, __base__, __perms_publicas__),
         (materia.ConfigEtiquetaMateriaLegislativa, __base__, set()),
-                
+
 
         (norma.AssuntoNorma, __base__, __perms_publicas__),
         (norma.TipoNormaJuridica, __base__, __perms_publicas__),
@@ -370,7 +366,6 @@ rules_patterns = [
     rules_group_painel,
     rules_group_geral,
     rules_group_autor,
-    rules_group_parlamentar,
     rules_group_votante,
 
     rules_group_anonymous,   # anotação para validação do teste de rules

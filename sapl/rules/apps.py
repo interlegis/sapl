@@ -167,6 +167,7 @@ def get_rules():
                 print(group_name, e)
 
         def groups_add_user(self, user, groups_name):
+
             if not isinstance(groups_name, list):
                 groups_name = [groups_name, ]
             for group_name in groups_name:
@@ -211,7 +212,8 @@ def get_rules():
 
         def update_groups(self):
             print('')
-            print("\033[93m\033[1m{}\033[0m".format(_('Atualizando grupos do SAPL:')))
+            print("\033[93m\033[1m{}\033[0m".format(
+                _('Atualizando grupos do SAPL:')))
             for rules_group in self.rules_patterns:
                 group_name = rules_group['group']
                 rules_list = rules_group['rules']
@@ -242,5 +244,7 @@ def revision_pre_delete_signal(sender, **kwargs):
 
 
 models.signals.post_migrate.connect(receiver=update_groups)
-models.signals.post_migrate.connect(receiver=create_proxy_permissions, dispatch_uid="django.contrib.auth.management.create_permissions")
-models.signals.pre_delete.connect(receiver=revision_pre_delete_signal, dispatch_uid="pre_delete_signal")
+models.signals.post_migrate.connect(
+    receiver=create_proxy_permissions, dispatch_uid="django.contrib.auth.management.create_permissions")
+models.signals.pre_delete.connect(
+    receiver=revision_pre_delete_signal, dispatch_uid="pre_delete_signal")

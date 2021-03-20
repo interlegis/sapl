@@ -8,16 +8,17 @@ import os
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import (PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView,
                                        PasswordResetDoneView)
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.db import connection
-from django.db.models import Count, Q, ProtectedError, Max, F
+from django.db.models import Count, Q, Max, F
+from django.forms.utils import ErrorList
 from django.http import Http404, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.urls import reverse, reverse_lazy
@@ -25,22 +26,21 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (
-    CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
+from django.views.generic import (FormView, ListView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.query import SearchQuerySet
 from haystack.views import SearchView
-from rest_framework.authtoken.models import Token
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
-from sapl.base.forms import (AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
-                             NovaSenhaForm, UserAdminForm)
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
+                             NovaSenhaForm, UserAdminForm,
+                             OperadorAutorForm)
+from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination, Crud,\
-    ListWithSearchForm
+    ListWithSearchForm, MasterDetailCrud
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio, MateriaEmTramitacao, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento, TipoMateriaLegislativa, UnidadeTramitacao,
                                  MateriaAssunto)
@@ -61,7 +61,8 @@ from sapl.sessao.models import (
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured, parlamentares_ativos,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo,
-                        google_recaptcha_configured, sapl_as_sapn)
+                        google_recaptcha_configured, sapl_as_sapn,
+                        groups_remove_user, groups_add_user)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet,
@@ -193,203 +194,133 @@ class AutorCrud(CrudAux):
     help_topic = 'autor'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['tipo', 'nome', 'user']
+        list_field_names = ['nome', 'tipo', 'operadores']
 
-    class DeleteView(CrudAux.DeleteView):
-
-        def delete(self, *args, **kwargs):
-            self.object = self.get_object()
-
-            if self.object.user:
-                # FIXME melhorar captura de grupo de Autor, levando em conta
-                # trad
-                grupo = Group.objects.filter(name='Autor')[0]
-                self.object.user.groups.remove(grupo)
-
-            return CrudAux.DeleteView.delete(self, *args, **kwargs)
-
-    class UpdateView(CrudAux.UpdateView):
-        logger = logging.getLogger(__name__)
-        layout_key = None
-        form_class = AutorForm
-
-        def form_valid(self, form):
-            # devido a implement do form o form_valid do Crud deve ser pulado
-            return super(CrudAux.UpdateView, self).form_valid(form)
-
-        def post(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.UpdateView.post(self, request, *args, **kwargs)
-
-        def get(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.UpdateView.get(self, request, *args, **kwargs)
-
-        def get_success_url(self):
+        def send_mail_operadores(self):
             username = self.request.user.username
-            pk_autor = self.object.id
-            url_reverse = reverse('sapl.base:autor_detail',
-                                  kwargs={'pk': pk_autor})
 
             if not mail_service_configured():
                 self.logger.warning(_('Registro de Autor sem envio de email. '
                                       'Servidor de email não configurado.'))
-                return url_reverse
-
-            try:
-                self.logger.debug('user={}. Enviando email na edição '
-                                  'de Autores.'.format(username))
-                kwargs = {}
-                user = self.object.user
-
-                if not user:
-                    return url_reverse
-
-                kwargs['token'] = default_token_generator.make_token(user)
-                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-                assunto = "SAPL - Confirmação de Conta"
-                full_url = self.request.get_raw_uri()
-                url_base = full_url[:full_url.find('sistema') - 1]
-
-                mensagem = (
-                    "Este e-mail foi utilizado para fazer cadastro no " +
-                    "SAPL com o perfil de Autor. Agora você pode " +
-                    "criar/editar/enviar Proposições.\n" +
-                    "Seu nome de usuário é: " +
-                    self.request.POST['username'] + "\n"
-                    "Caso você não tenha feito este cadastro, por favor " +
-                    "ignore esta mensagem. Caso tenha, clique " +
-                    "no link abaixo\n" + url_base +
-                    reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = settings.EMAIL_SEND_USER
-                destinatario = [user.email]
-                send_mail(assunto, mensagem, remetente, destinatario,
-                          fail_silently=False)
-            except Exception as e:
-                self.logger.error('user={}. Erro no envio de email na edição de'
-                                  ' Autores. {}'.format(username, str(e)))
-
-            return url_reverse
-
-    class CreateView(CrudAux.CreateView):
-        logger = logging.getLogger(__name__)
-        form_class = AutorForm
-        layout_key = None
-
-        def post(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.CreateView.post(self, request, *args, **kwargs)
-
-        def get(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.CreateView.get(self, request, *args, **kwargs)
-
-        def get_success_url(self):
-            username = self.request.user.username
-            pk_autor = self.object.id
-            url_reverse = reverse('sapl.base:autor_detail',
-                                  kwargs={'pk': pk_autor})
-
-            if not mail_service_configured():
-                self.logger.warning(_('Registro de Autor sem envio de email. '
-                                      'Servidor de email não configurado.'))
-                return url_reverse
+                return
 
             try:
                 self.logger.debug('user=' + username +
                                   '. Enviando email na criação de Autores.')
 
                 kwargs = {}
-                user = self.object.user
 
-                if not user:
-                    return url_reverse
+                for user in self.object.operadores.all():
 
-                kwargs['token'] = default_token_generator.make_token(user)
-                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-                assunto = "SAPL - Confirmação de Conta"
-                full_url = self.request.get_raw_uri()
-                url_base = full_url[:full_url.find('sistema') - 1]
+                    if not user.email:
+                        self.logger.warning(
+                            _('Registro de Autor sem envio de email. '
+                              'Usuário sem um email cadastrado.'))
+                        continue
 
-                mensagem = (
-                    "Este e-mail foi utilizado para fazer cadastro no " +
-                    "SAPL com o perfil de Autor. Agora você pode " +
-                    "criar/editar/enviar Proposições.\n" +
-                    "Seu nome de usuário é: " +
-                    self.request.POST['username'] + "\n"
-                    "Caso você não tenha feito este cadastro, por favor " +
-                    "ignore esta mensagem. Caso tenha, clique " +
-                    "no link abaixo\n" + url_base +
-                    reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = settings.EMAIL_SEND_USER
-                destinatario = [user.email]
-                send_mail(assunto, mensagem, remetente, destinatario,
-                          fail_silently=False)
+                    kwargs['token'] = default_token_generator.make_token(user)
+                    kwargs['uidb64'] = urlsafe_base64_encode(
+                        force_bytes(user.pk))
+                    assunto = "SAPL - Confirmação de Conta"
+                    full_url = self.request.get_raw_uri()
+                    url_base = full_url[:full_url.find('sistema') - 1]
+
+                    mensagem = (
+                        "Este e-mail foi utilizado para fazer cadastro no " +
+                        "SAPL com o perfil de Autor. Agora você pode " +
+                        "criar/editar/enviar Proposições.\n" +
+                        "Seu nome de usuário é: " +
+                        self.request.POST['username'] + "\n"
+                        "Caso você não tenha feito este cadastro, por favor " +
+                        "ignore esta mensagem. Caso tenha, clique " +
+                        "no link abaixo\n" + url_base +
+                        reverse('sapl.base:confirmar_email', kwargs=kwargs))
+                    remetente = settings.EMAIL_SEND_USER
+                    destinatario = [user.email]
+                    send_mail(assunto, mensagem, remetente, destinatario,
+                              fail_silently=False)
             except Exception as e:
                 print(
                     _('Erro no envio de email na criação de Autores.'))
                 self.logger.error(
                     'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
 
-            return url_reverse
+    class DeleteView(CrudAux.DeleteView):
 
+        def delete(self, *args, **kwargs):
+            self.object = self.get_object()
 
-class PesquisarAutorView(FilterView):
-    model = Autor
-    filterset_class = AutorFilterSet
-    paginate_by = 10
+            grupo = Group.objects.filter(name='Autor')[0]
+            lista_operadores = list(self.object.operadores.all())
 
-    def get_filterset_kwargs(self, filterset_class):
-        super().get_filterset_kwargs(filterset_class)
+            response = CrudAux.DeleteView.delete(self, *args, **kwargs)
 
-        kwargs = {'data': self.request.GET or None}
+            if not Autor.objects.filter(pk=kwargs['pk']).exists():
+                for u in lista_operadores:
+                    u.groups.remove(grupo)
 
-        qs = self.get_queryset().order_by('nome').distinct()
+            return response
 
-        kwargs.update({
-            'queryset': qs,
-        })
-        return kwargs
+    class DetailView(CrudAux.DetailView):
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        def hook_operadores(self, obj):
+            r = '<ul>{}</ul>'.format(
+                ''.join(
+                    [
+                        '<li>{} - <i>({})</i> - '
+                        '<small>{}</small>'
+                        '</li>'.format(u.first_name, u, u.email)
+                        for u in obj.operadores.all()
+                    ]
+                )
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
+            )
+            return 'Operadores', r
 
-        context['page_range'] = make_pagination(
-            page_obj.number, paginator.num_pages)
+    class UpdateView(CrudAux.UpdateView):
+        logger = logging.getLogger(__name__)
+        layout_key = None
+        form_class = AutorForm
 
-        context['NO_ENTRIES_MSG'] = 'Nenhum Autor encontrado!'
+        def get_success_url(self):
+            self.send_mail_operadores()
+            return super().get_success_url()
 
-        context['title'] = _('Autores')
+    class CreateView(CrudAux.CreateView):
+        logger = logging.getLogger(__name__)
+        form_class = AutorForm
+        layout_key = None
 
-        return context
+        def get_success_url(self):
+            self.send_mail_operadores()
+            return super().get_success_url()
 
-    def get(self, request, *args, **kwargs):
-        super().get(request)
+    class ListView(CrudAux.ListView):
+        form_search_class = ListWithSearchForm
 
-        data = self.filterset.data
-        url = ''
-        if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('nome=') - 1
-                url = url[ponto_comeco:]
+        def hook_operadores(self, *args, **kwargs):
+            r = '<ul>{}</ul>'.format(
+                ''.join(
+                    [
+                        '<li>{} - <i>({})</i></li>'.format(u.first_name, u)
+                        for u in args[0].operadores.all()
+                    ]
+                )
 
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
-                                        filter_url=url,
-                                        numero_res=len(self.object_list))
+            )
+            return r, ''
 
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
-
-        return self.render_to_response(context)
+        def get_queryset(self):
+            qs = self.model.objects.all()
+            q_param = self.request.GET.get('q', '')
+            if q_param:
+                q = Q(nome__icontains=q_param)
+                q |= Q(cargo__icontains=q_param)
+                q |= Q(tipo__descricao__icontains=q_param)
+                q |= Q(operadores__username__icontains=q_param)
+                q |= Q(operadores__email__icontains=q_param)
+                qs = qs.filter(q)
+            return qs.distinct('nome', 'id').order_by('nome', 'id')
 
 
 class RelatoriosListView(TemplateView):

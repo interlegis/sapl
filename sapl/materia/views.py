@@ -1,14 +1,11 @@
 
 from datetime import datetime
-from datetime import datetime
 from io import BytesIO
-import itertools
 import logging
 import os
 from random import choice
 import shutil
 from string import ascii_letters, digits
-import tempfile
 import time
 import zipfile
 
@@ -24,7 +21,7 @@ from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.shortcuts import render
-from django.template import loader, RequestContext
+from django.template import loader
 from django.urls import reverse
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
@@ -37,7 +34,7 @@ import weasyprint
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
-from sapl.comissoes.models import Comissao, Participacao, Composicao
+from sapl.comissoes.models import Participacao
 from sapl.compilacao.models import STATUS_TA_IMMUTABLE_RESTRICT, STATUS_TA_PRIVATE
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, SaplFormLayout
@@ -55,7 +52,7 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
-                        show_results_filter_set, YES_NO_CHOICES, get_tempfile_dir,
+                        show_results_filter_set, get_tempfile_dir,
                         google_recaptcha_configured)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
@@ -107,7 +104,10 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-                proposicao.autor.user_id != request.user.id):
+                not proposicao.autor.operadores.filter(
+                    id=request.user.id
+                ).exists()
+            ):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
             messages.error(request, _(
@@ -321,8 +321,9 @@ class ProposicaoTaView(IntegracaoTaView):
 
             proposicao = get_object_or_404(self.model, pk=kwargs['pk'])
 
-            if not proposicao.data_envio and\
-                    request.user != proposicao.autor.user:
+            if not proposicao.data_envio and \
+               not proposicao.autor.operadores.filter(
+                    id=request.user.id).exists():
                 raise Http404()
 
             return IntegracaoTaView.get(self, request, *args, **kwargs)
@@ -660,7 +661,7 @@ class RetornarProposicao(UpdateView):
                 "user=" + username + ". Objeto Proposicao com id={} não encontrado.".format(kwargs['pk']))
             raise Http404()
 
-        if p.autor.user != request.user:
+        if not p.autor.operadores.filter(id=request.user.id).exists():
             self.logger.error(
                 "user=" + username + ". Usuário ({}) sem acesso a esta opção.".format(request.user))
             messages.error(
@@ -808,7 +809,7 @@ class UnidadeTramitacaoCrud(CrudAux):
 class ProposicaoCrud(Crud):
     model = Proposicao
     help_topic = 'proposicao'
-    container_field = 'autor__user'
+    container_field = 'autor__operadores'
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = [
@@ -877,7 +878,7 @@ class ProposicaoCrud(Crud):
             p = Proposicao.objects.get(id=kwargs['pk'])
 
             msg_error = ''
-            if p and p.autor.user == user:
+            if p and p.autor.operadores.filter(id=request.user.id).exists():
                 if action == 'send':
                     if p.data_envio and p.data_recebimento:
                         msg_error = _('Proposição já foi enviada e recebida.')
@@ -986,7 +987,7 @@ class ProposicaoCrud(Crud):
             if not self.has_permission():
                 return self.handle_no_permission()
 
-            if p.autor.user != request.user:
+            if not p.autor.operadores.filter(id=request.user.id).exists():
                 if not p.data_envio and not p.data_devolucao:
                     raise Http404()
 
@@ -1187,7 +1188,7 @@ class ReciboProposicaoView(TemplateView):
 
         return (Proposicao.objects.filter(
             id=self.kwargs['pk'],
-            autor__user_id=self.request.user.id).exists())
+            autor__operadores=self.request.user).exists())
 
     def get_context_data(self, **kwargs):
         context = super(ReciboProposicaoView, self).get_context_data(
@@ -1250,7 +1251,8 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
         return qs
 
     def get_context_data(self, **kwargs):
-        context = super(HistoricoProposicaoView, self).get_context_data(**kwargs)
+        context = super(HistoricoProposicaoView,
+                        self).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
@@ -1433,7 +1435,8 @@ class TramitacaoCrud(MasterDetailCrud):
         logger = logging.getLogger(__name__)
 
         def delete(self, request, *args, **kwargs):
-            tramitacao = Tramitacao.objects.select_related('materia').get(id=self.kwargs['pk'])
+            tramitacao = Tramitacao.objects.select_related(
+                'materia').get(id=self.kwargs['pk'])
             materia = tramitacao.materia
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': materia.id})
@@ -2053,7 +2056,8 @@ class MateriaLegislativaPesquisaView(FilterView):
                                      "tipo",)
 
         # retorna somente MateriaLegislativa sem MateriaAssunto se True
-        materia_assunto_null = self.request.GET.get("materiaassunto_null", False)
+        materia_assunto_null = self.request.GET.get(
+            "materiaassunto_null", False)
         if materia_assunto_null:
             qs = qs.filter(materiaassunto__isnull=True)
 

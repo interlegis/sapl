@@ -609,10 +609,10 @@ class FrenteParlamentar(models.Model):
 class Votante(models.Model):
     parlamentar = models.ForeignKey(
         Parlamentar, verbose_name=_('Parlamentar'),
-        on_delete=models.PROTECT, related_name='parlamentar')
+        on_delete=models.PROTECT, related_name='votante_set')
     user = models.ForeignKey(
         get_settings_auth_user_model(), on_delete=models.PROTECT,
-        verbose_name=_('User'), related_name='user')
+        verbose_name=_('User'), related_name='votante_set')
     data = models.DateTimeField(
         verbose_name=_('Data'), auto_now_add=True,
         max_length=30, null=True, blank=True)
