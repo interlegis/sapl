@@ -829,7 +829,7 @@ class ParlamentarMateriasView(FormView):
                 object_id=parlamentar_pk)
         except ObjectDoesNotExist:
             mensagem = _(
-                'Este Parlamentar (pk={}) não é Autor de matéria.'.format(parlamentar_pk))
+                'Este Parlamentar não está associado como autor de matéria.'.format(parlamentar_pk))
             self.logger.error(
                 "user=" + username + ". Este Parlamentar (pk={}) não é Autor de matéria.".format(parlamentar_pk))
             messages.add_message(request, messages.ERROR, mensagem)

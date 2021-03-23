@@ -206,8 +206,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         obj = context['object_list'][i]
         url_materia = reverse('sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
         numeracao = materia.numeracao_set.first() if materia.numeracao_set.first() else "-"
-        autoria = materia.autoria_set.filter(primeiro_autor=True).first()
-        autor = autoria.autor if autoria else "-"
+        autoria = materia.autoria_set.filter(primeiro_autor=True)
+        autor = ', '.join([str(a.autor) for a in autoria]) if autoria else "-"
         num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
 
         data_inicio_sessao = SessaoPlenaria.objects.get(id=pk).data_inicio
