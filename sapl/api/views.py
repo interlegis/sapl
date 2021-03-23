@@ -62,11 +62,10 @@ class BusinessRulesNotImplementedMixin:
         raise Exception(_("DELETE Delete não implementado"))
 
 
-class SaplApiViewSet(ModelViewSet):
-    filter_backends = (DjangoFilterBackend,)
-
-
 class SaplApiViewSetConstrutor():
+
+    class SaplApiViewSet(ModelViewSet):
+        filter_backends = (DjangoFilterBackend,)
 
     _built_sets = {}
 
@@ -124,6 +123,9 @@ class SaplApiViewSetConstrutor():
                     __str__ = SerializerMethodField()
 
                     class Meta(_meta_serializer):
+                        if not hasattr(_meta_serializer, 'ref_name'):
+                            ref_name = None
+
                         if not hasattr(_meta_serializer, 'model'):
                             model = _model
 
@@ -152,7 +154,7 @@ class SaplApiViewSetConstrutor():
                             model = _model
 
                 # Define uma classe padrão ModelViewSet de DRF
-                class ModelSaplViewSet(SaplApiViewSet):
+                class ModelSaplViewSet(SaplApiViewSetConstrutor.SaplApiViewSet):
                     queryset = _model.objects.all()
 
                     # Utiliza o filtro customizado pela classe
