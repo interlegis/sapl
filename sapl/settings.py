@@ -65,9 +65,7 @@ SAPL_APPS = (
     'sapl.redireciona_urls',
     'sapl.compilacao',
     'sapl.api',
-
     'sapl.rules'
-
 )
 
 INSTALLED_APPS = (
@@ -84,7 +82,6 @@ INSTALLED_APPS = (
     'floppyforms',
 
     'drf_yasg',
-    # 'rest_framework_swagger',
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
