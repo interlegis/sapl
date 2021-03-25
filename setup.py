@@ -29,7 +29,7 @@ install_requires = [
     'easy-thumbnails==2.5',
     'python-decouple==3.1',
     'psycopg2-binary==2.7.6.1',
-    'pyyaml==4.2b1',
+    'pyyaml==5.4',
     'pytz==2018.9',
     'python-magic==0.4.15',
     'unipath==1.1',
