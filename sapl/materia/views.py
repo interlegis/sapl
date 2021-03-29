@@ -1014,6 +1014,7 @@ class ProposicaoCrud(Crud):
             username = request.user.username
 
             if proposicao:
+                msg = ''
                 if proposicao[0][0] and proposicao[0][1]:
                     self.logger.warning("User={}. Proposição (id={}) já foi enviada e recebida."
                                         "Não pode mais ser excluida.".format(username, kwargs['pk']))
