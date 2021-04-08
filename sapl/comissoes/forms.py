@@ -518,12 +518,12 @@ class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
 
         if arquivo:
             validar_arquivo(arquivo, "Texto Integral")
-        else:
-            ## TODO: definir arquivo no form e preservar o nome do campo
-            ## que gerou a mensagem de erro.
-            ## arquivo = forms.FileField(required=True, label="Texto Integral")
-            nome_arquivo = self.fields['arquivo'].label
-            raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
+        # else:
+        #     ## TODO: definir arquivo no form e preservar o nome do campo
+        #     ## que gerou a mensagem de erro.
+        #     ## arquivo = forms.FileField(required=True, label="Texto Integral")
+        #     nome_arquivo = self.fields['arquivo'].label
+        #     raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
 
         return self.cleaned_data
 
@@ -550,11 +550,11 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
 
         if arquivo:
             validar_arquivo(arquivo, "Texto Integral")
-        else:
-            ## TODO: definir arquivo no form e preservar o nome do campo
-            ## que gerou a mensagem de erro.
-            ## arquivo = forms.FileField(required=True, label="Texto Integral")
-            nome_arquivo = self.fields['arquivo'].label
-            raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
+        # else:
+        #     ## TODO: definir arquivo no form e preservar o nome do campo
+        #     ## que gerou a mensagem de erro.
+        #     ## arquivo = forms.FileField(required=True, label="Texto Integral")
+        #     nome_arquivo = self.fields['arquivo'].label
+        #     raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
 
         return self.cleaned_data
