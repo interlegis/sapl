@@ -1946,6 +1946,21 @@ def get_materias_expediente(sessao_plenaria):
             resultado = _('Matéria lida') if m.tipo_votacao == 4 else _('Matéria não votada')
             resultado_observacao = ''
 
+        voto_nominal = []
+        if m.tipo_votacao == 2:
+            for voto in VotoParlamentar.objects.filter(expediente=m.id):
+                voto_nominal.append((voto.parlamentar.nome_completo, voto.voto))
+
+        voto = RegistroVotacao.objects.filter(expediente=m.id).last()
+        if voto:
+            voto_sim = voto.numero_votos_sim
+            voto_nao = voto.numero_votos_nao
+            voto_abstencoes = voto.numero_abstencoes
+        else:
+            voto_sim = " Não Informado"
+            voto_nao = " Não Informado"
+            voto_abstencoes = " Não Informado"
+
         materia_em_tramitacao = m.materia.materiaemtramitacao_set.first()
         materias_expediente.append({
             'ementa': m.materia.ementa,
@@ -1958,6 +1973,11 @@ def get_materias_expediente(sessao_plenaria):
             'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=m.materia_id)],
             'numero_protocolo': m.materia.numero_protocolo,
             'numero_processo': m.materia.numeracao_set.last(),
+            'tipo_votacao': m.TIPO_VOTACAO_CHOICES[m.tipo_votacao],
+            'voto_sim': voto_sim,
+            'voto_nao': voto_nao,
+            'voto_abstencoes': voto_abstencoes,
+            'voto_nominal': voto_nominal,
             'observacao_materia': m.materia.observacao,          
             'observacao': m.observacao
         })
