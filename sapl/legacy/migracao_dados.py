@@ -31,7 +31,7 @@ from unipath import Path
 
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor
-from sapl.base.signals import cria_models_tipo_autor
+from sapl.base.receivers import cria_models_tipo_autor
 from sapl.comissoes.models import Comissao, Composicao, Participacao, Reuniao
 from sapl.legacy.models import NormaJuridica as OldNormaJuridica
 from sapl.legacy.models import Numeracao, TipoNumeracaoProtocolo
@@ -436,7 +436,7 @@ def reverte_exclusao_de_autores_referenciados_no_legado():
 
 
 def get_reapontamento_de_autores_repetidos(autores):
-    """ Dada uma lista ordenada de pares (cod_zzz, cod_autor) retorna:
+    """Dada uma lista ordenada de pares (cod_zzz, cod_autor) retorna:
 
     * a lista de grupos de cod_autor'es repetidos
       (quando há mais de um cod_autor para um mesmo cod_zzz)
@@ -813,7 +813,7 @@ def uniformiza_banco(primeira_migracao):
     garante_coluna_no_legado("proposicao", "num_proposicao int(11) NULL")
 
     garante_coluna_no_legado(
-        "tipo_materia_legislativa", "ind_num_automatica BOOLEAN NULL DEFAULT FALSE",
+        "tipo_materia_legislativa", "ind_num_automatica BOOLEAN NULL DEFAULT FALSE"
     )
 
     garante_coluna_no_legado(
@@ -942,7 +942,7 @@ def iter_sql_records(tabela):
 def fill_vinculo_norma_juridica():
     lista = [
         ("A", "Altera o(a)", "Alterado(a) pelo(a)"),
-        ("R", "Revoga integralmente o(a)", "Revogado(a) integralmente pelo(a)",),
+        ("R", "Revoga integralmente o(a)", "Revogado(a) integralmente pelo(a)"),
         ("P", "Revoga parcialmente o(a)", "Revogado(a) parcialmente pelo(a)"),
         (
             "T",
@@ -954,8 +954,8 @@ def fill_vinculo_norma_juridica():
         ("E", "Reedita o(a)", "Reeditada pelo(a)"),
         ("I", "Reedita com alteração o(a)", "Reeditada com alteração pelo(a)"),
         ("G", "Regulamenta o(a)", "Regulamentada pelo(a)"),
-        ("K", "Suspende parcialmente o(a)", "Suspenso(a) parcialmente pelo(a)",),
-        ("L", "Suspende integralmente o(a)", "Suspenso(a) integralmente pelo(a)",),
+        ("K", "Suspende parcialmente o(a)", "Suspenso(a) parcialmente pelo(a)"),
+        ("L", "Suspende integralmente o(a)", "Suspenso(a) integralmente pelo(a)"),
         (
             "N",
             "Julga integralmente inconstitucional",
@@ -1321,7 +1321,7 @@ def migrar_model(model, apagar_do_legado):
 
 
 def get_campos_crus_reversion(version):
-    """Pega campos crus de uma versao do django reversion 
+    """Pega campos crus de uma versao do django reversion
     p evitar erros de deserialização"""
     assert version.format == "json"
     [meta] = json.loads(version.serialized_data)
@@ -1404,7 +1404,7 @@ Colocamos então o número de protocolo no campo "número externo".
             warn(
                 "protocolo_faltando",
                 msg,
-                {"numero": numero, "cod_documento": old.cod_documento, "nota": nota,},
+                {"numero": numero, "cod_documento": old.cod_documento, "nota": nota},
             )
             new.observacao += ("\n\n" if new.observacao else "") + nota
 
@@ -1789,8 +1789,7 @@ TAG_MARCO = "marco"
 def gravar_marco(
     nome_dir="dados", pula_se_ja_existe=False, versiona=True, gera_backup=True
 ):
-    """Grava um dump de todos os dados como arquivos yaml no repo de marco
-    """
+    """Grava um dump de todos os dados como arquivos yaml no repo de marco"""
     # prepara ou localiza repositorio
     dir_dados = Path(REPO.working_dir, nome_dir)
     if pula_se_ja_existe and dir_dados.exists():
@@ -1943,7 +1942,7 @@ def get_conflitos_materias_legado_e_producao():
     res = list(
         exec_legado(
             """
-        select cod_materia, tip_id_basica, num_ident_basica, ano_ident_basica 
+        select cod_materia, tip_id_basica, num_ident_basica, ano_ident_basica
         from materia_legislativa where ind_excluido <> 1"""
         )
     )
