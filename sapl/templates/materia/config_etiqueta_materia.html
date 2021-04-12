@@ -1,0 +1,19 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+   <h1>Configuração Etiqueta Materia Legislativa</h1>
+   <form action="." method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="row"> 
+        <div class="col-md-12"> 
+            <div class="form-group row justify-content-between"> 
+                <a href="{% url 'sapl.base:sistema' %}" class="btn btn-dark">Cancelar</a>
+                <input type="submit" name="salvar" value="Salvar" class="btn btn-primary float-right" id="submit-id-salvar" onclick="this.form.submit();this.disabled=true;">
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock base_content %}

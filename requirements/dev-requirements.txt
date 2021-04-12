@@ -1,9 +1,9 @@
 -r test-requirements.txt
 
 autopep8==1.2.4
-beautifulsoup4==4.6.0
+beautifulsoup4==4.9.1
 django-debug-toolbar==1.8
-ipdb==0.10.1
+ipdb==0.13.3
 pdbpp==0.9.2
 pip-review==0.4
 pipdeptree==0.10.1

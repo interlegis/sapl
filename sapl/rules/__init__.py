@@ -27,7 +27,6 @@ SAPL_GROUP_SESSAO = _("Operador de Sessão Plenária")
 SAPL_GROUP_PAINEL = _("Operador de Painel Eletrônico")
 SAPL_GROUP_GERAL = _("Operador Geral")
 SAPL_GROUP_AUTOR = _("Autor")
-SAPL_GROUP_PARLAMENTAR = _("Parlamentar")
 SAPL_GROUP_VOTANTE = _("Votante")
 
 # TODO - funcionalidade ainda não existe mas está aqui para efeito de anotação
@@ -48,8 +47,11 @@ SAPL_GROUPS = [
     SAPL_GROUP_PAINEL,
     SAPL_GROUP_GERAL,
     SAPL_GROUP_AUTOR,
-    SAPL_GROUP_PARLAMENTAR,
     SAPL_GROUP_VOTANTE,
     SAPL_GROUP_LOGIN_SOCIAL,
     SAPL_GROUP_ANONYMOUS,
+]
+
+SAPL_GROUPS_DELETE = [
+
 ]

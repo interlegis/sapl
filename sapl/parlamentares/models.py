@@ -25,6 +25,7 @@ class Legislatura(models.Model):
         ordering = ['-data_inicio']
         verbose_name = _('Legislatura')
         verbose_name_plural = _('Legislaturas')
+        ordering = ('-numero', '-data_inicio', '-data_fim')
 
     def atual(self):
         current_year = timezone.now().year
@@ -89,6 +90,7 @@ class Coligacao(models.Model):
     class Meta:
         verbose_name = _('Coligação')
         verbose_name_plural = _('Coligações')
+        ordering = ('legislatura', 'nome')
 
     def __str__(self):
         return self.nome
@@ -141,6 +143,7 @@ class ComposicaoColigacao(models.Model):
     class Meta:
         verbose_name = (_('Composição Coligação'))
         verbose_name_plural = (_('Composição Coligações'))
+        ordering = ('partido',)
 
     def __str__(self):
         return _('%(partido)s - %(coligacao)s') % {
@@ -268,6 +271,7 @@ class Parlamentar(models.Model):
         verbose_name=_('Ativo na Casa?'))
     biografia = models.TextField(
         blank=True, verbose_name=_('Biografia'))
+
     fotografia = ImageCropField(
         verbose_name=_('Fotografia'), upload_to=foto_upload_path,
         validators=[restringe_tipos_de_arquivo_img], null=True, blank=True)
@@ -374,6 +378,7 @@ class Dependente(models.Model):
     class Meta:
         verbose_name = _('Dependente')
         verbose_name_plural = _('Dependentes')
+        ordering = ('parlamentar', 'nome')
 
     def __str__(self):
         return self.nome
@@ -456,6 +461,7 @@ class Mandato(models.Model):
     class Meta:
         verbose_name = _('Mandato')
         verbose_name_plural = _('Mandatos')
+        ordering = ('parlamentar', 'legislatura__numero')
 
     def __str__(self):
         return _('%(parlamentar)s %(legislatura)s') % {
@@ -485,6 +491,7 @@ class CargoMesa(models.Model):
     class Meta:
         verbose_name = _('Cargo na Mesa')
         verbose_name_plural = _('Cargos na Mesa')
+        ordering = ('unico', 'descricao')
 
     def __str__(self):
         return self.descricao
@@ -501,6 +508,7 @@ class ComposicaoMesa(models.Model):
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
         verbose_name_plural = _('Ocupações de cargo na Mesa')
+        ordering = ('cargo', '-sessao_legislativa', 'parlamentar')
 
     def __str__(self):
         return _('%(parlamentar)s - %(cargo)s') % {
@@ -518,13 +526,12 @@ class Frente(models.Model):
     nome = models.CharField(
         max_length=80,
         verbose_name=_('Nome da Frente'))
-    parlamentares = models.ManyToManyField(Parlamentar,
-                                           blank=True,
-                                           verbose_name=_('Parlamentares'))
+    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
     data_criacao = models.DateField(verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Dissolução'))
-    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+        blank=True,
+        null=True,
+        verbose_name=_('Data Dissolução'))
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
@@ -534,13 +541,15 @@ class Frente(models.Model):
         fields_search=(
             ('nome', '__icontains'),
             ('descricao', '__icontains'),
-            ('parlamentares__filiacao__partido__sigla', '__icontains'),
-            ('parlamentares__filiacao__partido__nome', '__icontains'),
-        ))
+            ('frenteparlamentar__parlamentar__filiacao__partido__sigla', '__icontains'),
+            ('frenteparlamentar__parlamentar__filiacao__partido__nome', '__icontains'),
+        )
+    )
 
     class Meta:
         verbose_name = _('Frente Parlamentar')
         verbose_name_plural = _('Frentes Parlamentares')
+        ordering = ('nome', '-data_criacao')
 
     def get_parlamentares(self):
         return Parlamentar.objects.filter(ativo=True)
@@ -549,13 +558,61 @@ class Frente(models.Model):
         return self.nome
 
 
+@reversion.register()
+class FrenteCargo(models.Model):
+    nome_cargo = models.CharField(
+        max_length=80,
+        verbose_name=_('Cargo de frente parlamentar'))
+    cargo_unico = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Cargo único?'))
+
+    class Meta:
+        verbose_name = _('Cargo de Frente Parlamentar')
+        verbose_name_plural = _('Cargos de Frente Parlamentar')
+        ordering = ('cargo_unico', 'nome_cargo',)
+
+    def __str__(self):
+        return f"{self.nome_cargo}"
+
+
+@reversion.register()
+class FrenteParlamentar(models.Model):
+    frente = models.ForeignKey(
+        Frente,
+        verbose_name=_('Frente parlamentar'),
+        on_delete=models.CASCADE)
+    parlamentar = models.ForeignKey(
+        Parlamentar,
+        verbose_name=_('Parlamentar'),
+        on_delete=models.CASCADE)
+    cargo = models.ForeignKey(
+        FrenteCargo,
+        verbose_name=_('Cargo na frente parlamentar'),
+        on_delete=models.PROTECT)
+    data_entrada = models.DateField(verbose_name=_('Data Entrada'))
+    data_saida = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name=_('Data Saída'))
+
+    class Meta:
+        verbose_name = _('Parlamentar de frente parlamentar')
+        verbose_name_plural = _('Parlamentares de frente parlamentar')
+        ordering = ('frente', 'parlamentar', 'cargo')
+
+    def __str__(self):
+        return f"{self.parlamentar} - {self.cargo.nome_cargo} - {self.frente}"
+
+
 class Votante(models.Model):
     parlamentar = models.ForeignKey(
         Parlamentar, verbose_name=_('Parlamentar'),
-        on_delete=models.PROTECT, related_name='parlamentar')
+        on_delete=models.PROTECT, related_name='votante_set')
     user = models.ForeignKey(
         get_settings_auth_user_model(), on_delete=models.PROTECT,
-        verbose_name=_('User'), related_name='user')
+        verbose_name=_('User'), related_name='votante_set')
     data = models.DateTimeField(
         verbose_name=_('Data'), auto_now_add=True,
         max_length=30, null=True, blank=True)
@@ -566,6 +623,7 @@ class Votante(models.Model):
         permissions = (
             ('can_vote', _('Can Vote')),
         )
+        ordering = ('parlamentar', '-data')
 
     def __str__(self):
         return self.user.username
@@ -577,14 +635,21 @@ class Bloco(models.Model):
         * blocos podem existir por mais de uma legislatura
     '''
     nome = models.CharField(
-        max_length=80, verbose_name=_('Nome do Bloco'))
+        max_length=120,
+        verbose_name=_('Nome do Bloco'))
     partidos = models.ManyToManyField(
-        Partido, blank=True, verbose_name=_('Partidos'))
+        Partido,
+        blank=True,
+        verbose_name=_('Partidos'))
     data_criacao = models.DateField(
-        blank=False, null=True, verbose_name=_('Data Criação'))
+        blank=False, null=True,
+        verbose_name=_('Data Criação'))
     data_extincao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Dissolução'))
-    descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+        blank=True, null=True,
+        verbose_name=_('Data Dissolução'))
+    descricao = models.TextField(
+        blank=True,
+        verbose_name=_('Descrição'))
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
@@ -600,6 +665,54 @@ class Bloco(models.Model):
     class Meta:
         verbose_name = _('Bloco Parlamentar')
         verbose_name_plural = _('Blocos Parlamentares')
+        ordering = ('nome',)
 
     def __str__(self):
         return self.nome
+
+
+@reversion.register()
+class BlocoCargo(models.Model):
+    nome_cargo = models.CharField(
+        max_length=120,
+        verbose_name=_('Cargo do bloco parlamentar'))
+    cargo_unico = models.BooleanField(
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Cargo único?'))
+
+    class Meta:
+        verbose_name = _('Cargo de Bloco Parlamentar')
+        verbose_name_plural = _('Cargos de Bloco Parlamentar')
+        ordering = ('cargo_unico', 'nome_cargo',)
+
+    def __str__(self):
+        return f"{self.nome_cargo}"
+
+
+@reversion.register()
+class BlocoMembro(models.Model):
+    bloco = models.ForeignKey(
+        Bloco,
+        verbose_name=_('Bloco parlamentar'),
+        on_delete=models.CASCADE)
+    parlamentar = models.ForeignKey(
+        Parlamentar,
+        verbose_name=_('Parlamentar'),
+        on_delete=models.CASCADE)
+    cargo = models.ForeignKey(
+        BlocoCargo,
+        verbose_name=_('Cargo na bloco parlamentar'),
+        on_delete=models.PROTECT)
+    data_entrada = models.DateField(verbose_name=_('Data Entrada'))
+    data_saida = models.DateField(
+        blank=True, null=True,
+        verbose_name=_('Data Saída'))
+
+    class Meta:
+        verbose_name = _('Membro de bloco parlamentar')
+        verbose_name_plural = _('Membros de bloco parlamentar')
+        ordering = ('bloco', 'parlamentar', 'cargo')
+
+    def __str__(self):
+        return f"{self.parlamentar} - {self.cargo.nome_cargo} - {self.bloco}"

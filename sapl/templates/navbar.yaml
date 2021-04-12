@@ -2,11 +2,15 @@
 
 - title: {% trans 'Início' %}
   url: '/'
-
+{% if not sapl_as_sapn %}
 - title: {% trans 'Institucional' %}
   children:
     - title: {% trans 'Mesa Diretora' %}
       url: sapl.parlamentares:mesa_diretora
+    - title: {% trans 'Bancadas Parlamentares' %}
+      url: sapl.sessao:bancada_list
+    - title: {% trans 'Blocos Parlamentares' %}
+      url: sapl.parlamentares:bloco_list
     - title: {% trans 'Comissões' %}
       url: sapl.comissoes:comissao_list
     - title: {% trans 'Frentes' %}
@@ -62,7 +66,7 @@
     - title: {% trans 'Excluir Tramitação em Lote' %}
       url: sapl.materia:excluir_tramitacao_em_lote
       check_permission: materia.list_tramitacao {% comment %} FIXME transformar para checagens de menu_[funcionalidade]{% endcomment%}
-
+{% endif %}
 - title: {% trans 'Normas Jurídicas' %}
   children:
     - title: {% trans 'Pesquisar Normas Jurídicas' %}
@@ -71,6 +75,16 @@
       url: 'sapl.norma:normajuridica_create'
       check_permission: norma.add_normajuridica
 
+    - title: {% trans 'Textos Articulados Publicados' %}
+      url: {% url 'sapl.norma:normajuridica_list'%}?status=publico
+      check_permission: compilacao.change_dispositivo_edicao_dinamica
+    - title: {% trans 'Textos Articulados Pendentes' %}
+      url: {% url 'sapl.norma:normajuridica_list' %}?status=pendente
+      check_permission: compilacao.change_dispositivo_edicao_dinamica
+    - title: {% trans 'Textos Articulados não cadastrados' %}
+      url: {% url 'sapl.norma:normajuridica_list' %}?status=sem_texto
+      check_permission: compilacao.change_dispositivo_edicao_dinamica
+
 - title: {% trans 'Sistema' %}
   check_permission: base.menu_sistemas
   children:
@@ -78,11 +92,11 @@
       url: '/sistema'
       check_permission: base.view_tabelas_auxiliares
     - title: {% trans 'Administração de Usuários' %}
-      url: {% url 'sapl.base:usuario' %}
+      url: {% url 'sapl.base:user_list' %}
       check_permission: user.is_superuser
     - title: {% trans 'Inconsistências de Dados' %}
       url: {% url 'sapl.base:lista_inconsistencias' %}
-      check_permission: user.is_superuser 
+      check_permission: user.is_superuser
 
 {% comment %}
 <li class="nav__sub-item"><a class="nav__sub-link" href="#">Provedor LexML</a></li>

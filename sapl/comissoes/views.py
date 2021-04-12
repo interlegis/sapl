@@ -2,7 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import F
 from django.http.response import HttpResponseRedirect, JsonResponse
 from django.views.decorators.clickjacking import xframe_options_exempt

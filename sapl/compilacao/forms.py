@@ -13,6 +13,7 @@ from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
 from django.utils.translation import ugettext_lazy as _
+from image_cropping.widgets import CropWidget, ImageCropWidget
 from model_utils.choices import Choices
 
 from sapl import utils
@@ -24,9 +25,20 @@ from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from sapl.crispy_layout_mixin import SaplFormHelper
-from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row,\
-    form_actions
-from sapl.utils import YES_NO_CHOICES
+from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row
+from sapl.utils import YES_NO_CHOICES, FileFieldCheckMixin
+
+
+class CustomImageCropWidget(ImageCropWidget):
+    """
+    Custom ImageCropWidget that doesn't show the initial value of the field.
+    We use this trick, and place it right under the CropWidget so that
+    it looks like the user is seeing the image and clearing the image.
+    """
+    template_with_initial = (
+        # '%(initial_text)s: <a href="%(initial_url)s">%(initial)s</a> '
+        '%(clear_template)s<br />%(input_text)s: %(input)s'
+    )
 
 
 error_messages = {
@@ -513,11 +525,16 @@ class DispositivoIntegerField(forms.IntegerField):
             min_value=0, *args, **kwargs)
 
 
-class DispositivoEdicaoBasicaForm(ModelForm):
+class DispositivoEdicaoBasicaForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = Dispositivo
-        fields = []
+        fields = ['imagem', 'imagem_cropping']
+
+        widgets = {
+            'imagem': CustomImageCropWidget(),
+            'imagem_cropping': CropWidget(),
+        }
 
         error_messages = {
             NON_FIELD_ERRORS: {
@@ -670,13 +687,24 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                 DispositivoEdicaoBasicaForm.Meta.fields.remove(
                     'visibilidade')
 
-        fields = DispositivoEdicaoBasicaForm.Meta.fields
-        if fields:
-            self.base_fields.clear()
-            for f in fields:
+        if 'texto' in DispositivoEdicaoBasicaForm.Meta.fields and\
+                not editor_type:
+            layout.append(
+                Fieldset('Anexar Imagem',
+                         to_row([('imagem', 7), ('imagem_cropping', 5), ]),
+                         css_class="col-md-12"))
+            DispositivoEdicaoBasicaForm.Meta.fields.append('imagem')
+            DispositivoEdicaoBasicaForm.Meta.fields.append('imagem_cropping')
+
+        for f in DispositivoEdicaoBasicaForm.Meta.fields:
+            if hasattr(self, f):
                 self.base_fields.update({f: getattr(self, f)})
 
+        for f in set(self.base_fields.keys()) - set(DispositivoEdicaoBasicaForm.Meta.fields):
+            self.base_fields.pop(f)
+
         self.helper = SaplFormHelper()
+        self.helper.include_media = False
 
         if not editor_type:
             cancel_label = _('Ir para o Editor Sequencial')
@@ -688,6 +716,14 @@ class DispositivoEdicaoBasicaForm(ModelForm):
                 layout, inst, texto_articulado_do_editor)
 
         super(DispositivoEdicaoBasicaForm, self).__init__(*args, **kwargs)
+
+        #imagem = self.fields['imagem'].widget
+        # imagem.attrs.update(
+        #    get_attrs(self.instance.imagem, 'imagem')
+        #)
+
+        # if 'class' in imagem.attrs:
+        #    imagem.attrs.pop('class')
 
     def actions_get_form_base(self, layout,
                               inst,

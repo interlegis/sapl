@@ -53,43 +53,55 @@ def texto_upload_path(instance, filename):
 @reversion.register()
 class Protocolo(models.Model):
     numero = models.PositiveIntegerField(
-        blank=False, null=False, verbose_name=_('Número de Protocolo'))
-    ano = models.PositiveSmallIntegerField(blank=False,
-                                           null=False,
-                                           choices=RANGE_ANOS,
-                                           verbose_name=_('Ano do Protocolo'))
-    data = models.DateField(null=True, blank=True,
-                            verbose_name=_('Data do Protocolo'),
-                            help_text=_('Informado manualmente'))
-    hora = models.TimeField(null=True, blank=True,
-                            verbose_name=_('Hora do Protocolo'),
-                            help_text=_('Informado manualmente'))
+        blank=False,
+        null=False,
+        verbose_name=_('Número de Protocolo'))
+    ano = models.PositiveSmallIntegerField(
+        blank=False,
+        null=False,
+        choices=RANGE_ANOS,
+        verbose_name=_('Ano do Protocolo'))
+    data = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_('Data do Protocolo'),
+        help_text=_('Informado manualmente'))
+    hora = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Hora do Protocolo'),
+        help_text=_('Informado manualmente'))
     timestamp_data_hora_manual = models.DateTimeField(default=timezone.now)
     user_data_hora_manual = models.CharField(
-        max_length=256, blank=True,
+        max_length=256,
+        blank=True,
         verbose_name=_('IP'),
-        help_text=_('Usuário que está realizando Protocolo e informando '
-                    'data e hora manualmente.'))
+        help_text=_('Usuário que está realizando Protocolo e informando data e hora manualmente.'))
     ip_data_hora_manual = models.CharField(
-        max_length=256, blank=True,
+        max_length=256,
+        blank=True,
         verbose_name=_('IP'),
-        help_text=_('Endereço IP da estação de trabalho '
-                    'do usuário que está realizando Protocolo e informando '
-                    'data e hora manualmente.'))
-
-    # Não foi utilizado auto_now_add=True em timestamp porque
-    # ele usa datetime.now que não é timezone aware.
+        help_text=_('Endereço IP da estação de trabalho do usuário que está realizando Protocolo e '
+                    'informando data e hora manualmente.'))
+    # Não foi utilizado auto_now_add=True em timestamp porque ele usa datetime.now que não é timezone aware.
     timestamp = models.DateTimeField(
-        default=timezone.now, null=True, blank=True)
+        null=True,
+        blank=True,
+        default=timezone.now)
     tipo_protocolo = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Tipo de Protocolo'))
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo de Protocolo'))
     tipo_processo = models.PositiveIntegerField()
     interessado = models.CharField(
-        max_length=200, blank=True, verbose_name=_('Interessado'))
-    autor = models.ForeignKey(Autor,
-                              blank=True,
-                              null=True,
-                              on_delete=models.PROTECT)
+        max_length=200,
+        blank=True,
+        verbose_name=_('Interessado'))
+    autor = models.ForeignKey(
+        Autor,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL)
     assunto_ementa = models.TextField(blank=True)
     tipo_documento = models.ForeignKey(
         TipoDocumentoAdministrativo,
@@ -104,19 +116,23 @@ class Protocolo(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Tipo de Matéria'))
     numero_paginas = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Número de Páginas'))
-    observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
+        blank=True,
+        null=True,
+        verbose_name=_('Número de Páginas'))
+    observacao = models.TextField(blank=True, verbose_name=_('Observação'))
     anulado = models.BooleanField(default=False)
     user_anulacao = models.CharField(max_length=20, blank=True)
     ip_anulacao = models.CharField(max_length=15, blank=True)
     justificativa_anulacao = models.CharField(
-        max_length=260, blank=True, verbose_name=_('Motivo'))
+        max_length=260,
+        blank=True,
+        verbose_name=_('Motivo'))
     timestamp_anulacao = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = _('Protocolo')
         verbose_name_plural = _('Protocolos')
+        ordering = ('id',)
         permissions = (
             ('action_anular_protocolo', _('Permissão para Anular Protocolo')),
         )
@@ -211,6 +227,7 @@ class DocumentoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Documento Administrativo')
         verbose_name_plural = _('Documentos Administrativos')
+        ordering = ('id',)
 
     def __str__(self):
         return _('%(tipo)s - %(assunto)s') % {
@@ -270,6 +287,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Documento Acessório')
         verbose_name_plural = _('Documentos Acessórios')
+        ordering = ('data', 'id')
 
     def __str__(self):
         return self.nome
@@ -319,6 +337,7 @@ class StatusTramitacaoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Status de Tramitação')
         verbose_name_plural = _('Status de Tramitação')
+        ordering = ('id',)
 
     def __str__(self):
         return self.descricao
@@ -370,6 +389,7 @@ class TramitacaoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Tramitação de Documento Administrativo')
         verbose_name_plural = _('Tramitações de Documento Administrativo')
+        ordering = ('id',)
 
     def __str__(self):
         return _('%(documento)s - %(status)s') % {
@@ -397,6 +417,7 @@ class Anexado(models.Model):
     class Meta:
         verbose_name = _('Anexado')
         verbose_name_plural = _('Anexados')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Anexado: %(documento_anexado_tipo)s %(documento_anexado_numero)s'
@@ -421,6 +442,7 @@ class AcompanhamentoDocumento(models.Model):
     class Meta:
         verbose_name = _('Acompanhamento de Documento')
         verbose_name_plural = _('Acompanhamentos de Documento')
+        ordering = ('id',)
 
     def __str__(self):
         if self.data_cadastro is None:

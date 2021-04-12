@@ -17,6 +17,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import path
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.static import serve as view_static_server
 
@@ -35,11 +36,11 @@ import sapl.redireciona_urls.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
 
-urlpatterns = [
-    url(r'^$', TemplateView.as_view(template_name='index.html'),
-        name='sapl_index'),
+urlpatterns = []
+
+urlpatterns += [
     url(r'^message$', TemplateView.as_view(template_name='base.html')),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
 
     url(r'', include(sapl.comissoes.urls)),
     url(r'', include(sapl.sessao.urls)),
@@ -53,6 +54,7 @@ urlpatterns = [
     url(r'', include(sapl.relatorios.urls)),
     url(r'', include(sapl.audiencia.urls)),
 
+    #    name='sapl_index'),
     # must come at the end
     #   so that base /sistema/ url doesn't capture its children
     url(r'', include(sapl.base.urls)),
@@ -63,6 +65,10 @@ urlpatterns = [
         url='/static/sapl/img/favicon.ico', permanent=True)),
 
     url(r'', include(sapl.redireciona_urls.urls)),
+
+    path("robots.txt", TemplateView.as_view(
+        template_name="robots.txt", content_type="text/plain")),
+
 ]
 
 
@@ -73,9 +79,9 @@ if settings.DEBUG:
     import debug_toolbar
 
     urlpatterns += [
-                      url(r'^__debug__/', include(debug_toolbar.urls)),
+        url(r'^__debug__/', include(debug_toolbar.urls)),
 
-                  ]
+    ]
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
 

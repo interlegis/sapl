@@ -12,16 +12,15 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.signing import Signer
-from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.http.response import (HttpResponse, HttpResponseRedirect,
                                   JsonResponse, Http404)
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse, reverse_lazy
 from django.utils.dateparse import parse_date
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
@@ -121,11 +120,8 @@ class IntegracaoTaView(TemplateView):
                     tipo_ta.save()
 
         except Exception as e:
-            print(
-                string_concat(
-                    _('Ocorreu erro na importação do arquivo base dos Tipos de'
-                      'Dispositivos, entre outras informações iniciais.'),
-                    str(e)))
+            print("{} {}".format(
+                _('Ocorreu erro na importação do arquivo base dos Tipos de Dispositivos, entre outras informações iniciais.'), str(e)))
             return self.get_redirect_deactivated()
 
         assert hasattr(self, 'map_fields'), _(
@@ -187,7 +183,7 @@ class IntegracaoTaView(TemplateView):
 
         if not ta_exists:
             if ta.editable_only_by_owners and\
-                    not self.request.user.is_anonymous():
+                    not self.request.user.is_anonymous:
                 ta.owners.add(self.request.user)
 
         if not Dispositivo.objects.filter(ta_id=ta.pk).exists() and\
@@ -955,6 +951,10 @@ class TextView(CompMixin, ListView):
         self.inicio_vigencia = None
         self.fim_vigencia = None
         self.ta_vigencia = None
+        params = {
+            'ordem__gt': 0,
+            'ta_id': self.kwargs['ta_id']
+        }
         if 'sign' in self.kwargs:
             signer = Signer()
             try:
@@ -964,36 +964,34 @@ class TextView(CompMixin, ListView):
                 self.fim_vigencia = parse_date(string[2])
             except:
                 return Dispositivo.objects.filter(
-                    ordem__gt=0,
-                    ta_id=self.kwargs['ta_id'],
+                    **params
                 ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
+            if self.fim_vigencia:
+                params['inicio_vigencia__lte'] = self.fim_vigencia
             return Dispositivo.objects.filter(
-                inicio_vigencia__lte=self.fim_vigencia,
-                ordem__gt=0,
-                ta_id=self.kwargs['ta_id'],
+                **params
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
         else:
-
             r = Dispositivo.objects.filter(
-                ordem__gt=0,
-                ta_id=self.kwargs['ta_id'],
+                **params
             ).select_related(*DISPOSITIVO_SELECT_RELATED)
 
             return r
 
     def get_vigencias(self):
         itens = Dispositivo.objects.filter(
-            ta_id=self.kwargs['ta_id'],
+            ta_id=self.kwargs['ta_id']
         ).order_by(
-            'inicio_vigencia'
+            'dispositivo_vigencia__inicio_vigencia', 'ta_publicado__id', 'ordem'
         ).distinct(
-            'inicio_vigencia'
+            'dispositivo_vigencia__inicio_vigencia', 'ta_publicado__id'
         ).select_related(
             'ta_publicado',
             'ta',
             'ta_publicado__tipo_ta',
-            'ta__tipo_ta',)
+            'ta__tipo_ta',
+        )
 
         ajuste_datas_vigencia = []
 
@@ -1003,8 +1001,20 @@ class TextView(CompMixin, ListView):
         lenLista = len(ajuste_datas_vigencia)
         for i in range(lenLista):
             if i + 1 < lenLista:
-                ajuste_datas_vigencia[
-                    i].fim_vigencia = ajuste_datas_vigencia[
+                if ajuste_datas_vigencia[
+                    i].inicio_vigencia == ajuste_datas_vigencia[
+                        i + 1].inicio_vigencia:
+
+                    if i + 2 < lenLista:
+                        ajuste_datas_vigencia[
+                            i].fim_vigencia = ajuste_datas_vigencia[
+                            i + 2].inicio_vigencia - timedelta(days=1)
+                    else:
+                        ajuste_datas_vigencia[i].fim_vigencia = None
+
+                else:
+                    ajuste_datas_vigencia[
+                        i].fim_vigencia = ajuste_datas_vigencia[
                         i + 1].inicio_vigencia - timedelta(days=1)
             else:
                 ajuste_datas_vigencia[i].fim_vigencia = None
@@ -1876,24 +1886,25 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
             base = Dispositivo.objects.get(
                 pk=self.kwargs['dispositivo_id'] if not _base else _base)
 
-            result = [{'tipo_insert': force_text(string_concat(
-                _('Inserir Após'),
-                ' ',
-                base.tipo_dispositivo.nome)),
-                'icone': '&#8631;&nbsp;',
-                'action': 'json_add_next',
-                'itens': []},
-                {'tipo_insert': force_text(string_concat(
-                    _('Inserir em'),
-                    ' ',
-                    base.tipo_dispositivo.nome)),
-                 'icone': '&#8690;&nbsp;',
-                 'action': 'json_add_in',
-                 'itens': []},
-                {'tipo_insert': force_text(_('Inserir Antes')),
-                 'icone': '&#8630;&nbsp;',
-                 'action': 'json_add_prior',
-                 'itens': []}]
+            result = [
+                {
+                    'tipo_insert': force_text("{} {}".format(_('Inserir Após'), base.tipo_dispositivo.nome)),
+                    'icone': '&#8631;&nbsp;',
+                    'action': 'json_add_next',
+                    'itens': []},
+                {
+                    'tipo_insert': force_text("{} {}".format(_('Inserir em'), base.tipo_dispositivo.nome)),
+                    'icone': '&#8690;&nbsp;',
+                    'action': 'json_add_in',
+                    'itens': []
+                },
+                {
+                    'tipo_insert': force_text(_('Inserir Antes')),
+                    'icone': '&#8630;&nbsp;',
+                    'action': 'json_add_prior',
+                    'itens': []
+                }
+            ]
 
             perfil_pk = request.session['perfil_estrutural']
 
@@ -2673,9 +2684,33 @@ class ActionsEditMixin(ActionDragAndMoveDispositivoAlteradoMixin,
                      'pai': [bloco_alteracao.pk, ]})
 
         if isinstance(dsp_a_alterar, list):
+
+            parents = map(lambda x: x.id, bloco_alteracao.get_parents())
+            parents = set(map(lambda x: int(x), dsp_a_alterar)) & \
+                set(parents)
+
+            if parents:
+                self.set_message(
+                    data, 'danger',
+                    _('Não é possível incluir em um Bloco de Alteração '
+                      'um dispositivo ao qual o próprio bloco pertence!'), time=10000)
+                return data
+
             dsps = Dispositivo.objects.filter(id__in=dsp_a_alterar)
             dsps_ids = set()
             for d in dsps:
+
+                if d.ta == bloco_alteracao.ta:
+                    self.set_message(
+                        data, 'danger',
+                        _('Não é possível incluir em um Bloco de Alteração '
+                          'um dispositivo do Texto Articulado ao qual o bloco '
+                          'também é pertencente! '
+                          '<small class="text-white">Blocos de Alteração '
+                          'devem ser utilizados para registrar mudanças em '
+                          'textos anteriores a este, não neste mesmo em simutâneo.</small>'), time=20000)
+                    return data
+
                 ds = d
                 while ds.dispositivo_subsequente:
                     ds = ds.dispositivo_subsequente

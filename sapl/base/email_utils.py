@@ -2,7 +2,7 @@ from datetime import datetime as dt
 import logging
 
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import Context, loader
 from django.utils import timezone
 
@@ -171,7 +171,7 @@ def criar_email_tramitacao(base_url, casa_legislativa, tipo, doc_mat, status,
 
         ementa = doc_mat.ementa
         autores = [autoria.autor.nome for autoria in doc_mat.autoria_set.all()]
-        tramitacao = doc_mat.tramitacao_set.last()
+        tramitacao = doc_mat.tramitacao_set.order_by('-data_tramitacao', '-id').first()
 
     else:
         doc_mat_url = reverse('sapl.protocoloadm:tramitacaoadministrativo_list',

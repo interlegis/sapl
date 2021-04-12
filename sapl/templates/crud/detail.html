@@ -5,9 +5,7 @@
 
   <div class="context-actions clearfix">
     {% block actions %}
-
       {% block sub_actions %}
-
         <div class="actions btn-group btn-group-sm" role="group">
           {% if view.list_url %}
             <a href="{{ view.list_url }}" class="btn btn-outline-primary">{% trans 'Listar' %} {{view.verbose_name_plural}}</a>
@@ -23,10 +21,10 @@
         </div>
           {% if view.extras_url %}
             <div class="actions btn-group btn-group-sm" role="group">
-          {% for href, css_class, text in view.extras_url %}
-              <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
-                {{text}}
-              </a>
+              {% for href, css_class, text in view.extras_url %}
+                <a href="{{href}}" class="btn btn-outline-primary {{css_class}}">
+                  {{text}}
+                </a>
               {% endfor %}
             </div>
           {% endif %}
@@ -84,7 +82,7 @@
                           src="https://www.youtube.com/embed/{{ column.text|youtube_id }}"
                           frameborder="0"></iframe>
                       {% elif column.text|facebook_url %}
-                          <div class="fb-video" data-href="{{ column.text|safe }}" 
+                          <div class="fb-video" data-href="{{ column.text|safe }}"
                             data-width="420" data-show-text="false">
                           </div>
                       {% elif column.text|url %}

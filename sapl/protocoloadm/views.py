@@ -1,34 +1,34 @@
 from datetime import datetime
 import logging
-import re
 from random import choice
+import re
 from string import ascii_letters, digits
 
 from braces.views import FormValidMessageMixin
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.shortcuts import render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
-from django.contrib.admin.views.decorators import staff_member_required
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig
-from sapl.base.signals import tramitacao_signal, post_delete_signal
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
@@ -39,28 +39,22 @@ from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
-                        show_results_filter_set, mail_service_configured, from_date_to_datetime_utc)
+                        show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
+                        google_recaptcha_configured)
 
-from django.shortcuts import render
-
-
-from .forms import (AcompanhamentoDocumentoForm, AnularProtocoloAdmForm,
-                    DocumentoAcessorioAdministrativoForm,
-                    DocumentoAdministrativoFilterSet,
-                    DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm, ProtocoloDocumentForm,
-                    ProtocoloFilterSet, ProtocoloMateriaForm,
-                    TramitacaoAdmEditForm, TramitacaoAdmForm,
+from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
+                    AnularProtocoloAdmForm, compara_tramitacoes_doc,
                     DesvincularDocumentoForm, DesvincularMateriaForm,
-                    filtra_tramitacao_adm_destino_and_status,
-                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_status,
-                    AnexadoForm, AnexadoEmLoteFilterSet,
-                    PrimeiraTramitacaoEmLoteAdmFilterSet,
-                    TramitacaoEmLoteAdmForm,
-                    TramitacaoEmLoteAdmFilterSet,
-                    compara_tramitacoes_doc)
-from .models import (AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
+                    DocumentoAcessorioAdministrativoForm, DocumentoAdministrativoFilterSet,
+                    DocumentoAdministrativoForm, FichaPesquisaAdmForm, FichaSelecionaAdmForm,
+                    filtra_tramitacao_adm_destino, filtra_tramitacao_adm_destino_and_status,
+                    filtra_tramitacao_adm_status,  PrimeiraTramitacaoEmLoteAdmFilterSet,
+                    ProtocoloDocumentoForm, ProtocoloFilterSet, ProtocoloMateriaForm,
+                    TramitacaoAdmEditForm, TramitacaoAdmForm, TramitacaoEmLoteAdmForm,
+                    TramitacaoEmLoteAdmFilterSet)
+from .models import (Anexado, AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
-                     TipoDocumentoAdministrativo, TramitacaoAdministrativo, Anexado)
+                     TipoDocumentoAdministrativo, TramitacaoAdministrativo)
 
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
@@ -99,7 +93,7 @@ def recuperar_materia_protocolo(request):
 def doc_texto_integral(request, pk):
     can_see = True
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         app_config = AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'R':
             can_see = False
@@ -206,6 +200,11 @@ class AcompanhamentoDocumentoView(CreateView):
                                       'Documentos não foi configurado'))
             return redirect('/')
 
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
         pk = self.kwargs['pk']
         documento = DocumentoAdministrativo.objects.get(id=pk)
 
@@ -219,6 +218,11 @@ class AcompanhamentoDocumentoView(CreateView):
             messages.error(request, _('Serviço de Acompanhamento de '
                                       'Documentos não foi configurado'))
             return redirect('/')
+
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
 
         form = AcompanhamentoDocumentoForm(request.POST)
         pk = self.kwargs['pk']
@@ -371,7 +375,8 @@ class DocumentoAdministrativoCrud(Crud):
             return self.search_url
 
         def form_valid(self, form):
-            form.instance.complemento = re.sub('\s+', '', form.instance.complemento).upper()
+            form.instance.complemento = re.sub(
+                '\s+', '', form.instance.complemento).upper()
             return super().form_valid(form)
 
     class UpdateView(Crud.UpdateView):
@@ -385,10 +390,10 @@ class DocumentoAdministrativoCrud(Crud):
 
             self.object = form.save()
             dict_objeto_novo = self.object.__dict__
-        
+
             atributos = [
                 'tipo_id', 'ano', 'numero', 'data', 'protocolo_id', 'assunto',
-                'interessado', 'tramitacao', 'restrito', 'texto_integral','numero_externo',
+                'interessado', 'tramitacao', 'restrito', 'texto_integral', 'numero_externo',
                 'dias_prazo', 'data_fim_prazo', 'observacao'
             ]
 
@@ -402,8 +407,9 @@ class DocumentoAdministrativoCrud(Crud):
 
                     self.object.save()
                     break
-            
-            form.instance.complemento = re.sub('\s+', '', form.instance.complemento).upper()
+
+            form.instance.complemento = re.sub(
+                '\s+', '', form.instance.complemento).upper()
 
             return super().form_valid(form)
 
@@ -418,20 +424,20 @@ class DocumentoAdministrativoCrud(Crud):
         def get(self, *args, **kwargs):
             pk = self.kwargs['pk']
             documento = DocumentoAdministrativo.objects.get(id=pk)
-            if documento.restrito and self.request.user.is_anonymous():
+            if documento.restrito and self.request.user.is_anonymous:
                 return redirect('/')
             return super(Crud.DetailView, self).get(args, kwargs)
-        
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            
+
             context['user'] = self.request.user
             context['documentoadministrativo'] = DocumentoAdministrativo.objects.get(
                 pk=self.kwargs['pk']
             )
 
             return context
-        
+
         def urlize(self, obj, fieldname):
             a = '<a href="%s">%s</a>' % (
                 reverse(
@@ -582,7 +588,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     logger = logging.getLogger(__name__)
 
     template_name = "protocoloadm/protocolar_documento.html"
-    form_class = ProtocoloDocumentForm
+    form_class = ProtocoloDocumentoForm
     form_valid_message = _('Protocolo cadastrado com sucesso!')
     permission_required = ('protocoloadm.add_protocolo', )
 
@@ -617,12 +623,14 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             return self.render_to_response(self.get_context_data())
 
         if numeracao == 'A':
-            numero = Protocolo.objects.filter(
-                ano=timezone.now().year).aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(ano=timezone.now().year).aggregate(
+                Max('numero')
+            )['numero__max']
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
-                data_fim__year__gte=timezone.now().year).first()
+                data_fim__year__gte=timezone.now().year
+            ).first()
 
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
@@ -630,32 +638,29 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
             data_inicio_utc = from_date_to_datetime_utc(data_inicio)
             data_fim_utc = from_date_to_datetime_utc(data_fim)
 
-            numero = Protocolo.objects.filter(
-                Q(data__isnull=False,
-                  data__gte=data_inicio,
-                  data__lte=data_fim) |
-                Q(timestamp__isnull=False,
-                  timestamp__gte=data_inicio_utc,
-                  timestamp__lte=data_fim_utc) |
-                Q(timestamp_data_hora_manual__isnull=False,
-                  timestamp_data_hora_manual__gte=data_inicio_utc,
-                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
-                aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(
+                Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) | Q(
+                    timestamp__isnull=False, timestamp__gte=data_inicio_utc,
+                    timestamp__lte=data_fim_utc
+                ) | Q(
+                    timestamp_data_hora_manual__isnull=False,
+                    timestamp_data_hora_manual__gte=data_inicio_utc,
+                    timestamp_data_hora_manual__lte=data_fim_utc,
+                )
+            ).aggregate(Max('numero'))['numero__max']
         elif numeracao == 'U':
-            numero = Protocolo.objects.all().aggregate(Max('numero'))
+            numero_max = Protocolo.objects.all().aggregate(Max('numero'))[
+                'numero__max']
 
         protocolo.tipo_processo = '0'  # TODO validar o significado
         protocolo.anulado = False
-        if not protocolo.numero:
-            protocolo.numero = (
-                numero['numero__max'] + 1) if numero['numero__max'] else 1
-        elif protocolo.numero < (numero['numero__max'] + 1) if numero['numero__max'] else 0:
-            msg = _('Número de protocolo deve ser maior que {}'.format(
-                numero['numero__max']))
-            self.logger.error(
-                "user=" + username + ". Número de protocolo deve ser maior que {}.".format(numero['numero__max']))
-            messages.add_message(self.request, messages.ERROR, msg)
-            return self.render_to_response(self.get_context_data())
+
+        inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
+        numero = int(numero_max) if numero_max else 0
+        protocolo.numero = (
+            (numero + 1) if numero and numero >= inicio_numeracao else inicio_numeracao
+        )
+
         protocolo.ano = timezone.now().year
         protocolo.assunto_ementa = self.request.POST['assunto']
 
@@ -709,7 +714,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
 
         tz = timezone.get_current_timezone()
         doc['ultima_edicao'] = tz.localize(datetime.now())
-        
+
         return doc
 
 
@@ -829,47 +834,41 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             return self.render_to_response(self.get_context_data())
 
         if numeracao == 'A':
-            numero = Protocolo.objects.filter(
-                ano=timezone.now().year).aggregate(Max('numero'))
+            numero_max = Protocolo.objects.filter(ano=timezone.now().year).aggregate(
+                Max('numero')
+            )['numero__max']
         elif numeracao == 'L':
             legislatura = Legislatura.objects.filter(
                 data_inicio__year__lte=timezone.now().year,
-                data_fim__year__gte=timezone.now().year).first()
+                data_fim__year__gte=timezone.now().year
+            ).first()
+
             data_inicio = legislatura.data_inicio
             data_fim = legislatura.data_fim
 
             data_inicio_utc = from_date_to_datetime_utc(data_inicio)
             data_fim_utc = from_date_to_datetime_utc(data_fim)
 
-            numero = Protocolo.objects.filter(
-                Q(data__isnull=False,
-                  data__gte=data_inicio,
-                  data__lte=data_fim) |
-                Q(timestamp__isnull=False,
-                  timestamp__gte=data_inicio_utc,
-                  timestamp__lte=data_fim_utc) |
-                Q(timestamp_data_hora_manual__isnull=False,
-                  timestamp_data_hora_manual__gte=data_inicio_utc,
-                  timestamp_data_hora_manual__lte=data_fim_utc,)).\
-                aggregate(Max('numero'))
-
+            numero_max = Protocolo.objects.filter(
+                Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) | Q(
+                    timestamp__isnull=False, timestamp__gte=data_inicio_utc,
+                    timestamp__lte=data_fim_utc
+                ) | Q(
+                    timestamp_data_hora_manual__isnull=False,
+                    timestamp_data_hora_manual__gte=data_inicio_utc,
+                    timestamp_data_hora_manual__lte=data_fim_utc,
+                )
+            ).aggregate(Max('numero'))['numero__max']
         elif numeracao == 'U':
-            numero = Protocolo.objects.all().aggregate(Max('numero'))
+            numero_max = Protocolo.objects.all().aggregate(Max('numero'))[
+                'numero__max']
 
-        if numeracao is None:
-            numero['numero__max'] = 0
+        inicio_numeracao = AppConfig.objects.first().inicio_numeracao_protocolo
+        numero = int(numero_max) if numero_max else 0
+        protocolo.numero = (
+            (numero + 1) if numero and numero >= inicio_numeracao else inicio_numeracao
+        )
 
-        if not protocolo.numero:
-            protocolo.numero = (
-                numero['numero__max'] + 1) if numero['numero__max'] else 1
-        if numero['numero__max']:
-            if protocolo.numero < (numero['numero__max'] + 1):
-                self.logger.error("user=" + username + ". Número de protocolo ({}) é menor que {}"
-                                  .format(protocolo.numero, numero['numero__max']))
-                msg = _('Número de protocolo deve ser maior que {}'.format(
-                    numero['numero__max']))
-                messages.add_message(self.request, messages.ERROR, msg)
-                return self.render_to_response(self.get_context_data())
         protocolo.ano = timezone.now().year
 
         protocolo.tipo_protocolo = 0
@@ -902,14 +901,14 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
                 numero=data['numero_materia'],
                 tipo=data['tipo_materia']
             )
-            
+
             materia.numero_protocolo = protocolo.numero
             materia.user = self.request.user
             materia.ip = get_client_ip(self.request)
 
             tz = timezone.get_current_timezone()
             materia.ultima_edicao = tz.localize(datetime.now())
-            
+
             materia.save()
 
         return redirect(self.get_success_url(protocolo))
@@ -1037,7 +1036,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         # é usada essa verificação anônima para quando os documentos administrativos
         # estão no modo ostensivo, mas podem existir documentos administrativos
         # restritos
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             length = self.object_list.filter(restrito=False).count()
         else:
             length = self.object_list.count()
@@ -1281,24 +1280,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     'unidade_tramitacao_local'].widget.attrs['readonly'] = True
             return context
 
-        def form_valid(self, form):
-            self.object = form.save()
-            username = self.request.user.username
-            try:
-                tramitacao_signal.send(sender=TramitacaoAdministrativo,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception as e:
-                self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
-                                  'não enviado. A não configuração do servidor de e-mail '
-                                  'impede o envio de aviso de tramitação. ' + str(e))
-                msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                        'de documento não enviado. A não configuração do'
-                        ' servidor de e-mail impede o envio de aviso de tramitação')
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
-
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoAdmEditForm
         logger = logging.getLogger(__name__)
@@ -1313,23 +1294,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
 
             return initial
 
-        def form_valid(self, form):
-            self.object = form.save()
-            username = self.request.user.username
-            try:
-                tramitacao_signal.send(sender=TramitacaoAdministrativo,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception as e:
-                self.logger.error('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento de documento '
-                                  'não enviado. A não configuração do servidor de e-mail '
-                                  'impede o envio de aviso de tramitação. ' + str(e))
-                msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                        'de documento não enviado. A não configuração do'
-                        ' servidor de e-mail impede o envio de aviso de tramitação')
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
 
     class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
 
@@ -1381,7 +1345,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     documento.save()
                 tramitar_anexados = AppConfig.attr('tramitacao_documento')
                 if tramitar_anexados:
-                    docs_anexados = lista_anexados(documento, False)
+                    docs_anexados = lista_anexados(documento)
                     for da in docs_anexados:
                         tram_anexada = da.tramitacaoadministrativo_set.last()
                         if compara_tramitacoes_doc(tram_anexada, tramitacao):
@@ -1393,11 +1357,11 @@ class TramitacaoAdmCrud(MasterDetailCrud):
                     id__in=[t.id for t in tramitacoes_deletar]).delete()
 
                 # TODO: otimizar para passar a lista de matérias
-                for tramitacao in tramitacoes_deletar:
-                    post_delete_signal.send(sender=None,
-                                            instance=tramitacao,
-                                            operation='C',
-                                            request=self.request)
+                # for tramitacao in tramitacoes_deletar:
+                #    post_delete_signal.send(sender=None,
+                # instance=tramitacao,
+                #                            operation='C',
+                #                            request=self.request)
 
                 return HttpResponseRedirect(url)
 
@@ -1492,13 +1456,13 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         )
 
         materia.numero_protocolo = None
-        
+
         materia.user = self.request.user
         materia.ip = get_client_ip(self.request)
 
         tz = timezone.get_current_timezone()
         materia.ultima_edicao = tz.localize(datetime.now())
-        
+
         materia.save()
         return redirect(self.get_success_url())
 
@@ -1654,9 +1618,9 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        form = TramitacaoEmLoteAdmForm(request.POST, 
-                                       initial= {'documentos': documentos_ids,
-                                                'user': user, 'ip':ip,
+        form = TramitacaoEmLoteAdmForm(request.POST,
+                                       initial={'documentos': documentos_ids,
+                                                'user': user, 'ip': ip,
                                                 'ultima_edicao': ultima_edicao})
 
         if form.is_valid():
@@ -1737,10 +1701,10 @@ class TramitacaoEmLoteAdmView(PrimeiraTramitacaoEmLoteAdmView):
                 'documento_id', flat=True)
 
 
-def apaga_protocolos(request, ano,numero_protocolo=None):
-    kwargs = {'ano__in':ano}
+def apaga_protocolos(request, ano, numero_protocolo=None):
+    kwargs = {'ano__in': ano}
     if numero_protocolo:
-        kwargs.update({'numero__gte':numero_protocolo})
+        kwargs.update({'numero__gte': numero_protocolo})
 
     all_protocolos = Protocolo.objects.filter(**kwargs)
 
@@ -1752,12 +1716,12 @@ def apaga_protocolos(request, ano,numero_protocolo=None):
         ml.numero_protocolo = None
         ml.save()
 
-    for deleted_object in all_protocolos:
-        post_delete_signal.send(sender=None,
-                                instance=deleted_object,
-                                operation='D',
-                                request=request
-                                )
+    # for deleted_object in all_protocolos:
+    # post_delete_signal.send(sender=None,
+    #                            instance=deleted_object,
+    #                            operation='D',
+    #                            request=request
+    #                            )
     all_protocolos.delete()
 
 
@@ -1765,18 +1729,19 @@ def apaga_protocolos(request, ano,numero_protocolo=None):
 def apaga_protocolos_view(request):
     if request.method == "GET":
         if Protocolo.objects.exists():
-            intervalo_data = Protocolo.objects.all().distinct('ano').values_list('ano', flat=True).order_by('-ano')
+            intervalo_data = Protocolo.objects.all().distinct(
+                'ano').values_list('ano', flat=True).order_by('-ano')
         else:
             intervalo_data = None
-        return render(request,"protocoloadm/deleta_todos_protocolos.html",{'intervalo_data':intervalo_data})
-    
+        return render(request, "protocoloadm/deleta_todos_protocolos.html", {'intervalo_data': intervalo_data})
+
     elif request.method == "POST":
         password = request.POST.get('senha')
-        valid = request.user.check_password(password)        
+        valid = request.user.check_password(password)
         if valid:
             anos = request.POST.getlist('ano')
-            numero_protocolo = request.POST.get('numero_protocolo')    
-            apaga_protocolos(request,anos,numero_protocolo)
-            return JsonResponse({'type':'success','msg':''})
+            numero_protocolo = request.POST.get('numero_protocolo')
+            apaga_protocolos(request, anos, numero_protocolo)
+            return JsonResponse({'type': 'success', 'msg': ''})
         else:
-            return JsonResponse({'type':'error','msg':'Senha Incorreta'})
+            return JsonResponse({'type': 'error', 'msg': 'Senha Incorreta'})

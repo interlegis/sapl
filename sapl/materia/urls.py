@@ -25,12 +25,17 @@ from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 TipoProposicaoCrud, TramitacaoCrud,
                                 TramitacaoEmLoteView, UnidadeTramitacaoCrud,
                                 proposicao_texto, recuperar_materia,
-                                ExcluirTramitacaoEmLoteView, RetornarProposicao,
+                                ExcluirTramitacaoEmLoteView,
+                                RetornarProposicao,
                                 MateriaPesquisaSimplesView,
-                                DespachoInicialMultiCreateView, get_zip_docacessorios, get_pdf_docacessorios)
+                                DespachoInicialMultiCreateView,
+                                get_zip_docacessorios, get_pdf_docacessorios,
+                                configEtiquetaMateriaLegislativaCrud,
+                                PesquisarStatusTramitacaoView, HistoricoProposicaoView)
 from sapl.norma.views import NormaPesquisaSimplesView
 from sapl.protocoloadm.views import (
-    FichaPesquisaAdmView, FichaSelecionaAdmView)
+    FichaPesquisaAdmView, FichaSelecionaAdmView
+)
 
 from .apps import AppConfig
 
@@ -151,6 +156,8 @@ urlpatterns_proposicao = [
         name='proposicao_texto'),
     url(r'^proposicao/(?P<pk>\d+)/retornar', RetornarProposicao.as_view(),
         name='retornar-proposicao'),
+    url(r'^proposicao/historico', HistoricoProposicaoView.as_view(),
+        name='historico-proposicao'),
 
 ]
 
@@ -169,9 +176,18 @@ urlpatterns_sistema = [
     url(r'^sistema/materia/unidade-tramitacao/',
         include(UnidadeTramitacaoCrud.get_urls())),
     url(r'^sistema/materia/origem/', include(OrigemCrud.get_urls())),
-    url(r'^sistema/materia/status-tramitacao/',
-        include(StatusTramitacaoCrud.get_urls())),
+
+    url(r'^sistema/materia/status-tramitacao/', include(
+        StatusTramitacaoCrud.get_urls()
+    )),
+    url(
+        r'^sistema/materia/pesquisar-status-tramitacao/',
+        PesquisarStatusTramitacaoView.as_view(),
+        name="pesquisar_statustramitacao"
+    ),
+
     url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
+    url(r'^sistema/materia/config-etiqueta-materia-legislativas/',configEtiquetaMateriaLegislativaCrud, name="configEtiquetaMateriaLegislativaCrud"),
 ]
 
 urlpatterns = urlpatterns_impressos + urlpatterns_materia + \

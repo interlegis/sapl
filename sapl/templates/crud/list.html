@@ -3,16 +3,14 @@
 
 {% block base_content %}
 
-<div class="context-actions clearfix">
-
-  <div class="actions search">
+<div class="d-flex context-actions justify-content-between align-items-start">
+  <div class="actions search flex-grow-1 pr-3">
     {% if form %}
       {% crispy form %}
     {% endif %}
   </div>
-
   {% block actions %}
-    <div class="actions btn-group float-right btn-group-lg" role="group">
+    <div class="actions btn-group btn-group-lg" role="group">
       {% if view.create_url %}
         <a href="{{ view.create_url }}" class="btn btn-outline-primary">
           {% blocktrans with verbose_name=view.verbose_name %} Adicionar {{ verbose_name }} {% endblocktrans %}

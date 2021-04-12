@@ -1,0 +1,25 @@
+
+body {
+  margin-bottom: 160px;
+}
+.footer {
+  background: #364347;
+  color: white;
+  text-align: center;
+  position: absolute;
+  width: 100%;
+  bottom: 0px;
+  p {
+    color: white;
+    margin-top: 10px;
+  }
+  .container {
+    padding-top: 25px;
+  }
+}
+
+@media (max-width: 991px) {
+  .footer {
+    position: relative;
+  }
+}

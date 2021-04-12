@@ -74,6 +74,7 @@ class TipoProposicao(models.Model):
     class Meta:
         verbose_name = _('Tipo de Proposição')
         verbose_name_plural = _('Tipos de Proposições')
+        ordering = ('id',)
 
     def __str__(self):
         return self.descricao
@@ -154,6 +155,7 @@ class RegimeTramitacao(models.Model):
     class Meta:
         verbose_name = _('Regime de Tramitação')
         verbose_name_plural = _('Regimes de Tramitação')
+        ordering = ('id',)
 
     def __str__(self):
         return self.descricao
@@ -167,6 +169,7 @@ class Origem(models.Model):
     class Meta:
         verbose_name = _('Origem')
         verbose_name_plural = _('Origens')
+        ordering = ('id',)
 
     def __str__(self):
         return self.nome
@@ -234,12 +237,20 @@ class MateriaLegislativa(models.Model):
         verbose_name=_('Em Tramitação?'),
         default=False,
         choices=YES_NO_CHOICES)
-    polemica = models.NullBooleanField(
-        blank=True, verbose_name=_('Matéria Polêmica?'))
+    polemica = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name=_('Matéria Polêmica?')
+    )
     objeto = models.CharField(
         max_length=150, blank=True, verbose_name=_('Objeto'))
-    complementar = models.NullBooleanField(
-        blank=True, verbose_name=_('É Complementar?'))
+    complementar = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name=_('É Complementar?')
+    )
     ementa = models.TextField(verbose_name=_('Ementa'))
     indexacao = models.TextField(
         blank=True, verbose_name=_('Indexação'))
@@ -304,7 +315,7 @@ class MateriaLegislativa(models.Model):
         verbose_name = _('Matéria Legislativa')
         verbose_name_plural = _('Matérias Legislativas')
         unique_together = (("tipo", "numero", "ano"),)
-        ordering = ['-id']
+        ordering = ['-ano', 'tipo', 'numero']
         permissions = (("can_access_impressos", "Can access impressos"),)
 
     def __str__(self):
@@ -409,6 +420,7 @@ class AcompanhamentoMateria(models.Model):
     class Meta:
         verbose_name = _('Acompanhamento de Matéria')
         verbose_name_plural = _('Acompanhamentos de Matéria')
+        ordering = ('id',)
 
     def __str__(self):
         if self.data_cadastro is None:
@@ -440,6 +452,7 @@ class PautaReuniao(models.Model):
     class Meta:
         verbose_name = _('Matéria da Pauta')
         verbose_name_plural = ('Matérias da Pauta')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Reunião: %(reuniao)s'
@@ -466,6 +479,7 @@ class Anexada(models.Model):
     class Meta:
         verbose_name = _('Anexada')
         verbose_name_plural = _('Anexadas')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Principal: %(materia_principal)s'
@@ -502,6 +516,7 @@ class DespachoInicial(models.Model):
     class Meta:
         verbose_name = _('Despacho Inicial')
         verbose_name_plural = _('Despachos Iniciais')
+        ordering = ('id',)
 
     def __str__(self):
         return _('%(materia)s - %(comissao)s') % {
@@ -533,11 +548,9 @@ class TipoDocumento(models.Model):
 @reversion.register()
 class DocumentoAcessorio(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
-    tipo = models.ForeignKey(TipoDocumento,
-                             on_delete=models.PROTECT,
-                             verbose_name=_('Tipo'))
+    tipo = models.ForeignKey(
+        TipoDocumento, on_delete=models.PROTECT, verbose_name=_('Tipo'))
     nome = models.CharField(max_length=50, verbose_name=_('Nome'))
-
     data = models.DateField(blank=True, null=True,
                             default=None, verbose_name=_('Data'))
     autor = models.CharField(
@@ -552,18 +565,14 @@ class DocumentoAcessorio(models.Model):
         verbose_name=_('Texto Integral'),
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
-
-    proposicao = GenericRelation(
-        'Proposicao', related_query_name='proposicao')
-
+    proposicao = GenericRelation('Proposicao', related_query_name='proposicao')
     data_ultima_atualizacao = models.DateTimeField(
-        blank=True, null=True,
-        auto_now=True,
-        verbose_name=_('Data'))
+        blank=True, null=True, auto_now=True, verbose_name=_('Data'))
 
     class Meta:
         verbose_name = _('Documento Acessório')
         verbose_name_plural = _('Documentos Acessórios')
+        ordering = ('data', 'id')
 
     def __str__(self):
         return _('%(tipo)s - %(nome)s de %(data)s por %(autor)s') % {
@@ -656,8 +665,8 @@ class Numeracao(models.Model):
 
 @reversion.register()
 class Orgao(models.Model):
-    nome = models.CharField(max_length=60, verbose_name=_('Nome'))
-    sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
+    nome = models.CharField(max_length=256, verbose_name=_('Nome'))
+    sigla = models.CharField(max_length=15, verbose_name=_('Sigla'))
     unidade_deliberativa = models.BooleanField(
         choices=YES_NO_CHOICES,
         verbose_name=(_('Unidade Deliberativa')),
@@ -692,6 +701,7 @@ class TipoFimRelatoria(models.Model):
     class Meta:
         verbose_name = _('Tipo Fim de Relatoria')
         verbose_name_plural = _('Tipos Fim de Relatoria')
+        ordering = ('id',)
 
     def __str__(self):
         return self.descricao
@@ -720,6 +730,7 @@ class Relatoria(models.Model):
     class Meta:
         verbose_name = _('Relatoria')
         verbose_name_plural = _('Relatorias')
+        ordering = ('id',)
 
     def __str__(self):
         if self.tipo_fim_relatoria:
@@ -745,6 +756,7 @@ class Parecer(models.Model):
     class Meta:
         verbose_name = _('Parecer')
         verbose_name_plural = _('Pareceres')
+        ordering = ('id',)
 
     def __str__(self):
         return _('%(relatoria)s - %(tipo)s') % {
@@ -754,42 +766,73 @@ class Parecer(models.Model):
 
 @reversion.register()
 class Proposicao(models.Model):
-    autor = models.ForeignKey(Autor,
-                              null=True,
-                              blank=True,
-                              on_delete=models.PROTECT)
-    tipo = models.ForeignKey(TipoProposicao, on_delete=models.PROTECT,
-                             blank=False,
-                             null=True,
-                             verbose_name=_('Tipo'))
+    autor = models.ForeignKey(
+        Autor,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT
+    )
+
+    tipo = models.ForeignKey(
+        TipoProposicao,
+        on_delete=models.PROTECT,
+        blank=False,
+        null=True,
+        verbose_name=_('Tipo')
+    )
 
     # XXX data_envio was not null, but actual data said otherwise!!!
     data_envio = models.DateTimeField(
-        blank=False, null=True, verbose_name=_('Data de Envio'))
+        blank=False,
+        null=True,
+        verbose_name=_('Data de Envio')
+    )
+
     data_recebimento = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de Recebimento'))
+        blank=True,
+        null=True,
+        verbose_name=_('Data de Recebimento')
+    )
+
     data_devolucao = models.DateTimeField(
-        blank=True, null=True, verbose_name=_('Data de Devolução'))
+        blank=True,
+        null=True,
+        verbose_name=_('Data de Devolução')
+    )
 
     descricao = models.TextField(verbose_name=_('Ementa'))
+
     justificativa_devolucao = models.CharField(
         max_length=200,
         blank=True,
-        verbose_name=_('Justificativa da Devolução'))
+        verbose_name=_('Justificativa da Devolução')
+    )
 
-    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
-                                           default=None, blank=True, null=True,
-                                           choices=RANGE_ANOS)
+    ano = models.PositiveSmallIntegerField(
+        verbose_name=_('Ano'),
+        default=None,
+        blank=True,
+        null=True,
+        choices=RANGE_ANOS
+    )
 
     numero_proposicao = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Número'))
+        blank=True,
+        null=True,
+        verbose_name=_('Número')
+    )
 
     numero_materia_futuro = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Número Matéria'))
+        blank=True,
+        null=True,
+        verbose_name=_('Número Matéria')
+    )
 
-    hash_code = models.CharField(verbose_name=_('Código do Documento'),
-                                 max_length=200,
-                                 blank=True)
+    hash_code = models.CharField(
+        verbose_name=_('Código do Documento'),
+        max_length=200,
+        blank=True
+    )
 
     """
     FIXME Campo não é necessário na modelagem e implementação atual para o
@@ -807,12 +850,15 @@ class Proposicao(models.Model):
     sua proposição ou resolva excluir.
     """
     # ind_enviado and ind_devolvido collapsed as char field (status)
-    status = models.CharField(blank=True,
-                              max_length=1,
-                              choices=(('E', 'Enviada'),
-                                       ('R', 'Recebida'),
-                                       ('I', 'Incorporada')),
-                              verbose_name=_('Status Proposição'))
+    status = models.CharField(
+        blank=True,
+        max_length=1,
+        choices=(('E', 'Enviada'),
+                 ('R', 'Recebida'),
+                 ('I', 'Incorporada')),
+        verbose_name=_('Status Proposição')
+    )
+
     texto_original = models.FileField(
         max_length=300,
         upload_to=materia_upload_path,
@@ -820,37 +866,70 @@ class Proposicao(models.Model):
         null=True,
         verbose_name=_('Texto Original'),
         storage=OverwriteStorage(),
-        validators=[restringe_tipos_de_arquivo_txt])
+        validators=[restringe_tipos_de_arquivo_txt]
+    )
 
     texto_articulado = GenericRelation(
-        TextoArticulado, related_query_name='texto_articulado')
+        TextoArticulado,
+        related_query_name='texto_articulado'
+    )
 
     materia_de_vinculo = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True,
+        MateriaLegislativa,
+        blank=True,
+        null=True,
         on_delete=models.CASCADE,
         verbose_name=_('Matéria anexadora'),
-        related_name=_('proposicao_set'))
+        related_name=_('proposicao_set')
+    )
 
     content_type = models.ForeignKey(
-        ContentType, default=None, blank=True, null=True,
-        verbose_name=_('Tipo de Material Gerado'))
-    object_id = models.PositiveIntegerField(
-        blank=True, null=True, default=None)
-    conteudo_gerado_related = SaplGenericForeignKey(
-        'content_type', 'object_id', verbose_name=_('Conteúdo Gerado'))
-    observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
-    cancelado = models.BooleanField(verbose_name=_('Cancelada ?'),
-                                    choices=YES_NO_CHOICES,
-                                    default=False)
+        ContentType,
+        default=None,
+        blank=True,
+        null=True,
+        verbose_name=_('Tipo de Material Gerado'),
+        on_delete=models.PROTECT
+    )
 
-    """# Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio
-    # de uma já existente
+    object_id = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        default=None
+    )
+
+    conteudo_gerado_related = SaplGenericForeignKey(
+        'content_type',
+        'object_id',
+        verbose_name=_('Conteúdo Gerado')
+    )
+
+    observacao = models.TextField(
+        blank=True,
+        verbose_name=_('Observação')
+    )
+
+    cancelado = models.BooleanField(
+        verbose_name=_('Cancelada ?'),
+        choices=YES_NO_CHOICES,
+        default=False
+    )
+
+    """
+    Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio de uma já existente
+    
     materia_gerada = models.ForeignKey(
-        MateriaLegislativa, blank=True, null=True,
-        related_name=_('materia_gerada'))
+        MateriaLegislativa,
+        blank=True,
+        null=True,
+        related_name=_('materia_gerada')
+    )
     documento_gerado = models.ForeignKey(
-        DocumentoAcessorio, blank=True, null=True)"""
+        DocumentoAcessorio,
+        blank=True,
+        null=True
+    )
+    """
 
     user = models.ForeignKey(
         get_settings_auth_user_model(),
@@ -859,15 +938,18 @@ class Proposicao(models.Model):
         null=True,
         blank=True
     )
+
     ip = models.CharField(
         verbose_name=_('IP'),
         max_length=60,
         blank=True,
         default=''
     )
+
     ultima_edicao = models.DateTimeField(
         verbose_name=_('Data e Hora da Edição'),
-        blank=True, null=True
+        blank=True,
+        null=True
     )
 
     @property
@@ -947,6 +1029,51 @@ class Proposicao(models.Model):
                                  update_fields=update_fields)
 
 
+class HistoricoProposicao(models.Model):
+    STATUS_PROPOSICAO = Choices(('E', 'ENVIADA', _('Enviada')),
+                                ('R', 'RECEBIDA', _('Recebida')),
+                                ('T', 'RETORNADA', _('Retornada')),
+                                ('D', 'DEVOLVIDA', _('Devolvida')))
+
+    proposicao = models.ForeignKey(Proposicao,
+                                   verbose_name=_('Proposição'),
+                                   db_index=True,
+                                   on_delete=models.CASCADE)
+    status = models.CharField(max_length=1,
+                              verbose_name=_('Status de Proposição'),
+                              db_index=True,
+                              choices=STATUS_PROPOSICAO)
+    data_hora = models.DateTimeField(null=True,
+                                     blank=True,
+                                     default=timezone.now,
+                                     db_index=True,
+                                     verbose_name=_('Data/Hora'))
+    observacao = models.CharField(max_length=200,
+                                  blank=True,
+                                  verbose_name=_('Observação'))
+    user = models.ForeignKey(get_settings_auth_user_model(),
+                             verbose_name=_('Usuário'),
+                             on_delete=models.PROTECT,
+                             null=True,
+                             blank=True)
+    ip = models.CharField(verbose_name=_('IP'),
+                          max_length=60,
+                          blank=True,
+                          default='')
+
+    @property
+    def status_descricao(self):
+        return self.STATUS_PROPOSICAO[self.status]
+
+    class Meta:
+        verbose_name = _('Histórico de Proposição')
+        verbose_name_plural = _('Histórico de Proposições')
+        ordering = ('-data_hora', '-proposicao')
+
+    def __str__(self):
+        return f'{self.data_hora} - {self.STATUS_PROPOSICAO[self.status]} - {str(self.proposicao)}'
+
+
 @reversion.register()
 class StatusTramitacao(models.Model):
     INDICADOR_CHOICES = Choices(('F', 'fim', _('Fim')),
@@ -1000,6 +1127,8 @@ class UnidadeTramitacao(models.Model):
     class Meta:
         verbose_name = _('Unidade de Tramitação')
         verbose_name_plural = _('Unidades de Tramitação')
+        ordering = ('orgao__nome', 'comissao__sigla',
+                    'parlamentar__nome_parlamentar')
 
     def __str__(self):
         if self.orgao and self.comissao and self.parlamentar:
@@ -1098,6 +1227,7 @@ class Tramitacao(models.Model):
     class Meta:
         verbose_name = _('Tramitação')
         verbose_name_plural = _('Tramitações')
+        ordering = ('-data_tramitacao', '-id')
 
     def __str__(self):
         return _('%(materia)s | %(status)s | %(data)s') % {
@@ -1107,12 +1237,26 @@ class Tramitacao(models.Model):
 
 
 class MateriaEmTramitacao(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.DO_NOTHING)
+    materia = models.ForeignKey(
+        MateriaLegislativa, on_delete=models.DO_NOTHING)
     tramitacao = models.ForeignKey(Tramitacao, on_delete=models.DO_NOTHING)
 
     class Meta:
         managed = False
         db_table = "materia_materiaemtramitacao"
+        ordering = ('-id',)
 
     def __str__(self):
         return '{}/{}'.format(self.materia, self.tramitacao)
+
+
+class ConfigEtiquetaMateriaLegislativa(models.Model):
+    largura = models.FloatField(default=5)
+    altura = models.FloatField(default=3)
+
+    class Meta:
+        ordering = ('id',)
+
+    def save(self, *args, **kwargs):
+        self.id = 1
+        return super().save(*args, **kwargs)

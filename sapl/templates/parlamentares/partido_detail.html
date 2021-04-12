@@ -2,8 +2,13 @@
 {% load i18n %}
 {% load crispy_forms_tags cropping %}
 {% block actions %}
-    {{ block.super }}
     <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:pesquisar_partido' %}" class="btn btn-outline-primary">Pesquisar Partido</a>
+        <a href="{% url 'sapl.parlamentares:partido_create' %}" class="btn btn-outline-primary">Adicionar Partido</a>
         <a href="{% url 'sapl.parlamentares:parlamentares_filiados' object.pk %}" class="btn btn-outline-primary">Listar Parlamentares Filiados</a>
+    </div>
+    <div class="actions btn-group btn-group-sm float-right" role="group">
+        <a href="{% url 'sapl.parlamentares:partido_update' object.pk %}" class="btn btn-outline-primary">Editar</a>
+        <a href="{% url 'sapl.parlamentares:partido_delete' object.pk %}" class="btn btn-outline-danger">Excluir</a>
     </div>
 {% endblock actions %}

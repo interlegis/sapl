@@ -1,0 +1,60 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block base_content %}
+  <fieldset>
+  <div class="ancora">
+          <p class="titulo-conteudo">Conteúdo</p>
+      <ol>
+          <li><a href="#com-assunto">Matérias com assunto cadastrado</a></li>
+          <li><a href="#sem-assunto">Matérias sem assunto cadastrado</a></li>
+      </ol>
+  </div>
+    <span id="com-assunto"><h2>Matérias com assunto cadastrado</h2></span>
+    {% if not object_list %}
+      <p>{{ NO_ENTRIES_MSG }}</p>
+    {% else %}
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Ano</th>
+            <th>Assunto</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in object_list %}
+            <tr>
+              <td><a href="{% url 'sapl.materia:pesquisar_materia' %}?ano={{o.ano}}&materiaassunto__assunto={{o.assunto_id}}">
+                {{o.ano}}
+              </a></td>
+              <td>{{o.assunto_materia}}</td>
+              <td>{{o.total}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    <br/>
+    <span id="sem-assunto"><h2 >Matérias sem assunto cadastrado</h2></span>
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Ano</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in materias_sem_assunto %}
+            <tr>
+              <td><a href="{% url 'sapl.materia:pesquisar_materia' %}?ano={{o.ano}}&materiaassunto_null=true">
+                {{o.ano}}
+              </a></td>
+              <td>{{o.total}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+  </fieldset>
+  {% include 'paginacao.html'%}
+{% endblock %}

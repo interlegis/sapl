@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.deletion import CASCADE
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
@@ -8,6 +9,7 @@ import reversion
 
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
+
 
 DOC_ADM_OSTENSIVO = 'O'
 DOC_ADM_RESTRITIVO = 'R'
@@ -19,11 +21,11 @@ RELATORIO_ATOS_ACESSADOS = (('S', _('Sim')),
                             ('N', _('Não')))
 
 SEQUENCIA_NUMERACAO_PROTOCOLO = (('A', _('Sequencial por ano')),
-                       ('L', _('Sequencial por legislatura')),
-                       ('U', _('Sequencial único')))
+                                 ('L', _('Sequencial por legislatura')),
+                                 ('U', _('Sequencial único')))
 
 SEQUENCIA_NUMERACAO_PROPOSICAO = (('A', _('Sequencial por ano para cada autor')),
-                       ('B', _('Sequencial por ano indepententemente do autor')))
+                                  ('B', _('Sequencial por ano indepententemente do autor')))
 
 ESFERA_FEDERACAO_CHOICES = (('M', _('Municipal')),
                             ('E', _('Estadual')),
@@ -73,6 +75,7 @@ class CasaLegislativa(models.Model):
     class Meta:
         verbose_name = _('Casa Legislativa')
         verbose_name_plural = _('Casa Legislativa')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Casa Legislativa de %(municipio)s') % {
@@ -107,6 +110,11 @@ class AppConfig(models.Model):
         max_length=1,
         verbose_name=_('Sequência de numeração de protocolos'),
         choices=SEQUENCIA_NUMERACAO_PROTOCOLO, default='A')
+
+    inicio_numeracao_protocolo = models.PositiveIntegerField(
+        verbose_name=_('Início da numeração de protocolo'),
+        default=1
+    )
 
     esfera_federacao = models.CharField(
         max_length=1,
@@ -173,16 +181,31 @@ class AppConfig(models.Model):
         choices=YES_NO_CHOICES, default=False)
 
     escolher_numero_materia_proposicao = models.BooleanField(
-        verbose_name=_('Indicar número da matéria a ser gerada na proposição?'),
+        verbose_name=_(
+            'Indicar número da matéria a ser gerada na proposição?'),
         choices=YES_NO_CHOICES, default=False)
 
     tramitacao_materia = models.BooleanField(
-        verbose_name=_('Tramitar matérias anexadas junto com as matérias principais?'),
+        verbose_name=_(
+            'Tramitar matérias anexadas junto com as matérias principais?'),
         choices=YES_NO_CHOICES, default=True)
-    
+
     tramitacao_documento = models.BooleanField(
-        verbose_name=_('Tramitar documentos anexados junto com os documentos principais?'),
+        verbose_name=_(
+            'Tramitar documentos anexados junto com os documentos principais?'),
         choices=YES_NO_CHOICES, default=True)
+
+    google_recaptcha_site_key = models.CharField(
+        verbose_name=_('Chave pública gerada pelo Google Recaptcha'),
+        max_length=256, default='')
+    google_recaptcha_secret_key = models.CharField(
+        verbose_name=_('Chave privada gerada pelo Google Recaptcha'),
+        max_length=256, default='')
+
+    sapl_as_sapn = models.BooleanField(
+        verbose_name=_(
+            'Utilizar SAPL como SAPN?'),
+        choices=YES_NO_CHOICES, default=False)
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')
@@ -211,14 +234,18 @@ class AppConfig(models.Model):
 @reversion.register()
 class TipoAutor(models.Model):
     descricao = models.CharField(
-        max_length=50, verbose_name=_('Descrição'),
-        help_text=_('Obs: Não crie tipos de autores '
-                    'semelhante aos tipos fixos. '))
+        max_length=50,
+        verbose_name=_('Descrição'),
+        help_text=_(
+            'Obs: Não crie tipos de autores semelhante aos tipos fixos. ')
+    )
 
     content_type = models.OneToOneField(
         ContentType,
-        null=True, default=None,
-        verbose_name=_('Modelagem no SAPL'))
+        null=True,
+        default=None,
+        verbose_name=_('Modelagem no SAPL'),
+        on_delete=models.PROTECT)
 
     class Meta:
         ordering = ['descricao']
@@ -231,25 +258,36 @@ class TipoAutor(models.Model):
 
 @reversion.register()
 class Autor(models.Model):
+    operadores = models.ManyToManyField(
+        get_settings_auth_user_model(),
+        through='OperadorAutor',
+        through_fields=('autor', 'user'),
+        symmetrical=False,
+        related_name='autor_set',
+        verbose_name='Operadores')
 
-    user = models.OneToOneField(get_settings_auth_user_model(),
-                                on_delete=models.SET_NULL,
-                                null=True)
-
-    tipo = models.ForeignKey(TipoAutor, verbose_name=_('Tipo do Autor'),
-                             on_delete=models.PROTECT)
-
+    tipo = models.ForeignKey(
+        TipoAutor,
+        verbose_name=_('Tipo do Autor'),
+        on_delete=models.PROTECT)
     content_type = models.ForeignKey(
         ContentType,
-        blank=True, null=True, default=None)
+        blank=True,
+        null=True,
+        default=None,
+        on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField(
-        blank=True, null=True, default=None)
+        blank=True,
+        null=True,
+        default=None)
     autor_related = GenericForeignKey('content_type', 'object_id')
-
     nome = models.CharField(
-        max_length=120, blank=True, verbose_name=_('Nome do Autor'))
-
-    cargo = models.CharField(max_length=50, blank=True)
+        max_length=120,
+        blank=True,
+        verbose_name=_('Nome do Autor'))
+    cargo = models.CharField(
+        max_length=50,
+        blank=True)
 
     class Meta:
         verbose_name = _('Autor')
@@ -266,9 +304,38 @@ class Autor(models.Model):
                     return '{} - {}'.format(self.nome, self.cargo)
                 else:
                     return str(self.nome)
-        if self.user:
-            return str(self.user.username)
+
         return '?'
+
+
+class OperadorAutor(models.Model):
+
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Operador do Autor'),
+        related_name='operadorautor_set',
+        on_delete=CASCADE)
+
+    autor = models.ForeignKey(
+        Autor,
+        related_name='operadorautor_set',
+        verbose_name=_('Autor'),
+        on_delete=CASCADE)
+
+    @property
+    def user_name(self):
+        return '%s - %s' % (
+            self.autor,
+            self.user)
+
+    class Meta:
+        verbose_name = _('Operador do Autor')
+        verbose_name_plural = _('Operadores do Autor')
+        unique_together = (
+            ('user', 'autor', ),)
+
+    def __str__(self):
+        return self.user_name
 
 
 class AuditLog(models.Model):
@@ -309,4 +376,3 @@ class AuditLog(models.Model):
                                      self.model_name,
                                      self.username,
                                      )
-

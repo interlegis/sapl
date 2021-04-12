@@ -1,88 +1,89 @@
+from collections import OrderedDict
 import collections
-import itertools
 import datetime
+import itertools
 import logging
 import os
 
-from collections import OrderedDict
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import (PasswordResetView, PasswordResetConfirmView, PasswordResetCompleteView,
+                                       PasswordResetDoneView)
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse, reverse_lazy
 from django.db import connection
-from django.db.models import Count, Q, ProtectedError, Max
-from django.shortcuts import render
+from django.db.models import Count, Q, Max, F
+from django.forms.utils import ErrorList
 from django.http import Http404, HttpResponseRedirect, JsonResponse
+from django.shortcuts import redirect
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import (CreateView, DetailView, DeleteView, FormView, ListView, UpdateView)
+from django.views.generic import (FormView, ListView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
-from haystack.views import SearchView
 from haystack.query import SearchQuerySet
-
-from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_materia_por_autor,
-                                   relatorio_materia_por_ano_autor, relatorio_presenca_sessao,
-                                   relatorio_historico_tramitacao, relatorio_fim_prazo_tramitacao,
-                                   relatorio_atas, relatorio_audiencia, relatorio_normas_mes,
-                                   relatorio_normas_vigencia, relatorio_historico_tramitacao_adm,
-                                   relatorio_reuniao, relatorio_estatisticas_acesso_normas,
-                                   relatorio_normas_por_autor, relatorio_documento_acessorio)
+from haystack.views import SearchView
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
-from sapl.base.models import Autor, TipoAutor
-from sapl.base.forms import AutorForm, AutorFormForAdmin, TipoAutorForm, AutorFilterSet
+from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
+                             NovaSenhaForm, UserAdminForm,
+                             OperadorAutorForm)
+from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Comissao, Reuniao
-from sapl.crud.base import CrudAux, make_pagination
-from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio,
-                                 MateriaEmTramitacao, MateriaLegislativa, Proposicao,
-                                 StatusTramitacao, TipoDocumento,
-                                 TipoMateriaLegislativa,  UnidadeTramitacao, Tramitacao)
+from sapl.crud.base import CrudAux, make_pagination, Crud,\
+    ListWithSearchForm, MasterDetailCrud
+from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio, MateriaEmTramitacao, MateriaLegislativa,
+                                 Proposicao, StatusTramitacao, TipoDocumento, TipoMateriaLegislativa, UnidadeTramitacao,
+                                 MateriaAssunto)
 from sapl.norma.models import NormaJuridica, TipoNormaJuridica
-from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato, Parlamentar, 
-                                      SessaoLegislativa)
-from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocolo,
-                                      StatusTramitacaoAdministrativo,
+from sapl.parlamentares.models import (
+    Filiacao, Legislatura, Mandato, Parlamentar, SessaoLegislativa)
+from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocolo, StatusTramitacaoAdministrativo,
                                       TipoDocumentoAdministrativo)
-from sapl.sessao.models import (Bancada, PresencaOrdemDia, SessaoPlenaria,
-                                SessaoPlenariaPresenca, TipoSessaoPlenaria)
-from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao,
-                        mail_service_configured, parlamentares_ativos,
-                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo)
+from sapl.relatorios.views import (relatorio_materia_em_tramitacao, relatorio_materia_por_autor,
+                                   relatorio_materia_por_ano_autor, relatorio_presenca_sessao,
+                                   relatorio_historico_tramitacao, relatorio_fim_prazo_tramitacao, relatorio_atas,
+                                   relatorio_audiencia, relatorio_normas_mes, relatorio_normas_vigencia,
+                                   relatorio_historico_tramitacao_adm, relatorio_reuniao,
+                                   relatorio_estatisticas_acesso_normas, relatorio_normas_por_autor,
+                                   relatorio_documento_acessorio)
+from sapl.sessao.models import (
+    Bancada, PresencaOrdemDia, SessaoPlenaria, SessaoPlenariaPresenca, TipoSessaoPlenaria)
+from sapl.settings import EMAIL_SEND_USER
+from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured, parlamentares_ativos,
+                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo,
+                        google_recaptcha_configured, sapl_as_sapn,
+                        groups_remove_user, groups_add_user)
 
-from .forms import (AlterarSenhaForm, CasaLegislativaForm,
-                    ConfiguracoesAppForm, RelatorioAtasFilterSet,
-                    RelatorioAudienciaFilterSet,
-                    RelatorioDataFimPrazoTramitacaoFilterSet,
-                    RelatorioHistoricoTramitacaoFilterSet,
-                    RelatorioMateriasPorAnoAutorTipoFilterSet,
-                    RelatorioMateriasPorAutorFilterSet,
-                    RelatorioMateriasTramitacaoFilterSet,
-                    RelatorioPresencaSessaoFilterSet,
-                    RelatorioReuniaoFilterSet, UsuarioCreateForm,
-                    UsuarioEditForm, RelatorioNormasMesFilterSet,
-                    RelatorioNormasVigenciaFilterSet,
-                    EstatisticasAcessoNormasForm, UsuarioFilterSet,
-                    RelatorioHistoricoTramitacaoAdmFilterSet,
-                    RelatorioDocumentosAcessoriosFilterSet,
+from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, RelatorioAtasFilterSet,
+                    RelatorioAudienciaFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet,
+                    RelatorioHistoricoTramitacaoFilterSet, RelatorioMateriasPorAnoAutorTipoFilterSet,
+                    RelatorioMateriasPorAutorFilterSet, RelatorioMateriasTramitacaoFilterSet,
+                    RelatorioPresencaSessaoFilterSet, RelatorioReuniaoFilterSet,
+                    RelatorioNormasMesFilterSet, RelatorioNormasVigenciaFilterSet, EstatisticasAcessoNormasForm,
+                    RelatorioHistoricoTramitacaoAdmFilterSet, RelatorioDocumentosAcessoriosFilterSet,
                     RelatorioNormasPorAutorFilterSet)
 from .models import AppConfig, CasaLegislativa
-
-from rest_framework.authtoken.models import Token
 
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
+
+
+class IndexView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        if sapl_as_sapn():
+            return redirect('/norma/pesquisar')
+        return TemplateView.get(self, request, *args, **kwargs)
 
 
 class ConfirmarEmailView(TemplateView):
@@ -97,6 +98,49 @@ class ConfirmarEmailView(TemplateView):
         return self.render_to_response(context)
 
 
+class RecuperarSenhaEmailView(PasswordResetView):
+    logger = logging.getLogger(__name__)
+
+    success_url = reverse_lazy('sapl.base:recuperar_senha_finalizado')
+    email_template_name = 'base/recuperar_senha_email.html'
+    html_email_template_name = 'base/recuperar_senha_email.html'
+    template_name = 'base/recuperar_senha_email_form.html'
+    from_email = EMAIL_SEND_USER
+    form_class = RecuperarSenhaForm
+
+    def get(self, request, *args, **kwargs):
+
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        return PasswordResetView.get(self, request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        return PasswordResetView.post(self, request, *args, **kwargs)
+
+
+class RecuperarSenhaFinalizadoView(PasswordResetDoneView):
+    template_name = 'base/recupera_senha_email_enviado.html'
+
+
+class RecuperarSenhaConfirmaView(PasswordResetConfirmView):
+    success_url = reverse_lazy('sapl.base:recuperar_senha_completo')
+    template_name = 'base/nova_senha_form.html'
+    form_class = NovaSenhaForm
+
+
+class RecuperarSenhaCompletoView(PasswordResetCompleteView):
+    template_name = 'base/recuperar_senha_completo.html'
+
+
 class TipoAutorCrud(CrudAux):
     model = TipoAutor
     help_topic = 'tipo-autor'
@@ -108,7 +152,7 @@ class TipoAutorCrud(CrudAux):
         @property
         def verbose_name(self):
             vn = super().verbose_name
-            vn = string_concat(vn, ' ', _('Externo ao SAPL'))
+            vn = "{} {}".format(vn, _('Externo ao SAPL'))
             return vn
 
     class ListView(CrudAux.ListView):
@@ -150,211 +194,143 @@ class AutorCrud(CrudAux):
     help_topic = 'autor'
 
     class BaseMixin(CrudAux.BaseMixin):
-        list_field_names = ['tipo', 'nome', 'user']
+        list_field_names = ['nome', 'tipo', 'operadores']
 
-    class DeleteView(CrudAux.DeleteView):
-
-        def delete(self, *args, **kwargs):
-            self.object = self.get_object()
-
-            if self.object.user:
-                # FIXME melhorar captura de grupo de Autor, levando em conta
-                # trad
-                grupo = Group.objects.filter(name='Autor')[0]
-                self.object.user.groups.remove(grupo)
-
-            return CrudAux.DeleteView.delete(self, *args, **kwargs)
-
-    class UpdateView(CrudAux.UpdateView):
-        logger = logging.getLogger(__name__)
-        layout_key = None
-        form_class = AutorForm
-
-        def form_valid(self, form):
-            # devido a implement do form o form_valid do Crud deve ser pulado
-            return super(CrudAux.UpdateView, self).form_valid(form)
-
-        def post(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.UpdateView.post(self, request, *args, **kwargs)
-
-        def get(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.UpdateView.get(self, request, *args, **kwargs)
-
-        def get_success_url(self):
+        def send_mail_operadores(self):
             username = self.request.user.username
-            pk_autor = self.object.id
-            url_reverse = reverse('sapl.base:autor_detail',
-                                  kwargs={'pk': pk_autor})
 
             if not mail_service_configured():
                 self.logger.warning(_('Registro de Autor sem envio de email. '
                                       'Servidor de email não configurado.'))
-                return url_reverse
-
-            try:
-                self.logger.debug('user={}. Enviando email na edição '
-                                  'de Autores.'.format(username))
-                kwargs = {}
-                user = self.object.user
-
-                if not user:
-                    return url_reverse
-
-                kwargs['token'] = default_token_generator.make_token(user)
-                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-                assunto = "SAPL - Confirmação de Conta"
-                full_url = self.request.get_raw_uri()
-                url_base = full_url[:full_url.find('sistema') - 1]
-
-                mensagem = (
-                    "Este e-mail foi utilizado para fazer cadastro no " +
-                    "SAPL com o perfil de Autor. Agora você pode " +
-                    "criar/editar/enviar Proposições.\n" +
-                    "Seu nome de usuário é: " +
-                    self.request.POST['username'] + "\n"
-                    "Caso você não tenha feito este cadastro, por favor " +
-                    "ignore esta mensagem. Caso tenha, clique " +
-                    "no link abaixo\n" + url_base +
-                    reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = settings.EMAIL_SEND_USER
-                destinatario = [user.email]
-                send_mail(assunto, mensagem, remetente, destinatario,
-                          fail_silently=False)
-            except Exception as e:
-                self.logger.error('user={}. Erro no envio de email na edição de'
-                                  ' Autores. {}'.format(username, str(e)))
-
-            return url_reverse
-
-    class CreateView(CrudAux.CreateView):
-        logger = logging.getLogger(__name__)
-        form_class = AutorForm
-        layout_key = None
-
-        def post(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.CreateView.post(self, request, *args, **kwargs)
-
-        def get(self, request, *args, **kwargs):
-            if request.user.is_superuser:
-                self.form_class = AutorFormForAdmin
-            return CrudAux.CreateView.get(self, request, *args, **kwargs)
-
-        def get_success_url(self):
-            username = self.request.user.username
-            pk_autor = self.object.id
-            url_reverse = reverse('sapl.base:autor_detail',
-                                  kwargs={'pk': pk_autor})
-
-            if not mail_service_configured():
-                self.logger.warning(_('Registro de Autor sem envio de email. '
-                                      'Servidor de email não configurado.'))
-                return url_reverse
+                return
 
             try:
                 self.logger.debug('user=' + username +
                                   '. Enviando email na criação de Autores.')
 
                 kwargs = {}
-                user = self.object.user
 
-                if not user:
-                    return url_reverse
+                for user in self.object.operadores.all():
 
-                kwargs['token'] = default_token_generator.make_token(user)
-                kwargs['uidb64'] = urlsafe_base64_encode(force_bytes(user.pk))
-                assunto = "SAPL - Confirmação de Conta"
-                full_url = self.request.get_raw_uri()
-                url_base = full_url[:full_url.find('sistema') - 1]
+                    if not user.email:
+                        self.logger.warning(
+                            _('Registro de Autor sem envio de email. '
+                              'Usuário sem um email cadastrado.'))
+                        continue
 
-                mensagem = (
-                    "Este e-mail foi utilizado para fazer cadastro no " +
-                    "SAPL com o perfil de Autor. Agora você pode " +
-                    "criar/editar/enviar Proposições.\n" +
-                    "Seu nome de usuário é: " +
-                    self.request.POST['username'] + "\n"
-                    "Caso você não tenha feito este cadastro, por favor " +
-                    "ignore esta mensagem. Caso tenha, clique " +
-                    "no link abaixo\n" + url_base +
-                    reverse('sapl.base:confirmar_email', kwargs=kwargs))
-                remetente = settings.EMAIL_SEND_USER
-                destinatario = [user.email]
-                send_mail(assunto, mensagem, remetente, destinatario,
-                          fail_silently=False)
+                    kwargs['token'] = default_token_generator.make_token(user)
+                    kwargs['uidb64'] = urlsafe_base64_encode(
+                        force_bytes(user.pk))
+                    assunto = "SAPL - Confirmação de Conta"
+                    full_url = self.request.get_raw_uri()
+                    url_base = full_url[:full_url.find('sistema') - 1]
+
+                    mensagem = (
+                        "Este e-mail foi utilizado para fazer cadastro no " +
+                        "SAPL com o perfil de Autor. Agora você pode " +
+                        "criar/editar/enviar Proposições.\n" +
+                        "Seu nome de usuário é: " +
+                        self.request.POST['username'] + "\n"
+                        "Caso você não tenha feito este cadastro, por favor " +
+                        "ignore esta mensagem. Caso tenha, clique " +
+                        "no link abaixo\n" + url_base +
+                        reverse('sapl.base:confirmar_email', kwargs=kwargs))
+                    remetente = settings.EMAIL_SEND_USER
+                    destinatario = [user.email]
+                    send_mail(assunto, mensagem, remetente, destinatario,
+                              fail_silently=False)
             except Exception as e:
                 print(
                     _('Erro no envio de email na criação de Autores.'))
                 self.logger.error(
                     'user=' + username + '. Erro no envio de email na criação de Autores. ' + str(e))
 
-            return url_reverse
+    class DeleteView(CrudAux.DeleteView):
 
+        def delete(self, *args, **kwargs):
+            self.object = self.get_object()
 
-class PesquisarAutorView(FilterView):
-    model = Autor
-    filterset_class = AutorFilterSet
-    paginate_by = 10
+            grupo = Group.objects.filter(name='Autor')[0]
+            lista_operadores = list(self.object.operadores.all())
 
-    def get_filterset_kwargs(self, filterset_class):
-        super().get_filterset_kwargs(filterset_class)
+            response = CrudAux.DeleteView.delete(self, *args, **kwargs)
 
-        kwargs = {'data': self.request.GET or None}
+            if not Autor.objects.filter(pk=kwargs['pk']).exists():
+                for u in lista_operadores:
+                    u.groups.remove(grupo)
 
-        qs = self.get_queryset().order_by('nome').distinct()
+            return response
 
-        kwargs.update({
-            'queryset': qs,
-        })
-        return kwargs
+    class DetailView(CrudAux.DetailView):
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        def hook_operadores(self, obj):
+            r = '<ul>{}</ul>'.format(
+                ''.join(
+                    [
+                        '<li>{} - <i>({})</i> - '
+                        '<small>{}</small>'
+                        '</li>'.format(u.first_name, u, u.email)
+                        for u in obj.operadores.all()
+                    ]
+                )
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
+            )
+            return 'Operadores', r
 
-        context['page_range'] = make_pagination(page_obj.number, paginator.num_pages)
+    class UpdateView(CrudAux.UpdateView):
+        logger = logging.getLogger(__name__)
+        layout_key = None
+        form_class = AutorForm
 
-        context['NO_ENTRIES_MSG'] = 'Nenhum Autor encontrado!'
+        def get_success_url(self):
+            self.send_mail_operadores()
+            return super().get_success_url()
 
-        context['title'] = _('Autores')
+    class CreateView(CrudAux.CreateView):
+        logger = logging.getLogger(__name__)
+        form_class = AutorForm
+        layout_key = None
 
-        return context
+        def get_success_url(self):
+            self.send_mail_operadores()
+            return super().get_success_url()
 
-    def get(self, request, *args, **kwargs):
-        super().get(request)
+    class ListView(CrudAux.ListView):
+        form_search_class = ListWithSearchForm
 
-        data = self.filterset.data
-        url = ''
-        if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('nome=') - 1
-                url = url[ponto_comeco:]
+        def hook_operadores(self, *args, **kwargs):
+            r = '<ul>{}</ul>'.format(
+                ''.join(
+                    [
+                        '<li>{} - <i>({})</i></li>'.format(u.first_name, u)
+                        for u in args[0].operadores.all()
+                    ]
+                )
 
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
-                                        filter_url=url,
-                                        numero_res=len(self.object_list))
+            )
+            return r, ''
 
-        context['show_results'] = show_results_filter_set(self.request.GET.copy())
-
-        return self.render_to_response(context)
+        def get_queryset(self):
+            qs = self.model.objects.all()
+            q_param = self.request.GET.get('q', '')
+            if q_param:
+                q = Q(nome__icontains=q_param)
+                q |= Q(cargo__icontains=q_param)
+                q |= Q(tipo__descricao__icontains=q_param)
+                q |= Q(operadores__username__icontains=q_param)
+                q |= Q(operadores__email__icontains=q_param)
+                qs = qs.filter(q)
+            return qs.distinct('nome', 'id').order_by('nome', 'id')
 
 
 class RelatoriosListView(TemplateView):
-    template_name='base/relatorios_list.html'
+    template_name = 'base/relatorios_list.html'
 
     def get_context_data(self, **kwargs):
         context = super(TemplateView, self).get_context_data(**kwargs)
         estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
         context['estatisticas_acesso_normas'] = True if estatisticas_acesso_normas == 'S' else False
-        
+
         return context
 
 
@@ -386,10 +362,10 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
 
         if not self.filterset.form.is_valid():
             return context
-        
+
         query_dict = self.request.GET.copy()
         context['show_results'] = show_results_filter_set(query_dict)
-        
+
         context['tipo_documento'] = str(
             TipoDocumento.objects.get(pk=self.request.GET['tipo'])
         )
@@ -449,22 +425,23 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
 
     def get_context_data(self, **kwargs):
 
-        context = super(RelatorioPresencaSessaoView,
-                        self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = _('Presença dos parlamentares nas sessões')
 
         # Verifica se os campos foram preenchidos
         if not self.filterset.form.is_valid():
             return context
-        
+
         cd = self.filterset.form.cleaned_data
         if not cd['data_inicio'] and not cd['sessao_legislativa'] \
-            and not cd['legislatura']:
-            msg = _("Formulário inválido! Preencha pelo menos algum dos campos Período, Legislatura ou Sessão Legislativa.")
+                and not cd['legislatura']:
+            msg = _(
+                "Formulário inválido! Preencha pelo menos algum dos campos Período, Legislatura ou Sessão Legislativa.")
             messages.error(self.request, msg)
             return context
 
-        # Caso a data tenha sido preenchida, verifica se foi preenchida corretamente
+        # Caso a data tenha sido preenchida, verifica se foi preenchida
+        # corretamente
         if self.request.GET.get('data_inicio_0') and not self.request.GET.get('data_inicio_1'):
             msg = _("Formulário inválido! Preencha a data do Período Final.")
             messages.error(self.request, msg)
@@ -486,58 +463,62 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
         sessao_legislativa_pk = self.request.GET.get('sessao_legislativa')
         if sessao_legislativa_pk:
             param0['sessao_plenaria__sessao_legislativa_id'] = sessao_legislativa_pk
-            sessao_legislativa = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
+            sessao_legislativa = SessaoLegislativa.objects.get(
+                id=sessao_legislativa_pk)
             context['sessao_legislativa'] = sessao_legislativa
 
         tipo_sessao_plenaria_pk = self.request.GET.get('tipo')
         context['tipo'] = ''
         if tipo_sessao_plenaria_pk:
             param0['sessao_plenaria__tipo_id'] = tipo_sessao_plenaria_pk
-            context['tipo'] = TipoSessaoPlenaria.objects.get(id=tipo_sessao_plenaria_pk)
+            context['tipo'] = TipoSessaoPlenaria.objects.get(
+                id=tipo_sessao_plenaria_pk)
 
         _range = []
 
         if ('data_inicio_0' in self.request.GET) and self.request.GET['data_inicio_0'] and \
-            ('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']:
+                ('data_inicio_1' in self.request.GET) and self.request.GET['data_inicio_1']:
             where = context['object_list'].query.where
             _range = where.children[0].rhs
 
         elif legislatura_pk and not sessao_legislativa_pk:
             _range = [legislatura.data_inicio, legislatura.data_fim]
-            
+
         elif sessao_legislativa_pk:
-            _range = [sessao_legislativa.data_inicio, sessao_legislativa.data_fim]
+            _range = [sessao_legislativa.data_inicio,
+                      sessao_legislativa.data_fim]
 
         param0.update({'sessao_plenaria__data_inicio__range': _range})
 
-            
         # Parlamentares com Mandato no intervalo de tempo (Ativos)
         parlamentares_qs = parlamentares_ativos(
             _range[0], _range[1]).order_by('nome_parlamentar')
-        parlamentares_id = parlamentares_qs.values_list(
-            'id', flat=True)
+        parlamentares_id = parlamentares_qs.values_list('id', flat=True)
 
         # Presenças de cada Parlamentar em Sessões
-        presenca_sessao = SessaoPlenariaPresenca.objects.filter(**param0).values_list(
-            'parlamentar_id').annotate(
-            sessao_count=Count('id'))
+        presenca_sessao = SessaoPlenariaPresenca.objects.filter(
+            **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
 
         # Presenças de cada Ordem do Dia
-        presenca_ordem = PresencaOrdemDia.objects.filter(**param0).values_list(
-            'parlamentar_id').annotate(
-            sessao_count=Count('id'))
+        presenca_ordem = PresencaOrdemDia.objects.filter(
+            **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
 
         total_ordemdia = PresencaOrdemDia.objects.filter(
-            **param0).distinct('sessao_plenaria__id').order_by(
-            'sessao_plenaria__id').count()
+            **param0).distinct('sessao_plenaria__id').order_by('sessao_plenaria__id').count()
 
         total_sessao = context['object_list'].count()
 
         username = self.request.user.username
 
+        context['exibir_somente_titular'] = self.request.GET.get(
+            'exibir_somente_titular') == 'on'
+        context['exibir_somente_ativo'] = self.request.GET.get(
+            'exibir_somente_ativo') == 'on'
+
         # Completa o dicionario as informacoes parlamentar/sessao/ordem
         parlamentares_presencas = []
-        for i, p in enumerate(parlamentares_qs):
+        for p in parlamentares_qs:
+            parlamentar = {}
             m = p.mandato_set.filter(Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__gte=_range[1]) |
                                      Q(data_inicio_mandato__lte=_range[0], data_fim_mandato__isnull=True) |
                                      Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]) |
@@ -545,57 +526,92 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
                                      Q(data_inicio_mandato__gte=_range[0], data_fim_mandato__lte=_range[1]))
 
             m = m.last()
-            parlamentares_presencas.append({
-                'parlamentar': p,
-                'titular': m.titular if m else False,
-                'sessao_porc': 0,
-                'ordemdia_porc': 0
-            })
+
+            if not context['exibir_somente_titular'] and not context['exibir_somente_ativo']:
+                parlamentar = {
+                    'parlamentar': p,
+                    'titular': m.titular if m else False,
+                    'sessao_porc': 0,
+                    'ordemdia_porc': 0
+                }
+            elif context['exibir_somente_titular'] and not context['exibir_somente_ativo']:
+                if m and m.titular:
+                    parlamentar = {
+                        'parlamentar': p,
+                        'titular': m.titular if m else False,
+                        'sessao_porc': 0,
+                        'ordemdia_porc': 0
+                    }
+                else:
+                    continue
+            elif not context['exibir_somente_titular'] and context['exibir_somente_ativo']:
+                if p.ativo:
+                    parlamentar = {
+                        'parlamentar': p,
+                        'titular': m.titular if m else False,
+                        'sessao_porc': 0,
+                        'ordemdia_porc': 0
+                    }
+                else:
+                    continue
+            elif context['exibir_somente_titular'] and context['exibir_somente_ativo']:
+                if m and m.titular and p.ativo:
+                    parlamentar = {
+                        'parlamentar': p,
+                        'titular': m.titular if m else False,
+                        'sessao_porc': 0,
+                        'ordemdia_porc': 0
+                    }
+                else:
+                    continue
+            else:
+                continue
+
             try:
                 self.logger.debug(
-                    'user=' + username + '. Tentando obter presença do parlamentar (pk={}).'.format(p.id))
+                    F'user={username}. Tentando obter presença do parlamentar (pk={p.id}).')
                 sessao_count = presenca_sessao.get(parlamentar_id=p.id)[1]
             except ObjectDoesNotExist as e:
                 self.logger.error(
-                    'user=' + username + '. Erro ao obter presença do parlamentar (pk={}). Definido como 0. '.format(p.id) + str(e))
+                    F'user={username}. Erro ao obter presença do parlamentar (pk={p.id}). Definido como 0. {str(e)}')
                 sessao_count = 0
             try:
                 # Presenças de cada Ordem do Dia
                 self.logger.info(
-                    'user=' + username + '. Tentando obter PresencaOrdemDia para o parlamentar pk={}.'.format(p.id))
+                    F'user={username}. Tentando obter PresencaOrdemDia para o parlamentar pk={p.id}.')
                 ordemdia_count = presenca_ordem.get(parlamentar_id=p.id)[1]
             except ObjectDoesNotExist:
-                self.logger.error('user=' + username + '. Erro ao obter PresencaOrdemDia para o parlamentar pk={}. '
-                                  'Definido como 0.'.format(p.id))
+                self.logger.error(
+                    F'user={username}. Erro ao obter PresencaOrdemDia para o parlamentar pk={p.id}. Definido como 0.')
                 ordemdia_count = 0
 
-            parlamentares_presencas[i].update({
+            parlamentar.update({
                 'sessao_count': sessao_count,
                 'ordemdia_count': ordemdia_count
             })
 
             if total_sessao != 0:
-                parlamentares_presencas[i].update(
-                    {'sessao_porc': round(
-                        sessao_count * 100 / total_sessao, 2)})
+                parlamentar.update({'sessao_porc': round(
+                    sessao_count * 100 / total_sessao, 2)})
             if total_ordemdia != 0:
-                parlamentares_presencas[i].update(
-                    {'ordemdia_porc': round(
-                        ordemdia_count * 100 / total_ordemdia, 2)})
+                parlamentar.update({'ordemdia_porc': round(
+                    ordemdia_count * 100 / total_ordemdia, 2)})
+
+            parlamentares_presencas.append(parlamentar)
 
         context['date_range'] = _range
         context['total_ordemdia'] = total_ordemdia
         context['total_sessao'] = context['object_list'].count()
         context['parlamentares'] = parlamentares_presencas
-        context['periodo'] = (
-            self.request.GET['data_inicio_0'] +
-            ' - ' + self.request.GET['data_inicio_1'])
+        context['periodo'] = f"{self.request.GET['data_inicio_0']} - {self.request.GET['data_inicio_1']}"
         context['sessao_legislativa'] = ''
         context['legislatura'] = ''
-        context['exibir_ordem'] = self.request.GET.get('exibir_ordem_dia') == 'on'
+        context['exibir_ordem'] = self.request.GET.get(
+            'exibir_ordem_dia') == 'on'
 
         if sessao_legislativa_pk:
-            context['sessao_legislativa'] = SessaoLegislativa.objects.get(id=sessao_legislativa_pk)
+            context['sessao_legislativa'] = SessaoLegislativa.objects.get(
+                id=sessao_legislativa_pk)
         if legislatura_pk:
             context['legislatura'] = Legislatura.objects.get(id=legislatura_pk)
         # =====================================================================
@@ -616,7 +632,8 @@ class RelatorioHistoricoTramitacaoView(RelatorioMixin, FilterView):
     def get_context_data(self, **kwargs):
         context = super(RelatorioHistoricoTramitacaoView,
                         self).get_context_data(**kwargs)
-        context['title'] = _('Histórico de Tramitações de Matérias Legislativas')
+        context['title'] = _(
+            'Histórico de Tramitações de Matérias Legislativas')
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
@@ -814,21 +831,22 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
                 kwargs['tramitacao__status'] = status_tramitacao
             if autor:
                 kwargs['materia__autores'] = autor
-            
+
             qs = qs.filter(**kwargs)
             data['queryset'] = qs
-            
-            self.total_resultados_tipos = num_materias_por_tipo(qs, "materia__tipo")
+
+            self.total_resultados_tipos = num_materias_por_tipo(
+                qs, "materia__tipo")
 
         return data
 
     def get_queryset(self):
         qs = super().get_queryset()
         qs = qs.select_related('materia__tipo').filter(
-                materia__em_tramitacao=True
-            ).exclude(
-                tramitacao__status__indicador='F'
-            ).order_by('-materia__ano', '-materia__numero')
+            materia__em_tramitacao=True
+        ).exclude(
+            tramitacao__status__indicador='F'
+        ).order_by('-materia__ano', '-materia__numero')
         return qs
 
     def get_context_data(self, **kwargs):
@@ -837,7 +855,7 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
         ).get_context_data(**kwargs)
 
         context['title'] = _('Matérias em Tramitação')
-        
+
         if not self.filterset.form.is_valid():
             return context
 
@@ -853,7 +871,7 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             )
         else:
             context['tipo'] = ''
-        
+
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
             context['tramitacao__status'] = (
@@ -861,7 +879,7 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             )
         else:
             context['tramitacao__status'] = ''
-        
+
         if self.request.GET['tramitacao__unidade_tramitacao_destino']:
             context['tramitacao__unidade_tramitacao_destino'] = (
                 str(UnidadeTramitacao.objects.get(
@@ -878,7 +896,7 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             )
         else:
             context['materia__autor'] = ''
-        
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         context['show_results'] = show_results_filter_set(qr)
 
@@ -1010,9 +1028,36 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
         else:
             context['autor'] = ''
         context['periodo'] = (
-                self.request.GET['data_apresentacao_0'] +
-                ' - ' + self.request.GET['data_apresentacao_1'])
+            self.request.GET['data_apresentacao_0'] +
+            ' - ' + self.request.GET['data_apresentacao_1'])
 
+        return context
+
+
+class RelatorioMateriaAnoAssuntoView(ListView):
+    template_name = 'base/RelatorioMateriasAnoAssunto.html'
+
+    def get_queryset(self):
+        return MateriaAssunto.objects.all().values(
+            'assunto_id',
+            assunto_materia=F('assunto__assunto'),
+            ano=F('materia__ano')).annotate(
+            total=Count('assunto_id')).order_by('-materia__ano', 'assunto_id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Matérias por Ano e Assunto')
+
+        # In[10]: MateriaAssunto.objects.all().values(
+        #     ...:             'materia__ano').annotate(
+        #     ...: total = Count('materia__ano')).order_by('-materia__ano')
+
+        mat = MateriaLegislativa.objects.filter(
+            materiaassunto__isnull=True).values(
+            'ano').annotate(
+            total=Count('ano')).order_by('-ano')
+
+        context.update({"materias_sem_assunto": mat})
         return context
 
 
@@ -1038,15 +1083,15 @@ class RelatorioNormasPublicadasMesView(RelatorioMixin, FilterView):
         context['ano'] = self.request.GET['ano']
 
         normas_mes = collections.OrderedDict()
-        meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
-                7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
+        meses = {1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+                 7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'}
         for norma in context['object_list']:
             if not meses[norma.data.month] in normas_mes:
                 normas_mes[meses[norma.data.month]] = []
             normas_mes[meses[norma.data.month]].append(norma)
-        
+
         context['normas_mes'] = normas_mes
-        
+
         quant_normas_mes = {}
         for key in normas_mes.keys():
             quant_normas_mes[key] = len(normas_mes[key])
@@ -1073,18 +1118,19 @@ class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
             vigencia = kwargs['data']['vigencia']
             if ano:
                 qs = qs.filter(ano=ano)
-            
+
             if vigencia == 'True':
                 qs_dt_not_null = qs.filter(data_vigencia__isnull=True)
-                qs = (qs_dt_not_null | qs.filter(data_vigencia__gte=datetime.datetime.now().date())).distinct()
+                qs = (qs_dt_not_null | qs.filter(
+                    data_vigencia__gte=datetime.datetime.now().date())).distinct()
             else:
-                qs = qs.filter(data_vigencia__lt=datetime.datetime.now().date())
+                qs = qs.filter(
+                    data_vigencia__lt=datetime.datetime.now().date())
 
         kwargs.update({
             'queryset': qs
         })
         return kwargs
-
 
     def get_context_data(self, **kwargs):
         context = super(RelatorioNormasVigenciaView,
@@ -1095,17 +1141,20 @@ class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
         if not self.filterset.form.is_valid():
             return context
 
-        normas_totais = NormaJuridica.objects.filter(ano=self.request.GET['ano'])
-        
+        normas_totais = NormaJuridica.objects.filter(
+            ano=self.request.GET['ano'])
+
         context['quant_total'] = len(normas_totais)
         if self.request.GET['vigencia'] == 'True':
             context['vigencia'] = 'Vigente'
             context['quant_vigente'] = len(context['object_list'])
-            context['quant_nao_vigente'] = context['quant_total'] - context['quant_vigente']
+            context['quant_nao_vigente'] = context['quant_total'] - \
+                context['quant_vigente']
         else:
             context['vigencia'] = 'Não vigente'
             context['quant_nao_vigente'] = len(context['object_list'])
-            context['quant_vigente'] = context['quant_total'] - context['quant_nao_vigente']
+            context['quant_vigente'] = context['quant_total'] - \
+                context['quant_nao_vigente']
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -1131,7 +1180,7 @@ class EstatisticasAcessoNormas(TemplateView):
             return self.render_to_response(context)
 
         context['ano'] = self.request.GET['ano']
-        
+
         query = '''
                 select norma_id, ano, extract(month from horario_acesso) as mes, count(*)
                 from norma_normaestatisticas
@@ -1144,20 +1193,21 @@ class EstatisticasAcessoNormas(TemplateView):
         rows = cursor.fetchall()
 
         normas_mes = collections.OrderedDict()
-        meses = {1: 'Janeiro', 2: 'Fevereiro', 3:'Março', 4: 'Abril', 5: 'Maio', 6:'Junho',
-                7: 'Julho', 8: 'Agosto', 9:'Setembro', 10:'Outubro', 11:'Novembro', 12:'Dezembro'}
-        
+        meses = {1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+                 7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'}
+
         for row in rows:
             if not meses[int(row[2])] in normas_mes:
                 normas_mes[meses[int(row[2])]] = []
             norma_est = [NormaJuridica.objects.get(id=row[0]), row[3]]
             normas_mes[meses[int(row[2])]].append(norma_est)
-        
+
         # Ordena por acesso e limita em 5
         for n in normas_mes:
-            sorted_by_value = sorted(normas_mes[n], key=lambda kv: kv[1], reverse=True)
+            sorted_by_value = sorted(
+                normas_mes[n], key=lambda kv: kv[1], reverse=True)
             normas_mes[n] = sorted_by_value[0:5]
-        
+
         context['normas_mes'] = normas_mes
 
         is_relatorio = request.GET.get('relatorio')
@@ -1201,19 +1251,19 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
             ('filiacoes_sem_data_filiacao',
              'Filiações sem data filiação',
              len(filiacoes_sem_data_filiacao())
-            )
+             )
         )
         tabela.append(
             ('mandato_sem_data_inicio',
              'Mandatos sem data inicial',
-            len(mandato_sem_data_inicio())
-            )
+             len(mandato_sem_data_inicio())
+             )
         )
         tabela.append(
             ('parlamentares_duplicados',
              'Parlamentares duplicados',
              len(parlamentares_duplicados())
-            )
+             )
         )
         tabela.append(
             ('parlamentares_mandatos_intersecao',
@@ -1224,8 +1274,8 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         tabela.append(
             ('parlamentares_filiacoes_intersecao',
              'Parlamentares com filiações em interseção',
-             len(parlamentares_filiacoes_intersecao())    
-            )
+             len(parlamentares_filiacoes_intersecao())
+             )
         )
         tabela.append(
             ('autores_duplicados',
@@ -1243,7 +1293,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
             ('legislatura_infindavel',
              'Legislaturas sem data fim',
              len(legislatura_infindavel())
-            )
+             )
         )
         tabela.append(
             ('anexadas_ciclicas',
@@ -1259,6 +1309,7 @@ class ListarInconsistenciasView(PermissionRequiredMixin, ListView):
         )
         return tabela
 
+
 def materias_anexadas_ciclicas():
     ciclos = []
 
@@ -1272,7 +1323,8 @@ def materias_anexadas_ciclicas():
             ma = anexadas.pop()
             if ma not in visitados:
                 visitados.append(ma)
-                anexadas.extend([a.materia_anexada for a in Anexada.objects.filter(materia_principal=ma)])
+                anexadas.extend(
+                    [a.materia_anexada for a in Anexada.objects.filter(materia_principal=ma)])
             else:
                 ciclo_list = visitados + [ma]
                 ciclos.append(ciclo_list)
@@ -1286,12 +1338,14 @@ def materias_anexadas_ciclicas():
 
     return ciclos_unique
 
+
 def is_ciclo_unique(ciclo, ciclos_set):
-         if set(ciclo) not in ciclos_set:
-             ciclos_set.append(set(ciclo))
-             return True
-         else:
-             return False
+    if set(ciclo) not in ciclos_set:
+        ciclos_set.append(set(ciclo))
+        return True
+    else:
+        return False
+
 
 def anexados_ciclicos(ofMateriaLegislativa):
     ciclicos = []
@@ -1333,7 +1387,8 @@ def anexados_ciclicos(ofMateriaLegislativa):
                         )
                         anexados_temp.extend(anexados_anexado)
                     else:
-                        ciclicos.append((anexado.data_anexacao, anexado.materia_principal, anexado.materia_anexada))
+                        ciclicos.append(
+                            (anexado.data_anexacao, anexado.materia_principal, anexado.materia_anexada))
             else:
                 if anexado.documento_anexado not in anexados_total:
                     if not principal['documento_principal'] == anexado.documento_anexado.pk:
@@ -1343,7 +1398,8 @@ def anexados_ciclicos(ofMateriaLegislativa):
                         )
                         anexados_temp.extend(anexados_anexado)
                     else:
-                        ciclicos.append((anexado.data_anexacao, anexado.documento_principal, anexado.documento_anexado))
+                        ciclicos.append(
+                            (anexado.data_anexacao, anexado.documento_principal, anexado.documento_anexado))
 
     return ciclicos
 
@@ -1391,7 +1447,7 @@ class ListarAnexadasCiclicasView(PermissionRequiredMixin, ListView):
 
         paginator = context['paginator']
         page_obj = context['page_obj']
-        
+
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages
         )
@@ -1417,14 +1473,14 @@ class ListarLegislaturaInfindavelView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarLegislaturaInfindavelView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhuma encontrada.'
+        ] = 'Nenhuma encontrada.'
         return context
 
 
@@ -1433,20 +1489,20 @@ def bancada_comissao_autor_externo():
 
     lista_bancada_autor_externo = []
     for bancada in Bancada.objects.all().order_by('nome'):
-        autor_externo = bancada.autor.filter(tipo=tipo_autor_externo)
+        autor_externo = bancada.autor.filter(tipo__in=tipo_autor_externo)
 
         if autor_externo:
-            q_autor_externo = bancada.autor.get(tipo=tipo_autor_externo)
+            q_autor_externo = bancada.autor.get(tipo__in=tipo_autor_externo)
             lista_bancada_autor_externo.append(
                 (q_autor_externo, bancada, 'Bancada', 'sistema/bancada')
             )
 
     lista_comissao_autor_externo = []
     for comissao in Comissao.objects.all().order_by('nome'):
-        autor_externo = comissao.autor.filter(tipo=tipo_autor_externo)
+        autor_externo = comissao.autor.filter(tipo__in=tipo_autor_externo)
 
         if autor_externo:
-            q_autor_externo = comissao.autor.get(tipo=tipo_autor_externo)
+            q_autor_externo = comissao.autor.get(tipo__in=tipo_autor_externo)
             lista_comissao_autor_externo.append(
                 (q_autor_externo, comissao, 'Comissão', 'comissao')
             )
@@ -1467,14 +1523,14 @@ class ListarBancadaComissaoAutorExternoView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarBancadaComissaoAutorExternoView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhuma encontrada.'
+        ] = 'Nenhuma encontrada.'
         return context
 
 
@@ -1500,7 +1556,7 @@ class ListarAutoresDuplicadosView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1513,10 +1569,12 @@ def parlamentares_filiacoes_intersecao():
 
         for c in combinacoes:
             data_filiacao1 = c[0].data
-            data_desfiliacao1 = c[0].data_desfiliacao if c[0].data_desfiliacao else timezone.now().date()
+            data_desfiliacao1 = c[0].data_desfiliacao if c[0].data_desfiliacao else timezone.now(
+            ).date()
 
             data_filiacao2 = c[1].data
-            data_desfiliacao2 = c[1].data_desfiliacao if c[1].data_desfiliacao else timezone.now().date()
+            data_desfiliacao2 = c[1].data_desfiliacao if c[1].data_desfiliacao else timezone.now(
+            ).date()
 
             if data_filiacao1 and data_filiacao2:
                 exists = intervalos_tem_intersecao(
@@ -1546,8 +1604,8 @@ class ListarParlFiliacoesIntersecaoView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
-        return context        
+        ] = 'Nenhum encontrado.'
+        return context
 
 
 def parlamentares_mandatos_intersecao():
@@ -1559,10 +1617,12 @@ def parlamentares_mandatos_intersecao():
 
         for c in combinacoes:
             data_inicio_mandato1 = c[0].data_inicio_mandato
-            data_fim_mandato1 = c[0].data_fim_mandato if c[0].data_fim_mandato else timezone.now().date()
+            data_fim_mandato1 = c[0].data_fim_mandato if c[0].data_fim_mandato else timezone.now(
+            ).date()
 
             data_inicio_mandato2 = c[1].data_inicio_mandato
-            data_fim_mandato2 = c[1].data_fim_mandato if c[1].data_fim_mandato else timezone.now().date()
+            data_fim_mandato2 = c[1].data_fim_mandato if c[1].data_fim_mandato else timezone.now(
+            ).date()
 
             if data_inicio_mandato1 and data_inicio_mandato2:
                 exists = intervalos_tem_intersecao(
@@ -1593,7 +1653,7 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1612,7 +1672,7 @@ class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return parlamentares_duplicados()
-    
+
     def get_context_data(self, **kwargs):
         context = super(
             ListarParlamentaresDuplicadosView, self).get_context_data(**kwargs)
@@ -1622,41 +1682,37 @@ class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
- 
+
 
 def mandato_sem_data_inicio():
     return Mandato.objects.filter(data_inicio_mandato__isnull=True).order_by('parlamentar')
 
 
 def get_estatistica(request):
+    materias = MateriaLegislativa.objects.all()
+    normas = NormaJuridica.objects.all()
 
-    json_dict = {}
+    datas = [
+        materias.order_by(
+            '-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)
+        .exclude(data_ultima_atualizacao__isnull=True).first(),
+        normas.order_by(
+            '-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)
+        .exclude(data_ultima_atualizacao__isnull=True).first()
+    ]
 
-    datas = [MateriaLegislativa.objects.all().
-                 order_by('-data_ultima_atualizacao').
-                 values_list('data_ultima_atualizacao', flat=True).
-                 first(),
-             NormaJuridica.objects.all().
-                 order_by('-data_ultima_atualizacao').
-                 values_list('data_ultima_atualizacao', flat=True).
-                 first()] # Retorna [None, None] se inexistem registros
+    max_data = max(datas) if datas[0] and datas[1] else next(
+        iter([i for i in datas if i is not None]), '')
 
-    max_data = ''
-
-    if datas[0] and datas[1]:
-        max_data = max(datas)
-    else:
-        max_data = next(iter([i for i in datas if i is not None]), '')
-
-    json_dict["data_ultima_atualizacao"] = max_data
-    json_dict["num_materias_legislativas"] = MateriaLegislativa.objects.all().count()
-    json_dict["num_normas_juridicas "] = NormaJuridica.objects.all().count()
-    json_dict["num_parlamentares"] = Parlamentar.objects.all().count()
-    json_dict["num_sessoes_plenarias"] = SessaoPlenaria.objects.all().count()
-
-    return JsonResponse(json_dict)
+    return JsonResponse({
+        "data_ultima_atualizacao": max_data,
+        "num_materias_legislativas": materias.count(),
+        "num_normas_juridicas ": normas.count(),
+        "num_parlamentares": Parlamentar.objects.all().count(),
+        "num_sessoes_plenarias": SessaoPlenaria.objects.all().count()
+    })
 
 
 class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
@@ -1672,14 +1728,14 @@ class ListarMandatoSemDataInicioView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarMandatoSemDataInicioView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1696,11 +1752,11 @@ class ListarFiliacoesSemDataFiliacaoView(PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         return filiacoes_sem_data_filiacao()
-    
+
     def get_context_data(self, **kwargs):
         context = super(
             ListarFiliacoesSemDataFiliacaoView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
@@ -1735,27 +1791,27 @@ class ListarMatProtocoloInexistenteView(PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(
             ListarMatProtocoloInexistenteView, self
-            ).get_context_data(**kwargs)
+        ).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhuma encontrada.'
+        ] = 'Nenhuma encontrada.'
         return context
 
 
 def protocolos_com_materias():
     protocolos = {}
-    
+
     for m in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero_protocolo'):
         if Protocolo.objects.filter(numero=m.numero_protocolo, ano=m.ano).exists():
             key = "{}/{}".format(m.numero_protocolo, m.ano)
             val = protocolos.get(key, list())
             val.append(m)
             protocolos[key] = val
-    
+
     return [(v[0], len(v)) for (k, v) in protocolos.items() if len(v) > 1]
 
 
@@ -1778,7 +1834,7 @@ class ListarProtocolosComMateriasView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
@@ -1808,211 +1864,121 @@ class ListarProtocolosDuplicadosView(PermissionRequiredMixin, ListView):
             page_obj.number, paginator.num_pages)
         context[
             'NO_ENTRIES_MSG'
-            ] = 'Nenhum encontrado.'
+        ] = 'Nenhum encontrado.'
         return context
 
 
-class PesquisarUsuarioView(PermissionRequiredMixin, FilterView):
+class UserCrud(Crud):
     model = get_user_model()
-    filterset_class = UsuarioFilterSet
-    permission_required = ('base.list_appconfig',)
-    paginate_by = 10
 
-    def get_filterset_kwargs(self, filterset_class):
-        super(PesquisarUsuarioView,
-              self).get_filterset_kwargs(filterset_class)
+    class BaseMixin(Crud.BaseMixin):
+        list_field_names = [
+            'usuario', 'groups', 'is_active'
+        ]
 
-        kwargs = {'data': self.request.GET or None}
+        def resolve_url(self, suffix, args=None):
+            return reverse('sapl.base:%s' % self.url_name(suffix),
+                           args=args)
 
-        qs = self.get_queryset().order_by('username').distinct()
+        def get_layout(self):
+            return super().get_layout(
+                'base/layouts.yaml'
+            )
 
-        kwargs.update({
-            'queryset': qs,
-        })
-        return kwargs
+        def get_context_object_name(self, *args, **kwargs):
+            return None
 
-    def get_context_data(self, **kwargs):
-        context = super(PesquisarUsuarioView, self).get_context_data(**kwargs)
+    class CreateView(Crud.CreateView):
+        form_class = UserAdminForm
+        layout_key = None
 
-        paginator = context['paginator']
-        page_obj = context['page_obj']
+    class UpdateView(Crud.UpdateView):
+        form_class = UserAdminForm
+        layout_key = None
 
-        context.update({
-            "page_range": make_pagination(page_obj.number, paginator.num_pages),
-            "NO_ENTRIES_MSG": "Nenhum usuário encontrado!",
-            "title": _("Usuários")
-        })
+        def get_form_kwargs(self):
+            kwargs = Crud.UpdateView.get_form_kwargs(self)
+            kwargs['user_session'] = self.request.user
+            granular = self.request.GET.get('granular', None)
+            if not granular is None:
+                kwargs['granular'] = granular
+            return kwargs
 
-        return context
+    class DetailView(Crud.DetailView):
+        layout_key = 'UserDetail'
 
-    def get(self, request, *args, **kwargs):
-        super(PesquisarUsuarioView, self).get(request)
+        def hook_usuario(self, obj):
+            return 'Usuário', '{}<br><small>{}</small>'.format(
+                obj.get_full_name() or '...',
+                obj.email
+            )
 
-        data = self.filterset.data
-        url = ''
-        if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('username=') - 1
-                url = url[ponto_comeco:]
+        def hook_auth_token(self, obj):
+            return 'Token', str(obj.auth_token)
 
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
-                                        filter_url=url,
-                                        numero_res=len(self.object_list)
-                                        )
+        def hook_username(self, obj):
+            return 'username', obj.username
 
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
+        def get_context_data(self, **kwargs):
+            context = Crud.DetailView.get_context_data(self, **kwargs)
+            context['title'] = '{} <i>({})</i><br><small>{}</small>'.format(
+                self.object.get_full_name() or '...',
+                self.object.username,
+                self.object.email
+            )
+            return context
 
-        return self.render_to_response(context)
-
-
-class DetailUsuarioView(PermissionRequiredMixin, DetailView):
-    model = get_user_model()
-    template_name = "base/usuario_detail.html"
-    permission_required = ('base.detail_appconfig',)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = get_user_model().objects.get(id=self.kwargs['pk'])
-
-        context.update({
-            "user": user,
-            "token": Token.objects.filter(user=user)[0],
-            "roles": [
-                {
-                    "checked": "checked" if g in user.groups.all() else "unchecked",
-                    "group": g.name
-                } for g in Group.objects.all().order_by("name")]
-        })
-
-        return context
-
-
-class CreateUsuarioView(PermissionRequiredMixin, CreateView):
-    model = get_user_model()
-    form_class = UsuarioCreateForm
-    success_message = 'Usuário criado com sucesso!'
-    fail_message = 'Usuário não criado!'
-    permission_required = ('base.add_appconfig',)
-
-    def get_success_url(self, pk):
-        return reverse('sapl.base:user_detail', kwargs={"pk": pk})
-
-    def form_valid(self, form):
-        data = form.cleaned_data
-
-        new_user = get_user_model().objects.create(
-            username=data['username'],
-            email=data['email'],
-            first_name=data['firstname'],
-            last_name=data['lastname'],
-            is_superuser=False,
-            is_staff=False
-        )
-        new_user.set_password(data['password1'])
-        new_user.save()
-
-        groups = Group.objects.filter(id__in=data['roles'])
-        for g in groups:
-            g.user_set.add(new_user)
-
-        messages.success(self.request, self.success_message)
-        return HttpResponseRedirect(self.get_success_url(new_user.pk))
-
-    def form_invalid(self, form):
-        messages.error(self.request, self.fail_message)
-        return super().form_invalid(form)
-
-
-class DeleteUsuarioView(PermissionRequiredMixin, DeleteView):
-    model = get_user_model()
-    template_name = "crud/confirm_delete.html"
-    permission_required = ('base.delete_appconfig',)
-    success_url = reverse_lazy('sapl.base:usuario')
-    success_message = "Usuário removido com sucesso!"  
-
-    def delete(self, request, *args, **kwargs):     
-        try:
-            super(DeleteUsuarioView, self).delete(request, *args, **kwargs)
-        except ProtectedError as exception:
-            error_url = reverse_lazy('sapl.base:user_delete', kwargs={'pk': self.kwargs['pk']})
-            error_message = "O usuário não pode ser removido, pois é referenciado por:<br><ul>"
-
-            for e in exception.protected_objects:
-                error_message += '<li>{} - {}</li>'.format(
-                    e._meta.verbose_name, e
+        @property
+        def extras_url(self):
+            btns = [
+                (
+                    '{}?granular'.format(reverse('sapl.base:user_update',
+                                                 kwargs={'pk': self.object.pk})),
+                    'btn-outline-primary',
+                    _('Edição granular')
                 )
-            error_message += '</ul>'
-            messages.error(self.request, error_message)
-            return HttpResponseRedirect(error_url)
+            ]
 
-        messages.success(self.request, self.success_message)
-        return HttpResponseRedirect(self.success_url)
+            return btns
 
-    @property
-    def cancel_url(self):
-        return reverse('sapl.base:user_edit',
-                        kwargs={'pk': self.kwargs['pk']})
+    class ListView(Crud.ListView):
+        form_search_class = ListWithSearchForm
+        paginate_by = 256
 
+        def get_context_data(self, **kwargs):
+            context = Crud.ListView.get_context_data(self, **kwargs)
+            context['subnav_template_name'] = None
+            context['title'] = _('Usuários')
+            return context
 
-class EditUsuarioView(PermissionRequiredMixin, UpdateView):
-    model = get_user_model()
-    form_class = UsuarioEditForm
-    template_name = "base/usuario_edit.html"
-    success_message = 'Usuário editado com sucesso!'
-    permission_required = ('base.change_appconfig',)
+        def hook_header_usuario(self, *args, **kwargs):
+            return 'Usuário'
 
-    def get_success_url(self):
-        return reverse('sapl.base:user_detail', kwargs={"pk": self.kwargs['pk']})
+        def hook_header_groups(self, *args, **kwargs):
+            return 'Grupos'
 
-    def get_initial(self):
-        initial = super().get_initial()
+        def hook_header_is_active(self, *args, **kwargs):
+            return 'Ativo'
 
-        user = get_user_model().objects.get(id=self.kwargs['pk'])
-        roles = [str(g.id) for g in user.groups.all()]
+        def hook_usuario(self, *args, **kwargs):
+            return '{} <i>({})</i><br><small>{}</small>'.format(
+                args[0].get_full_name() or '...',
+                args[0].username,
+                args[0].email
+            ), args[2]
 
-        initial.update({
-            "token": Token.objects.filter(user=user)[0],
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "roles": roles,
-            "user_active": user.is_active
-        })
+        def get_queryset(self):
+            qs = self.model.objects.all()
+            q_param = self.request.GET.get('q', '')
+            if q_param:
+                q = Q(first_name__icontains=q_param)
+                q |= Q(last_name__icontains=q_param)
+                q |= Q(email__icontains=q_param)
+                q |= Q(username__icontains=q_param)
+                q |= Q(groups__name__icontains=q_param)
+                qs = qs.filter(q)
 
-        return initial
-
-    def form_valid(self, form):
-
-        user = form.save(commit=False)
-        data = form.cleaned_data
-
-        if 'first_name' in data and data['first_name'] != user.first_name:
-            user.first_name = data['first_name']
-
-        if 'last_name' in data and data['last_name'] != user.last_name:
-            user.last_name = data['last_name']
-
-        if data['password1']:
-            user.set_password(data['password1'])
-
-        if data['user_active'] == 'True' and not user.is_active:
-            user.is_active = True
-        elif data['user_active'] == 'False' and user.is_active:
-            user.is_active = False
-
-        user.save()
-
-        for g in user.groups.all():
-            g.user_set.remove(user)
-
-        groups = Group.objects.filter(id__in=data['roles'])
-        for g in groups:
-            g.user_set.add(user)
-
-        messages.success(self.request, self.success_message)
-        return super(EditUsuarioView, self).form_valid(form)
+            return qs.distinct('id').order_by('-id')
 
 
 class CasaLegislativaCrud(CrudAux):
@@ -2072,29 +2038,32 @@ class AppConfigCrud(CrudAux):
             recibo_prop_atual = AppConfig.objects.last().receber_recibo_proposicao
             recibo_prop_novo = self.request.POST['receber_recibo_proposicao']
             if recibo_prop_novo == 'False' and recibo_prop_atual:
-                props = Proposicao.objects.filter(hash_code='').exclude(data_envio__isnull=True)
+                props = Proposicao.objects.filter(
+                    hash_code='', data_recebimento__isnull=True).exclude(data_envio__isnull=True)
                 for prop in props:
                     try:
                         self.gerar_hash(prop)
                     except ValidationError as e:
-                        form.add_error('receber_recibo_proposicao',e)
-                        msg = _("Não foi possível mudar a configuração porque a Proposição {} não possui texto original vinculado!".format(prop))
+                        form.add_error('receber_recibo_proposicao', e)
+                        msg = _(
+                            "Não foi possível mudar a configuração porque a Proposição {} não possui texto original vinculado!".format(prop))
                         messages.error(self.request, msg)
                         return super().form_invalid(form)
             return super().form_valid(form)
 
         def gerar_hash(self, inst):
-            inst.save()
             if inst.texto_original:
                 try:
                     inst.hash_code = gerar_hash_arquivo(
                         inst.texto_original.path, str(inst.pk))
+                    inst.save()
                 except IOError:
-                    raise ValidationError("Existem proposicoes com arquivos inexistentes.")
+                    raise ValidationError(
+                        "Existem proposicoes com arquivos inexistentes.")
             elif inst.texto_articulado.exists():
                 ta = inst.texto_articulado.first()
                 inst.hash_code = 'P' + ta.hash() + SEPARADOR_HASH_PROPOSICAO + str(inst.pk)
-            inst.save()
+                inst.save()
 
     class CreateView(CrudAux.CreateView):
 
@@ -2109,6 +2078,59 @@ class AppConfigCrud(CrudAux):
                 reverse('sapl.base:appconfig_update',
                         kwargs={'pk': app_config.pk}))
 
+    class UpdateView(CrudAux.UpdateView):
+
+        template_name = 'base/AppConfig.html'
+        form_class = ConfiguracoesAppForm
+
+        def form_valid(self, form):
+            numeracao = AppConfig.objects.last().sequencia_numeracao_protocolo
+            numeracao_antiga = AppConfig.objects.last().inicio_numeracao_protocolo
+
+            self.object = form.save()
+            numeracao_nova = self.object.inicio_numeracao_protocolo
+
+            if numeracao_nova != numeracao_antiga:
+                if numeracao == 'A':
+                    numero_max = Protocolo.objects.filter(
+                        ano=timezone.now().year
+                    ).aggregate(Max('numero'))['numero__max']
+                elif numeracao == 'L':
+                    legislatura = Legislatura.objects.filter(
+                        data_inicio__year__lte=timezone.now().year,
+                        data_fim__year__gte=timezone.now().year
+                    ).first()
+
+                    data_inicio = legislatura.data_inicio
+                    data_fim = legislatura.data_fim
+
+                    data_inicio_utc = from_date_to_datetime_utc(data_inicio)
+                    data_fim_utc = from_date_to_datetime_utc(data_fim)
+
+                    numero_max = Protocolo.objects.filter(
+                        Q(data__isnull=False, data__gte=data_inicio, data__lte=data_fim) |
+                        Q(
+                            timestamp__isnull=False, timestamp__gte=data_inicio_utc,
+                            timestamp__lte=data_fim_utc
+                        ) | Q(
+                            timestamp_data_hora_manual__isnull=False,
+                            timestamp_data_hora_manual__gte=data_inicio_utc,
+                            timestamp_data_hora_manual__lte=data_fim_utc,
+                        )
+                    ).aggregate(Max('numero'))['numero__max']
+                elif numeracao == 'U':
+                    numero_max = Protocolo.objects.all().aggregate(
+                        Max('numero')
+                    )['numero__max']
+
+                ultimo_numero_cadastrado = int(numero_max) if numero_max else 0
+                if numeracao_nova <= ultimo_numero_cadastrado and numeracao != 'U':
+                    msg = "O novo início da numeração de protocolo entrará em vigor na " \
+                          "próxima sequência, pois já existe protocolo cadastrado com " \
+                          "número superior ou igual ao número inicial definido."
+                    messages.warning(self.request, msg)
+
+            return super().form_valid(form)
 
     class ListView(CrudAux.ListView):
 
@@ -2177,6 +2199,7 @@ class LogotipoView(RedirectView):
         logo = casa and casa.logotipo and casa.logotipo.name
         return os.path.join(settings.MEDIA_URL, logo) if logo else STATIC_LOGO
 
+
 def filtro_campos(dicionario):
 
     chaves_desejadas = ['ementa',
@@ -2199,6 +2222,7 @@ def filtro_campos(dicionario):
 
     return dicionario
 
+
 def pesquisa_textual(request):
 
     if 'q' not in request.GET:
@@ -2218,16 +2242,16 @@ def pesquisa_textual(request):
         try:
             sec_dict['pk'] = e.object.pk
         except:
-            # Index and db are out of sync. Object has been deleted from database
+            # Index and db are out of sync. Object has been deleted from
+            # database
             continue
         dici = filtro_campos(e.object.__dict__)
-        sec_dict['objeto'] = str(dici) 
+        sec_dict['objeto'] = str(dici)
         sec_dict['text'] = str(e.object.ementa)
 
         sec_dict['model'] = str(type(e.object))
 
         json_dict['resultados'].append(sec_dict)
-
 
     return JsonResponse(json_dict)
 
@@ -2241,7 +2265,8 @@ class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
     def get_context_data(self, **kwargs):
         context = super(RelatorioHistoricoTramitacaoAdmView,
                         self).get_context_data(**kwargs)
-        context['title'] = _('Histórico de Tramitações de Documento Administrativo')
+        context['title'] = _(
+            'Histórico de Tramitações de Documento Administrativo')
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
@@ -2280,6 +2305,7 @@ class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
 
         return context
 
+
 class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasPorAutorFilterSet
@@ -2316,7 +2342,7 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
                 str(TipoNormaJuridica.objects.get(id=tipo)))
         else:
             context['tipo'] = ''
-        
+
         if self.request.GET['autorianorma__autor']:
             autor = int(self.request.GET['autorianorma__autor'])
             context['autor'] = (str(Autor.objects.get(id=autor)))

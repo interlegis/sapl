@@ -1,53 +1,49 @@
-import django_filters
 import logging
 import os
-import sapl
 
 from crispy_forms.bootstrap import Alert, InlineRadios
 from crispy_forms.layout import (Button, Field, Fieldset, HTML, Layout, Row)
-
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
-from django.core.urlresolvers import reverse
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import F, Max, Q
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.forms.forms import Form
 from django.forms.models import ModelMultipleChoiceField
 from django.forms.widgets import CheckboxSelectMultiple, HiddenInput, Select
+from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_text
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
+import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
-from sapl.base.signals import post_save_signal
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
 from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       SaplFormLayout, to_column, to_row)
-from sapl.materia.models import (AssuntoMateria, Autoria, MateriaAssunto,
+from sapl.materia.models import (AssuntoMateria, MateriaAssunto,
                                  MateriaLegislativa, Orgao,
                                  RegimeTramitacao, StatusTramitacao,
                                  TipoDocumento, TipoProposicao,
-                                 UnidadeTramitacao)
-from sapl.norma.models import (LegislacaoCitada, NormaJuridica, 
+                                 ConfigEtiquetaMateriaLegislativa, HistoricoProposicao)
+from sapl.norma.models import (LegislacaoCitada, NormaJuridica,
                                TipoNormaJuridica)
-from sapl.parlamentares.models import Legislatura, Partido, Parlamentar
-from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
+from sapl.parlamentares.models import Legislatura, Partido
+from sapl.protocoloadm.models import (DocumentoAdministrativo,
                                       Protocolo)
-from sapl.utils import (autor_label, autor_modal,
+from sapl.utils import (autor_label, autor_modal, timing,
                         ChoiceWithoutValidationField,
                         choice_anos_com_materias, FileFieldCheckMixin,
                         FilterOverridesMetaMixin, gerar_hash_arquivo,
                         lista_anexados, MateriaPesquisaOrderingFilter,
                         models_with_gr_for_model, qs_override_django_filter,
-                        RangeWidgetOverride, SEPARADOR_HASH_PROPOSICAO,
-                        validar_arquivo, YES_NO_CHOICES)
+                        SEPARADOR_HASH_PROPOSICAO,
+                        validar_arquivo, YES_NO_CHOICES,
+                        GoogleRecapthaMixin)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, Numeracao,
@@ -211,8 +207,10 @@ class MateriaLegislativaForm(FileFieldCheckMixin, ModelForm):
 
         if protocolo:
             if not Protocolo.objects.filter(numero=protocolo, ano=ano).exists():
-                self.logger.warning("Protocolo %s/%s não existe" % (protocolo, ano))
-                raise ValidationError(_('Protocolo %s/%s não existe' % (protocolo, ano)))
+                self.logger.warning(
+                    "Protocolo %s/%s não existe" % (protocolo, ano))
+                raise ValidationError(
+                    _('Protocolo %s/%s não existe' % (protocolo, ano)))
 
             if protocolo_antigo != protocolo:
                 exist_materia = MateriaLegislativa.objects.filter(
@@ -317,7 +315,7 @@ class UnidadeTramitacaoForm(ModelForm):
         return unidade
 
 
-class AcompanhamentoMateriaForm(ModelForm):
+class AcompanhamentoMateriaForm(GoogleRecapthaMixin, ModelForm):
 
     class Meta:
         model = AcompanhamentoMateria
@@ -325,17 +323,10 @@ class AcompanhamentoMateriaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row([('email', 12)])
+        kwargs['title_label'] = _('Acompanhamento de Matéria por e-mail')
+        kwargs['action_label'] = _('Cadastrar')
 
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Acompanhamento de Matéria por e-mail'),
-                row1,
-                form_actions(label='Cadastrar')
-            )
-        )
-        super(AcompanhamentoMateriaForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
@@ -352,10 +343,16 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        arquivo = self.cleaned_data.get('arquivo', False)
+        arquivo = self.cleaned_data.get('arquivo')
 
         if arquivo:
             validar_arquivo(arquivo, "Texto Integral")
+        else:
+            ## TODO: definir arquivo no form e preservar o nome do campo
+            ## que gerou a mensagem de erro.
+            ## arquivo = forms.FileField(required=True, label="Texto Integral")
+            nome_arquivo = self.fields['arquivo'].label
+            raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
 
         return self.cleaned_data
 
@@ -370,6 +367,10 @@ class RelatoriaForm(ModelForm):
         label=_('Composição')
     )
 
+    tipo_unidade_tramitacao_destino = forms.CharField(required=False)
+
+    unidade_tramitacao_destino = forms.CharField(required=False)
+
     class Meta:
         model = Relatoria
         fields = [
@@ -381,7 +382,11 @@ class RelatoriaForm(ModelForm):
             'parlamentar'
         ]
 
-        widgets = {'comissao': forms.Select(attrs={'disabled': 'disabled'})}
+        widgets = {
+            'comissao': forms.Select(attrs={'disabled': 'disabled'}),
+            'tipo_unidade_tramitacao_destino': forms.HiddenInput(),
+            'unidade_tramitacao_destino': forms.HiddenInput(),
+        }
 
     def __init__(self, *args, **kwargs):
         row1 = to_row([('comissao', 12)])
@@ -464,7 +469,7 @@ class TramitacaoForm(ModelForm):
                   'user',
                   'ip',
                   'ultima_edicao']
-                
+
         widgets = {'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput(),
                    'ultima_edicao': forms.HiddenInput()}
@@ -517,7 +522,8 @@ class TramitacaoForm(ModelForm):
             if cleaned_data['data_tramitacao'] > timezone.now().date():
                 self.logger.warning('A data de tramitação informada ({}) não é menor ou igual a data de hoje!'
                                     .format(cleaned_data['data_tramitacao']))
-                msg = _('A data de tramitação deve ser menor ou igual a data de hoje!')
+                msg = _(
+                    'A data de tramitação deve ser menor ou igual a data de hoje!')
                 raise ValidationError(msg)
 
             if (ultima_tramitacao and
@@ -531,9 +537,10 @@ class TramitacaoForm(ModelForm):
 
         if data_enc_form:
             if data_enc_form < data_tram_form:
-                msg = _('A data de encaminhamento deve ser maior que a data de tramitação!')
+                msg = _(
+                    'A data de encaminhamento deve ser maior que a data de tramitação!')
                 self.logger.warning("A data de encaminhamento ({}) deve ser maior que a data de tramitação! ({})"
-                                  .format(data_enc_form, data_tram_form))
+                                    .format(data_enc_form, data_tram_form))
                 raise ValidationError(msg)
 
         if data_prazo_form:
@@ -547,6 +554,7 @@ class TramitacaoForm(ModelForm):
 
         return cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         tramitacao = super(TramitacaoForm, self).save(commit)
@@ -558,15 +566,19 @@ class TramitacaoForm(ModelForm):
             'tramitacao_materia')
         if tramitar_anexadas:
             lista_tramitacao = []
-            anexadas_list = lista_anexados(materia)
-            for ma in anexadas_list:
-                if not ma.tramitacao_set.all() \
-                        or ma.tramitacao_set.last().unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
-                    ma.em_tramitacao = False if tramitacao.status.indicador == "F" else True
-                    ma.save()
+            materias_anexadas = lista_anexados(materia)
+            for mat in materias_anexadas:
+                ultima_tramitacao = mat.tramitacao_set.\
+                    select_related('unidade_tramitacao_destino').\
+                    order_by('-data_tramitacao', '-id').first()
+                if not ultima_tramitacao or \
+                        ultima_tramitacao.unidade_tramitacao_destino \
+                        == tramitacao.unidade_tramitacao_local:
+                    mat.em_tramitacao = False if \
+                        tramitacao.status.indicador == "F" else True
                     lista_tramitacao.append(Tramitacao(
                         status=tramitacao.status,
-                        materia=ma,
+                        materia=mat,
                         data_tramitacao=tramitacao.data_tramitacao,
                         unidade_tramitacao_local=tramitacao.unidade_tramitacao_local,
                         data_encaminhamento=tramitacao.data_encaminhamento,
@@ -579,8 +591,10 @@ class TramitacaoForm(ModelForm):
                         ip=tramitacao.ip,
                         ultima_edicao=tramitacao.ultima_edicao
                     ))
+            ## TODO: BULK UPDATE não envia Signal para Tramitacao
             Tramitacao.objects.bulk_create(lista_tramitacao)
-
+            # Atualiza status 'em_tramitacao'
+            MateriaLegislativa.objects.bulk_update(materias_anexadas, ['em_tramitacao'])
         return tramitacao
 
 
@@ -659,14 +673,15 @@ class TramitacaoUpdateForm(TramitacaoForm):
                     'Você não pode mudar a Unidade de Destino desta '
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
-        
-        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
-            cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
-            cd['status'] != obj.status or cd['texto'] != obj.texto or \
-            cd['data_encaminhamento'] != obj.data_encaminhamento or \
-            cd['data_fim_prazo'] != obj.data_fim_prazo or cd['urgente'] != str(obj.urgente) or \
-            cd['turno'] != obj.turno):
-            ### Se não ocorreram alterações, o usuário, ip, data e hora da última edição (real) são mantidos
+
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or
+                cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or
+                cd['status'] != obj.status or cd['texto'] != obj.texto or
+                cd['data_encaminhamento'] != obj.data_encaminhamento or
+                cd['data_fim_prazo'] != obj.data_fim_prazo or cd['urgente'] != str(obj.urgente) or
+                cd['turno'] != obj.turno):
+            # Se não ocorreram alterações, o usuário, ip, data e hora da última
+            # edição (real) são mantidos
             cd['user'] = obj.user
             cd['ip'] = obj.ip
             cd['ultima_edicao'] = obj.ultima_edicao
@@ -676,6 +691,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
         return cd
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         ant_tram_principal = Tramitacao.objects.get(id=self.instance.id)
@@ -689,7 +705,8 @@ class TramitacaoUpdateForm(TramitacaoForm):
         if tramitar_anexadas:
             anexadas_list = lista_anexados(materia)
             for ma in anexadas_list:
-                tram_anexada = ma.tramitacao_set.last()
+                tram_anexada = ma.tramitacao_set.order_by(
+                    '-data_tramitacao', '-id').first()
                 if compara_tramitacoes_mat(ant_tram_principal, tram_anexada):
                     tram_anexada.status = nova_tram_principal.status
                     tram_anexada.data_tramitacao = nova_tram_principal.data_tramitacao
@@ -707,6 +724,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
                     ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     ma.save()
+                    ## TODO: refatorar?
         return nova_tram_principal
 
 
@@ -898,7 +916,8 @@ class AnexadaForm(ModelForm):
         except ObjectDoesNotExist:
             msg = _('A {} {}/{} não existe no cadastro de matérias legislativas.'
                     .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
-            self.logger.warning("A matéria a ser anexada não existe no cadastro de matérias legislativas.")
+            self.logger.warning(
+                "A matéria a ser anexada não existe no cadastro de matérias legislativas.")
             raise ValidationError(msg)
 
         materia_principal = self.instance.materia_principal
@@ -1109,7 +1128,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                      ),
             Fieldset(_('Origem externa'),
                      row10, row11
-                    ),
+                     ),
             Fieldset(_('Pesquisa Avançada'),
                      row3,
                      HTML(autor_label),
@@ -1635,7 +1654,6 @@ class TramitacaoEmLoteForm(ModelForm):
         widgets = {'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput(),
                    'ultima_edicao': forms.HiddenInput()}
-            
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoEmLoteForm, self).__init__(*args, **kwargs)
@@ -1737,7 +1755,8 @@ class TramitacaoEmLoteForm(ModelForm):
             if data_enc_form < data_tram_form:
                 self.logger.warning('A data de encaminhamento ({}) deve ser maior que a data de tramitação ({})!'
                                     .format(data_enc_form, data_tram_form))
-                msg = _('A data de encaminhamento deve ser maior que a data de tramitação!')
+                msg = _(
+                    'A data de encaminhamento deve ser maior que a data de tramitação!')
                 raise ValidationError(msg)
 
         if data_prazo_form:
@@ -1754,7 +1773,7 @@ class TramitacaoEmLoteForm(ModelForm):
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
-        
+
         materias = self.initial['materias']
         user = self.initial['user'] if 'user' in self.initial else None
         ip = self.initial['ip'] if 'ip' in self.initial else ''
@@ -1785,9 +1804,9 @@ class TramitacaoEmLoteForm(ModelForm):
                 lista_tramitacao = []
                 anexadas = lista_anexados(mat)
                 for ml in anexadas:
-                    if not ml.tramitacao_set.all() \
-                            or ml.tramitacao_set.last() \
-                            .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                    if not ml.tramitacao_set.order_by('-data_tramitacao', '-id').all() or \
+                            ml.tramitacao_set.order_by('-data_tramitacao', '-id').first().unidade_tramitacao_destino \
+                            == tramitacao.unidade_tramitacao_local:
                         ml.em_tramitacao = False if tramitacao.status.indicador == "F" else True
                         ml.save()
                         lista_tramitacao.append(Tramitacao(
@@ -1805,6 +1824,7 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 ip=tramitacao.ip,
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
+                ## TODO: BULK UPDATE não envia Signal para Tramitacao
                 Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
@@ -1979,6 +1999,10 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
         cd = self.cleaned_data
 
+        texto_original = cd.get('texto_original', False)
+        if texto_original:
+            validar_arquivo(texto_original, 'Texto Original')
+
         tm, am, nm = (cd.get('tipo_materia', ''),
                       cd.get('ano_materia', ''),
                       cd.get('numero_materia', ''))
@@ -2066,7 +2090,13 @@ class DevolverProposicaoForm(forms.ModelForm):
         fields = [
             'justificativa_devolucao',
             'observacao',
+            'user',
+            'ip'
         ]
+        widgets = {
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput(),
+        }
 
     def __init__(self, *args, **kwargs):
 
@@ -2121,6 +2151,13 @@ class DevolverProposicaoForm(forms.ModelForm):
             ta.editing_locked = False
             ta.save()
 
+        observacao = self.instance.justificativa_devolucao
+        HistoricoProposicao.objects.create(proposicao=self.instance,
+                                           status='D',
+                                           user=self.initial['user'],
+                                           ip=self.initial['ip'],
+                                           observacao=observacao)
+
         self.instance.results = {
             'messages': {
                 'success': [_('Devolução efetuada com sucesso.'), ]
@@ -2163,13 +2200,17 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             'observacao',
             'gerar_protocolo',
             'numero_de_paginas',
-            'numero_materia_futuro'
+            'numero_materia_futuro',
+            'user',
+            'ip'
         ]
         widgets = {
             'descricao': widgets.Textarea(
                 attrs={'readonly': 'readonly', 'rows': 4}),
             'data_envio':  widgets.DateTimeInput(
                 attrs={'readonly': 'readonly'}),
+            'user': forms.HiddenInput(),
+            'ip': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -2377,6 +2418,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         proposicao = self.instance
         conteudo_gerado = None
 
+        HistoricoProposicao.objects.create(proposicao=proposicao,
+                                           status='R',
+                                           user=self.initial['user'],
+                                           ip=self.initial['ip'],
+                                           )
+
         if self.instance.tipo.content_type.model_class(
         ) == TipoMateriaLegislativa:
 
@@ -2546,7 +2593,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 data_fim__year__gte=timezone.now().year).first()
             ano_inicio = legislatura.data_inicio.year
             ano_fim = legislatura.data_fim.year
-            nm = Protocolo.objects.filter(ano__gte=ano_inicio, ano__lte=ano_fim).aggregate(Max('numero'))
+            nm = Protocolo.objects.filter(
+                ano__gte=ano_inicio, ano__lte=ano_fim).aggregate(Max('numero'))
         else:
             # numeracao == 'U' ou não informada
             nm = Protocolo.objects.all().aggregate(Max('numero'))
@@ -2572,6 +2620,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             protocolo.tipo_processo = '0'
 
         protocolo.save()
+        HistoricoProposicao.objects.create(proposicao=proposicao,
+                                           status='E')
 
         self.instance.results['messages']['success'].append(_(
             'Protocolo realizado com sucesso'))
@@ -2773,6 +2823,30 @@ class FichaSelecionaForm(forms.Form):
         )
 
 
+class StatusTramitacaoFilterSet(django_filters.FilterSet):
+    descricao = django_filters.CharFilter(
+        label=_("Descrição do Status"), method='multifield_filter')
+
+    class Meta:
+        model = StatusTramitacao
+        fields = ["descricao"]
+
+    def multifield_filter(self, queryset, name, value):
+        return queryset.filter(Q(sigla__icontains=value) | Q(descricao__icontains=value))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row0 = to_row([("descricao", 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = "GET"
+        self.form.helper.layout = Layout(
+            Fieldset(_("Pesquisa de Status de Tramitacao"),
+                     row0, form_actions(label="Pesquisar"))
+        )
+
+
 class ExcluirTramitacaoEmLote(forms.Form):
 
     logger = logging.getLogger(__name__)
@@ -2913,3 +2987,9 @@ class MateriaPesquisaSimplesForm(forms.Form):
                     _('A Data Final não pode ser menor que a Data Inicial'))
 
         return cleaned_data
+
+
+class ConfigEtiquetaMateriaLegislativaForms(ModelForm):
+    class Meta:
+        model = ConfigEtiquetaMateriaLegislativa
+        fields = '__all__'

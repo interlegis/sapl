@@ -1,26 +1,25 @@
 import logging
 import os
 
-
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
                                        SetPasswordForm)
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group, User, Permission
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.forms import Form, ModelForm
 from django.utils import timezone
-from django.utils.translation import string_concat
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
 from sapl.audiencia.models import AudienciaPublica
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Reuniao
 from sapl.crispy_layout_mixin import (form_actions, to_column, to_row,
                                       SaplFormHelper, SaplFormLayout)
@@ -28,16 +27,18 @@ from sapl.materia.models import (DocumentoAcessorio, MateriaEmTramitacao,
                                  MateriaLegislativa, UnidadeTramitacao,
                                  StatusTramitacao)
 from sapl.norma.models import NormaJuridica
-from sapl.parlamentares.models import Partido, SessaoLegislativa
+from sapl.parlamentares.models import Partido, SessaoLegislativa,\
+    Parlamentar, Votante
 from sapl.protocoloadm.models import DocumentoAdministrativo
+from sapl.rules import SAPL_GROUP_AUTOR, SAPL_GROUP_VOTANTE
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         choice_anos_com_normas, choice_anos_com_materias,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
-                        AnoNumeroOrderingFilter, ImageThumbnailFileInput,
-                        models_with_gr_for_model, qs_override_django_filter,
-                        RangeWidgetOverride, RANGE_ANOS, YES_NO_CHOICES)
+                        ImageThumbnailFileInput, qs_override_django_filter,
+                        RANGE_ANOS, YES_NO_CHOICES,
+                        GoogleRecapthaMixin, parlamentares_ativos)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -57,202 +58,272 @@ STATUS_USER_CHOICE = [
 ]
 
 
-def get_roles():
-    roles = [(g.id, g.name) for g in Group.objects.all().order_by('name')
-             if g.name != 'Votante']
-    return roles
+class UserAdminForm(ModelForm):
 
+    is_active = forms.TypedChoiceField(label=_('Usuário Ativo'),
+                                       choices=YES_NO_CHOICES,
+                                       coerce=lambda x: x == 'True')
 
-class UsuarioCreateForm(ModelForm):
-    logger = logging.getLogger(__name__)
-    firstname = forms.CharField(
-        required=True,
-        label="Nome",
-        max_length=30
-    )
-    lastname = forms.CharField(
-        required=True,
-        label="Sobrenome",
-        max_length=30
-    )
-    password1 = forms.CharField(
-        required=True,
-        widget=forms.PasswordInput,
-        label='Senha',
-        min_length=6,
-        max_length=128
-    )
-    password2 = forms.CharField(
-        required=True,
-        widget=forms.PasswordInput,
+    new_password1 = forms.CharField(
+        label='Nova senha',
+        max_length=50,
+        strip=False,
+        required=False,
+        widget=forms.PasswordInput(),
+        help_text='Deixe os campos em branco para não fazer alteração de senha')
+
+    new_password2 = forms.CharField(
         label='Confirmar senha',
-        min_length=6,
-        max_length=128
-    )
-    user_active = forms.ChoiceField(
-        required=True,
-        choices=YES_NO_CHOICES,
-        label="Usuário ativo?",
-        initial='True'
-    )
-    roles = forms.MultipleChoiceField(
-        required=True,
-        widget=forms.CheckboxSelectMultiple(),
-        choices=get_roles
-    )
-
-    class Meta:
-        model = get_user_model()
-        fields = [
-            get_user_model().USERNAME_FIELD, 'firstname', 'lastname',
-            'password1', 'password2', 'user_active', 'roles'
-        ] + (['email']
-             if get_user_model().USERNAME_FIELD != 'email' else [])
-
-    def clean(self):
-        super().clean()
-
-        if not self.is_valid():
-            return self.cleaned_data
-
-        data = self.cleaned_data
-        if data['password1'] != data['password2']:
-            self.logger.warn('Erro de validação. Senhas informadas são diferentes.')
-            raise ValidationError('Senhas informadas são diferentes')
-
-        return data
-
-    def __init__(self, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        row0 = to_row([('username', 12)])
-
-        row1 = to_row([('firstname', 6),
-                       ('lastname', 6)])
-
-        row2 = to_row([('email', 6),
-                       ('user_active', 6)])
-        row3 = to_row(
-            [('password1', 6),
-             ('password2', 6)])
-
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            row0,
-            row1,
-            row3,
-            row2,
-            'roles',
-            form_actions(label='Confirmar'))
-
-
-class UsuarioFilterSet(django_filters.FilterSet):
-
-    username = django_filters.CharFilter(
-        label=_('Nome de Usuário'),
-        lookup_expr='icontains')
-
-    class Meta:
-        model = User
-        fields = ['username']
-
-    def __init__(self, *args, **kwargs):
-        super(UsuarioFilterSet, self).__init__(*args, **kwargs)
-
-        row0 = to_row([('username', 12)])
-
-        self.form.helper = SaplFormHelper()
-        self.form.helper.form_method = 'GET'
-        self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa de Usuário'),
-                     row0,
-                     form_actions(label='Pesquisar'))
-        )
-
-
-class UsuarioEditForm(ModelForm):
-    logger = logging.getLogger(__name__)
-    # ROLES = [(g.id, g.name) for g in Group.objects.all().order_by('name')]
-    ROLES = []
+        max_length=50,
+        strip=False,
+        required=False,
+        widget=forms.PasswordInput(),
+        help_text='Deixe os campos em branco para não fazer alteração de senha')
 
     token = forms.CharField(
         required=False,
         label="Token",
         max_length=40,
         widget=forms.TextInput(attrs={'readonly': 'readonly'}))
-    first_name = forms.CharField(
+
+    parlamentar = forms.ModelChoiceField(
+        label=_('Este usuário é um Parlamentar Votante?'),
+        queryset=Parlamentar.objects.all(),
         required=False,
-        label="Nome",
-        max_length=30)
-    last_name = forms.CharField(
+        help_text='Se o usuário que está sendo cadastrado (ou em edição) é um usuário para que um parlamentar possa votar, você pode selecionar o parlamentar nas opções acima.')
+
+    autor = forms.ModelChoiceField(
+        label=_('Este usuário registrará proposições para um Autor?'),
+        queryset=Autor.objects.all(),
         required=False,
-        label="Sobrenome",
-        max_length=30)
-    password1 = forms.CharField(
-        required=False,
-        widget=forms.PasswordInput,
-        label='Senha')
-    password2 = forms.CharField(
-        required=False, widget=forms.PasswordInput,
-        label='Confirmar senha')
-    user_active = forms.ChoiceField(
-        choices=YES_NO_CHOICES,
-        required=True,
-        label="Usuário ativo?",
-        initial='True')
-    roles = forms.MultipleChoiceField(
-        required=True,
-        widget=forms.CheckboxSelectMultiple(),
-        choices=get_roles)
+        help_text='Se o usuário que está sendo cadastrado (ou em edição) é um usuário para cadastro de proposições, você pode selecionar para que autor ele registrará proposições.')
 
     class Meta:
         model = get_user_model()
         fields = [
             get_user_model().USERNAME_FIELD,
-            "token",
-            "first_name",
-            "last_name",
-            'password1',
-            'password2',
-            'user_active',
-            'roles']
+            'first_name',
+            'last_name',
+            'is_active',
+
+            'token',
+
+            'new_password1',
+            'new_password2',
+
+            'parlamentar',
+            'autor',
+
+            'groups',
+            'user_permissions',
+        ]
 
         if get_user_model().USERNAME_FIELD != 'email':
             fields.extend(['email'])
 
     def __init__(self, *args, **kwargs):
-        super(UsuarioEditForm, self).__init__(*args, **kwargs)
 
-        rows = to_row((
+        self.user_session = kwargs.pop('user_session', None)
+        self.granular = kwargs.pop('granular', None)
+        self.instance = kwargs.get('instance', None)
+
+        row_pwd = [
+            ('username', 4),
+            ('email', 6),
+            ('is_active', 2),
             ('first_name', 6),
             ('last_name', 6),
-            ('email', 6),
-            ('user_active', 6),
-            ('password1', 6),
-            ('password2', 6),
-            ('roles', 12)))
+            ('new_password1', 3 if self.instance and self.instance.pk else 6),
+            ('new_password2', 3 if self.instance and self.instance.pk else 6),
+        ]
+
+        if self.instance and self.instance.pk:
+            row_pwd += [
+                (
+                    FieldWithButtons(
+                        'token',
+                        StrictButton(
+                            'Renovar',
+                            id="renovar-token",
+                            css_class="btn-outline-primary"),
+                        css_class='' if self.instance and self.instance.pk else 'd-none'),
+                    6
+                )
+            ]
+
+        row_pwd += [
+
+            ('parlamentar', 6),
+            ('autor', 6),
+            ('groups', 12),
+
+        ] + ([('user_permissions', 12)] if not self.granular is None else [])
+
+        row_pwd = to_row(row_pwd)
 
         self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            'username',
-            FieldWithButtons('token', StrictButton('Renovar', id="renovar-token", css_class="btn-outline-primary")),
-            rows,
-            form_actions(
-                more=[
-                    HTML("<a href='{% url 'sapl.base:user_detail' object.pk %}' "
-                         "class='btn btn-dark'>Cancelar</a>")],
-                label='Salvar Alterações'))
+        self.helper.layout = SaplFormLayout(row_pwd)
+        super(UserAdminForm, self).__init__(*args, **kwargs)
+
+        self.fields['groups'].widget = forms.CheckboxSelectMultiple()
+
+        self.fields['parlamentar'].choices = [('', '---------')] + [
+            (p.id, p) for p in parlamentares_ativos(timezone.now())
+        ]
+
+        if not self.instance.pk:
+            self.fields['groups'].choices = [
+                (g.id, g) for g in Group.objects.exclude(
+                    name__in=['Autor', 'Votante']
+                ).order_by('name')
+            ]
+
+        else:
+            operadorautor = self.instance.operadorautor_set.first()
+            votante = self.instance.votante_set.first()
+            self.fields['token'].initial = self.instance.auth_token.key
+            self.fields['autor'].initial = operadorautor.autor if operadorautor else None
+            self.fields['parlamentar'].initial = votante.parlamentar if votante else None
+
+            self.fields['groups'].choices = [
+                (g.id, g) for g in self.instance.groups.exclude(
+                    name__in=['Autor', 'Votante']
+                ).order_by('name')
+            ] + [
+                (g.id, g) for g in Group.objects.exclude(
+                    user=self.instance).exclude(
+                        name__in=['Autor', 'Votante']
+                ).order_by('name')
+            ]
+
+            self.fields[
+                'user_permissions'].widget = forms.CheckboxSelectMultiple()
+
+            if not self.granular is None:
+                self.fields['user_permissions'].choices = [
+                    (p.id, p) for p in self.instance.user_permissions.all(
+                    ).order_by('content_type__app_label',
+                               'content_type__model',
+                               'codename')
+                ] + [
+                    (p.id, p) for p in Permission.objects.filter(
+                        content_type__app_label__in=list(
+                            map(lambda x: x.split('.')[-1], settings.SAPL_APPS))
+                    ).exclude(
+                        user=self.instance
+                    ).order_by('content_type__app_label',
+                               'content_type__model',
+                               'codename')
+                ]
+
+    def save(self, commit=True):
+        if self.cleaned_data['new_password1']:
+            self.instance.set_password(self.cleaned_data['new_password1'])
+        permissions = None
+        votante = None
+        operadorautor = None
+        if self.instance.id:
+            inst_old = get_user_model().objects.get(pk=self.instance.pk)
+            if self.granular is None:
+                permissions = list(inst_old.user_permissions.all())
+
+            votante = inst_old.votante_set.first()
+            operadorautor = inst_old.operadorautor_set.first()
+
+        inst = super().save(commit)
+
+        if permissions:
+            inst.user_permissions.add(*permissions)
+
+        g_autor = Group.objects.get(name=SAPL_GROUP_AUTOR)
+        g_votante = Group.objects.get(name=SAPL_GROUP_VOTANTE)
+
+        if not self.cleaned_data['autor']:
+            inst.groups.remove(g_autor)
+            if operadorautor:
+                operadorautor.delete()
+        else:
+            inst.groups.add(g_autor)
+            if operadorautor:
+                if operadorautor.autor != self.cleaned_data['autor']:
+                    operadorautor.autor = self.cleaned_data['autor']
+                    operadorautor.save()
+            else:
+                operadorautor = OperadorAutor()
+                operadorautor.user = inst
+                operadorautor.autor = self.cleaned_data['autor']
+                operadorautor.save()
+
+        if not self.cleaned_data['parlamentar']:
+            inst.groups.remove(g_votante)
+            if votante:
+                votante.delete()
+        else:
+            inst.groups.add(g_votante)
+            if votante:
+                if votante.parlamentar != self.cleaned_data['parlamentar']:
+                    votante.parlamentar = self.cleaned_data['parlamentar']
+                    votante.save()
+            else:
+                votante = Votante()
+                votante.user = inst
+                votante.parlamentar = self.cleaned_data['parlamentar']
+                votante.save()
+
+        return inst
 
     def clean(self):
-        super().clean()
-        if not self.is_valid():
-            return self.cleaned_data
+        data = super().clean()
 
-        data = self.cleaned_data
-        if data['password1'] and data['password1'] != data['password2']:
-            self.logger.warn("Erro de validação. Senhas informadas são diferentes.")
-            raise ValidationError('Senhas informadas são diferentes')
+        if self.errors:
+            return data
+
+        new_password1 = data.get('new_password1', '')
+        new_password2 = data.get('new_password2', '')
+
+        if new_password1 != new_password2:
+            raise forms.ValidationError(
+                _("As senhas informadas são diferentes"),
+            )
+        else:
+            if new_password1 and new_password2:
+                password_validation.validate_password(
+                    new_password2, self.instance)
+
+        parlamentar = data.get('parlamentar', None)
+        if parlamentar and parlamentar.votante_set.exists() and \
+                parlamentar.votante_set.first().user != self.instance:
+            raise forms.ValidationError(
+                mark_safe(
+                    'O Parlamentar <strong>{}</strong> '
+                    'já está associado a outro usuário: <strong>{}</strong>.<br>'
+                    'Para realizar nova associação, você precisa '
+                    'primeiro cancelar esta já existente.'.format(
+                        parlamentar,
+                        parlamentar.votante_set.first().user
+                    ))
+            )
+
+        autor = data.get('autor', None)
+        if parlamentar and autor:
+            if autor.autor_related != parlamentar:
+                raise forms.ValidationError(
+                    'Um usuário não deve ser Votante de um parlamentar, e operador de um Autor que possui um parlamentar diferente, ou mesmo outro tipo de Autor.'
+                )
+
+        """
+        
+        if 'email' in data and data['email']:
+            duplicidade = get_user_model().objects.filter(email=data['email'])
+            if self.instance.id:
+                duplicidade = duplicidade.exclude(id=self.instance.id)
+
+            if duplicidade.exists():
+                raise forms.ValidationError(
+                    "Email já cadastrado para: {}".format(
+                        ', '.join(map(lambda x: str(x), duplicidade.all())),
+                    )
+                )"""
 
         return data
 
@@ -314,26 +385,28 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
         ult = 0
 
         if numero <= ult and flag_edit:
-            self.logger.warn(
+            self.logger.warning(
                 'O número da SessaoLegislativa ({}) é menor ou igual '
-                'que o de Sessões Legislativas passadas ({})'.format(numero, ult)
+                'que o de Sessões Legislativas passadas ({})'.format(
+                    numero, ult)
             )
             raise ValidationError('O número da Sessão Legislativa não pode ser menor ou igual '
                                   'que o de Sessões Legislativas passadas')
 
         if data_inicio < data_inicio_leg or \
                 data_inicio > data_fim_leg:
-            self.logger.warn(
+            self.logger.warning(
                 'A data de início ({}) da SessaoLegislativa está compreendida '
                 'fora da data início ({}) e fim ({}) da Legislatura '
-                'selecionada'.format(data_inicio, data_inicio_leg, data_fim_leg)
+                'selecionada'.format(
+                    data_inicio, data_inicio_leg, data_fim_leg)
             )
             raise ValidationError('A data de início da Sessão Legislativa deve estar compreendida '
                                   'entre a data início e fim da Legislatura selecionada')
 
         if data_fim > data_fim_leg or \
                 data_fim < data_inicio_leg:
-            self.logger.warn(
+            self.logger.warning(
                 'A data de fim ({}) da SessaoLegislativa está compreendida '
                 'fora da data início ({}) e fim ({}) da Legislatura '
                 'selecionada.'.format(data_fim, data_inicio_leg, data_fim_leg)
@@ -342,20 +415,26 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
                                   'entre a data início e fim da Legislatura selecionada')
 
         if data_inicio > data_fim:
-            self.logger.warn(
-                'Data início ({}) superior à data fim ({}).'.format(data_inicio, data_fim)
+            self.logger.warning(
+                'Data início ({}) superior à data fim ({}).'.format(
+                    data_inicio, data_fim)
             )
             raise ValidationError(
                 'Data início não pode ser superior à data fim')
+
+        if data_fim.year > data_inicio.year + 1:
+            raise ValidationError(
+                'A Sessão Legislativa só pode ter, no máximo, dois anos de período.')
 
         data_inicio_intervalo = cleaned_data['data_inicio_intervalo']
         data_fim_intervalo = cleaned_data['data_fim_intervalo']
 
         if data_inicio_intervalo and data_fim_intervalo and \
                 data_inicio_intervalo > data_fim_intervalo:
-            self.logger.warn(
+            self.logger.warning(
                 'Data início de intervalo ({}) superior à '
-                'data fim de intervalo ({}).'.format(data_inicio_intervalo, data_fim_intervalo)
+                'data fim de intervalo ({}).'.format(
+                    data_inicio_intervalo, data_fim_intervalo)
             )
             raise ValidationError('Data início de intervalo não pode ser '
                                   'superior à data fim de intervalo')
@@ -365,7 +444,7 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
                     data_inicio_intervalo < data_inicio_leg or \
                     data_inicio_intervalo > data_fim or \
                     data_inicio_intervalo > data_fim_leg:
-                self.logger.warn(
+                self.logger.warning(
                     'A data de início do intervalo ({}) não está compreendida entre '
                     'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
                     'própria Sessão Legislativa ({} e {}).'.format(
@@ -380,7 +459,7 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
                     data_fim_intervalo > data_fim_leg or \
                     data_fim_intervalo < data_inicio or \
                     data_fim_intervalo < data_inicio_leg:
-                self.logger.warn(
+                self.logger.warning(
                     'A data de fim do intervalo ({}) não está compreendida entre '
                     'as datas de início ({}) e fim ({}) tanto da Legislatura quanto da '
                     'própria Sessão Legislativa ({} e {}).'.format(
@@ -453,13 +532,8 @@ class AutorForm(ModelForm):
         required=False,
         label=_('Confirmar Email'))
 
-    username = forms.CharField(label=get_user_model()._meta.get_field(
-        get_user_model().USERNAME_FIELD).verbose_name.capitalize(),
-        required=False,
-        max_length=50)
-
     q = forms.CharField(
-        max_length=50, required=False,
+        max_length=120, required=False,
         label='Pesquise o nome do Autor com o '
         'tipo Selecionado e marque o escolhido.')
 
@@ -467,10 +541,14 @@ class AutorForm(ModelForm):
                                                  required=False,
                                                  widget=forms.RadioSelect())
 
-    action_user = forms.ChoiceField(
-        label=_('Usuário com acesso ao Sistema para este Autor'),
-        choices=ACTION_CREATE_USERS_AUTOR_CHOICE,
-        widget=forms.RadioSelect())
+    operadores = forms.ModelMultipleChoiceField(
+        queryset=get_user_model().objects.all(),
+        widget=forms.CheckboxSelectMultiple(),
+        label=_('Usuários do SAPL ligados ao autor acima selecionado'),
+        required=False,
+        help_text=_(
+            'Para ser listado aqui, o usuário não pode estar em nenhum outro autor e deve estar marcado como ativo.')
+    )
 
     class Meta:
         model = Autor
@@ -479,8 +557,8 @@ class AutorForm(ModelForm):
                   'cargo',
                   'autor_related',
                   'q',
-                  'action_user',
-                  'username']
+                  'operadores'
+                  ]
 
     def __init__(self, *args, **kwargs):
 
@@ -506,34 +584,41 @@ class AutorForm(ModelForm):
                                Field('autor_related'),
                                css_class='radiogroup-autor-related hidden'),
                                12)))
-
-        row2 = Row(to_column((InlineRadios('action_user'), 8)),
-                   to_column((Div('username'), 4)))
-
-        row3 = Row(to_column(('senha', 3)),
-                   to_column(('senha_confirma', 3)),
-                   to_column(('email', 3)),
-                   to_column(('confirma_email', 3)),
-                   css_class='new_user_fields hidden')
-
-        row4 = Row(to_column((
-            Div(InlineRadios('status_user'),
-                css_class='radiogroup-status hidden'),
-            12))) if 'status_user' in self.Meta.fields else None
-
-        controle_acesso = [row2, row3]
-
-        if row4:
-            controle_acesso.append(row4)
-        controle_acesso = Fieldset(_('Controle de Acesso do Autor'),
-                                   *controle_acesso)
+        operadores_select = to_row(
+            [
+                ('operadores', 12)
+            ]
+        )
 
         self.helper = SaplFormHelper()
-        self.helper.layout = SaplFormLayout(autor_select, controle_acesso)
+        self.helper.layout = SaplFormLayout(autor_select, *operadores_select)
 
         super(AutorForm, self).__init__(*args, **kwargs)
 
-        self.fields['action_user'].initial = 'N'
+        self.fields['operadores'].choices = [
+            (
+                u.id,
+                u.username,
+                u
+            )
+            for u in get_user_model().objects.filter(
+                operadorautor_set__autor=self.instance
+            ).order_by('-is_active',
+                       get_user_model().USERNAME_FIELD
+                       ) if self.instance.id
+        ] + [
+            (
+                u.id,
+                u.username,
+                u
+            )
+            for u in get_user_model().objects.filter(
+                operadorautor_set__isnull=True,
+                is_active=True
+            ).order_by('-is_active',
+                       get_user_model().USERNAME_FIELD
+                       )
+        ]
 
         if self.instance.pk:
             if self.instance.autor_related:
@@ -545,42 +630,9 @@ class AutorForm(ModelForm):
 
             self.fields['autor_related'].initial = self.instance.autor_related
 
-            if self.instance.user:
-                self.fields['username'].initial = getattr(
-                    self.instance.user,
-                    get_user_model().USERNAME_FIELD)
-                self.fields['action_user'].initial = 'A'
-
-                self.fields['username'].label = string_concat(
-                    self.fields['username'].label,
-                    ' (', getattr(
-                        self.instance.user,
-                        get_user_model().USERNAME_FIELD), ')')
-
-                if 'status_user' in self.Meta.fields:
-                    self.fields['status_user'].initial = 'R'
-                    self.fields['status_user'].label = string_concat(
-                        self.fields['status_user'].label,
-                        ' (', getattr(
-                            self.instance.user,
-                            get_user_model().USERNAME_FIELD), ')')
-
-            self.fields['username'].widget.attrs.update({
-                'data': getattr(
-                    self.instance.user,
-                    get_user_model().USERNAME_FIELD)
-                if self.instance.user else ''})
-
-            if 'status_user' in self.Meta.fields:
-                self.fields['status_user'].widget.attrs.update({
-                    'data': getattr(
-                        self.instance.user,
-                        get_user_model().USERNAME_FIELD)
-                    if self.instance.user else ''})
-
     def valida_igualdade(self, texto1, texto2, msg):
         if texto1 != texto2:
-            self.logger.warn(
+            self.logger.warning(
                 'Textos diferentes. ("{}" e "{}")'.format(texto1, texto2)
             )
             raise ValidationError(msg)
@@ -592,92 +644,29 @@ class AutorForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        User = get_user_model()
         cd = self.cleaned_data
 
-        if 'action_user' not in cd or not cd['action_user']:
-            self.logger.warn(
-                'Não Informado se o Autor terá usuário '
-                'vinculado para acesso ao Sistema.'
-            )
-            raise ValidationError(_('Informe se o Autor terá usuário '
-                                    'vinculado para acesso ao Sistema.'))
-
-        if 'status_user' in self.Meta.fields:
-            if self.instance.pk and self.instance.user_id:
-                if getattr(
-                        self.instance.user,
-                        get_user_model().USERNAME_FIELD) != cd['username']:
-                    if 'status_user' not in cd or not cd['status_user']:
-                        self.logger.warn(
-                            'Foi trocado ou removido o usuário deste Autor ({}), '
-                            'mas não foi informado como se deve proceder '
-                            'com o usuário que está sendo desvinculado? ({})'.format(
-                                cd['username'], get_user_model().USERNAME_FIELD
-                            )
-                        )
-                        raise ValidationError(
-                            _('Foi trocado ou removido o usuário deste Autor, '
-                              'mas não foi informado como se deve proceder '
-                              'com o usuário que está sendo desvinculado?'))
-
-        qs_user = User.objects.all()
         qs_autor = Autor.objects.all()
 
         if self.instance.pk:
             qs_autor = qs_autor.exclude(pk=self.instance.pk)
-            if self.instance.user:
-                qs_user = qs_user.exclude(pk=self.instance.user.pk)
 
-        if cd['action_user'] == 'A':
-            param_username = {get_user_model().USERNAME_FIELD: cd['username']}
-            if not User.objects.filter(**param_username).exists():
-                self.logger.warn(
-                    'Não existe usuário com username "%s". ' % cd['username']
-                )
-                raise ValidationError(
-                    _('Não existe usuário com username "%s". '
-                      'Para utilizar esse username você deve selecionar '
-                      '"Criar novo Usuário".') % cd['username'])
-
-        if cd['action_user'] != 'N':
-
-            if 'username' not in cd or not cd['username']:
-                self.logger.warn('Username não informado.')
-                raise ValidationError(_('O username deve ser informado.'))
-
-            param_username = {
-                'user__' + get_user_model().USERNAME_FIELD: cd['username']}
-
-            autor_vinculado = qs_autor.filter(**param_username)
-            if autor_vinculado.exists():
-                nome = autor_vinculado[0].nome
-                error_msg = 'Já existe um autor para este ' \
-                            'usuário ({}): {}'.format(cd['username'], nome)
-                self.logger.warn(error_msg)
-                raise ValidationError(_(error_msg))
-
-        """
-        'if' não é necessário por ser campo obrigatório e o framework já
-        mostrar a mensagem de obrigatório junto ao campo. mas foi colocado
-        ainda assim para renderizar um message.danger no topo do form.
-        """
         if 'tipo' not in cd or not cd['tipo']:
-            self.logger.warn('Tipo do Autor não selecionado.')
+            self.logger.warning('Tipo do Autor não selecionado.')
             raise ValidationError(
                 _('O Tipo do Autor deve ser selecionado.'))
 
         tipo = cd['tipo']
         if not tipo.content_type:
             if 'nome' not in cd or not cd['nome']:
-                self.logger.warn('Nome do Autor não informado.')
+                self.logger.warning('Nome do Autor não informado.')
                 raise ValidationError(
                     _('O Nome do Autor deve ser informado.'))
             elif qs_autor.filter(nome=cd['nome']).exists():
                 raise ValidationError("Autor '%s' já existente!" % cd['nome'])
         else:
             if 'autor_related' not in cd or not cd['autor_related']:
-                self.logger.warn(
+                self.logger.warning(
                     'Registro de %s não escolhido para ser '
                     'vinculado ao cadastro de Autor' % tipo.descricao
                 )
@@ -687,7 +676,7 @@ class AutorForm(ModelForm):
 
             if not tipo.content_type.model_class().objects.filter(
                     pk=cd['autor_related']).exists():
-                self.logger.warn(
+                self.logger.warning(
                     'O Registro definido (%s-%s) não está na base '
                     'de %s.' % (cd['autor_related'], cd['q'], tipo.descricao)
                 )
@@ -700,7 +689,7 @@ class AutorForm(ModelForm):
                 content_type_id=cd['tipo'].content_type_id)
             if qs_autor_selected.exists():
                 autor = qs_autor_selected.first()
-                self.logger.warn(
+                self.logger.warning(
                     'Já existe um autor Cadastrado para '
                     '%s' % autor.autor_related
                 )
@@ -711,21 +700,8 @@ class AutorForm(ModelForm):
         return self.cleaned_data
 
     @transaction.atomic
-    def save(self, commit=False):
-        autor = super(AutorForm, self).save(commit)
-
-        user_old = autor.user if autor.user_id else None
-
-        u = None
-        param_username = {
-            get_user_model().USERNAME_FIELD: self.cleaned_data['username']}
-        if self.cleaned_data['action_user'] == 'A':
-            u = get_user_model().objects.get(**param_username)
-            if not u.is_active:
-                u.is_active = settings.DEBUG
-                u.save()
-
-        autor.user = u
+    def save(self, commit=True):
+        autor = self.instance
 
         if not autor.tipo.content_type:
             autor.content_type = None
@@ -736,39 +712,14 @@ class AutorForm(ModelForm):
             ).objects.get(pk=self.cleaned_data['autor_related'])
             autor.nome = str(autor.autor_related)
 
-        autor.save()
-
-        # FIXME melhorar captura de grupo de Autor, levando em conta,
-        # no mínimo, a tradução.
-        grupo = Group.objects.filter(name='Autor')[0]
-        if self.cleaned_data['action_user'] != 'N':
-            autor.user.groups.add(grupo)
-            if user_old and user_old != autor.user:
-                user_old.groups.remove(grupo)
-
-        else:
-            if 'status_user' in self.Meta.fields:
-                if 'status_user' in self.cleaned_data and user_old:
-                    if self.cleaned_data['status_user'] == 'X':
-                        user_old.delete()
-
-                    elif self.cleaned_data['status_user'] == 'D':
-                        user_old.groups.remove(grupo)
-                        user_old.is_active = False
-                        user_old.save()
-
-                    elif self.cleaned_data['status_user'] == 'R':
-                        user_old.groups.remove(grupo)
-                elif user_old:
-                    user_old.groups.remove(grupo)
-            elif user_old:
-                user_old.groups.remove(grupo)
+        autor = super(AutorForm, self).save(commit)
 
         return autor
 
 
 class AutorFilterSet(django_filters.FilterSet):
-    nome = django_filters.CharFilter(label=_('Nome do Autor'), lookup_expr='icontains')
+    nome = django_filters.CharFilter(
+        label=_('Nome do Autor'), lookup_expr='icontains')
 
     class Meta:
         model = Autor
@@ -787,26 +738,36 @@ class AutorFilterSet(django_filters.FilterSet):
                      form_actions(label='Pesquisar')))
 
 
-class AutorFormForAdmin(AutorForm):
-    status_user = forms.ChoiceField(
-        label=_('Bloqueio do Usuário Existente'),
-        choices=STATUS_USER_CHOICE,
-        widget=forms.RadioSelect(),
-        required=False,
-        help_text=_('Se vc está trocando ou removendo o usuário deste Autor, '
-                    'como o Sistema deve proceder com o usuário que está sendo'
-                    ' desvinculado?'))
+class OperadorAutorForm(ModelForm):
 
     class Meta:
-        model = Autor
-        fields = ['tipo',
-                  'nome',
-                  'cargo',
-                  'autor_related',
-                  'q',
-                  'action_user',
-                  'username',
-                  'status_user']
+        model = OperadorAutor
+        fields = ['user', ]
+
+    def __init__(self, *args, **kwargs):
+
+        row = to_row([('user', 12)])
+
+        self.helper = SaplFormHelper()
+        self.helper.layout = SaplFormLayout(
+            Fieldset(_('Operador'), row))
+
+        super(OperadorAutorForm, self).__init__(*args, **kwargs)
+
+        self.fields['user'].choices = [
+            (
+                u.id,
+                '{} - {} - {}'.format(
+                    u.get_full_name(),
+                    getattr(u, u.USERNAME_FIELD),
+                    u.email
+                )
+            )
+            for u in get_user_model().objects.all().order_by(
+                get_user_model().USERNAME_FIELD
+            )
+        ]
+        self.fields['user'].widget = forms.RadioSelect()
 
 
 class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
@@ -1063,16 +1024,23 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
                   'legislatura']
 
     def __init__(self, *args, **kwargs):
-        super(RelatorioPresencaSessaoFilterSet, self).__init__(
-            *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(required=False,
-                                                                  label='Exibir presença das Ordens do Dia')
+        self.form.fields['exibir_ordem_dia'] = forms.BooleanField(
+            required=False, label='Exibir presença das Ordens do Dia')
         self.form.initial['exibir_ordem_dia'] = True
 
-        self.filters['data_inicio'].label = 'Período (Inicial - Final)'
+        self.form.fields['exibir_somente_titular'] = forms.BooleanField(
+            required=False, label='Exibir somente parlamentares titulares')
+        self.form.initial['exibir_somente_titular'] = False
+
+        self.form.fields['exibir_somente_ativo'] = forms.BooleanField(
+            required=False, label='Exibir somente parlamentares ativos')
+        self.form.initial['exibir_somente_ativo'] = False
 
         self.form.fields['legislatura'].required = True
+
+        self.filters['data_inicio'].label = 'Período (Inicial - Final)'
 
         tipo_sessao_ordinaria = self.filters['tipo'].queryset.filter(
             nome='Ordinária')
@@ -1082,17 +1050,19 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
         row1 = to_row([('legislatura', 4),
                        ('sessao_legislativa', 4),
                        ('tipo', 4)])
-        row2 = to_row([('exibir_ordem_dia', 12)])
+        row2 = to_row([('exibir_ordem_dia', 12),
+                       ('exibir_somente_titular', 12),
+                       ('exibir_somente_ativo', 12)])
         row3 = to_row([('data_inicio', 12)])
 
         buttons = FormActions(
             *[
                 HTML('''
-                                    <div class="form-check">
-                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
-                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
-                                    </div>
-                                ''')
+                        <div class="form-check">
+                            <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                            <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                        </div>
+                    ''')
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
@@ -1338,7 +1308,6 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         label='Autor da Matéria',
         queryset=Autor.objects.all())
 
-
     @property
     def qs(self):
         parent = super(RelatorioMateriasTramitacaoFilterSet, self).qs
@@ -1350,7 +1319,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         model = MateriaEmTramitacao
         fields = ['materia__ano', 'materia__tipo',
                   'tramitacao__unidade_tramitacao_destino',
-                  'tramitacao__status','materia__autores']
+                  'tramitacao__status', 'materia__autores']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioMateriasTramitacaoFilterSet, self).__init__(
@@ -1382,7 +1351,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
-                     row1, row2, row3, row4,row5,
+                     row1, row2, row3, row4, row5,
                      buttons,)
         )
 
@@ -1549,10 +1518,32 @@ class ConfiguracoesAppForm(ModelForm):
         label=_('Mostrar brasão da Casa no painel?'),
         required=False)
 
+    google_recaptcha_site_key = forms.CharField(
+        label=AppConfig._meta.get_field(
+            'google_recaptcha_site_key').verbose_name,
+        max_length=256,
+        required=False,
+        help_text=_(
+            'Acesse <a target="_blank" href="https://www.google.com/recaptcha">https://www.google.com/recaptcha</a> '
+            'para configurar um Recaptcha para sua casa legislativa. '
+            'Com Recaptcha configurado seu sapl disponibilizará '
+            'Acompanhamentos de Matérias e Documentos Administrativos '
+            'e Recuperação de Senha pela opção "Esqueceu sua Senha" '
+            'na tela de login. Esta melhoria na foi necessária com o '
+            'intuito de coibir recorrentes ataques ao serviço de email.'),
+    )
+
+    google_recaptcha_secret_key = forms.CharField(
+        label=AppConfig._meta.get_field(
+            'google_recaptcha_secret_key').verbose_name,
+        max_length=256,
+        required=False)
+
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
                   'sequencia_numeracao_protocolo',
+                  'inicio_numeracao_protocolo',
                   'sequencia_numeracao_proposicao',
                   'esfera_federacao',
                   # 'painel_aberto', # TODO: a ser implementado na versão 3.2
@@ -1571,7 +1562,10 @@ class ConfiguracoesAppForm(ModelForm):
                   'estatisticas_acesso_normas',
                   'escolher_numero_materia_proposicao',
                   'tramitacao_materia',
-                  'tramitacao_documento']
+                  'tramitacao_documento',
+                  'google_recaptcha_site_key',
+                  'google_recaptcha_secret_key',
+                  'sapl_as_sapn']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
@@ -1591,11 +1585,11 @@ class ConfiguracoesAppForm(ModelForm):
         casa = CasaLegislativa.objects.first()
 
         if not casa:
-            self.logger.warn('Não há casa legislativa relacionada.')
+            self.logger.warning('Não há casa legislativa relacionada.')
             raise ValidationError("Não há casa legislativa relacionada.")
 
         if not casa.logotipo and mostrar_brasao_painel:
-            self.logger.warn(
+            self.logger.warning(
                 'Não há logitipo configurado para esta '
                 'CasaLegislativa ({}).'.format(casa)
             )
@@ -1605,35 +1599,29 @@ class ConfiguracoesAppForm(ModelForm):
         return cleaned_data
 
 
-class RecuperarSenhaForm(PasswordResetForm):
+class RecuperarSenhaForm(GoogleRecapthaMixin, PasswordResetForm):
 
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
-        row1 = to_row(
-            [('email', 12)])
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            Fieldset(_('Insira o e-mail cadastrado com a sua conta'),
-                     row1,
-                     form_actions(label='Enviar'))
-        )
 
-        super(RecuperarSenhaForm, self).__init__(*args, **kwargs)
+        kwargs['title_label'] = _('Insira o e-mail cadastrado com a sua conta')
+        kwargs['action_label'] = _('Enviar')
+
+        super().__init__(*args, **kwargs)
 
     def clean(self):
+
         super(RecuperarSenhaForm, self).clean()
 
-        if not self.is_valid():
-            return self.cleaned_data
-
-        email_existente = User.objects.filter(
+        email_existente = get_user_model().objects.filter(
             email=self.data['email']).exists()
 
         if not email_existente:
             msg = 'Não existe nenhum usuário cadastrado com este e-mail.'
-            self.logger.warn(
-                'Não existe nenhum usuário cadastrado com este e-mail ({}).'.format(self.data['email'])
+            self.logger.warning(
+                'Não existe nenhum usuário cadastrado com este e-mail ({}).'.format(
+                    self.data['email'])
             )
             raise ValidationError(msg)
 
@@ -1701,7 +1689,7 @@ class AlterarSenhaForm(Form):
         new_password2 = data['new_password2']
 
         if new_password1 != new_password2:
-            self.logger.warn("'Nova Senha' diferente de 'Confirmar Senha'")
+            self.logger.warning("'Nova Senha' diferente de 'Confirmar Senha'")
             raise ValidationError(
                 "'Nova Senha' diferente de 'Confirmar Senha'")
 
@@ -1710,7 +1698,7 @@ class AlterarSenhaForm(Form):
         # TODO: senha atual igual a senha anterior, etc
 
         if len(new_password1) < 6:
-            self.logger.warn(
+            self.logger.warning(
                 'A senha informada não tem o mínimo de 6 caracteres.'
             )
             raise ValidationError(
@@ -1720,15 +1708,16 @@ class AlterarSenhaForm(Form):
         old_password = data['old_password']
         user = User.objects.get(username=username)
 
-        if user.is_anonymous():
-            self.logger.warn(
-                'Não é possível alterar senha de usuário anônimo ({}).'.format(username)
+        if user.is_anonymous:
+            self.logger.warning(
+                'Não é possível alterar senha de usuário anônimo ({}).'.format(
+                    username)
             )
             raise ValidationError(
                 "Não é possível alterar senha de usuário anônimo")
 
         if not user.check_password(old_password):
-            self.logger.warn(
+            self.logger.warning(
                 'Senha atual informada não confere '
                 'com a senha armazenada.'
             )
@@ -1736,7 +1725,7 @@ class AlterarSenhaForm(Form):
                                   "com a senha armazenada")
 
         if user.check_password(new_password1):
-            self.logger.warn(
+            self.logger.warning(
                 'Nova senha igual à senha anterior.'
             )
             raise ValidationError(

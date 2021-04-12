@@ -1,5 +1,5 @@
 import pytest
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_bakery import baker
 
@@ -33,7 +33,8 @@ def test_incluir_parlamentar_errors(admin_client):
     url = reverse('sapl.parlamentares:parlamentar_create')
     response = admin_client.post(url)
     erros_esperados = {campo: ['Este campo é obrigatório.']
-                       for campo in ['nome_parlamentar',
+                       for campo in ['ativo',
+                                     'nome_parlamentar',
                                      'nome_completo',
                                      'sexo',
                                      ]}
@@ -113,7 +114,7 @@ def test_mandato_submit(admin_client):
     baker.make(Parlamentar, pk=14)
     baker.make(Legislatura, pk=5)
 
-    admin_client.post(reverse('sapl.parlamentares:mandato_create',
+    response = admin_client.post(reverse('sapl.parlamentares:mandato_create',
                               kwargs={'pk': 14}),
                         {
                         'parlamentar': 14,  # hidden field
@@ -124,10 +125,10 @@ def test_mandato_submit(admin_client):
                             Legislatura.objects.get(id=5).data_fim,
                         'data_expedicao_diploma': '2016-03-22',
                         'observacao': 'Observação do mandato',
-                        'salvar': 'salvar'
+                        'salvar': 'salvar',
+                        'titular': True
                         },
                         follow=True)
-
     mandato = Mandato.objects.first()
     assert str(_('Observação do mandato')) == str(_(mandato.observacao))
 
@@ -192,6 +193,7 @@ def test_mandato_form_datas_invalidas():
     form = MandatoForm(data={
         'parlamentar': str(parlamentar.pk),
         'legislatura': str(legislatura.pk),
+        'titular': True,
         'data_expedicao_diploma': '2016-11-01',
         'data_inicio_mandato': '2016-12-12',
         'data_fim_mandato': '2019-10-09'
@@ -204,6 +206,7 @@ def test_mandato_form_datas_invalidas():
     form = MandatoForm(data={
         'parlamentar': str(parlamentar.pk),
         'legislatura': str(legislatura.pk),
+         'titular': True,
         'data_expedicao_diploma': '2016-11-01',
         'data_inicio_mandato': '2017-02-02',
         'data_fim_mandato': '2022-01-01'

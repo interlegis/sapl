@@ -1,35 +1,33 @@
-import re
-import django_filters
 import logging
+import re
 
 from crispy_forms.bootstrap import InlineRadios, Alert, FormActions
-from crispy_forms.layout import (Button, Column, Div, Fieldset, HTML,
+from crispy_forms.layout import (Button, Div, Fieldset, HTML,
                                  Layout, Submit)
-
 from django import forms
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor, AppConfig
-from sapl.base.signals import post_save_signal
 from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       SaplFormLayout, to_row)
-from sapl.materia.models import (MateriaLegislativa, 
+from sapl.materia.models import (MateriaLegislativa,
                                  TipoMateriaLegislativa,
                                  UnidadeTramitacao)
-from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
-                        choice_anos_com_materias,
+                        choice_anos_com_materias, timing,
                         choice_anos_com_protocolo, choice_force_optional,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
-                        lista_anexados, RangeWidgetOverride, RANGE_ANOS,
-                        validar_arquivo, YES_NO_CHOICES)
+                        lista_anexados, RANGE_ANOS,
+                        validar_arquivo, YES_NO_CHOICES,
+                        GoogleRecapthaMixin)
 
 from .models import (Anexado, AcompanhamentoDocumento,
                      DocumentoAcessorioAdministrativo,
@@ -50,7 +48,7 @@ NATUREZA_PROCESSO = [('0', 'Administrativo'),
 EM_TRAMITACAO = [(0, 'Sim'), (1, 'Não')]
 
 
-class AcompanhamentoDocumentoForm(ModelForm):
+class AcompanhamentoDocumentoForm(GoogleRecapthaMixin, ModelForm):
 
     class Meta:
         model = AcompanhamentoDocumento
@@ -58,17 +56,10 @@ class AcompanhamentoDocumentoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        row1 = to_row([('email', 12)])
+        kwargs['title_label'] = _('Acompanhamento de Documento por e-mail')
+        kwargs['action_label'] = _('Cadastrar')
 
-        self.helper = SaplFormHelper()
-        self.helper.layout = Layout(
-            Fieldset(
-                _('Acompanhamento de Documento por e-mail'),
-                row1,
-                form_actions(label='Cadastrar')
-            )
-        )
-        super(AcompanhamentoDocumentoForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class ProtocoloFilterSet(django_filters.FilterSet):
@@ -176,7 +167,6 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
     o = AnoNumeroOrderingFilter(help_text='')
 
-
     class Meta(FilterOverridesMetaMixin):
         model = DocumentoAdministrativo
         fields = ['tipo',
@@ -203,14 +193,14 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
 
         row2 = to_row(
             [('numero', 5),
-             ('complemento',2),
+             ('complemento', 2),
              ('ano', 5)])
 
         row3 = to_row(
             [('protocolo__numero', 4),
              ('numero_externo', 4),
              ('data', 4)
-            ])
+             ])
 
         row4 = to_row(
             [('interessado', 6),
@@ -224,28 +214,26 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
             ])
 
         buttons = FormActions(
-           *[
-               HTML('''
+            *[
+                HTML('''
                     <div class="form-check">
                         <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
                         <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
                     </div>
-                ''' )
-           ],
+                ''')
+            ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
-               onclick='return true;'),
-            css_class='form-group row justify-content-between'
-            ,
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between',
         )
 
-        
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisar Documento'),
-                    row1, row2,
-                    row3, row4,
-                    row5, buttons,)
+                     row1, row2,
+                     row3, row4,
+                     row5, buttons,)
         )
 
 
@@ -343,7 +331,7 @@ class AnularProtocoloAdmForm(ModelForm):
             *args, **kwargs)
 
 
-class ProtocoloDocumentForm(ModelForm):
+class ProtocoloDocumentoForm(ModelForm):
 
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label=_('Tipo de Protocolo'),
@@ -367,9 +355,6 @@ class ProtocoloDocumentForm(ModelForm):
     observacao = forms.CharField(required=False,
                                  widget=forms.Textarea, label=_('Observação'))
 
-    numero = forms.IntegerField(
-        required=False, label=_('Número de Protocolo (opcional)'))
-
     data_hora_manual = forms.ChoiceField(
         label=_('Informar data e hora manualmente?'),
         widget=forms.RadioSelect(),
@@ -384,7 +369,6 @@ class ProtocoloDocumentForm(ModelForm):
                   'assunto',
                   'interessado',
                   'observacao',
-                  'numero',
                   'data',
                   'hora',
                   ]
@@ -426,8 +410,6 @@ class ProtocoloDocumentForm(ModelForm):
             [('interessado', 12)])
         row6 = to_row(
             [('observacao', 12)])
-        row7 = to_row(
-            [('numero', 12)])
 
         fieldset = Fieldset(_('Protocolo com data e hora informados manualmente'),
                             row3,
@@ -443,23 +425,19 @@ class ProtocoloDocumentForm(ModelForm):
             Fieldset(_('Identificação de Documento'),
                      row1,
                      row2),
-                     fieldset,
+            fieldset,
             row4,
             row5,
             HTML("&nbsp;"),
-            Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece '
-                       'a partir do número a ser informado)'),
-                     row7,
-                     HTML("&nbsp;"),
+            Fieldset(HTML("&nbsp;"),
                      form_actions(label=_('Protocolar Documento'))
                      )
         )
-        super(ProtocoloDocumentForm, self).__init__(
+        super(ProtocoloDocumentoForm, self).__init__(
             *args, **kwargs)
 
         if not config.protocolo_manual:
             self.fields['data_hora_manual'].widget = forms.HiddenInput()
-
 
 
 class ProtocoloMateriaForm(ModelForm):
@@ -503,9 +481,6 @@ class ProtocoloMateriaForm(ModelForm):
     assunto_ementa = forms.CharField(required=True,
                                      widget=forms.Textarea, label=_('Ementa'))
 
-    numero = forms.IntegerField(
-        required=False, label=_('Número de Protocolo (opcional)'))
-
     data_hora_manual = forms.ChoiceField(
         label=_('Informar data e hora manualmente?'),
         widget=forms.RadioSelect(),
@@ -523,7 +498,6 @@ class ProtocoloMateriaForm(ModelForm):
                   'numero_materia',
                   'ano_materia',
                   'vincular_materia',
-                  'numero',
                   'data',
                   'hora',
                   ]
@@ -616,8 +590,6 @@ class ProtocoloMateriaForm(ModelForm):
             [('assunto_ementa', 12)])
         row5 = to_row(
             [('observacao', 12)])
-        row6 = to_row(
-            [('numero', 12)])
 
         fieldset = Fieldset(_('Protocolo com data e hora informados manualmente'),
                             row3,
@@ -637,10 +609,7 @@ class ProtocoloMateriaForm(ModelForm):
             row4,
             row5,
             HTML("&nbsp;"),
-            Fieldset(_('Número do Protocolo (Apenas se quiser que a numeração comece'
-                       ' a partir do número a ser informado)'),
-                     row6,
-                     HTML("&nbsp;"),
+            Fieldset(HTML("&nbsp;"),
                      form_actions(label=_('Protocolar Matéria')))
         )
 
@@ -672,10 +641,16 @@ class DocumentoAcessorioAdministrativoForm(FileFieldCheckMixin, ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        arquivo = self.cleaned_data.get('arquivo', False)
+        arquivo = self.cleaned_data.get('arquivo')
 
         if arquivo:
             validar_arquivo(arquivo, "Arquivo")
+        # else:
+        #     ## TODO: definir arquivo no form e preservar o nome do campo
+        #     ## que gerou a mensagem de erro.
+        #     ## arquivo = forms.FileField(required=True, label="Texto Integral")
+        #     nome_arquivo = self.fields['arquivo'].label
+        #     raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
 
         return self.cleaned_data
 
@@ -701,7 +676,6 @@ class TramitacaoAdmForm(ModelForm):
         widgets = {'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput(),
                    'ultima_edicao': forms.HiddenInput()}
-            
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoAdmForm, self).__init__(*args, **kwargs)
@@ -787,6 +761,7 @@ class TramitacaoAdmForm(ModelForm):
 
         return self.cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         tramitacao = super(TramitacaoAdmForm, self).save(commit)
@@ -797,11 +772,11 @@ class TramitacaoAdmForm(ModelForm):
         tramitar_anexados = AppConfig.attr('tramitacao_documento')
         if tramitar_anexados:
             lista_tramitacao = []
-            anexados_list = lista_anexados(documento, False)
+            anexados_list = lista_anexados(documento)
             for da in anexados_list:
                 if not da.tramitacaoadministrativo_set.all() \
-                    or da.tramitacaoadministrativo_set.last() \
-                    .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                        or da.tramitacaoadministrativo_set.last() \
+                        .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
                     da.tramitacao = False if tramitacao.status.indicador == "F" else True
                     da.save()
                     lista_tramitacao.append(TramitacaoAdministrativo(
@@ -818,21 +793,23 @@ class TramitacaoAdmForm(ModelForm):
                                             ip=tramitacao.ip,
                                             ultima_edicao=tramitacao.ultima_edicao
                                             ))
-            TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)     
+            ## TODO: BULK UPDATE não envia Signal para Tramitacao
+            TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
 
 
-
-# Compara se os campos de duas tramitações são iguais, 
+# Compara se os campos de duas tramitações são iguais,
 # exceto os campos id, documento_id e timestamp
 def compara_tramitacoes_doc(tramitacao1, tramitacao2):
     if not tramitacao1 or not tramitacao2:
         return False
 
     lst_items = ['id', 'documento_id', 'timestamp', 'ultima_edicao']
-    values = [(k,v) for k,v in tramitacao1.__dict__.items() if ((k not in lst_items) and (k[0] != '_'))]
-    other_values = [(k,v) for k,v in tramitacao2.__dict__.items() if (k not in lst_items and k[0] != '_')]
+    values = [(k, v) for k, v in tramitacao1.__dict__.items()
+              if ((k not in lst_items) and (k[0] != '_'))]
+    other_values = [(k, v) for k, v in tramitacao2.__dict__.items()
+                    if (k not in lst_items and k[0] != '_')]
     return values == other_values
 
 
@@ -850,7 +827,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
         model = TramitacaoAdministrativo
         fields = ['data_tramitacao',
                   'unidade_tramitacao_local',
-                  'status', 
+                  'status',
                   'urgente',
                   'unidade_tramitacao_destino',
                   'data_encaminhamento',
@@ -891,12 +868,13 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
                     'tramitação, pois irá conflitar com a Unidade '
                     'Local da tramitação seguinte')
 
-        # Se não houve qualquer alteração em um dos dados, mantém o usuário e ip
-        if not (cd['data_tramitacao'] != obj.data_tramitacao or \
-           cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or \
-           cd['status'] != obj.status or cd['texto'] != obj.texto or \
-           cd['data_encaminhamento'] != obj.data_encaminhamento or \
-           cd['data_fim_prazo'] != obj.data_fim_prazo):
+        # Se não houve qualquer alteração em um dos dados, mantém o usuário e
+        # ip
+        if not (cd['data_tramitacao'] != obj.data_tramitacao or
+                cd['unidade_tramitacao_destino'] != obj.unidade_tramitacao_destino or
+                cd['status'] != obj.status or cd['texto'] != obj.texto or
+                cd['data_encaminhamento'] != obj.data_encaminhamento or
+                cd['data_fim_prazo'] != obj.data_fim_prazo):
             cd['user'] = obj.user
             cd['ip'] = obj.ip
             cd['ultima_edicao'] = obj.ultima_edicao
@@ -906,10 +884,11 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
         return cd
 
-
+    @timing
     @transaction.atomic
     def save(self, commit=True):
-        ant_tram_principal = TramitacaoAdministrativo.objects.get(id=self.instance.id)
+        ant_tram_principal = TramitacaoAdministrativo.objects.get(
+            id=self.instance.id)
         nova_tram_principal = super(TramitacaoAdmEditForm, self).save(commit)
         documento = nova_tram_principal.documento
         documento.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
@@ -917,7 +896,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
         tramitar_anexados = AppConfig.attr('tramitacao_documento')
         if tramitar_anexados:
-            anexados_list = lista_anexados(documento, False)
+            anexados_list = lista_anexados(documento)
             for da in anexados_list:
                 tram_anexada = da.tramitacaoadministrativo_set.last()
                 if compara_tramitacoes_doc(ant_tram_principal, tram_anexada):
@@ -936,6 +915,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
                     da.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     da.save()
+        ## TODO: refatorar?
         return nova_tram_principal
 
 
@@ -955,7 +935,7 @@ class AnexadoForm(ModelForm):
     ano = forms.CharField(label='Ano', required=True)
 
     def __init__(self, *args, **kwargs):
-        return  super(AnexadoForm, self).__init__(*args, **kwargs)
+        return super(AnexadoForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         super(AnexadoForm, self).clean()
@@ -969,8 +949,10 @@ class AnexadoForm(ModelForm):
         data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
 
         if data_anexacao > data_desanexacao:
-            self.logger.error("Data de anexação posterior à data de desanexação.")
-            raise ValidationError(_("Data de anexação posterior à data de desanexação."))
+            self.logger.error(
+                "Data de anexação posterior à data de desanexação.")
+            raise ValidationError(
+                _("Data de anexação posterior à data de desanexação."))
         try:
             self.logger.info(
                 "Tentando obter objeto DocumentoAdministrativo (numero={}, ano={}, tipo={})."
@@ -991,18 +973,20 @@ class AnexadoForm(ModelForm):
         documento_principal = self.instance.documento_principal
         if documento_principal == documento_anexado:
             self.logger.error("O documento não pode ser anexado a si mesmo.")
-            raise ValidationError(_("O documento não pode ser anexado a si mesmo"))
+            raise ValidationError(
+                _("O documento não pode ser anexado a si mesmo"))
 
         is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
                                             documento_anexado=documento_anexado
                                             ).exclude(pk=self.instance.pk).exists()
-        
+
         if is_anexado:
             self.logger.error("Documento já se encontra anexado.")
             raise ValidationError(_('Documento já se encontra anexado'))
 
         ciclico = False
-        anexados_anexado = Anexado.objects.filter(documento_principal=documento_anexado)
+        anexados_anexado = Anexado.objects.filter(
+            documento_principal=documento_anexado)
 
         while(anexados_anexado and not ciclico):
             anexados = []
@@ -1014,12 +998,14 @@ class AnexadoForm(ModelForm):
                 else:
                     for a in Anexado.objects.filter(documento_principal=anexo.documento_anexado):
                         anexados.append(a)
-                
+
             anexados_anexado = anexados
-        
+
         if ciclico:
-            self.logger.error("O documento não pode ser anexado por um de seus anexados.")
-            raise ValidationError(_('O documento não pode ser anexado por um de seus anexados'))
+            self.logger.error(
+                "O documento não pode ser anexado por um de seus anexados.")
+            raise ValidationError(
+                _('O documento não pode ser anexado por um de seus anexados'))
 
         cleaned_data['documento_anexado'] = documento_anexado
 
@@ -1054,8 +1040,8 @@ class AnexadoEmLoteFilterSet(django_filters.FilterSet):
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa de Documentos'), 
-                        row1, row2, form_actions(label='Pesquisar'))
+            Fieldset(_('Pesquisa de Documentos'),
+                     row1, row2, form_actions(label='Pesquisar'))
         )
 
 
@@ -1110,7 +1096,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                    'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput(),
                    'ultima_edicao': forms.HiddenInput()
-                    }
+                   }
 
     def clean(self):
         super(DocumentoAdministrativoForm, self).clean()
@@ -1126,7 +1112,6 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
         numero_documento = int(self.cleaned_data['numero'])
         tipo_documento = int(self.data['tipo'])
         ano_documento = int(self.data['ano'])
-
 
         # não permite atualizar para numero/ano/tipo existente
         if self.instance.pk:
@@ -1196,10 +1181,16 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                                             ' documento vinculado'
                                             % (numero_protocolo, ano_protocolo)))
 
-        texto_integral = self.cleaned_data.get('texto_integral', False)
+        texto_integral = self.cleaned_data.get('texto_integral')
 
         if texto_integral:
             validar_arquivo(texto_integral, "Texto Integral")
+        # else:
+        #     ## TODO: definir arquivo no form e preservar o nome do campo
+        #     ## que gerou a mensagem de erro.
+        #     ## texto_integral = forms.FileField(required=True, label="Texto Integral")
+        #     nome_arquivo = self.fields['texto_integral'].label
+        #     raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
 
         return self.cleaned_data
 
@@ -1216,7 +1207,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
     def __init__(self, *args, **kwargs):
 
         row1 = to_row(
-            [('tipo', 3), ('numero', 3),('complemento', 3), ('ano', 3)])
+            [('tipo', 3), ('numero', 3), ('complemento', 3), ('ano', 3)])
 
         row2 = to_row(
             [('data', 4), ('numero_protocolo', 4), ('ano_protocolo', 4)])
@@ -1533,7 +1524,6 @@ class TramitacaoEmLoteAdmForm(ModelForm):
         widgets = {'user': forms.HiddenInput(),
                    'ip': forms.HiddenInput(),
                    'ultima_edicao': forms.HiddenInput()}
-            
 
     def __init__(self, *args, **kwargs):
         super(TramitacaoEmLoteAdmForm, self).__init__(*args, **kwargs)
@@ -1547,7 +1537,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
             [(ut.pk, ut) for ut in ust if ut.parlamentar])
         self.fields['unidade_tramitacao_destino'].choices = unidade_tramitacao_destino
         self.fields['urgente'].label = "Urgente? *"
-    
+
         row1 = to_row([
             ('data_tramitacao', 4),
             ('data_encaminhamento', 4),
@@ -1650,6 +1640,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
 
         return cleaned_data
 
+    @timing
     @transaction.atomic
     def save(self, commit=True):
         cd = self.cleaned_data
@@ -1681,11 +1672,11 @@ class TramitacaoEmLoteAdmForm(ModelForm):
 
             if tramitar_anexados:
                 lista_tramitacao = []
-                anexados = lista_anexados(doc, False)
+                anexados = lista_anexados(doc)
                 for da in anexados:
                     if not da.tramitacaoadministrativo_set.all() \
-                        or da.tramitacaoadministrativo_set.last() \
-                        .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
+                            or da.tramitacaoadministrativo_set.last() \
+                            .unidade_tramitacao_destino == tramitacao.unidade_tramitacao_local:
                         da.tramitacao = False if tramitacao.status.indicador == "F" else True
                         da.save()
                         lista_tramitacao.append(TramitacaoAdministrativo(
@@ -1702,6 +1693,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                                                 ip=tramitacao.ip,
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
+                ## TODO: BULK UPDATE não envia Signal para Tramitacao
                 TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao

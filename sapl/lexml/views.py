@@ -7,6 +7,8 @@ from sapl.rules import RP_DETAIL, RP_LIST
 
 from .models import LexmlProvedor, LexmlPublicador
 
+from .forms import LexmlProvedorForm
+
 LexmlPublicadorCrud = CrudAux.build(LexmlPublicador, 'lexml_publicador')
 
 
@@ -14,6 +16,12 @@ class LexmlProvedorCrud(Crud):
     model = LexmlProvedor
     help_topic = 'lexml_provedor'
     public = [RP_LIST, RP_DETAIL]
+
+    class CreateView(Crud.CreateView):
+        form_class = LexmlProvedorForm
+
+    class UpdateView(Crud.UpdateView):
+        form_class = LexmlProvedorForm
 
     class DetailView(Crud.DetailView):
         layout_key = 'LexmlProvedorDetail'

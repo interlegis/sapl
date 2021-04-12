@@ -1,16 +1,16 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.template import defaultfilters
-from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
 from sapl.base.models import Autor
 from sapl.compilacao.models import TextoArticulado
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, Orgao
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
-                        restringe_tipos_de_arquivo_txt, 
+                        restringe_tipos_de_arquivo_txt,
                         texto_upload_path,
                         get_settings_auth_user_model,
                         OverwriteStorage)
@@ -70,8 +70,66 @@ def norma_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath=instance.ano)
 
 
+class NormaJuridicaManager(models.Manager):
+
+    use_for_related_fields = True
+
+    def normas_sem_textos_articulados(self):
+        qs = self.get_queryset()
+        qs = qs.filter(texto_articulado__isnull=True)
+        return qs
+
+    def normas_com_textos_articulados_publicados(self):
+        qs = self.get_queryset()
+        qs = qs.filter(
+            texto_articulado__editable_only_by_owners=False,
+            texto_articulado__privacidade=0,
+            texto_articulado__isnull=False
+        )
+
+        return qs
+
+    def normas_com_textos_articulados_pendentes(self):
+        qs = self.get_queryset()
+        qs = qs.filter(
+            texto_articulado__editable_only_by_owners=False)
+
+        q = models.Q(
+            texto_articulado__privacidade=0
+        ) | models.Q(
+            texto_articulado__isnull=True
+        )
+        qs = qs.exclude(q)
+
+        for n in qs:
+            ta = n.texto_articulado.first()
+            count = ta.dispositivos_set.count()
+            if count == 1:
+                count = 0
+            elif count == 2:
+                d = ta.dispositivos_set.last()
+                if d.auto_inserido or not d.texto or d.texto == n.ementa:
+                    count = 0
+            elif count == 3:
+                ds = ta.dispositivos_set.all()
+                if ds[1].auto_inserido and \
+                        not d[2].dispositivo_pai and\
+                        d[2].tipo_dispositivo.dispositivo_de_articulacao:
+                    count = 0
+
+            if not count:
+                ta.dispositivos_set.filter(
+                    dispositivo_pai__isnull=False).delete()
+                ta.delete()
+
+        return qs
+
+
 @reversion.register()
 class NormaJuridica(models.Model):
+
+    objects = NormaJuridicaManager()
+
     ESFERA_FEDERACAO_CHOICES = Choices(
         ('M', 'municipal', _('Municipal')),
         ('E', 'estadual', _('Estadual')),
@@ -93,6 +151,9 @@ class NormaJuridica(models.Model):
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Matéria'))
+    orgao = models.ForeignKey(
+        Orgao, blank=True, null=True,
+        on_delete=models.PROTECT, verbose_name=_('Órgão'))
     numero = models.CharField(
         max_length=8,
         verbose_name=_('Número'))
@@ -118,9 +179,13 @@ class NormaJuridica(models.Model):
         blank=True, verbose_name=_('Indexação'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
-    complemento = models.NullBooleanField(
-        blank=True, verbose_name=_('Complementar ?'),
-        choices=YES_NO_CHOICES)
+    complemento = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name=_('Complementar ?'),
+        choices=YES_NO_CHOICES
+    )
     # XXX was a CharField (attention on migrate)
     assuntos = models.ManyToManyField(
         AssuntoNorma, blank=True,
@@ -185,8 +250,9 @@ class NormaJuridica(models.Model):
         if numero_norma.isnumeric():
             numero_norma = '{0:,}'.format(int(self.numero)).replace(',', '.')
 
-        return _('%(tipo)s nº %(numero)s, de %(data)s') % {
+        return _('%(tipo)s%(orgao_sigla)s nº %(numero)s, de %(data)s') % {
             'tipo': self.tipo,
+            'orgao_sigla': f'-{self.orgao.sigla}' if self.orgao else '',
             'numero': numero_norma,
             'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
 
@@ -233,6 +299,9 @@ class NormaEstatisticas(models.Model):
                                            choices=RANGE_ANOS, default=get_ano_atual)
     norma = models.ForeignKey(NormaJuridica,
                               on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ('id',)
 
     def __str__(self):
         return _('Usuário: %(usuario)s, Norma: %(norma)s') % {
@@ -294,6 +363,7 @@ class LegislacaoCitada(models.Model):
     class Meta:
         verbose_name = _('Legislação')
         verbose_name_plural = _('Legislações')
+        ordering = ('id',)
 
     def __str__(self):
         return str(self.norma)
@@ -314,6 +384,7 @@ class TipoVinculoNormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Tipo de Vínculo entre Normas Jurídicas')
         verbose_name_plural = _('Tipos de Vínculos entre Normas Jurídicas')
+        ordering = ('id',)
 
     def __str__(self):
         return self.descricao_ativa
@@ -375,6 +446,7 @@ class AnexoNormaJuridica(models.Model):
     class Meta:
         verbose_name = _('Anexo da Norma Juridica')
         verbose_name_plural = _('Anexos da Norma Juridica')
+        ordering = ('id',)
 
     def __str__(self):
         return _('Anexo: %(anexo)s da norma %(norma)s') % {

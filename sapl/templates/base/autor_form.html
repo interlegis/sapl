@@ -87,58 +87,12 @@ $(document).ready(function(){
     update_search(pk);
   });
 
-  $('input[name=action_user]').change(function(event) {
-    if (!this.checked)
-      return;
-
-    $('#div_id_username input').prop('readonly', '');
-
-    if (event.target.value == 'N') {
-      $('.new_user_fields').addClass('hidden');
-      if ($('input[name=username]').attr('data') != '')
-        $('.radiogroup-status').removeClass('hidden');
-
-      if (flag_create) {
-        $('#div_id_username').addClass('hidden');
-      }
-      else {
-        $('#div_id_username input').prop('readonly', 'readonly');
-      }
-    }
-    else {
-      $('.radiogroup-status').addClass('hidden');
-      $('#div_id_username').removeClass('hidden');
-      $('.new_user_fields').addClass('hidden');
-    }
-    if (!flag_create) {
-      var username = $('input[name=username]');
-      if (username.length == 1) {
-        if ((event.target.value == 'A' && username.attr('data') != '' && username[0].value != username.attr('data'))
-            || (event.target.value == 'C' && username.attr('data') != ''))
-          $('.radiogroup-status').removeClass('hidden');
-      }
-    }
-  });
-
-  $('input[name=username]').keyup(function(event) {
-    if (!flag_create)
-      if (this.getAttribute('data') != '' && this.value != this.getAttribute('data'))
-        $('.radiogroup-status').removeClass('hidden');
-      else
-          $('.radiogroup-status').addClass('hidden');
-  });
-
-  $('input[name=action_user]:checked').trigger('change');
   if (flag_create)
     $('input[name=autor_related]').closest('.radio').remove();
 
   var pk = $('#id_tipo').val();
   if (pk)
     update_search(pk, $('#id_q').val().length > 0)
-
 });
-
-
 </script>
-
 {% endblock %}

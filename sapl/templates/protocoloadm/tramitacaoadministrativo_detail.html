@@ -22,11 +22,11 @@
           {% if tramitacaoadministrativo.user %}
             <div class="col-sm-4">
               <div id="div_id_user" class="form-group">
-                <p class="control-label">Usuário</p> 
+                <p class="control-label">Usuário</p>
                 <div class="controls">
                   <div class="form-control-static">
                     <div class="dont-break-out">
-                      <a href="{% url 'sapl.base:user_edit' tramitacaoadministrativo.user.pk %}">
+                      <a href="{% url 'sapl.base:user_update' tramitacaoadministrativo.user.pk %}">
                         {{ tramitacaoadministrativo.user }}
                       </a>
                     </div>
@@ -38,7 +38,7 @@
           {% if tramitacaoadministrativo.ip %}
             <div class="col-sm-4">
               <div id="div_ip_user" class="form-group">
-                <p class="control-label">IP</p> 
+                <p class="control-label">IP</p>
                 <div class="controls">
                   <div class="form-control-static">
                     <div class="dont-break-out">

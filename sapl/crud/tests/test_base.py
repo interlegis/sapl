@@ -1,8 +1,6 @@
-import pytest
 from django.core.urlresolvers import reverse
 from model_bakery import baker
 
-from sapl.crud.base import (CrispyLayoutFormMixin, CrudListView, from_to,
                             get_field_display, make_pagination)
 from sapl.crud.tests.stub_app.models import Continent, Country
 from sapl.crud.tests.stub_app.views import CountryCrud

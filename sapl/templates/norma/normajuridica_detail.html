@@ -93,7 +93,7 @@
             <div class="controls">
               <div class="form-control-static">
                 <div class="dont-break-out">
-                  <a href="{% url 'sapl.base:user_edit' object.user.pk %}">
+                  <a href="{% url 'sapl.base:user_update' object.user.pk %}">
                     {{ object.user }}
                   </a>
                 </div>
@@ -132,7 +132,7 @@
       {% endif %}
     </div>
   {% endif %}
-  {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission %}
+  {% if not sapl_as_sapn and object.texto_articulado.exists and object.texto_articulado.first.has_view_permission %}
     <hr />
     <div class="row">
       <div class="col-sm-12">
@@ -146,13 +146,13 @@
 
 {% block webpack_loader_js %}
     {{ block.super }}
-    {% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
+    {% if not sapl_as_sapn and object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
       {% render_bundle 'compilacao' 'js' %}
     {% endif %}
 {% endblock %}
 
 {% block extra_js %}
-{% if object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
+{% if not sapl_as_sapn and object.texto_articulado.exists and object.texto_articulado.first.has_view_permission  %}
   <script language="Javascript">
     window.onload = function () {
       $.get("{% url 'sapl.compilacao:ta_text' object.texto_articulado.first.id %}?embedded",

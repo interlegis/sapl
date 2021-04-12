@@ -4,9 +4,16 @@
 {% load common_tags %}
 
 {% block base_content %}
-  {% if form.comissao.value == 0 %}
+  {% if form.comissao.value == -1 %}
     <div class="alert alert-danger alert-dismissible " role="alert">
-      A localização atual deve ser uma comissão e a Unidade de Destino da última tramitação não pode ser vazia.
+      A Unidade de Destino da última tramitação não pode ser vazio.
+    </div>
+  {% elif form.comissao.value == 0 %}
+    <div class="alert alert-danger alert-dismissible " role="alert">
+      A localização atual da última tramitação deve ser uma comissão.
+      <br/>
+      A unidade de tramitação destino {{ form.unidade_tramitacao_destino.value }} é uma unidade do tipo
+      {{ form.tipo_unidade_tramitacao_destino.value }}.
     </div>
   {% else %}
     {% crispy form %}

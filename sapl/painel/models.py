@@ -17,6 +17,9 @@ class Painel(models.Model):
     mostrar = models.CharField(max_length=1,
                                choices=PAINEL_TYPES, default='C')
 
+    class Meta:
+        ordering = ('-data_painel',)
+
     def __str__(self):
         return str(self.aberto) + ":" + self.data_painel.strftime("%d/%m/%Y")
 
@@ -45,3 +48,6 @@ class Cronometro(models.Model):
     tipo = models.CharField(
         max_length=1, choices=CRONOMETRO_TYPES,
         verbose_name=_('Tipo Cronômetro'))
+
+    class Meta:
+        ordering = ('-data_cronometro',)

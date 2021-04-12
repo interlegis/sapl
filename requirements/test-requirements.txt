@@ -1,11 +1,11 @@
 -r requirements.txt
-coverage==4.1
-django-webtest==1.7.8
+coverage==4.4
+django-webtest==1.9.7
 flake8==2.6.2
 isort==4.2.5
 model-bakery==1.1.0
 pep8==1.7.0
-pytest==2.9.2
-pytest-cov==2.3.0
-pytest-django==2.9.1
+pytest==5.4.3
+pytest-cov==2.10.0
+pytest-django==3.8.0
 webtest==2.0.21

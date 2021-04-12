@@ -3,16 +3,16 @@
 
 {% block detail_content %}
     {{ block.super }}
-    {% if user.is_superuser %}
+    {% if 'materia.detail_tramitacao' in request.user.get_all_permissions %}
         <div class="row">
             {% if tramitacao.user %}
                 <div class="col-sm-4">
                     <div id="div_id_user" class="form-group">
-                        <p class="control-label">Usuário</p> 
+                        <p class="control-label">Usuário</p>
                         <div class="controls">
                             <div class="form-control-static">
                                 <div class="dont-break-out">
-                                    <a href="{% url 'sapl.base:user_edit' tramitacao.user.pk %}">
+                                    <a href="{% url 'sapl.base:user_update' tramitacao.user.pk %}">
                                         {{ tramitacao.user }}
                                     </a>
                                 </div>
@@ -24,7 +24,7 @@
             {% if tramitacao.ip %}
                 <div class="col-sm-4">
                     <div id="div_ip_user" class="form-group">
-                        <p class="control-label">IP</p> 
+                        <p class="control-label">IP</p>
                         <div class="controls">
                             <div class="form-control-static">
                                 <div class="dont-break-out">

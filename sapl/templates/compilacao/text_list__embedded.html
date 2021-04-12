@@ -4,22 +4,26 @@
 
 <div class="cp">
   {% if object_list %}
-      <div class="actions btn-group" role="group">
-        <a href="{{base_url}}?print" class="btn btn-outline-primary">{% trans 'Preparar para impressão' %}</a>
-      </div>
-      
+      {% if 'print' not in request.GET %}
+        <div class="actions btn-group" role="group">
+            {% if sapl_as_sapn %}
+              <a href="{% url 'sapl.norma:norma_pesquisa' %}" class="btn btn-outline-primary" >{% trans 'Fazer nova pesquisa' %}</a>
+            {% endif %}
+            <a href="{% if 'compilacao' not in request.resolver_match.namespace %}{% url 'sapl.compilacao:ta_text' object_list.0.ta_id %}{% else %}{{request.path}}{% endif %}?print" class="btn btn-outline-primary" id="btn_impressao">{% trans 'Preparar para impressão' %}</a>
+        </div>
+      {% endif %}
+
       <div class="actions btn-group float-right" role="group">
         <a class="btn btn-outline-primary" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
         <a class="btn btn-outline-primary" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
       </div>
   {% endif %}
-
   {% for key, values in view.get_vigencias.items %}
     {% if forloop.first %}
       <ul class="cp-linha-vigencias">
         {% for dispositivo in values %}
           <li class="{% if view.inicio_vigencia == dispositivo.inicio_vigencia %}active{%endif%}">
-            <a class="" href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}">{% trans 'Texto<br>Original'%}</a>
+            <a class="" href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia|default:''}}">{% trans 'Texto<br>Original'%}</a>
             <span class="circle"> </span>
           </li>
         {% endfor %}
@@ -46,11 +50,13 @@
               {% endif %}
             {% endif %}
             <br>
-            {% if view.ta_vigencia %}
-                <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' view.ta_vigencia %}">{{ta_pub_list|lookup:view.ta_vigencia}}</a></small>
-            {% elif view.ta_vigencia and view.ta_vigencia != 0 or view.ta_vigencia is None %}
-                <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_publicado.pk %}">{{dispositivo.ta_publicado}}</a></small>
-            {% endif %}
+                {% if view.ta_vigencia %}
+                  <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' view.ta_vigencia %}">{{ta_pub_list|lookup:view.ta_vigencia}}</a></small>
+                {% elif dispositivo.ta_publicado  and view.ta_vigencia != 0  %}
+                  <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta_publicado.pk %}">{{dispositivo.ta_publicado}}</a></small>
+                {% else %}
+                  <small>{% trans 'Dada por '%}<a href="{% url 'sapl.compilacao:ta_text' dispositivo.ta.pk %}">{{dispositivo.ta}}</a></small>
+                {% endif %}
           </span>
         {% endif%}
       {% endfor %}
@@ -65,7 +71,12 @@
           {% for dispositivo in values %}
             <li class="">
             {% if not forloop.parentloop.first %}
-              <a href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia}}</a>
+              {% if dispositivo.fim_vigencia %}
+                <a href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Vigência entre'%} {{dispositivo.inicio_vigencia}} {% trans 'e'%} {{dispositivo.fim_vigencia|default:''}}</a>
+              {% else %}
+                <a href="{% url 'sapl.compilacao:ta_vigencia' dispositivo.ta_id dispositivo|get_sign_vigencia %}" title="{% if dispositivo.ta_publicado_id in ta_pub_list%}{{ ta_pub_list|lookup:dispositivo.ta_publicado_id }}{%else%}{%if dispositivo.ta_publicado %}{{dispositivo.ta_publicado}}{%else%}{{dispositivo.ta}}{%endif%}{%endif%}">{% trans 'Vigência a partir'%} {{dispositivo.inicio_vigencia}}</a>
+
+              {% endif %}
             {% endif %}
             </li>
           {% endfor %}
@@ -73,8 +84,7 @@
       </li>
     {% endif %}
   {% endfor %}
-  
-  <div class="tipo-vigencias d-flex fixed-bottom justify-content-center">
+  <div class="{% if not ta_pub_list %}d-none{% else %}d-flex{% endif %} tipo-vigencias fixed-bottom justify-content-center">
     <div class="btn-group btn-group-sm">
       <a class="btn btn-primary active" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a>
       <a class="btn btn-primary" onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a>

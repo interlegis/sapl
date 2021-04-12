@@ -3,12 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+.pytest_cache/
+.DS_Store
+
 # C extensions
 *.so
 
 # Nodejs
 node_modules/
-yarn.lock
 
 # Distribution / packaging
 .Python
@@ -101,6 +103,7 @@ solr-4.10.2/
 postgres-data/
 data/
 solr-*/
+dev-webpack-stats.json
 
 # ignora tudo dentro de media, mas cria a pasta no checkout
 media/*

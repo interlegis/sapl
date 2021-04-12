@@ -192,6 +192,7 @@ class AnexoAudienciaPublica(models.Model):
     class Meta:
         verbose_name = _('Anexo de Documento Acessório')
         verbose_name_plural = _('Anexo de Documentos Acessórios')
+        ordering = ('id',)
 
     def __str__(self):
         return self.assunto

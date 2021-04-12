@@ -18,7 +18,7 @@
 - title: {% trans 'Relatorias' %}
   url: relatoria_parlamentar_list
 - title: {% trans 'Frentes' %}
-  url: frente_parlamentar_list
+  url: parlamentar_frentes
 - title: {% trans 'Usuário' %}
   url: votante_list
   check_permission: parlamentares.add_parlamentar

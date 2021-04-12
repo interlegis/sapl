@@ -1,0 +1,40 @@
+
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+{% load static %}
+
+
+<head>
+    <style>
+        @page{
+            margin: 0cm
+        }
+        
+        div {page-break-inside: avoid;}
+        p {
+            font-size:4pt;
+            margin: 5px;
+            font-family: Georgia, Times, "Times New Roman";
+        }
+        img {
+            position: absolute;
+            bottom:0px;
+            left: 0px;
+            padding:10px;  
+            height: 20px; 
+            width: 90%;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div>
+        <p><strong>Materia Legislativa - {{numero}}/{{ano}}</strong></p>
+        <p>Tipo: {{tipo.sigla}} - {{tipo.descricao}}</p>
+        <p>Data: {{data_apresentacao}}</p>
+        <p>Ementa: {{ementa}}</p>
+        <img src="{{barcode}}">
+    </div>
+</body>

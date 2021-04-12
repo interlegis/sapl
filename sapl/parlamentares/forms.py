@@ -22,8 +22,8 @@ from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
-from .models import (ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Votante, Bloco)
+from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
+                     Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -216,6 +216,18 @@ class ParlamentarForm(FileFieldCheckMixin, ModelForm):
             'biografia': forms.Textarea(
                 attrs={'id': 'texto-rico'})}
 
+    def save(self, commit=True):
+        parlamentar = super().save()
+        autor = parlamentar.autor.first()
+
+        if autor:
+            usuarios = autor.operadores.all()
+            for u in usuarios:
+                u.is_active = parlamentar.ativo
+                u.save()
+
+        return parlamentar
+
 
 class ParlamentarFilterSet(django_filters.FilterSet):
     nome_parlamentar = django_filters.CharFilter(
@@ -235,6 +247,52 @@ class ParlamentarFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Parlamentar'),
+                     row0,
+                     form_actions(label='Pesquisar'))
+        )
+
+
+class ColigacaoFilterSet(django_filters.FilterSet):
+    nome = django_filters.CharFilter(label=_('Nome da Coligação'), lookup_expr='icontains')
+
+    class Meta:
+        model = Coligacao
+        fields = ['nome']
+
+    def __init__(self, *args, **kwargs):
+        super(ColigacaoFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('nome', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Coligação'),
+                     row0,
+                     form_actions(label='Pesquisar')))
+
+
+class PartidoFilterSet(django_filters.FilterSet):
+    nome = django_filters.CharFilter(label=_('Nome do Partido'),
+                                     method='multifield_filter')
+
+    class Meta:
+        model = Partido
+        fields = ['nome']
+
+    def multifield_filter(self, queryset, name, value):
+        return queryset.filter(
+            Q(sigla__icontains=value) | Q(nome__icontains=value))
+
+    def __init__(self, *args, **kwargs):
+        super(PartidoFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('nome', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Partido'),
                      row0,
                      form_actions(label='Pesquisar'))
         )
@@ -267,17 +325,22 @@ class ParlamentarCreateForm(ParlamentarForm):
         return cleaned_data
 
     @transaction.atomic
-    def save(self, commit=True):
+    def save(self, commit=False):
         parlamentar = super(ParlamentarCreateForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Parlamentar)
-        object_id = parlamentar.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=parlamentar.nome_parlamentar
-        )
+
+        if not self.instance.pk:
+            parlamentar.save()
+            content_type = ContentType.objects.get_for_model(Parlamentar)
+            object_id = parlamentar.pk
+            tipo = TipoAutor.objects.get(content_type=content_type)
+            Autor.objects.create(
+                content_type=content_type,
+                object_id=object_id,
+                tipo=tipo,
+                nome=parlamentar.nome_parlamentar
+            )
+        else:
+            parlamentar.save()
         return parlamentar
 
 
@@ -417,11 +480,7 @@ class FrenteForm(ModelForm):
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
-        super(FrenteForm, self).__init__(*args, **kwargs)
-        self.fields['parlamentares'].queryset = Parlamentar.objects.filter(
-            ativo=True).order_by('nome_completo')
-        self.fields['parlamentares'].label = _('Parlamentares \
-                (Mantenha CTRL pressionado para selecionar vários)')
+        super().__init__(*args, **kwargs)
 
     class Meta:
         model = Frente
@@ -433,7 +492,7 @@ class FrenteForm(ModelForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        if cd['data_extincao'] and cd['data_criacao'] >= cd['data_extincao']:
+        if cd['data_extincao'] and cd['data_criacao'] > cd['data_extincao']:
             self.logger.error("Data Dissolução ({}) não pode ser anterior a Data Criação ({})."
                               .format(cd['data_extincao'], cd['data_criacao']))
             raise ValidationError(
@@ -442,11 +501,11 @@ class FrenteForm(ModelForm):
         return cd
 
     @transaction.atomic
-    def save(self, commit=True):
+    def save(self, commit=False):
         frente = super(FrenteForm, self).save(commit)
 
         if not self.instance.pk:
-            frente = super(FrenteForm, self).save(commit)
+            frente.save()
             content_type = ContentType.objects.get_for_model(Frente)
             object_id = frente.pk
             tipo = TipoAutor.objects.get(descricao__icontains='Frente')
@@ -456,7 +515,33 @@ class FrenteForm(ModelForm):
                 tipo=tipo,
                 nome=frente.nome
             )
+        else:
+            frente.save()
         return frente
+
+
+class FrenteParlamentarForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['frente'].widget = forms.HiddenInput()
+
+    class Meta:
+        model = FrenteParlamentar
+        fields = '__all__'
+
+    def clean(self):
+        cd = super().clean()
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if cd['cargo'].cargo_unico:
+            frente_parlamentar = FrenteParlamentar.objects.filter(frente=cd['frente'], cargo=cd['cargo'])
+            if frente_parlamentar and not frente_parlamentar[0].parlamentar == cd['parlamentar']:
+                raise ValidationError(_("Cargo único já ocupado por outro parlamentar."))
+
+        return cd
 
 
 class VotanteForm(ModelForm):
@@ -614,15 +699,45 @@ class BlocoForm(ModelForm):
         return self.cleaned_data
 
     @transaction.atomic
-    def save(self, commit=True):
+    def save(self, commit=False):
         bloco = super(BlocoForm, self).save(commit)
-        content_type = ContentType.objects.get_for_model(Bloco)
-        object_id = bloco.pk
-        tipo = TipoAutor.objects.get(content_type=content_type)
-        Autor.objects.create(
-            content_type=content_type,
-            object_id=object_id,
-            tipo=tipo,
-            nome=bloco.nome
-        )
+        if not self.instance.pk:
+            bloco.save()
+            content_type = ContentType.objects.get_for_model(Bloco)
+            object_id = bloco.pk
+            tipo = TipoAutor.objects.get(content_type=content_type)
+            Autor.objects.create(
+                content_type=content_type,
+                object_id=object_id,
+                tipo=tipo,
+                nome=bloco.nome
+            )
+        else:
+            bloco.save()
         return bloco
+
+
+class BlocoMembroForm(ModelForm):
+    logger = logging.getLogger(__name__)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['bloco'].widget = forms.HiddenInput()
+
+    class Meta:
+        model = BlocoMembro
+        fields = '__all__'
+
+    def clean(self):
+        cd = super().clean()
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if cd['cargo'].cargo_unico \
+                and BlocoMembro.objects.filter(bloco=cd['bloco'], cargo=cd['cargo'], data_saida__isnull=True)\
+                                       .exclude(pk=self.instance.pk).exists():
+            raise ValidationError(_("Cargo único já ocupado por outro membro."))
+        elif not cd['data_saida'] and BlocoMembro.objects.filter(parlamentar=cd['parlamentar'], data_saida__isnull=True).exists():
+            raise ValidationError(_("Parlamentar já é membro do bloco parlamentar."))
+
+        return cd

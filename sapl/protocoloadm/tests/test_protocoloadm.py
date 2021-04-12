@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -13,7 +13,7 @@ from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import UnidadeTramitacao
 from sapl.protocoloadm.forms import (AnularProtocoloAdmForm,
                                      DocumentoAdministrativoForm,
-                                     MateriaLegislativa, ProtocoloDocumentForm,
+                                     MateriaLegislativa, ProtocoloDocumentoForm,
                                      ProtocoloMateriaForm, TramitacaoAdmForm,
                                      TramitacaoAdmEditForm,
                                      compara_tramitacoes_doc,
@@ -380,8 +380,9 @@ def test_documento_administrativo_invalido():
     assert errors['numero'] == [_('Este campo é obrigatório.')]
     assert errors['data'] == [_('Este campo é obrigatório.')]
     assert errors['restrito'] == [_('Este campo é obrigatório.')]
+    assert errors['tramitacao'] == [_('Este campo é obrigatório.')]
 
-    assert len(errors) == 6
+    assert len(errors) == 7
 
 
 @pytest.mark.django_db(transaction=False)
@@ -402,7 +403,8 @@ def test_documento_administrativo_protocolo_inexistente():
                                              'data': '2017-10-10',
                                              'numero_protocolo': '11',
                                              'ano_protocolo': '2017',
-                                             'restrito': False
+                                             'restrito': False,
+                                             'tramitacao': False
                                              })
 
     assert not form.is_valid()
@@ -415,7 +417,7 @@ def test_protocolo_documento_form_invalido():
 
     config = baker.make(AppConfig)
 
-    form = ProtocoloDocumentForm(
+    form = ProtocoloDocumentoForm(
         data={},
         initial={
             'user_data_hora_manual': '',
@@ -505,7 +507,7 @@ def test_lista_documentos_anexados():
             data_anexacao="2020-11-05"
     )
 
-    lista = lista_anexados(documento_principal, False)
+    lista = lista_anexados(documento_principal)
     
     assert len(lista) == 2
     assert lista[0] == documento_anexado

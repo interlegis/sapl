@@ -2,7 +2,8 @@
 {% load i18n crispy_forms_tags %}
 
 {% block base_content %}    
-
+<h1 class="firstHeading">Apagar Protocolos</h1>
+<br />
 {% if intervalo_data %}
 <h2 class="page-header">Selecione o ano dos registros a serem apagados e confirme com a sua senha.</h2>
 
@@ -28,7 +29,7 @@
 
 
 {% else %}
-  <h1>Não há registros de protocolos.</h1>
+  <h2><font color="red"><p align="center" style="font-family:Verdana">Não há registros de protocolos.</p></font></h2>
   <a style="margin-top:5%" href="{% url 'sapl.base:sistema' %}" type="button" class="btn btn-secondary" >Voltar para tabelas auxiliares.</a>
 {% endif %}
 

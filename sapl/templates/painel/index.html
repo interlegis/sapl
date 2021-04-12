@@ -5,9 +5,9 @@
 {% load webpack_static from webpack_loader %}
 
 <!DOCTYPE HTML>
-<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="pt-br"> <![endif]-->
 <!--[if gt IE 8]><!-->
-<html lang="en">
+<html lang="pt-br">
 <!--<![endif]-->
   <head>
     <meta charset="UTF-8">
@@ -445,7 +445,7 @@
                 var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
                 console.log(resultado_votacao_upper, data['tipo_resultado']);
                 if (resultado_votacao_upper.search("APROV") != -1){
-                  $("#resultado_votacao").css("color", "green");
+                  $("#resultado_votacao").css("color", "#7CFC00");
                   $("#mat_em_votacao").text("Matéria Votada");
                 }
                 else if (resultado_votacao_upper.search("REJEIT") != -1){

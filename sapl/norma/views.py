@@ -4,13 +4,17 @@ import re
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
-from django.template import RequestContext, loader
+from django.http.response import HttpResponseRedirect
+from django.shortcuts import redirect
+from django.template import loader
+from django.urls import reverse
+from django.urls.base import reverse_lazy
 from django.utils import timezone
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, UpdateView
-from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
@@ -18,28 +22,97 @@ import weasyprint
 from sapl import settings
 import sapl
 from sapl.base.models import AppConfig
+from sapl.compilacao.models import STATUS_TA_PUBLIC
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
-from sapl.utils import show_results_filter_set, get_client_ip
+from sapl.materia.models import Orgao
+from sapl.utils import show_results_filter_set, get_client_ip,\
+    sapl_as_sapn
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
-                    NormaPesquisaSimplesForm, NormaRelacionadaForm, AutoriaNormaForm)
+                    NormaPesquisaSimplesForm, NormaRelacionadaForm,
+                    AutoriaNormaForm, AssuntoNormaFilterSet)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma, NormaEstatisticas)
 
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
-AssuntoNormaCrud = CrudAux.build(AssuntoNorma, 'assunto_norma_juridica',
-                                 list_field_names=['assunto', 'descricao'])
-
-
 TipoNormaCrud = CrudAux.build(
     TipoNormaJuridica, 'tipo_norma_juridica',
     list_field_names=['sigla', 'descricao', 'equivalente_lexml'])
 TipoVinculoNormaJuridicaCrud = CrudAux.build(
     TipoVinculoNormaJuridica, '',
     list_field_names=['sigla', 'descricao_ativa', 'descricao_passiva', 'revoga_integralmente'])
+
+
+class AssuntoNormaCrud(CrudAux):
+    model = AssuntoNorma
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ["assunto", "descricao"]
+
+    class DeleteView(CrudAux.DeleteView):
+        def get_success_url(self):
+            return reverse('sapl.norma:pesquisar_assuntonorma')
+
+
+class PesquisarAssuntoNormaView(FilterView):
+    model = AssuntoNorma
+    filterset_class = AssuntoNormaFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarAssuntoNormaView, self).get_filterset_kwargs(
+            filterset_class
+        )
+
+        return ({
+            "data": self.request.GET or None,
+            "queryset": self.get_queryset().order_by("assunto").distinct()
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarAssuntoNormaView, self).get_context_data(
+            **kwargs
+        )
+
+        paginator = context["paginator"]
+        page_obj = context["page_obj"]
+
+        context.update({
+            "page_range": make_pagination(
+                page_obj.number, paginator.num_pages
+            ),
+            "NO_ENTRIES_MSG": "Nenhum assunto de norma jurídica encontrado!",
+            "title": _("Assunto de Norma Jurídica")
+        })
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarAssuntoNormaView, self).get(request)
+
+        data = self.filterset.data
+
+        url = ''
+
+        if data:
+            url = '&' + str(self.request.META["QUERY_STRING"])
+            if url.startswith("&page"):
+                ponto_comeco = url.find("assunto=") - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(
+            filter=self.filterset, object_list=self.object_list,
+            filter_url=url, numero_res=len(self.object_list)
+        )
+
+        context["show_results"] = show_results_filter_set(
+            self.request.GET.copy()
+        )
+
+        return self.render_to_response(context)
 
 
 class NormaRelacionadaCrud(MasterDetailCrud):
@@ -184,7 +257,7 @@ class NormaCrud(Crud):
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['tipo', 'numero', 'ano', 'ementa']
+        list_field_names = ['epigrafe', 'ementa']
 
         list_url = ''
 
@@ -201,6 +274,13 @@ class NormaCrud(Crud):
                                                  norma_id=kwargs['pk'],
                                                  ano=timezone.now().year,
                                                  horario_acesso=timezone.now())
+
+            if not 'display' in request.GET and \
+                    not request.user.has_perm('norma.change_normajuridica'):
+                ta = self.get_object().texto_articulado.first()
+                if ta and ta.privacidade == STATUS_TA_PUBLIC:
+                    return redirect(reverse('sapl.norma:norma_ta',
+                                            kwargs={'pk': self.kwargs['pk']}))
             return super().get(request, *args, **kwargs)
 
     class DeleteView(Crud.DeleteView):
@@ -242,14 +322,54 @@ class NormaCrud(Crud):
 
         layout_key = 'NormaJuridicaCreate'
 
-    class ListView(Crud.ListView, RedirectView):
+    class ListView(Crud.ListView):
+
+        def get(self, request, *args, **kwargs):
+            if AppConfig.attr('texto_articulado_norma'):
+                self.status = self.request.GET.get('status', '')
+                return Crud.ListView.get(self, request, *args, **kwargs)
+            else:
+                url = self.get_redirect_url(*args, **kwargs)
+                return HttpResponseRedirect(url)
+
+        def hook_header_epigrafe(self, *args, **kwargs):
+            return force_text(_('Epigrafe'))
+
+        def hook_epigrafe(self, obj, ss, url):
+
+            return obj.epigrafe, reverse_lazy(
+                'sapl.norma:norma_ta',
+                kwargs={'pk': obj.id})
 
         def get_redirect_url(self, *args, **kwargs):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
-        def get(self, request, *args, **kwargs):
-            return RedirectView.get(self, request, *args, **kwargs)
+        def get_queryset(self):
+            if self.status == 'pendente':
+                qs = NormaJuridica.objects.normas_com_textos_articulados_pendentes()
+            elif self.status == 'publico':
+                qs = NormaJuridica.objects.normas_com_textos_articulados_publicados()
+            else:
+                qs = NormaJuridica.objects.normas_sem_textos_articulados()
+
+            return qs.order_by('-texto_articulado__privacidade', '-ano', '-numero')
+
+        def get_context_data(self, **kwargs):
+            context = Crud.ListView.get_context_data(self, **kwargs)
+
+            if self.status == 'pendente':
+                context['title'] = 'Normas Jurídicas com Textos Articulados não publicados'
+            elif self.status == 'publico':
+                context['title'] = 'Normas Jurídicas com Textos Articulados publicados'
+            else:
+                context['title'] = 'Normas Jurídicas sem Textos Articulados'
+
+            return context
+
+        @classmethod
+        def get_url_regex(cls):
+            return r'^check_compilacao$'
 
     class UpdateView(Crud.UpdateView):
         form_class = NormaJuridicaForm
@@ -258,7 +378,8 @@ class NormaCrud(Crud):
 
         def get_initial(self):
             initial = super().get_initial()
-            norma = NormaJuridica.objects.get(id=self.kwargs['pk'])
+            norma = NormaJuridica.objects.select_related(
+                "materia").get(id=self.kwargs['pk'])
             if norma.materia:
                 initial['tipo_materia'] = norma.materia.tipo
                 initial['ano_materia'] = norma.materia.ano
@@ -267,9 +388,7 @@ class NormaCrud(Crud):
             return initial
 
         def form_valid(self, form):
-            norma_antiga = NormaJuridica.objects.get(
-                pk=self.kwargs['pk']
-            )
+            norma_antiga = NormaJuridica.objects.get(pk=self.kwargs['pk'])
 
             # Feito desta forma para que sejam materializados os assuntos
             # antigos
@@ -316,6 +435,10 @@ def recuperar_norma(request):
     logger = logging.getLogger(__name__)
     username = request.user.username
 
+    orgao = None
+    if 'orgao' in request.GET and request.GET['orgao']:
+        orgao = Orgao.objects.get(pk=request.GET['orgao'])
+
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     numero = request.GET['numero']
     ano = request.GET['ano']
@@ -325,12 +448,13 @@ def recuperar_norma(request):
                     .format(tipo, ano, numero))
         norma = NormaJuridica.objects.get(tipo=tipo,
                                           ano=ano,
-                                          numero=numero)
+                                          numero=numero,
+                                          orgao=orgao)
         response = JsonResponse({'ementa': norma.ementa,
                                  'id': norma.id})
     except ObjectDoesNotExist:
         logger.warning('user=' + username + '. NormaJuridica buscada (tipo={}, ano={}, numero={}) não existe. '
-                     'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
+                       'Definida com ementa vazia e id 0.'.format(tipo, ano, numero))
         response = JsonResponse({'ementa': '', 'id': 0})
 
     return response
@@ -339,9 +463,14 @@ def recuperar_norma(request):
 def recuperar_numero_norma(request):
     tipo = TipoNormaJuridica.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
+    orgao = request.GET.get('orgao', '')
+
     param = {'tipo': tipo,
-             'ano': ano if ano else timezone.now().year
+             'ano': ano if ano else timezone.now().year,
              }
+    if orgao:
+        param['orgao'] = Orgao.objects.get(pk=orgao)
+
     norma = NormaJuridica.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', flat=True)
     if norma:

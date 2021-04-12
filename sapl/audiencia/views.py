@@ -1,7 +1,7 @@
 import sapl
 
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import UpdateView
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, MasterDetailCrud
@@ -19,8 +19,7 @@ class AudienciaCrud(Crud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['numero', 'nome', 'tipo', 'materia',
-                            'data'] 
+        list_field_names = [ 'nome', 'tipo', 'materia', 'data']
         ordering = '-data', 'nome', 'numero', 'tipo'
 
     class ListView(Crud.ListView):
@@ -29,18 +28,20 @@ class AudienciaCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            audiencia_materia = {}
-            for o in context['object_list']:
-                # indexado pelo numero da audiencia
-                audiencia_materia[str(o.numero)] = o.materia
+            audiencia_materia = { str(a.id): (a.materia, a.numero) for a in context['object_list'] }
 
             for row in context['rows']:
-                coluna_materia = row[3] # se mudar a ordem de listagem mudar aqui
+                audiencia_id = row[0][1].split('/')[-1]
+                tema = str(audiencia_materia[audiencia_id][1]) + ' - ' + row[0][0]
+                row[0] = (tema, row[0][1])
+                coluna_materia = row[2]                             # Se mudar a ordem de listagem, mudar aqui.
                 if coluna_materia[0]:
-                    materia = audiencia_materia[row[0][0]]
-                    url_materia = reverse('sapl.materia:materialegislativa_detail',
-                                          kwargs={'pk': materia.id})
-                    row[3] = (coluna_materia[0], url_materia)
+                    materia = audiencia_materia[audiencia_id][0]
+                    if materia:
+                        url_materia = reverse('sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
+                    else:
+                        url_materia = None
+                    row[2] = (coluna_materia[0], url_materia)       # Se mudar a ordem de listagem, mudar aqui.
             return context
 
     class CreateView(Crud.CreateView):

@@ -117,11 +117,26 @@ ComposicaoColigacao:
   - partido
 
 Frente:
-  {% trans 'Frente' %}:
+  {% trans 'Frente Parlamentar' %}:
   - nome
   - data_criacao data_extincao
-  - parlamentares
   - descricao
+
+FrenteCargo:
+  {% trans 'Cargo' %}:
+  - nome_cargo cargo_unico:4
+
+FrenteParlamentar:
+  {% trans 'Parlamentar'%}:
+  - frente
+  - cargo:4 parlamentar
+  - data_entrada data_saida
+
+FrenteParlamentarList:
+  {% trans 'Parlamentares'%}:
+  - id
+  - cargo:4 parlamentar
+  - data_entrada data_saida
 
 Votante:
   {% trans 'Votante' %}:
@@ -134,3 +149,19 @@ Bloco:
   - data_criacao data_extincao
   - partidos
   - descricao
+
+BlocoCargo:
+  {% trans 'Cargo' %}:
+  - nome_cargo cargo_unico:4
+
+BlocoMembro:
+  {% trans 'Membro'%}:
+  - bloco
+  - cargo:4 parlamentar
+  - data_entrada data_saida
+
+BlocoMembroList:
+  {% trans 'Membros'%}:
+  - id
+  - cargo:4 parlamentar
+  - data_entrada data_saida

@@ -4,10 +4,10 @@ from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.translation import ugettext as _
-import rtyaml
+import yaml
 
 
 def heads_and_tails(list_of_lists):
@@ -190,8 +190,9 @@ class CrispyLayoutFormMixin:
             return getattr(obj.model,
                            obj.model_set).field.model.__name__
 
-    def get_layout(self):
-        yaml_layout = '%s/layouts.yaml' % self.model._meta.app_config.label
+    def get_layout(self, yaml_layout=None):
+        if not yaml_layout:
+            yaml_layout = '%s/layouts.yaml' % self.model._meta.app_config.label
         return read_layout_from_yaml(yaml_layout, self.layout_key)
 
     def get_layout_set(self):
@@ -330,12 +331,14 @@ class CrispyLayoutFormMixin:
 
 
 def read_yaml_from_file(yaml_layout):
-    # TODO cache this at application level
+    from django.utils.safestring import SafeText
+
     t = template.loader.get_template(yaml_layout)
-    # aqui é importante converter para str pois, dependendo do ambiente,
-    # o rtyaml pode usar yaml.CSafeLoader, que exige str ou stream
     rendered = str(t.render())
-    return rtyaml.load(rendered)
+    if isinstance(rendered, SafeText):
+        rendered = rendered.strip()
+
+    return yaml.load(rendered, yaml.Loader)
 
 
 def read_layout_from_yaml(yaml_layout, key):

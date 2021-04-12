@@ -5,7 +5,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
@@ -201,23 +201,24 @@ def can_vote(context, context_vars, request):
 
 def votante_view(request):
     logger = logging.getLogger(__name__)
-    username = request.user.username
-
+    username = request.user.username if request.user.is_authenticated else 'AnonymousUser'
+ 
     # Pega o votante relacionado ao usuário
     template_name = 'painel/voto_nominal.html'
     context = {}
     context_vars = {}
 
     try:
-        logger.debug('user=' + username + '. Tentando obter objeto Votante com user={}.'.format(request.user))
-        votante = Votante.objects.get(user=request.user)
+        logger.debug(f'user={username}. Tentando obter objeto Votante com user={request.user}.')
+        if not request.user.is_anonymous and request.user.is_authenticated:
+            votante = Votante.objects.get(user=request.user)
+        else:
+            raise ObjectDoesNotExist
     except ObjectDoesNotExist:
-        logger.error("user=" + username + ". Usuário (user={}) não cadastrado como votante na tela de parlamentares. " 
-                     "Contate a administração de sua Casa Legislativa!".format(request.user))
+        logger.error(f"user={username}. Usuário (user={request.user}) não cadastrado como votante na tela de parlamentares. " 
+                     "Contate a administração de sua Casa Legislativa!")
         msg = _("Usuário não cadastrado como votante na tela de parlamentares. Contate a administração de sua Casa Legislativa!")
-        context.update({
-            'error_message':msg
-        })
+        context.update({'error_message': msg})
 
         return render(request, template_name, context)
     context_vars = {'votante': votante}

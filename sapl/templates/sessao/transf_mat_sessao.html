@@ -1,0 +1,144 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load common_tags %}
+
+{% block base_content %}
+    {% if materias_sessao %}
+        {% if sessoes_destino %}
+            <div id="numero_resultados" style="text-align: right;"></div>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <fieldset>
+                    <legend><b>Sessão Plenária Destino</b></legend>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Sessão Plenária*</label>
+                                <select id="id_sessao_plenaria" class="select form-control" name="sessao_plenaria" required="True">
+                                    {% for sessao in sessoes_destino %}
+                                        <option value="{{ sessao.pk }}">{{ sessao }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+                    <legend><b>Matérias Disponíveis para Cópia na Sessão Atual</b></legend>
+                    <div id="tabela_materias"></div>
+                </fieldset>
+                <div id="submit_button"></div>
+            </form>
+        {% else %}
+            <br/>
+            <tr><td><h3 style="text-align: center;">Nenhuma sessão plenária está apta a receber a(s) cópia(s).</h3></td></tr>
+        {% endif %}
+    {% else %}
+        <br/>
+        <tr><td><h3 style="text-align: center;">Nenhuma máteria está disponível para cópia.</h3></td></tr>
+    {% endif %}
+{% endblock base_content %}
+
+{% block extra_js %}
+    <script language="Javascript">
+        function checkAll(elem) {
+            let checkboxes = document.getElementsByName('opcao_id');
+            for (let i=0; i<checkboxes.length; i++){
+                if (checkboxes[i].type == 'checkbox')
+                    checkboxes[i].checked = elem.checked;
+            }
+        }
+
+        function buscar_materias_sessao() {
+            let categoria_materia = "{{ categoria_materia }}"
+            let pk_sessao_plenaria_atual = "{{ root_pk }}"
+            let id_sessao_plenaria = $("#id_sessao_plenaria").val();
+
+            $.get("{% url 'sapl.sessao:filtra_materias_copia_sessao_ajax_view' %}",
+                {
+                    sessao_plenaria_atual: pk_sessao_plenaria_atual,
+                    sessao_plenaria_destino: id_sessao_plenaria,
+                    categoria_materia: categoria_materia
+                },
+                function(data) {
+                    lista_materias = data['materias'];
+
+                    numero_resultados = lista_materias.length;
+                    if (numero_resultados == 0){
+                        $("#numero_resultados").html(
+                            "<h3>Existem " + numero_resultados + " matérias disponíveis para cópia.</h3>"
+                        );
+
+                        $("#tabela_materias").html(
+                            '<table class="table table-striped table-hover">'+
+                                '<div class="controls">'+
+                                    '<div class="checkbox">'+
+                                        '<label for="id_check_all">'+
+                                            '<input type="checkbox" id="id_check_all" onchange="checkAll(this)"/>Marcar/Desmarcar Todos'+
+                                        '</label>'+
+                                    '</div>'+
+                                '</div>'+
+                                '<thead><tr><td>Matéria</td></tr></thead>'+
+                                '<tbody>'+
+                                    '<tr><td><h3 style="text-align: center;">Nenhuma máteria está disponível para cópia.</h3></td></tr>'+
+                                '</tbody>'+
+                            '</table>'
+                        );
+
+                        $("#submit_button").html("");
+                    } else {
+
+                        if (numero_resultados == 1){
+                            $("#numero_resultados").html(
+                                "<h3>{% trans 'Existe 1 matéria disponível para cópia.' %}</h3>"
+                            );
+                        } else {
+                            $("#numero_resultados").html(
+                                "<h3>Existem " + numero_resultados + " matérias disponíveis para cópia.</h3>"
+                            );
+                        }
+
+                        var opcoes = "";
+                        for (let i=0; i < lista_materias.length; i++){
+                            opcoes += '<tr><td>'+
+                                '<label for="' + lista_materias[i].materia_id + '">' +
+                                    '<input type="checkbox" id="' + lista_materias[i].materia_id + '" name="opcao_id" value="' + lista_materias[i].id + '" {% if check %} checked {% endif %}/> '+
+                                    lista_materias[i].materia_tipo_sigla + ' ' + lista_materias[i].materia_numero + '/' + lista_materias[i].materia_ano + ' - ' + lista_materias[i].materia_tipo_descricao +
+                                '</label>'+
+                            '</td></tr>'
+                        }
+
+                        $("#tabela_materias").html(
+                            '<table class="table table-striped table-hover">'+
+                                '<div class="controls">'+
+                                    '<div class="checkbox">'+
+                                        '<label for="id_check_all">'+
+                                            '<input type="checkbox" id="id_check_all" onchange="checkAll(this)"/>Marcar/Desmarcar Todos'+
+                                        '</label>'+
+                                    '</div>'+
+                                '</div>'+
+                                '<thead><tr><td>Matéria</td></tr></thead>'+
+                                '<tbody>'+
+                                    opcoes +
+                                '</tbody>'+
+                            '</table>'
+                        );
+
+                        $("#submit_button").html(
+                            '<input type="submit" value="Copiar" class="btn btn-primary"S>'
+                        );
+                    }
+                }
+            );
+        }
+
+        $(document).ready( function() {
+            // Identifica as matérias que já estão adicionadas na sessão destino
+            $("#id_sessao_plenaria").ready(buscar_materias_sessao);
+            $("#id_sessao_plenaria").change(buscar_materias_sessao);
+
+            $(window).on('beforeunload', function () {
+                $("input[type=submit]").prop("disabled", "disabled");
+            });
+        });
+    </script>
+{% endblock %}

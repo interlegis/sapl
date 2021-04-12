@@ -1,5 +1,5 @@
 import pytest
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 @pytest.mark.parametrize("test_input,kwargs,expected", [

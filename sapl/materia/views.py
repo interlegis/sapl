@@ -1,44 +1,40 @@
 
-import itertools
+from datetime import datetime
+from io import BytesIO
 import logging
 import os
-import sapl
-import shutil
-import tempfile
-import weasyprint
-import time
-
-from crispy_forms.layout import HTML
-from datetime import datetime
 from random import choice
+import shutil
 from string import ascii_letters, digits
-from datetime import datetime
-from PyPDF4 import PdfFileReader, PdfFileMerger
+import time
 import zipfile
 
+from PyPDF4 import PdfFileReader, PdfFileMerger
+from crispy_forms.layout import HTML
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError
-from django.core.urlresolvers import reverse
 from django.db.models import Max, Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.template import loader, RequestContext
+from django.shortcuts import render
+from django.template import loader
+from django.urls import reverse
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
-
 from django_filters.views import FilterView
+import weasyprint
 
+import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
-from sapl.base.signals import tramitacao_signal, post_delete_signal, post_save_signal
-from sapl.comissoes.models import Comissao, Participacao, Composicao
+from sapl.comissoes.models import Participacao
 from sapl.compilacao.models import STATUS_TA_IMMUTABLE_RESTRICT, STATUS_TA_PRIVATE
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, SaplFormLayout
@@ -48,7 +44,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm
                                 ConfirmarProposicaoForm, DevolverProposicaoForm,
                                 DespachoInicialCreateForm, LegislacaoCitadaForm,
                                 MateriaPesquisaSimplesForm, OrgaoForm, ProposicaoForm,
-                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm)
+                                TipoProposicaoForm, TramitacaoForm, TramitacaoUpdateForm, ConfigEtiquetaMateriaLegislativaForms)
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
@@ -56,23 +52,27 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
-                        show_results_filter_set, YES_NO_CHOICES,get_tempfile_dir)
+                        show_results_filter_set, get_tempfile_dir,
+                        google_recaptcha_configured)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
-                    compara_tramitacoes_mat, DespachoInicialForm, DocumentoAcessorioForm,
-                    EtiquetaPesquisaForm, ExcluirTramitacaoEmLote, FichaPesquisaForm,
+                    compara_tramitacoes_mat, DespachoInicialForm,
+                    DocumentoAcessorioForm, EtiquetaPesquisaForm,
+                    ExcluirTramitacaoEmLote, FichaPesquisaForm,
                     FichaSelecionaForm, filtra_tramitacao_destino,
-                    filtra_tramitacao_destino_and_status, filtra_tramitacao_status,
-                    MateriaAssuntoForm, MateriaLegislativaFilterSet, MateriaLegislativaForm,
+                    filtra_tramitacao_destino_and_status,
+                    filtra_tramitacao_status, MateriaAssuntoForm,
+                    MateriaLegislativaFilterSet, MateriaLegislativaForm,
                     MateriaSimplificadaForm, PrimeiraTramitacaoEmLoteFilterSet,
-                    ReceberProposicaoForm, RelatoriaForm, TramitacaoEmLoteFilterSet,
-                    TramitacaoEmLoteForm, UnidadeTramitacaoForm)
+                    ReceberProposicaoForm, RelatoriaForm,
+                    TramitacaoEmLoteFilterSet, TramitacaoEmLoteForm,
+                    UnidadeTramitacaoForm, StatusTramitacaoFilterSet)
 from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaAssunto, MateriaLegislativa, Numeracao, Orgao,
                      Origem, Proposicao, RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
-                     Tramitacao, UnidadeTramitacao)
+                     Tramitacao, UnidadeTramitacao, ConfigEtiquetaMateriaLegislativa, HistoricoProposicao)
 
 
 AssuntoMateriaCrud = CrudAux.build(AssuntoMateria, 'assunto_materia')
@@ -104,7 +104,10 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-                proposicao.autor.user_id != request.user.id):
+                not proposicao.autor.operadores.filter(
+                    id=request.user.id
+                ).exists()
+            ):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
             messages.error(request, _(
@@ -227,16 +230,16 @@ class CriarProtocoloMateriaView(CreateView):
         return context
 
     def form_valid(self, form):
-        materia = form.save() 
+        materia = form.save()
 
         materia.user = self.request.user
         materia.ip = get_client_ip(self.request)
-        
+
         tz = timezone.get_current_timezone()
         materia.ultima_edicao = tz.localize(datetime.now())
-        
+
         materia.save()
-        
+
         username = self.request.user.username
 
         try:
@@ -318,8 +321,9 @@ class ProposicaoTaView(IntegracaoTaView):
 
             proposicao = get_object_or_404(self.model, pk=kwargs['pk'])
 
-            if not proposicao.data_envio and\
-                    request.user != proposicao.autor.user:
+            if not proposicao.data_envio and \
+               not proposicao.autor.operadores.filter(
+                    id=request.user.id).exists():
                 raise Http404()
 
             return IntegracaoTaView.get(self, request, *args, **kwargs)
@@ -333,6 +337,9 @@ def recuperar_materia(request):
     username = request.user.username
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', '')
+
+    if not (tipo and ano):
+        return JsonResponse({'numero': '', 'ano': ''})
 
     numeracao = None
     try:
@@ -376,7 +383,70 @@ def recuperar_materia(request):
     return response
 
 
-StatusTramitacaoCrud = CrudAux.build(StatusTramitacao, 'status_tramitacao')
+class StatusTramitacaoCrud(CrudAux):
+    model = StatusTramitacao
+
+    class DeleteView(CrudAux.DeleteView):
+        def get_success_url(self):
+            return reverse('sapl.materia:pesquisar_statustramitacao')
+
+
+class PesquisarStatusTramitacaoView(FilterView):
+    model = StatusTramitacao
+    filterset_class = StatusTramitacaoFilterSet
+    paginate_by = 10
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarStatusTramitacaoView, self).get_filterset_kwargs(
+            filterset_class
+        )
+
+        return ({
+            "data": self.request.GET or None,
+            "queryset": self.get_queryset().order_by("sigla").distinct()
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarStatusTramitacaoView, self).get_context_data(
+            **kwargs
+        )
+
+        paginator = context["paginator"]
+        page_obj = context["page_obj"]
+
+        context.update({
+            "page_range": make_pagination(
+                page_obj.number, paginator.num_pages
+            ),
+            "NO_ENTRIES_MSG": "Nenhum status de tramitacao encontrado!",
+            "title": _("Status de Tramitação")
+        })
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarStatusTramitacaoView, self).get(request)
+
+        data = self.filterset.data
+
+        url = ''
+
+        if data:
+            url = '&' + str(self.request.META["QUERY_STRING"])
+            if url.startswith("&page"):
+                ponto_comeco = url.find("descricao=") - 1
+                url = url[ponto_comeco:]
+
+        context = self.get_context_data(
+            filter=self.filterset, object_list=self.object_list,
+            filter_url=url, numero_res=len(self.object_list)
+        )
+
+        context["show_results"] = show_results_filter_set(
+            self.request.GET.copy()
+        )
+
+        return self.render_to_response(context)
 
 
 class OrgaoCrud(CrudAux):
@@ -591,7 +661,7 @@ class RetornarProposicao(UpdateView):
                 "user=" + username + ". Objeto Proposicao com id={} não encontrado.".format(kwargs['pk']))
             raise Http404()
 
-        if p.autor.user != request.user:
+        if not p.autor.operadores.filter(id=request.user.id).exists():
             self.logger.error(
                 "user=" + username + ". Usuário ({}) sem acesso a esta opção.".format(request.user))
             messages.error(
@@ -610,6 +680,12 @@ class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     model = Proposicao
     form_class = ConfirmarProposicaoForm, DevolverProposicaoForm
     logger = logging.getLogger(__name__)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['ip'] = get_client_ip(self.request)
+        initial['user'] = self.request.user
+        return initial
 
     def get_success_url(self):
         msgs = self.object.results['messages']
@@ -733,7 +809,7 @@ class UnidadeTramitacaoCrud(CrudAux):
 class ProposicaoCrud(Crud):
     model = Proposicao
     help_topic = 'proposicao'
-    container_field = 'autor__user'
+    container_field = 'autor__operadores'
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = [
@@ -784,7 +860,7 @@ class ProposicaoCrud(Crud):
 
             context['title'] = '%s <small>(%s)</small>' % (
                 self.object, self.object.autor)
-            
+
             context['user'] = self.request.user
             context['proposicao'] = Proposicao.objects.get(
                 pk=self.kwargs['pk']
@@ -802,14 +878,15 @@ class ProposicaoCrud(Crud):
             p = Proposicao.objects.get(id=kwargs['pk'])
 
             msg_error = ''
-            if p and p.autor.user == user:
+            if p and p.autor.operadores.filter(id=request.user.id).exists():
                 if action == 'send':
                     if p.data_envio and p.data_recebimento:
                         msg_error = _('Proposição já foi enviada e recebida.')
                     elif p.data_envio:
                         msg_error = _('Proposição já foi enviada.')
                     elif not p.texto_original and not p.texto_articulado.exists():
-                        msg_error = _('Proposição não possui nenhum tipo de Texto associado.')
+                        msg_error = _(
+                            'Proposição não possui nenhum tipo de Texto associado.')
                     else:
                         if p.texto_articulado.exists():
                             ta = p.texto_articulado.first()
@@ -817,7 +894,8 @@ class ProposicaoCrud(Crud):
                             ta.editing_locked = True
                             ta.save()
 
-                            receber_recibo = BaseAppConfig.attr('receber_recibo_proposicao')
+                            receber_recibo = BaseAppConfig.attr(
+                                'receber_recibo_proposicao')
 
                             if not receber_recibo:
                                 ta = p.texto_articulado.first()
@@ -826,8 +904,14 @@ class ProposicaoCrud(Crud):
                         p.data_devolucao = None
                         p.data_envio = timezone.now()
                         p.save()
+                        HistoricoProposicao.objects.create(
+                            proposicao=p,
+                            status='E',
+                            ip=get_client_ip(self.request),
+                            user=self.request.user)
 
-                        messages.success(request, _('Proposição enviada com sucesso.'))
+                        messages.success(request, _(
+                            'Proposição enviada com sucesso.'))
                         try:
                             self.logger.debug("User={}. Tentando obter número do objeto MateriaLegislativa "
                                               "com atributos tipo={} e ano={}."
@@ -837,18 +921,21 @@ class ProposicaoCrud(Crud):
                                 numero = p.numero_materia_futuro
                             else:
                                 numero = MateriaLegislativa.objects.filter(tipo=p.tipo.tipo_conteudo_related,
-                                                                           ano=p.ano).last().numero + 1
+                                                                           ano=p.ano).order_by('numero').last().numero + 1
                             messages.success(request, _("{}: nº {} de {} <br>Atenção! Este número é apenas um provável "
                                                         "número que pode não corresponder com a realidade"
                                                         .format(p.tipo, numero, p.ano)))
                         except ValueError as e:
-                            self.logger.warning("User=" + username + ". " + str(e))
+                            self.logger.warning(
+                                "User=" + username + ". " + str(e))
                             pass
                         except AttributeError as e:
-                            self.logger.warning("User=" + username + ". " + str(e))
+                            self.logger.warning(
+                                "User=" + username + ". " + str(e))
                             pass
                         except TypeError as e:
-                            self.logger.warning("User=" + username + ". " + str(e))
+                            self.logger.warning(
+                                "User=" + username + ". " + str(e))
                             pass
 
                 elif action == 'return':
@@ -859,10 +946,17 @@ class ProposicaoCrud(Crud):
                     elif p.data_recebimento:
                         self.logger.warning("User={}. Proposição (numero={}) já foi recebida, "
                                             "não é possível retorná-la.".format(username, p.numero_proposicao))
-                        msg_error = _('Proposição já foi recebida, não é possível retorná-la.')
+                        msg_error = _(
+                            'Proposição já foi recebida, não é possível retorná-la.')
                     else:
                         p.data_envio = None
                         p.save()
+                        HistoricoProposicao.objects.create(
+                            proposicao=p,
+                            status='T',
+                            ip=get_client_ip(self.request),
+                            user=self.request.user)
+
                         if p.texto_articulado.exists():
                             ta = p.texto_articulado.first()
                             ta.privacidade = STATUS_TA_PRIVATE
@@ -870,7 +964,8 @@ class ProposicaoCrud(Crud):
                             ta.save()
                         self.logger.info("User={}. Proposição (numero={}) Retornada com sucesso."
                                          .format(username, p.numero_proposicao))
-                        messages.success(request, _('Proposição Retornada com sucesso.'))
+                        messages.success(request, _(
+                            'Proposição Retornada com sucesso.'))
 
                 if msg_error:
                     messages.error(request, msg_error)
@@ -881,7 +976,8 @@ class ProposicaoCrud(Crud):
         def dispatch(self, request, *args, **kwargs):
             username = request.user.username
             try:
-                self.logger.debug("User={}. Tentando obter objeto Proposicao com pk={}".format(username, kwargs['pk']))
+                self.logger.debug("User={}. Tentando obter objeto Proposicao com pk={}".format(
+                    username, kwargs['pk']))
                 p = Proposicao.objects.get(id=kwargs['pk'])
             except Exception as e:
                 self.logger.warning("User={}. Erro ao obter proposicao com pk={}. Retornando 404. {}"
@@ -891,7 +987,7 @@ class ProposicaoCrud(Crud):
             if not self.has_permission():
                 return self.handle_no_permission()
 
-            if p.autor.user != request.user:
+            if not p.autor.operadores.filter(id=request.user.id).exists():
                 if not p.data_envio and not p.data_devolucao:
                     raise Http404()
 
@@ -912,15 +1008,18 @@ class ProposicaoCrud(Crud):
         logger = logging.getLogger(__name__)
 
         def _action_is_valid(self, request, *args, **kwargs):
-            proposicao = Proposicao.objects.filter(id=kwargs['pk']).values_list('data_envio', 'data_recebimento')
+            proposicao = Proposicao.objects.filter(
+                id=kwargs['pk']).values_list('data_envio', 'data_recebimento')
 
             username = request.user.username
 
             if proposicao:
+                msg = ''
                 if proposicao[0][0] and proposicao[0][1]:
                     self.logger.warning("User={}. Proposição (id={}) já foi enviada e recebida."
                                         "Não pode mais ser excluida.".format(username, kwargs['pk']))
-                    msg = _('Proposição já foi enviada e recebida. Não pode mais ser excluida.')
+                    msg = _(
+                        'Proposição já foi enviada e recebida. Não pode mais ser excluida.')
                 elif proposicao[0][0] and not proposicao[0][1]:
                     self.logger.warning("""\
                         User={}. Proposição (id={}) já foi enviada, mas ainda não recebida pelo protocolo. \
@@ -969,11 +1068,12 @@ class ProposicaoCrud(Crud):
                     self.object.ultima_edicao = tz.localize(datetime.now())
                     self.object.save()
                     break
-            
+
             return super().form_valid(form)
 
         def _action_is_valid(self, request, *args, **kwargs):
-            proposicao = Proposicao.objects.filter(id=kwargs['pk']).values_list('data_envio', 'data_recebimento')
+            proposicao = Proposicao.objects.filter(
+                id=kwargs['pk']).values_list('data_envio', 'data_recebimento')
 
             username = request.user.username
 
@@ -982,7 +1082,8 @@ class ProposicaoCrud(Crud):
                 if proposicao[0][0] and proposicao[0][1]:
                     self.logger.warning('User={}. Proposição (id={}) já foi enviada e recebida. '
                                         'Não pode mais ser editada'.format(username, kwargs['pk']))
-                    msg = _('Proposição já foi enviada e recebida. Não pode mais ser editada')
+                    msg = _(
+                        'Proposição já foi enviada e recebida. Não pode mais ser editada')
                 elif proposicao[0][0] and not proposicao[0][1]:
                     self.logger.warning("""\
                         User={}. Proposição (id={}) já foi enviada, mas ainda não recebida pelo protocolo. \
@@ -1020,7 +1121,7 @@ class ProposicaoCrud(Crud):
 
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
-            
+
             tz = timezone.get_current_timezone()
             initial['ultima_edicao'] = tz.localize(datetime.now())
 
@@ -1061,14 +1162,17 @@ class ProposicaoCrud(Crud):
                 if obj.data_recebimento is None:
                     obj.data_recebimento = 'Não recebida' if obj.data_envio else 'Não enviada'
                 else:
-                    obj.data_recebimento = timezone.localtime(obj.data_recebimento)
-                    obj.data_recebimento = formats.date_format(obj.data_recebimento, "DATETIME_FORMAT")
+                    obj.data_recebimento = timezone.localtime(
+                        obj.data_recebimento)
+                    obj.data_recebimento = formats.date_format(
+                        obj.data_recebimento, "DATETIME_FORMAT")
                 if obj.data_envio is None:
                     obj.data_envio = 'Em elaboração...'
                 else:
 
                     obj.data_envio = timezone.localtime(obj.data_envio)
-                    obj.data_envio = formats.date_format(obj.data_envio, "DATETIME_FORMAT")
+                    obj.data_envio = formats.date_format(
+                        obj.data_envio, "DATETIME_FORMAT")
 
             return [self._as_row(obj) for obj in object_list]
 
@@ -1085,7 +1189,7 @@ class ReciboProposicaoView(TemplateView):
 
         return (Proposicao.objects.filter(
             id=self.kwargs['pk'],
-            autor__user_id=self.request.user.id).exists())
+            autor__operadores=self.request.user).exists())
 
     def get_context_data(self, **kwargs):
         context = super(ReciboProposicaoView, self).get_context_data(
@@ -1131,6 +1235,35 @@ class ReciboProposicaoView(TemplateView):
                                 kwargs={'pk': proposicao.pk}))
 
 
+class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
+    logger = logging.getLogger(__name__)
+    template_name = "materia/historico_proposicao.html"
+    ordering = ['-data_hora']
+    paginate_by = 10
+    model = HistoricoProposicao
+    permission_required = ('materia.detail_proposicao', )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if not user.is_superuser:
+            autores = Autor.objects.filter(user=user)
+            qs = qs.filter(proposicao__autor__in=autores)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super(HistoricoProposicaoView,
+                        self).get_context_data(**kwargs)
+        paginator = context['paginator']
+        page_obj = context['page_obj']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+        context['NO_ENTRIES_MSG'] = 'Nenhuma proposição'
+        if self.request.user.is_superuser:
+            context['subnav_template_name'] = 'materia/subnav_prop.yaml'
+        return context
+
+
 class RelatoriaCrud(MasterDetailCrud):
     model = Relatoria
     parent_field = 'materia'
@@ -1145,16 +1278,30 @@ class RelatoriaCrud(MasterDetailCrud):
         def get_initial(self):
             materia = MateriaLegislativa.objects.get(id=self.kwargs['pk'])
 
-            loc_atual = Tramitacao.objects.filter(materia=materia).last()
+            loc_atual = Tramitacao.objects.\
+                filter(materia=materia).order_by(
+                    '-data_tramitacao', '-id').first()
 
             if loc_atual is None:
-                localizacao = 0
+                localizacao = -1
             else:
                 comissao = loc_atual.unidade_tramitacao_destino.comissao
                 if comissao:
                     localizacao = comissao.pk
                 else:
                     localizacao = 0
+                    if loc_atual.unidade_tramitacao_destino.orgao:
+                        # 0 = Orgão
+                        tipo_unidade_tramitacao_destino = "Orgão"
+                    elif loc_atual.unidade_tramitacao_destino.parlamentar:
+                        # 1 = Parlamentar
+                        tipo_unidade_tramitacao_destino = "Parlamentar"
+
+                    unidade_tramitacao_destino = loc_atual.unidade_tramitacao_destino
+                    return {
+                        'comissao': localizacao, 'tipo_unidade_tramitacao_destino': tipo_unidade_tramitacao_destino,
+                        'unidade_tramitacao_destino': unidade_tramitacao_destino
+                    }
 
             return {'comissao': localizacao}
 
@@ -1206,10 +1353,8 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super(CreateView, self).get_initial()
-            local = MateriaLegislativa.objects.get(
-                pk=self.kwargs['pk']).tramitacao_set.order_by(
-                '-data_tramitacao',
-                '-id').first()
+            local = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])\
+                                      .tramitacao_set.order_by('-data_tramitacao', '-id').first()
 
             if local:
                 initial['unidade_tramitacao_local'
@@ -1232,7 +1377,6 @@ class TramitacaoCrud(MasterDetailCrud):
             ultima_tramitacao = Tramitacao.objects.filter(
                 materia_id=self.kwargs['pk']).order_by(
                 '-data_tramitacao',
-                '-timestamp',
                 '-id').first()
 
             # TODO: Esta checagem foi inserida na issue #2027, mas é mesmo
@@ -1261,28 +1405,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
             return context
 
-        def form_valid(self, form):
-
-            self.object = form.save()
-            username = self.request.user.username
-
-            try:
-                self.logger.debug("user=" + username + ". Tentando enviar Tramitacao (sender={}, post={}, request={})."
-                                  .format(Tramitacao, self.object, self.request))
-                tramitacao_signal.send(sender=Tramitacao,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception as e:
-                msg = _('Tramitação criada, mas e-mail de acompanhamento '
-                        'de matéria não enviado. Há problemas na configuração '
-                        'do e-mail.')
-                self.logger.warning('user=' + username + '. Tramitação criada, mas e-mail de acompanhamento '
-                                    'de matéria não enviado. Há problemas na configuração '
-                                    'do e-mail. ' + str(e))
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
-
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = TramitacaoUpdateForm
         logger = logging.getLogger(__name__)
@@ -1291,7 +1413,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
-            
+
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
 
@@ -1299,27 +1421,6 @@ class TramitacaoCrud(MasterDetailCrud):
             initial['ultima_edicao'] = tz.localize(datetime.now())
 
             return initial
-
-        def form_valid(self, form):
-            self.object = form.save()
-            user = self.request.user
-
-            try:
-                self.logger.debug("user=" + user.username + ". Tentando enviar Tramitacao (sender={}, post={}, request={}"
-                                  .format(Tramitacao, self.object, self.request))
-                tramitacao_signal.send(sender=Tramitacao,
-                                       post=self.object,
-                                       request=self.request)
-            except Exception:
-                msg = _('Tramitação atualizada, mas e-mail de acompanhamento '
-                        'de matéria não enviado. Há problemas na configuração '
-                        'do e-mail.')
-                self.logger.warning('user=' + user.username + '. Tramitação atualizada, mas e-mail de acompanhamento '
-                                    'de matéria não enviado. Há problemas na configuração '
-                                    'do e-mail.')
-                messages.add_message(self.request, messages.WARNING, msg)
-                return HttpResponseRedirect(self.get_success_url())
-            return super().form_valid(form)
 
     class ListView(MasterDetailCrud.ListView):
 
@@ -1335,15 +1436,14 @@ class TramitacaoCrud(MasterDetailCrud):
         logger = logging.getLogger(__name__)
 
         def delete(self, request, *args, **kwargs):
-            tramitacao = Tramitacao.objects.get(id=self.kwargs['pk'])
+            tramitacao = Tramitacao.objects.select_related(
+                'materia').get(id=self.kwargs['pk'])
             materia = tramitacao.materia
             url = reverse('sapl.materia:tramitacao_list',
                           kwargs={'pk': materia.id})
 
             ultima_tramitacao = materia.tramitacao_set.order_by(
-                '-data_tramitacao',
-                '-timestamp',
-                '-id').first()
+                '-data_tramitacao', '-id').first()
 
             if tramitacao.pk != ultima_tramitacao.pk:
                 username = request.user.username
@@ -1354,29 +1454,43 @@ class TramitacaoCrud(MasterDetailCrud):
                 messages.add_message(request, messages.ERROR, msg)
                 return HttpResponseRedirect(url)
             else:
-                tramitacoes_deletar = [tramitacao]
-                if materia.tramitacao_set.count() == 0:
+
+                # recupera últimas duas tramitacoes
+                penultima_tramitacao = materia.tramitacao_set.order_by(
+                    '-data_tramitacao', '-id').exclude(
+                    id=ultima_tramitacao.id).first()
+                if not penultima_tramitacao or \
+                        penultima_tramitacao.status.indicador == "F":
                     materia.em_tramitacao = False
-                    materia.save()
+                else:
+                    materia.em_tramitacao = True
+                materia.save()
+
+                tramitacoes_deletar = [tramitacao.id]
+
                 tramitar_anexadas = sapl.base.models.AppConfig.attr(
                     'tramitacao_materia')
                 if tramitar_anexadas:
-                    mat_anexadas = lista_anexados(materia)
-                    for ma in mat_anexadas:
-                        tram_anexada = ma.tramitacao_set.last()
-                        if compara_tramitacoes_mat(tram_anexada, tramitacao):
-                            tramitacoes_deletar.append(tram_anexada)
-                            if ma.tramitacao_set.count() == 0:
-                                ma.em_tramitacao = False
-                                ma.save()
-                Tramitacao.objects.filter(id__in=[t.id for t in tramitacoes_deletar]).delete()
-
-                # TODO: otimizar para passar a lista de matérias
-                for tramitacao in tramitacoes_deletar:
-                    post_delete_signal.send(sender=None,
-                                            instance=tramitacao,
-                                            operation='C',
-                                            request=self.request)
+                    materias_anexadas = lista_anexados(materia)
+                    for materia in materias_anexadas:
+                        ultima_tramitacao = materia.tramitacao_set.order_by(
+                            '-data_tramitacao', '-id').first()
+                        if compara_tramitacoes_mat(ultima_tramitacao,
+                                                   tramitacao):
+                            tramitacoes_deletar.append(ultima_tramitacao.id)
+                            # recupera últimas duas tramitacoes
+                            penultima_tramitacao = materia.tramitacao_set.order_by(
+                                '-data_tramitacao', '-id').exclude(
+                                id=ultima_tramitacao.id).first()
+                            if not penultima_tramitacao or \
+                                    penultima_tramitacao.status.indicador == "F":
+                                materia.em_tramitacao = False
+                            else:
+                                materia.em_tramitacao = True
+                    # Atualiza status 'em_tramitacao'
+                    MateriaLegislativa.objects.\
+                        bulk_update(materias_anexadas, ['em_tramitacao'])
+                Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
 
                 return HttpResponseRedirect(url)
 
@@ -1386,7 +1500,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['user'] = self.request.user
             return context
 
 
@@ -1732,10 +1845,10 @@ class MateriaLegislativaCrud(Crud):
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
-                    
+
                     tz = timezone.get_current_timezone()
                     self.object.ultima_edicao = tz.localize(datetime.now())
-                    
+
                     self.object.save()
                     break
 
@@ -1943,6 +2056,12 @@ class MateriaLegislativaPesquisaView(FilterView):
                                      "autoria_set__autor",
                                      "tipo",)
 
+        # retorna somente MateriaLegislativa sem MateriaAssunto se True
+        materia_assunto_null = self.request.GET.get(
+            "materiaassunto_null", False)
+        if materia_assunto_null:
+            qs = qs.filter(materiaassunto__isnull=True)
+
         if 'o' in self.request.GET and not self.request.GET['o']:
             qs = qs.order_by('-ano', 'tipo__sigla', '-numero')
 
@@ -1995,6 +2114,10 @@ class AcompanhamentoMateriaView(CreateView):
             messages.error(request, _('Serviço de Acompanhamento de '
                                       'Matérias não foi configurado'))
             return redirect('/')
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
 
         pk = self.kwargs['pk']
         materia = MateriaLegislativa.objects.get(id=pk)
@@ -2010,6 +2133,11 @@ class AcompanhamentoMateriaView(CreateView):
             messages.error(request, _('Serviço de Acompanhamento de '
                                       'Matérias não foi configurado'))
             return redirect('/')
+
+        if not google_recaptcha_configured():
+            self.logger.warning(_('Google Recaptcha não configurado!'))
+            messages.error(request, _('Google Recaptcha não configurado!'))
+            return redirect(request.META.get('HTTP_REFERER', '/'))
 
         form = AcompanhamentoMateriaForm(request.POST)
         pk = self.kwargs['pk']
@@ -2155,8 +2283,8 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         if request.FILES['arquivo'].size > MAX_DOC_UPLOAD_SIZE:
             msg = _("O arquivo Anexo de Texto Integral deve ser menor que {0:.1f} MB, \
-                o tamanho atual desse arquivo é {1:.1f} MB" \
-                .format((MAX_DOC_UPLOAD_SIZE/1024)/1024, (request.FILES['arquivo'].size/1024)/1024))
+                o tamanho atual desse arquivo é {1:.1f} MB"
+                    .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (request.FILES['arquivo'].size / 1024) / 1024))
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
@@ -2347,7 +2475,6 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
 
     logger = logging.getLogger(__name__)
 
-
     def get_context_data(self, **kwargs):
         context = super(PrimeiraTramitacaoEmLoteView,
                         self).get_context_data(**kwargs)
@@ -2369,8 +2496,8 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
         if self.primeira_tramitacao:
             context['title'] = _('Primeira Tramitação em Lote')
             # Pega somente documentos que não possuem tramitação
-            context['object_list'] = [obj for obj in context['object_list'] 
-                                          if obj.tramitacao_set.all().count() == 0]
+            context['object_list'] = [obj for obj in context['object_list']
+                                      if obj.tramitacao_set.order_by('-data_tramitacao', '-id').all().count() == 0]
         else:
             context['title'] = _('Tramitação em Lote')
             context['form'].fields['unidade_tramitacao_local'].initial = UnidadeTramitacao.objects.get(
@@ -2385,9 +2512,9 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     def post(self, request, *args, **kwargs):
         user = request.user
         ip = get_client_ip(request)
-        
+
         tz = timezone.get_current_timezone()
-        ultima_edicao = tz.localize(datetime.now()) 
+        ultima_edicao = tz.localize(datetime.now())
 
         materias_ids = request.POST.getlist('materias')
         if not materias_ids:
@@ -2395,34 +2522,34 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        form = TramitacaoEmLoteForm(request.POST, 
-                                       initial= {'materias': materias_ids,
-                                                'user': user, 'ip':ip,
-                                                'ultima_edicao': ultima_edicao})
+        form = TramitacaoEmLoteForm(request.POST,
+                                    initial={'materias': materias_ids,
+                                             'user': user, 'ip': ip,
+                                             'ultima_edicao': ultima_edicao})
 
         if form.is_valid():
             form.save()
 
             msg = _('Tramitação completa.')
-            self.logger.info('user=' + user.username + '. Tramitação completa.')
+            self.logger.info('user=' + user.username +
+                             '. Tramitação completa.')
             messages.add_message(request, messages.SUCCESS, msg)
             return self.get_success_url()
 
         return self.form_invalid(form)
 
-    
     def get_success_url(self):
         return HttpResponseRedirect(reverse('sapl.materia:primeira_tramitacao_em_lote'))
 
-
     def form_invalid(self, form, *args, **kwargs):
         for key, erros in form.errors.items():
-            if not key=='__all__':
-                [messages.add_message(self.request, messages.ERROR, form.fields[key].label + ": " + e) for e in erros]
+            if not key == '__all__':
+                [messages.add_message(
+                    self.request, messages.ERROR, form.fields[key].label + ": " + e) for e in erros]
             else:
-                [messages.add_message(self.request, messages.ERROR, e) for e in erros]
-        return self.get(self.request, kwargs, {'form':form})
-
+                [messages.add_message(self.request, messages.ERROR, e)
+                 for e in erros]
+        return self.get(self.request, kwargs, {'form': form})
 
 
 class TramitacaoEmLoteView(PrimeiraTramitacaoEmLoteView):
@@ -2623,7 +2750,7 @@ class ExcluirTramitacaoEmLoteView(PermissionRequiredMixin, FormView):
             status=form.cleaned_data['status'])
         for tramitacao in tramitacao_set:
             materia = tramitacao.materia
-            if tramitacao == materia.tramitacao_set.last():
+            if tramitacao == materia.tramitacao_set.order_by('-data_tramitacao', '-id').first():
                 tramitacao.delete()
 
         return redirect(self.get_success_url())
@@ -2644,7 +2771,7 @@ class MateriaPesquisaSimplesView(PermissionRequiredMixin, FormView):
         if form.cleaned_data.get('data_inicial'):
             kwargs.update({'data_apresentacao__gte': form.cleaned_data['data_inicial'],
                            'data_apresentacao__lte': form.cleaned_data['data_final']})
-        
+
         materias = MateriaLegislativa.objects.filter(
             **kwargs).order_by('-numero', 'ano')
 
@@ -2703,58 +2830,67 @@ class TipoMateriaCrud(CrudAux):
 
 
 def create_zip_docacessorios(materia):
+    """
+        Creates in memory zip files
+    """
     logger = logging.getLogger(__name__)
-    docs = materia.documentoacessorio_set.\
-        all().values_list('arquivo', flat=True)    
+    docs = materia.documentoacessorio_set. \
+        all().values_list('arquivo', flat=True)
     if not docs:
         return None, None
 
     docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs]
 
     if not docs_path:
-        raise FileNotFoundError("Não há arquivos PDF cadastrados em documentos acessorios.")
-    logger.info("Gerando compilado PDF de documentos acessorios com {} documentos".format(docs_path))
-    zipfilename = '{}/mat_{}_{}_docacessorios.zip'.format(
-        get_tempfile_dir(),
-        materia.pk,
-        time.mktime(datetime.now().timetuple()))
-    with zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for f in docs_path:
-            zipf.write(f, f.split(os.sep)[-1])
+        raise FileNotFoundError(
+            "Não há arquivos PDF cadastrados em documentos acessorios.")
+    logger.info(
+        "Gerando compilado PDF de documentos acessorios com {} documentos".format(docs_path))
 
-    external_name = "mat_{}_{}_docacessorios.zip".format(materia.numero, materia.ano)
-    return external_name, zipfilename
+    _zipfile = BytesIO()
+
+    try:
+        with zipfile.ZipFile(_zipfile, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for f in docs_path:
+                zipf.write(f, f.split(os.sep)[-1])
+    except Exception as e:
+        logger.error(e)
+        raise e
+
+    external_name = "mat_{}_{}_docacessorios.zip".format(
+        materia.numero, materia.ano)
+    return external_name, _zipfile.getvalue()
 
 
 def get_zip_docacessorios(request, pk):
     logger = logging.getLogger(__name__)
     username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
+    data = None
     try:
-        external_name, zipfilename = create_zip_docacessorios(materia)
-        logger.info("user= {}. Gerou o zip compilado de documento acessorios".format(username))
+        external_name, data = create_zip_docacessorios(materia)
+        logger.info(
+            "user= {}. Gerou o zip compilado de documento acessorios".format(username))
     except FileNotFoundError:
         logger.error("user= {}.Não há arquivos cadastrados".format(username))
-        msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
+        msg = _('Não há arquivos cadastrados nesses documentos acessórios.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
     except Exception as e:
         logger.error("user={}. Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
-                    .format(username,str(e)))
-        msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+                     .format(username, str(e)))
+        msg = _('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    if not zipfilename:
-        msg=_('Não há nenhum documento acessório cadastrado.')
+    if not data:
+        msg = _('Não há nenhum documento acessório cadastrado.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    with open(os.path.join(get_tempfile_dir(), zipfilename), 'rb') as f:
-        data = f.read()
     response = HttpResponse(data, content_type='application/zip')
     response['Content-Disposition'] = ('attachment; filename="%s"'
                                        % external_name)
@@ -2762,6 +2898,9 @@ def get_zip_docacessorios(request, pk):
 
 
 def create_pdf_docacessorios(materia):
+    """
+        Creates a unified in memory PDF file
+    """
     logger = logging.getLogger(__name__)
     docs = materia.documentoacessorio_set. \
         all().values_list('arquivo', flat=True)
@@ -2770,9 +2909,11 @@ def create_pdf_docacessorios(materia):
 
     # TODO: o for-comprehension abaixo filtra os arquivos não PDF.
     # TODO: o que fazer com os arquivos não PDF? converter? ignorar?
-    docs_path = [os.path.join(MEDIA_ROOT, i) for i in docs if i.lower().endswith('pdf')]
+    docs_path = [os.path.join(MEDIA_ROOT, i)
+                 for i in docs if i.lower().endswith('pdf')]
     if not docs_path:
-        raise FileNotFoundError("Não há arquivos PDF cadastrados em documentos acessorios.")
+        raise FileNotFoundError(
+            "Não há arquivos PDF cadastrados em documentos acessorios.")
     logger.info("Gerando compilado PDF de documentos acessorios com {} documentos"
                 .format(docs_path))
     merged_pdf = '{}/mat_{}_{}_docacessorios.pdf'.format(
@@ -2783,11 +2924,14 @@ def create_pdf_docacessorios(materia):
     merger = PdfFileMerger()
     for f in docs_path:
         merger.append(fileobj=f)
-    merger.write(fileobj=open(merged_pdf, "wb"))
+
+    data = BytesIO()
+    merger.write(data)
     merger.close()
 
-    external_name = "mat_{}_{}_docacessorios.pdf".format(materia.numero, materia.ano)
-    return external_name, merged_pdf
+    external_name = "mat_{}_{}_docacessorios.pdf".format(
+        materia.numero, materia.ano)
+    return external_name, data.getvalue()
 
 
 def get_pdf_docacessorios(request, pk):
@@ -2795,32 +2939,45 @@ def get_pdf_docacessorios(request, pk):
     logger = logging.getLogger(__name__)
     username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
     try:
-        external_name, pdffilename = create_pdf_docacessorios(materia)
-        logger.info("user= {}. Gerou o pdf compilado de documento acessorios".format(username))
+        external_name, data = create_pdf_docacessorios(materia)
+        logger.info(
+            "user= {}. Gerou o pdf compilado de documento acessorios".format(username))
     except FileNotFoundError:
         logger.error("user= {}.Não há arquivos cadastrados".format(username))
-        msg=_('Não há arquivos cadastrados nesses documentos acessórios.')
+        msg = _('Não há arquivos cadastrados nesses documentos acessórios.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
     except Exception as e:
         logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
-                    .format(username,str(e)))
-        msg=_('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+                     .format(username, str(e)))
+        msg = _('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    if not pdffilename:
-        msg=_('Não há nenhum documento acessório PDF cadastrado.')
+    if not data:
+        msg = _('Não há nenhum documento acessório PDF cadastrado.')
         messages.add_message(request, messages.ERROR, msg)
         return redirect(reverse('sapl.materia:documentoacessorio_list',
                                 kwargs={'pk': pk}))
 
-    with open(os.path.join(get_tempfile_dir(), pdffilename), 'rb') as f:
-        data = f.read()
     response = HttpResponse(data, content_type='application/pdf')
     response['Content-Disposition'] = ('attachment; filename="%s"'
                                        % external_name)
     return response
 
+
+def configEtiquetaMateriaLegislativaCrud(request):
+    config = ConfigEtiquetaMateriaLegislativa.objects.last()
+    if request.method == "POST":
+        form = ConfigEtiquetaMateriaLegislativaForms(
+            request.POST, instance=config)
+        if form.is_valid():
+            config = form.save(commit=False)
+            config.published_date = timezone.now()
+            config.save()
+            return redirect('materia/config_etiqueta_materia.html', {'form': form})
+    else:
+        form = ConfigEtiquetaMateriaLegislativaForms(instance=config)
+    return render(request, 'materia/config_etiqueta_materia.html', {'form': form})

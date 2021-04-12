@@ -9,26 +9,25 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.http.response import Http404
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
-from django.utils.translation import string_concat
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
 
-from sapl.base.signals import post_delete_signal, post_save_signal
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.utils import normalize
+
 
 logger = logging.getLogger(settings.BASE_DIR.name)
 
@@ -79,6 +78,7 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
+
 
 """
 variáveis do crud:
@@ -157,7 +157,7 @@ class ListWithSearchForm(forms.Form):
             FieldWithButtons(
                 Field('q',
                       placeholder=_('Filtrar Lista'),
-                      css_class='input-lg'),
+                      css_class='form-control-lg'),
                 StrictButton(
                     _('Filtrar'), css_class='btn-outline-primary btn-lg',
                     type='submit'))
@@ -417,16 +417,18 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                 for f in fn:
                     if not f:
                         continue
-                    f = m._meta.get_field(f)
-                    if hasattr(f, 'related_model') and f.related_model:
-                        m = f.related_model
-                if f:
-                    hook = 'hook_header_{}'.format(''.join(fn))
-                    if hasattr(self, hook):
-                        header = getattr(self, hook)()
-                        s.append(header)
-                    else:
-                        s.append(force_text(f.verbose_name))
+                    try:
+                        f = m._meta.get_field(f)
+                        if hasattr(f, 'related_model') and f.related_model:
+                            m = f.related_model
+                    except:
+                        f = None
+                hook = 'hook_header_{}'.format(''.join(fn))
+                if hasattr(self, hook):
+                    header = getattr(self, hook)()
+                    s.append(header)
+                elif f:
+                    s.append(force_text(f.verbose_name))
 
             s = ' / '.join(s)
             r.append(s)
@@ -465,18 +467,21 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             break
 
                     ss = ''
-                    if m:
-                        ss = get_field_display(m, n[-1])[1]
-                        ss = (
-                            ('<br>' if '<ul>' in ss else ' - ') + ss)\
-                            if ss and j != 0 and s else ss
-
-                    hook = 'hook_{}'.format(''.join(n))
-                    if hasattr(self, hook):
-                        hs, url = getattr(self, hook)(obj, ss, url)
-                        s += str(hs)
-                    else:
-                        s += ss
+                    try:
+                        if m:
+                            ss = get_field_display(m, n[-1])[1]
+                            ss = (
+                                ('<br>' if '<ul>' in ss else ' - ') + ss)\
+                                if ss and j != 0 and s else ss
+                    except:
+                        pass
+                    finally:
+                        hook = 'hook_{}'.format(''.join(n))
+                        if hasattr(self, hook):
+                            hs, url = getattr(self, hook)(obj, ss, url)
+                            s += str(hs)
+                        else:
+                            s += ss
 
                 r.append((s, url))
         return r
@@ -608,12 +613,11 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
 
                     # print(ordering)
                 except Exception as e:
-                    logger.warn(
-                        string_concat(_('ERRO: construção da tupla de ordenação.'), str(e))
-                    )
+                    logger.warning(
+                        _(f"ERRO: construção da tupla de ordenação. {e}"))
 
         # print(queryset.query)
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return queryset
 
         if self.container_field:
@@ -624,37 +628,8 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         return queryset
 
 
-class AuditLogMixin(object):
-
-    def delete(self, request, *args, **kwargs):
-        # Classe deve implementar um get_object(), i.e., deve ser uma View
-        deleted_object = self.get_object()
-        try:
-           return super(AuditLogMixin, self).delete(request, args, kwargs)
-        finally:
-            post_delete_signal.send(sender=None,
-                                    instance=deleted_object,
-                                    operation='D',
-                                    request=self.request)
-
-    # SAVE/UPDATE method
-    def form_valid(self, form):
-        try:
-            if not form.instance.pk:
-                operation = 'C'
-            else:
-                operation = 'U'
-            return super(AuditLogMixin, self).form_valid(form)
-        finally:
-            post_save_signal.send(sender=None,
-                                  instance=form.instance,
-                                  operation=operation,
-                                  request=self.request
-                                  )
-
-
 class CrudCreateView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, AuditLogMixin, CreateView):
+                     FormMessagesMixin, CreateView):
     permission_required = (RP_ADD,)
     logger = logging.getLogger(__name__)
 
@@ -816,7 +791,7 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
         else:
             queryset = super().get_queryset()
 
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return queryset
 
         if self.container_field_set:
@@ -872,7 +847,7 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
 
 
 class CrudUpdateView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, AuditLogMixin, UpdateView):
+                     FormMessagesMixin, UpdateView):
     permission_required = (RP_CHANGE,)
     logger = logging.getLogger(__name__)
 
@@ -903,7 +878,7 @@ class CrudUpdateView(PermissionRequiredContainerCrudMixin,
 
 
 class CrudDeleteView(PermissionRequiredContainerCrudMixin,
-                     FormMessagesMixin, AuditLogMixin, DeleteView):
+                     FormMessagesMixin, DeleteView):
     permission_required = (RP_DELETE,)
     logger = logging.getLogger(__name__)
 
