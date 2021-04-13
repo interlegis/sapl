@@ -1,6 +1,6 @@
 import logging
 
-from crispy_forms.layout import Fieldset, Layout
+from crispy_forms.layout import Fieldset, Layout, HTML
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -265,11 +265,17 @@ class AutoriaNormaForm(ModelForm):
         row1 = to_row([('tipo_autor', 4),
                        ('autor', 4),
                        ('primeiro_autor', 4)])
+        row2 = to_row([(HTML('<input id="id_legislatura_anterior" '
+                             'type="checkbox">Incluir parlamentares '
+                             'da Legislatura anterior (válido somente para '
+                             'autores do tipo parlamentar)'), 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
-                     row1, 'data_relativa', form_actions(label='Salvar')))
+                     row1, 'data_relativa',
+                     form_actions(label='Salvar'),
+                     row2))
 
         if not kwargs['instance']:
             self.fields['autor'].choices = []

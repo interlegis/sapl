@@ -15,14 +15,16 @@
      }
 
       $(document).ready(function() {
-          $("#id_tipo_autor").change(function() {
+
+         function atualiza_select_autor() {
               var tipo_selecionado = $("#id_tipo_autor").val();
               var autor_selecionado = $("#id_autor").val();
               $("#id_autor option").remove()
               if (tipo_selecionado !== undefined && tipo_selecionado !== null) {
                 var json_data = {
                    tipo : tipo_selecionado,
-                   data_relativa : $("#id_data_relativa").val()
+                   data_relativa : $("#id_data_relativa").val(),
+                   legislatura_anterior: $('#id_legislatura_anterior').is(':checked')
                 }
                 $.getJSON("/api/autor/possiveis", json_data, function(data){
                     if (data) {
@@ -39,7 +41,15 @@
                       $("#id_autor").val(autor_selecionado);
                     }
                 });
-            }
+              }
+         };
+
+         $("#id_legislatura_anterior").change(function() {
+            atualiza_select_autor();
+         });
+
+          $("#id_tipo_autor").change(function() {
+            atualiza_select_autor();
           });
           $("#id_tipo_autor").trigger('change');
       });

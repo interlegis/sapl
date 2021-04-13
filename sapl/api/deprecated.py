@@ -210,7 +210,16 @@ class AutoresPossiveisFilterSet(FilterSet):
         if legislatura_relativa.atual():
             q = q & Q(parlamentar_set__ativo=True)
 
-        return queryset.filter(q)
+        legislatura_anterior = self.request.GET.get('legislatura_anterior', 'False')
+        if legislatura_anterior.lower() == 'true':
+            legislaturas = Legislatura.objects.filter(
+                data_fim__lte=data_relativa).order_by('-data_fim')[:2]
+            if len(legislaturas) == 2:
+                _, leg_anterior = legislaturas
+                q = q | Q(parlamentar_set__mandato__data_inicio_mandato__gte=leg_anterior.data_inicio)
+
+        qs = queryset.filter(q)
+        return qs
 
     def filter_comissao(self, queryset, data_relativa):
         return queryset.filter(
