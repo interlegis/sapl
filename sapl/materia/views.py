@@ -1241,14 +1241,21 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
     ordering = ['-data_hora']
     paginate_by = 10
     model = HistoricoProposicao
-    permission_required = ('materia.detail_proposicao', )
+    permission_required = ('materia.detail_proposicao_enviada', )
 
     def get_queryset(self):
         qs = super().get_queryset()
+
+        from sapl.rules import SAPL_GROUP_AUTOR
+        from django.contrib.auth.models import Group
+
         user = self.request.user
-        if not user.is_superuser:
-            autores = Autor.objects.filter(user=user)
-            qs = qs.filter(proposicao__autor__in=autores)
+        grupo_autor = Group.objects.get(name=SAPL_GROUP_AUTOR)
+
+        if not user.is_superuser and grupo_autor.user_set.filter(
+                id=user.id).exists():
+           autores = Autor.objects.filter(user=user)
+           qs = qs.filter(proposicao__autor__in=autores)
         return qs
 
     def get_context_data(self, **kwargs):
