@@ -492,7 +492,7 @@ class AutoriaNormaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
     list_field_names = ['autor', 'autor__tipo__descricao', 'primeiro_autor']
 
-    class LocalBaseMixin():
+    class LocalBaseMixin:
         form_class = AutoriaNormaForm
 
         @property
@@ -513,7 +513,7 @@ class AutoriaNormaCrud(MasterDetailCrud):
         def get_initial(self):
             initial = super().get_initial()
             initial.update({
-                'data_relativa': self.object.norma.data_apresentacao,
+                'data_relativa': self.object.norma.data,
                 'tipo_autor': self.object.autor.tipo.id,
             })
             return initial
