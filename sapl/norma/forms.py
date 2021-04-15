@@ -257,6 +257,9 @@ class AutoriaNormaForm(ModelForm):
     data_relativa = forms.DateField(
         widget=forms.HiddenInput(), required=False)
 
+    legislatura_anterior = forms.BooleanField(label=_('Legislatura Anterior'),
+                                              required=False)
+
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
@@ -265,24 +268,23 @@ class AutoriaNormaForm(ModelForm):
         row1 = to_row([('tipo_autor', 4),
                        ('autor', 4),
                        ('primeiro_autor', 4)])
-        row2 = to_row([(HTML('<input id="id_legislatura_anterior" '
-                             'type="checkbox">Incluir parlamentares '
-                             'da Legislatura anterior (válido somente para '
-                             'autores do tipo parlamentar)'), 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_('Autoria'),
                      row1, 'data_relativa',
                      form_actions(label='Salvar'),
-                     row2))
+                     to_row([('legislatura_anterior', 12)])))
 
-        if not kwargs['instance']:
+        if not self.instance:
             self.fields['autor'].choices = []
+
 
     class Meta:
         model = AutoriaNorma
-        fields = ['tipo_autor', 'autor', 'primeiro_autor', 'data_relativa']
+        fields = ['tipo_autor', 'autor',
+                  'primeiro_autor', 'data_relativa',
+                  'legislatura_anterior']
 
     def clean(self):
         cd = super(AutoriaNormaForm, self).clean()
