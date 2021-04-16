@@ -4,22 +4,6 @@ from unipath import Path
 
 from sapl.hashers import zope_encoded_password_to_django
 
-PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)
-                           for legado, novo in [
-    ('Autor', 'Autor'),
-    ('Operador',  'Operador Geral'),
-    ('Operador Comissao', 'Operador de Comissões'),
-    ('Operador Materia', 'Operador de Matéria'),
-    ('Operador Modulo Administrativo', 'Operador Administrativo'),
-    ('Operador Norma', 'Operador de Norma Jurídica'),
-    ('Operador Parlamentar', 'Parlamentar'),
-    ('Operador Protocolo', 'Operador de Protocolo Administrativo'),
-    ('Operador Sessao Plenaria', 'Operador de Sessão Plenária'),
-    ('Parlamentar', 'Votante'),
-    ('Operador Painel', 'Operador de Painel Eletrônico'),
-]
-}
-
 ADMINISTRADORES = {'Administrador', 'Manager'}
 
 IGNORADOS = {
@@ -73,6 +57,25 @@ def migrar_usuarios(dir_repo, primeira_migracao):
         print('Pulando migração de usuários')
         return
 
+    PERFIL_LEGADO_PARA_NOVO = {legado: Group.objects.get(name=novo)
+                               for legado, novo in [
+        ('Autor', 'Autor'),
+        ('Operador',  'Operador Geral'),
+        ('Operador Comissao', 'Operador de Comissões'),
+        ('Operador Materia', 'Operador de Matéria'),
+        ('Operador Modulo Administrativo', 'Operador Administrativo'),
+        ('Operador Norma', 'Operador de Norma Jurídica'),
+        # este grupo foi removido em
+        # https://github.com/interlegis/sapl/pull/3371
+        # => ignoramos
+        # ('Operador Parlamentar', 'Parlamentar'),
+        ('Operador Protocolo', 'Operador de Protocolo Administrativo'),
+        ('Operador Sessao Plenaria', 'Operador de Sessão Plenária'),
+        ('Parlamentar', 'Votante'),
+        ('Operador Painel', 'Operador de Painel Eletrônico'),
+    ]
+    }
+
     ARQUIVO_USUARIOS = Path(dir_repo).child('usuarios.yaml')
     with open(ARQUIVO_USUARIOS, 'r') as f:
         usuarios = yaml.load(f, yaml.Loader)
@@ -97,6 +100,8 @@ def migrar_usuarios(dir_repo, primeira_migracao):
                 usuario.groups.add(PERFIL_LEGADO_PARA_NOVO['Operador'])
                 admins.append(usuario)
             else:
+                if perfil == 'Operador Parlamentar':
+                    continue  # ignoramos perfil que não é mais usado
                 usuario.groups.add(PERFIL_LEGADO_PARA_NOVO[perfil])
         usuario.save()
 
