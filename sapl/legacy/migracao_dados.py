@@ -1078,10 +1078,32 @@ def get_arquivos_ajustes_pre_migracao():
 
 def do_flush():
     # excluindo database antigo.
-    info("Excluindo entradas antigas do banco destino.")
-    FlushCommand().handle(
-        database="default", interactive=False, verbosity=0, allow_cascade=True
-    )
+    # info("Excluindo entradas antigas do banco destino.")
+    # FlushCommand().handle(
+    #     database="default", interactive=False, verbosity=0, allow_cascade=True
+    # )
+    #
+    # O flush está ativando o evento em sapl.rules.apps
+    # que está criando permissoes duplicadas
+    # models.signals.post_migrate.connect(receiver=create_proxy_permissions, ...)
+    #
+    # solução => não fazer mais flush, mas verificar que o banco acabou de ser criado (está vazio)!!!!!!
+    #
+    # Se não estiver, recrie o banco antes para rodar a migração usando:
+    # sapl/legacy/scripts/recria_um_db_postgres.sh
+
+    for model in (
+        Parlamentar,
+        MateriaLegislativa,
+        DocumentoAdministrativo,
+        Proposicao,
+        NormaJuridica,
+        Protocolo,
+        Mandato,
+    ):
+        assert not model.objects.exists()
+
+    info("O banco acabou de ser criado e está vazio => prosseguimos")
 
     # apaga tipos de autor padrão (criados no flush acima)
     TipoAutor.objects.all().delete()
