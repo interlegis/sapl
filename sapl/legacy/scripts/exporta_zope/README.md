@@ -1,6 +1,6 @@
-# Como exportar o documentos do zope usando
+# Como exportar os documentos do zope usando esta imagem Docker
 
-- Crie um diretório base de sua escolha contendo os subdiretórios `datafs` e `repos`. 
+- Crie um diretório base de sua escolha contendo os subdiretórios `datafs` e `repos`.
   Para usar como <base> o diretório `~/migracao_sapl`, rode os seguintes comandos:
 
         mkdir -p ~/migracao_sapl/datafs
@@ -10,11 +10,11 @@
 
         /var/interlegis/SAPL-2.5/instances/sapl25/bin/zopectl stop
 
-- **Copie** os arquivos `Data.fs` e `DocumentosSapl.fs` de sua instalação de sapl 2.5 para a pasta `<base>/datafs`, 
+- **Copie** os arquivos `Data.fs` e `DocumentosSapl.fs` de sua instalação de sapl 2.5 para a pasta `<base>/datafs`,
   renomenado os arquivos para que terminem com `_cm_<sigla-da-sua-casa>.fs`.
   Se não sabe a sigla de sua casa pode usar `zzz`.
   Se seus arquivos estão em `/var/interlegis/SAPL-2.5/instances/sapl25/var`:
-  
+
         cd /var/interlegis/SAPL-2.5/instances/sapl25/var
         cp Data.fs ~/migracao_sapl/datafs/Data_cm_zzz.fs
         cp DocumentosSapl.fs ~/migracao_sapl/datafs/DocumentosSapl_cm_zzz.fs
