@@ -230,7 +230,7 @@ Para facilitar sua conferência, seguem os links para as proposições envolvida
 
 
 def get_fks_faltando():
-    ocorrencias = yaml.load(
+    ocorrencias = yaml.safe_load(
         Path(DIR_REPO.child("ocorrencias.yaml").read_file())
     )
     return ocorrencias.get("fk", [])
@@ -515,7 +515,7 @@ def get_ressuscitar(slug):
 def get_slug():
     arq = DIR_DADOS_MIGRACAO.child("siglas_para_slugs.yaml")
     with open(arq, "r") as arq:
-        siglas_para_slugs = yaml.load(arq)
+        siglas_para_slugs = yaml.safe_load(arq)
     sigla = NOME_BANCO_LEGADO[-3:]
     return siglas_para_slugs[sigla]
 

@@ -127,7 +127,7 @@ def get_renames():
     model_renames = {}
     includes = {}
     for app in appconfs:
-        app_rename_data = yaml.load(
+        app_rename_data = yaml.safe_load(
             pkg_resources.resource_string(app.module.__name__, "legacy.yaml")
         )
         for model_name, renames in app_rename_data.items():
@@ -1118,7 +1118,7 @@ def migrar_dados(primeira_migracao=False, apagar_do_legado=False):
         if arq_ajustes_sql.exists():
             exec_legado(arq_ajustes_sql.read_file())
         if arq_ajustes_reverter.exists():
-            revert_delete_producao(yaml.load(arq_ajustes_reverter.read_file()))
+            revert_delete_producao(yaml.safe_load(arq_ajustes_reverter.read_file()))
 
         uniformiza_banco(primeira_migracao)
 
@@ -1504,7 +1504,7 @@ def get_arquivo_resolve_registro_votacao():
 def get_como_resolver_registro_votacao_ambiguo():
     path = get_arquivo_resolve_registro_votacao()
     if path.exists():
-        return yaml.load(path.read_file())
+        return yaml.safe_load(path.read_file())
     else:
         return {}
 
