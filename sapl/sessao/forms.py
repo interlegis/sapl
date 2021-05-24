@@ -22,6 +22,7 @@ from sapl.parlamentares.models import Mandato, Parlamentar
 from sapl.utils import (autor_label, autor_modal,
                         choice_anos_com_sessaoplenaria,
                         FileFieldCheckMixin,
+                        FilterOverridesMetaMixin,
                         MateriaPesquisaOrderingFilter,
                         RANGE_DIAS_MES, RANGE_MESES,
                         timezone, validar_arquivo)
@@ -529,7 +530,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
         queryset=StatusTramitacao.objects.all(),
         label=_('Status da Matéria'))
 
-    class Meta:
+    class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tramitacao__status',
                   'numero',
