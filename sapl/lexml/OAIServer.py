@@ -102,9 +102,11 @@ class OAIServer:
         return appconfig.esfera_federacao
 
     def recupera_norma(self, offset, batch_size, from_, until, identifier, esfera):
-        kwargs = {'data__lte': until}
+        kwargs = {'data__isnull': False,
+                  'timestamp__isnull': False,
+                  'timestamp__lte': until}
         if from_:
-            kwargs['data__gte'] = from_
+            kwargs['timestamp__gte'] = from_
         if identifier:
             kwargs['numero'] = identifier
         if esfera:
