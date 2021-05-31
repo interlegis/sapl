@@ -106,7 +106,9 @@
                   {% endif %}
                   {% if m.tramitacao_set.first.data_tramitacao %}
                   <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.first.data_tramitacao}}</br>
+                  {% if m.tramitacao_set.first.texto %}
                   <strong>Última Ação:</strong> &nbsp; {{m.tramitacao_set.first.texto}}</br>
+                  {% endif %}
                   {% endif %}
                   {% if m.anexo_de.exists %}
                     {% for a in m.materia_anexada_set.all %}
