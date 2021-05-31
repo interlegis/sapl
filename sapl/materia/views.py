@@ -583,6 +583,7 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
         context = super(ProposicaoRecebida, self).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
+        context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição recebida.'
