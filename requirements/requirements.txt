@@ -1,4 +1,4 @@
-django==2.2.20
+django==2.2.24
 django-haystack==2.8.1
 django-filter==2.0.0
 djangorestframework==3.11.2
