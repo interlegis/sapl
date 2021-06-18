@@ -72,7 +72,7 @@ urlpatterns = [
     url(r'^api/', include(urlpatterns_router)),
     url(r'^api/version', AppVersionView.as_view()),
     url(r'^api/recriar-token/(?P<pk>\d*)$', recria_token, name="recria_token"),
-    url(r'^api/parlamentares/mesa-diretora/(?P<pk>\d*)$',
+    url(r'^api/parlamentares/mesa-diretora',
         get_mesa_diretora, name='get_mesa_diretora')
 
     # implementar caminho para autenticação
