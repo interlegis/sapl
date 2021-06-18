@@ -704,3 +704,6 @@ class AppVersionView(APIView):
             'is_authenticated': request.user.is_authenticated,
         }
         return Response(content)
+
+
+
