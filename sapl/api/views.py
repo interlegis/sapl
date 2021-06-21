@@ -57,6 +57,7 @@ def get_mesa_diretora(request):
     logger = logging.getLogger(__name__)
     username = request.user.username
     legislatura = request.GET.get('legislatura')
+
     if legislatura:
         legislatura = Legislatura.objects.get(id=legislatura)
     else:
@@ -67,9 +68,6 @@ def get_mesa_diretora(request):
 
     if not sessoes:
         return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
-
-    # Verifica se já tem uma sessão selecionada. Ocorre quando é alterado o
-    # campo de sessão
 
     sessao_selecionada = request.GET.get('sessao')
     if not sessao_selecionada:
@@ -88,6 +86,7 @@ def get_mesa_diretora(request):
 
     composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
         sessao_legislativa=sessao_selecionada).order_by('cargo_id')
+   
     cargos_ocupados = list(composicao_mesa.values_list(
         'cargo__id', 'cargo__descricao'))
     parlamentares_ocupados = list(composicao_mesa.values_list(
@@ -99,35 +98,26 @@ def get_mesa_diretora(request):
     sessao = SessaoLegislativa.objects.get(id=sessao_selecionada)
     for p in parlamentares_ocupados:
         parlamentar = Parlamentar.objects.get(id=p[0])
-        lista_partidos.append(
-            partido_parlamentar_sessao_legislativa(sessao, parlamentar))
         if parlamentar.fotografia:
-            try:
-                thumbnail_url = get_backend().get_thumbnail_url(
-                    parlamentar.fotografia,
-                    {
-                        'size': (128, 128),
-                        'box': parlamentar.cropping,
-                        'crop': True,
-                        'detail': True,
-                    }
-                )
-                lista_fotos.append(thumbnail_url)
-            except Exception as e:
-                logger.error(e)
-                logger.error(
-                    F'erro processando arquivo: {parlamentar.fotografia.path}')
+            lista_fotos.append({parlamentar.fotografia.path})
         else:
             lista_fotos.append(None)
+  
+    membros_da_mesa = []
+
+    for x in range(0, len(parlamentares_ocupados)):
+        membro_atual = {}
+        membro_atual['lesgilatura_id'] = legislatura.id
+        membro_atual['sessao_legislativa_id'] = sessao.id
+        membro_atual['cargo_id'] = cargos_ocupados[x][0]
+        membro_atual['cargo_descricao'] = cargos_ocupados[x][1]
+        membro_atual['parlamentar_id'] = parlamentares_ocupados[x][0]
+        membro_atual['nome_parlamentar'] = parlamentares_ocupados[x][1]
+
+        membros_da_mesa.append(membro_atual)
 
     return JsonResponse({
-        'lista_parlamentares': parlamentares_ocupados,
-        'lista_partidos': lista_partidos,
-        'lista_cargos': cargos_ocupados,
-        'lista_sessoes': lista_sessoes,
-        'lista_fotos': lista_fotos,
-        'sessao_selecionada': sessao_selecionada,
-        'msg': ('', 1)
+        'mesa_diretora':membros_da_mesa,
     })
 
 
