@@ -34,7 +34,7 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
-from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
+from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria, get_base_url
 from sapl.parlamentares.models import (ComposicaoMesa, SessaoLegislativa)
 from sapl.parlamentares.views import (partido_parlamentar_sessao_legislativa)
 
@@ -55,69 +55,35 @@ def recria_token(request, pk):
 
 def get_mesa_diretora(request):
     logger = logging.getLogger(__name__)
-    username = request.user.username
+
+    kwargs = {}
+
     legislatura = request.GET.get('legislatura')
-
     if legislatura:
-        legislatura = Legislatura.objects.get(id=legislatura)
-    else:
-        legislatura = Legislatura.objects.order_by('-data_inicio').first()
+        kwargs['legislatura_id'] = legislatura
+    
+    sessao = request.GET.get('sessao')
+    if sessao:
+        kwargs['id'] = sessao
 
-    sessoes = legislatura.sessaolegislativa_set.filter(
-        tipo='O').order_by('-data_inicio')
+    sessao_legislativa = SessaoLegislativa.objects.filter(**kwargs).order_by('-data_inicio').first()
 
-    if not sessoes:
-        return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
+    query_legislatura = Legislatura.objects.filter(id=legislatura).order_by('-data_inicio').first()
 
-    sessao_selecionada = request.GET.get('sessao')
-    if not sessao_selecionada:
-        try:
-            year = timezone.now().year
-            logger.info(
-                f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
-            sessao_selecionada = sessoes.get(data_inicio__year=year).id
-        except ObjectDoesNotExist:
-            logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
-                         "Selecionado o id da primeira sessão.")
-            sessao_selecionada = sessoes.first().id
-
-    # Atualiza os componentes da view após a mudança
-    lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
-
-    composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
-        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
+    composicao_mesa = ComposicaoMesa.objects.select_related('parlamentar', 'cargo').all().filter(
+        sessao_legislativa=sessao_legislativa).order_by('cargo_id')
    
-    cargos_ocupados = list(composicao_mesa.values_list(
-        'cargo__id', 'cargo__descricao'))
-    parlamentares_ocupados = list(composicao_mesa.values_list(
-        'parlamentar__id', 'parlamentar__nome_parlamentar'))
+    mesa_diretora = [{'legislatura_id':query_legislatura.id,'legislatura':str(query_legislatura), 
+                    'sessao_legislativa_id':sessao_legislativa.id,'sessao_legislativa':str(sessao_legislativa),
+                    'parlamentar_id':i[0], 'parlamentar_nome':i[1], 'cargo_id':i[2], 'cargo_descricao':i[3]} 
+                    for i in composicao_mesa.values_list('parlamentar_id', 'parlamentar__nome_parlamentar', 
+                    'cargo_id', 'cargo__descricao')]
 
-    lista_fotos = []
-    lista_partidos = []
-
-    sessao = SessaoLegislativa.objects.get(id=sessao_selecionada)
-    for p in parlamentares_ocupados:
-        parlamentar = Parlamentar.objects.get(id=p[0])
-        if parlamentar.fotografia:
-            lista_fotos.append({parlamentar.fotografia.path})
-        else:
-            lista_fotos.append(None)
-  
-    membros_da_mesa = []
-
-    for x in range(0, len(parlamentares_ocupados)):
-        membro_atual = {}
-        membro_atual['lesgilatura_id'] = legislatura.id
-        membro_atual['sessao_legislativa_id'] = sessao.id
-        membro_atual['cargo_id'] = cargos_ocupados[x][0]
-        membro_atual['cargo_descricao'] = cargos_ocupados[x][1]
-        membro_atual['parlamentar_id'] = parlamentares_ocupados[x][0]
-        membro_atual['nome_parlamentar'] = parlamentares_ocupados[x][1]
-
-        membros_da_mesa.append(membro_atual)
+    for i, c in enumerate(composicao_mesa):
+        mesa_diretora[i]['fotografia'] = get_base_url(request) + c.parlamentar.fotografia.url
 
     return JsonResponse({
-        'mesa_diretora':membros_da_mesa,
+        'mesa_diretora':mesa_diretora,
     })
 
 
