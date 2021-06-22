@@ -59,8 +59,10 @@ def get_mesa_diretora(request):
     kwargs = {}
 
     legislatura = request.GET.get('legislatura')
-    if legislatura:
-        kwargs['legislatura_id'] = legislatura
+    if not legislatura:
+        legislatura = Legislatura.objects.order_by('-data_inicio').first().id
+
+    kwargs['legislatura_id'] = legislatura
     
     sessao = request.GET.get('sessao')
     if sessao:
@@ -740,6 +742,3 @@ class AppVersionView(APIView):
             'is_authenticated': request.user.is_authenticated,
         }
         return Response(content)
-
-
-
