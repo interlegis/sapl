@@ -51,6 +51,7 @@ def model_verbose_name_plural(class_name):
     model = get_class(class_name)
     return model._meta.verbose_name_plural
 
+
 @register.filter
 def meta_model_value(instance, attr):
     try:
@@ -101,6 +102,24 @@ def paginacao_limite_inferior(pagina):
 @register.filter
 def paginacao_limite_superior(pagina):
     return int(pagina) * 10
+
+
+@register.filter
+def resultado_votacao(materia):
+    #from sapl.materia.models import MateriaLegislativa
+    ra = materia.registrovotacao_set.first()
+    rb = materia.retiradapauta_set.first()
+    if ra:
+        resultado = ra.tipo_resultado_votacao.nome
+    elif rb:
+        resultado = rb.tipo_de_retirada.descricao
+    else:
+        if materia.expedientemateria_set.filter(tipo_votacao=4).exists() or \
+                materia.ordemdia_set.filter(tipo_votacao=4).exists():
+            resultado = "Matéria lida"
+        else:
+            resultado = "Matéria não votada"
+    return resultado
 
 
 @register.filter
@@ -245,12 +264,14 @@ def youtube_url(value):
     r = re.findall(youtube_pattern, value)
     return True if r else False
 
+
 @register.filter
 def facebook_url(value):
     value = value.lower()
     facebook_pattern = "^((https?://)?((www|pt-br)\.)?facebook\.com(\/.+)?\/videos(\/.*)?)"
     r = re.findall(facebook_pattern, value)
     return True if r else False
+
 
 @register.filter
 def youtube_id(value):
@@ -339,4 +360,3 @@ def dont_break_out(value):
     _safe = '<div class="dont-break-out">{}</div>'.format(value)
     _safe = mark_safe(_safe)
     return _safe
-
