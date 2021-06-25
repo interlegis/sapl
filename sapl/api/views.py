@@ -59,8 +59,10 @@ def get_mesa_diretora(request):
     kwargs = {}
 
     legislatura = request.GET.get('legislatura')
-    if legislatura:
-        kwargs['legislatura_id'] = legislatura        
+    if not legislatura:
+        legislatura = Legislatura.objects.order_by('-data_inicio').first()
+
+    kwargs['legislatura_id'] = legislatura        
     
     sessao = request.GET.get('sessao')
     if sessao:
@@ -70,14 +72,14 @@ def get_mesa_diretora(request):
 
     if sessao_legislativa is None:
         logger.error("Sessão ou legislatura não encontrada!")
-        return JsonResponse({})
+        return JsonResponse({"error": "Sessão ou legislatura não encontrada!"})
 
     composicao_mesa = ComposicaoMesa.objects.select_related('parlamentar', 'cargo').all().filter(
         sessao_legislativa=sessao_legislativa).order_by('cargo_id')
 
     if composicao_mesa is None:
         logger.error("Nenhuma mesa não encontrada!")
-        return JsonResponse({})
+        return JsonResponse({"error": "Sessão ou legislatura não encontrada!"})
    
 
 
