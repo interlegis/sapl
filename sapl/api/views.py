@@ -83,11 +83,13 @@ def get_mesa_diretora(request):
    
 
 
-    mesa_diretora = [{'legislatura_id':sessao_legislativa.legislatura.id,'legislatura':str(sessao_legislativa.legislatura), 
+    mesa_diretora = [{'legislatura_id':legislatura.id,'legislatura':str(legislatura),
                     'sessao_legislativa_id':sessao_legislativa.id,'sessao_legislativa':str(sessao_legislativa),
-                    'parlamentar_id':i[0], 'parlamentar_nome':i[1], 'cargo_id':i[2], 'cargo_descricao':i[3]} 
-                    for i in composicao_mesa.values_list('parlamentar_id', 'parlamentar__nome_parlamentar', 
-                    'cargo_id', 'cargo__descricao')]
+                    'parlamentar_id': parlamentar_id, 'parlamentar_nome': parlamentar_nome, 'cargo_id': cargo_id, 
+                    'cargo_descricao':cargo_descricao} for (parlamentar_id, parlamentar_nome, 
+                    cargo_id, cargo_descricao) in composicao_mesa.values_list('parlamentar_id', 
+                    'parlamentar__nome_parlamentar', 'cargo_id', 'cargo__descricao')]
+
 
     for i, c in enumerate(composicao_mesa):
         mesa_diretora[i]['fotografia'] = get_base_url(request) + c.parlamentar.fotografia.url
