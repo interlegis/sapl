@@ -106,19 +106,17 @@ def paginacao_limite_superior(pagina):
 
 @register.filter
 def resultado_votacao(materia):
-    #from sapl.materia.models import MateriaLegislativa
     ra = materia.registrovotacao_set.first()
     rb = materia.retiradapauta_set.first()
     if ra:
         resultado = ra.tipo_resultado_votacao.nome
     elif rb:
         resultado = rb.tipo_de_retirada.descricao
+    elif materia.expedientemateria_set.filter(tipo_votacao=4).exists() or \
+            materia.ordemdia_set.filter(tipo_votacao=4).exists():
+        resultado = "Matéria lida"
     else:
-        if materia.expedientemateria_set.filter(tipo_votacao=4).exists() or \
-                materia.ordemdia_set.filter(tipo_votacao=4).exists():
-            resultado = "Matéria lida"
-        else:
-            resultado = "Matéria não votada"
+        resultado = "Matéria não votada"
     return resultado
 
 
