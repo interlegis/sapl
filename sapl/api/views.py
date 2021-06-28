@@ -95,7 +95,7 @@ def get_mesa_diretora(request):
         try:
             mesa_diretora[i]['fotografia'] = get_base_url(request) + c.parlamentar.fotografia.url
         except:
-            logger.error("Parlamentar"+mesa_diretora[i]['parlamentar_nome']+"não possui foto!")
+            logger.error("Parlamentar"+mesa_diretora[i]['parlamentar_nome']+" não possui foto!")
             mesa_diretora[i]['fotografia'] = "Não encontrada"
 
 
