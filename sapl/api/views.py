@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.utils.decorators import classonlymethod
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework.backends import DjangoFilterBackend
+from django.http import JsonResponse
 from rest_framework import serializers as rest_serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
@@ -33,7 +34,9 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import DocumentoAdministrativo,\
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
-from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
+from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria, get_base_url
+from sapl.parlamentares.models import (ComposicaoMesa, SessaoLegislativa)
+from sapl.parlamentares.views import (partido_parlamentar_sessao_legislativa)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -49,6 +52,56 @@ def recria_token(request, pk):
     token = Token.objects.create(user_id=pk)
 
     return Response({"message": "Token recriado com sucesso!", "token": token.key})
+
+def get_mesa_diretora(request):
+    logger = logging.getLogger(__name__)
+
+    kwargs = {}
+
+    legislatura = request.GET.get('legislatura')
+    if not legislatura:
+        legislatura = Legislatura.objects.order_by('-data_inicio').first()
+
+    kwargs['legislatura_id'] = legislatura        
+    
+    sessao = request.GET.get('sessao')
+    if sessao:
+        kwargs['id'] = sessao
+
+    sessao_legislativa = SessaoLegislativa.objects.select_related('legislatura').filter(**kwargs).order_by('-data_inicio').first()
+
+    if sessao_legislativa is None:
+        logger.error("Sessão ou legislatura não encontrada!")
+        return JsonResponse({"error": "Sessão ou legislatura não encontrada!"})
+
+    composicao_mesa = ComposicaoMesa.objects.select_related('parlamentar', 'cargo').filter(
+        sessao_legislativa=sessao_legislativa).order_by('cargo_id')
+
+    if composicao_mesa is None:
+        logger.error("Nenhuma mesa não encontrada!")
+        return JsonResponse({"error": "Sessão ou legislatura não encontrada!"})
+   
+
+
+    mesa_diretora = [{'legislatura_id':legislatura.id,'legislatura':str(legislatura),
+                    'sessao_legislativa_id':sessao_legislativa.id,'sessao_legislativa':str(sessao_legislativa),
+                    'parlamentar_id': parlamentar_id, 'parlamentar_nome': parlamentar_nome, 'cargo_id': cargo_id, 
+                    'cargo_descricao':cargo_descricao} for (parlamentar_id, parlamentar_nome, 
+                    cargo_id, cargo_descricao) in composicao_mesa.values_list('parlamentar_id', 
+                    'parlamentar__nome_parlamentar', 'cargo_id', 'cargo__descricao')]
+
+
+    for i, c in enumerate(composicao_mesa):
+        try:
+            mesa_diretora[i]['fotografia'] = get_base_url(request) + c.parlamentar.fotografia.url
+        except:
+            logger.error("Parlamentar "+mesa_diretora[i]['parlamentar_nome']+" não possui foto!")
+            mesa_diretora[i]['fotografia'] = "Não encontrada"
+
+
+    return JsonResponse({
+        'mesa_diretora':mesa_diretora,
+    })
 
 
 class BusinessRulesNotImplementedMixin:
