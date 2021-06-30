@@ -17,6 +17,7 @@
     "dotenv": "^6.2.0",
     "exports-loader": "^0.7.0",
     "imports-loader": "^0.8.0",
+    "is-svg": "^4.3.1",
     "jquery": "^3.5.1",
     "jquery-mask-plugin": "^1.14.16",
     "jquery-ui-themes": "^1.12.0",
