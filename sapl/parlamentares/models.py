@@ -496,6 +496,27 @@ class CargoMesa(models.Model):
     def __str__(self):
         return self.descricao
 
+@reversion.register()
+class MesaDiretora(models.Model):
+    data_inicio = models.DateField(verbose_name=_('Data Início'))
+    data_fim = models.DateField(verbose_name=_('Data Fim'))
+    data_inicio_intervalo = models.DateField(
+        blank=True, null=True, verbose_name=_('Início Intervalo'))
+    data_fim_intervalo = models.DateField(
+        blank=True, null=True, verbose_name=_('Fim Intervalo'))
+    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
+                                           on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = _('Membros da Mesa Diretora')
+        verbose_name_plural = _('Membros das Mesas Diretoras')
+        ordering = ('-sessao_legislativa', 'data_inicio')
+
+    def __str__(self):
+        return -('Mesa da sessao %(sessao)s - Inicio em %(data_inicio)s') % {
+            'sessao':self.sessao_legislativa, 'data_inicio':self.data_inicio
+        }
+
 
 @reversion.register()
 class ComposicaoMesa(models.Model):
@@ -514,7 +535,6 @@ class ComposicaoMesa(models.Model):
         return _('%(parlamentar)s - %(cargo)s') % {
             'parlamentar': self.parlamentar, 'cargo': self.cargo
         }
-
 
 @reversion.register()
 class Frente(models.Model):
