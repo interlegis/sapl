@@ -520,7 +520,7 @@ class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
-    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT) 
+    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT, null=True) 
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
