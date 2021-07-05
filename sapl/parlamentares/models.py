@@ -498,7 +498,7 @@ class CargoMesa(models.Model):
 
 @reversion.register()
 class MesaDiretora(models.Model):
-    data_inicio = models.DateField(verbose_name=_('Data Início'), null=False)
+    data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
     data_fim = models.DateField(verbose_name=_('Data Fim'), null=True)
     sessao_legislativa = models.ForeignKey(SessaoLegislativa,
                                            on_delete=models.PROTECT)
@@ -520,7 +520,9 @@ class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
-    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT, null=True) 
+    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT, null=True)
+    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
+                                           on_delete=models.PROTECT) 
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
