@@ -498,23 +498,20 @@ class CargoMesa(models.Model):
 
 @reversion.register()
 class MesaDiretora(models.Model):
-    data_inicio = models.DateField(verbose_name=_('Data Início'))
-    data_fim = models.DateField(verbose_name=_('Data Fim'))
-    data_inicio_intervalo = models.DateField(
-        blank=True, null=True, verbose_name=_('Início Intervalo'))
-    data_fim_intervalo = models.DateField(
-        blank=True, null=True, verbose_name=_('Fim Intervalo'))
+    data_inicio = models.DateField(verbose_name=_('Data Início'), null=False)
+    data_fim = models.DateField(verbose_name=_('Data Fim'), null=True)
     sessao_legislativa = models.ForeignKey(SessaoLegislativa,
                                            on_delete=models.PROTECT)
+    descricao = models.TextField(verbose_name=_('Descrição'), blank=True)
 
     class Meta:
-        verbose_name = _('Membros da Mesa Diretora')
-        verbose_name_plural = _('Membros das Mesas Diretoras')
-        ordering = ('-sessao_legislativa', 'data_inicio')
+        verbose_name = _('Mesa Diretora')
+        verbose_name_plural = _('Mesas Diretoras')
+        ordering = ('-data_inicio', '-sessao_legislativa')
 
     def __str__(self):
-        return -('Mesa da sessao %(sessao)s - Inicio em %(data_inicio)s') % {
-            'sessao':self.sessao_legislativa, 'data_inicio':self.data_inicio
+        return -('Mesa da sessao %(sessao)s da %(legislatura)s Legislatura') % {
+            'sessao':self.sessao_legislativa, 'legislatura':self.sessao_legislativa.legislatura
         }
 
 
@@ -522,16 +519,13 @@ class MesaDiretora(models.Model):
 class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
-                                           on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
-    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT,
-                                        null=True) 
+    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT) 
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
         verbose_name_plural = _('Ocupações de cargo na Mesa')
-        ordering = ('cargo', '-sessao_legislativa', 'parlamentar')
+        ordering = ('cargo', 'parlamentar')
 
     def __str__(self):
         return _('%(parlamentar)s - %(cargo)s') % {
