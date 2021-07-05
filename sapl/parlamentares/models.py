@@ -510,7 +510,7 @@ class MesaDiretora(models.Model):
         ordering = ('-data_inicio', '-sessao_legislativa')
 
     def __str__(self):
-        return _('Mesa da sessao %(sessao)s da %(legislatura)s Legislatura') % {
+        return _('Mesa da %(sessao)s sessao da %(legislatura)s Legislatura') % {
             'sessao':self.sessao_legislativa, 'legislatura':self.sessao_legislativa.legislatura
         }
 
