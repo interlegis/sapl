@@ -12,8 +12,8 @@ def atribuiMesaDiretora(apps, schema_editor):
             mesa_diretora = MesaDiretora(data_inicio=c.sessao_legislativa.data_inicio,
                                         data_fim=c.sessao_legislativa.data_fim,
                                         sessao_legislativa=c.sessao_legislativa)
-            c.mesa_diretora = mesa_diretora
             mesa_diretora.save()
+            c.mesa_diretora = mesa_diretora
             c.save()
 
 class Migration(migrations.Migration):
@@ -24,4 +24,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(atribuiMesaDiretora)
+
+        migrations.AlterModelOptions(
+            name='composicaomesa',
+            options={'ordering': ('cargo', 'parlamentar'), 'verbose_name': 'Ocupação de cargo na Mesa', 'verbose_name_plural': 'Ocupações de cargo na Mesa'},
+        ),
+        migrations.RemoveField(
+            model_name='composicaomesa',
+            name='sessao_legislativa',
+        ),
     ]
