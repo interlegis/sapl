@@ -521,8 +521,6 @@ class ComposicaoMesa(models.Model):
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
     mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT, null=True)
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
-                                           on_delete=models.PROTECT) 
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
