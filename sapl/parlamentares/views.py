@@ -927,20 +927,21 @@ class MesaDiretoraView(FormView):
             legislatura=legislatura).order_by("data_inicio")
 
         year = timezone.now().year
-        month = timezone.now().month
 
         sessao_atual = sessoes.filter(data_inicio__year__lte=year).exclude(
             data_inicio__gt=timezone.now()).order_by('-data_inicio').first()
 
-        mesa = sessao_atual.composicaomesa_set.all().order_by(
-            'cargo_id') if sessao_atual else []
+        mesa_diretora = sessao_atual.mesadiretora_set.order_by(
+            '-data_inicio').first() if sessao_atual else None
 
-        cargos_ocupados = [m.cargo for m in mesa]
+        composicao = mesa_diretora.composicaomesa_set.all()
+
+        cargos_ocupados = [m.cargo for m in composicao]
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
         parlamentares = legislatura.mandato_set.all()
-        parlamentares_ocupados = [m.parlamentar for m in mesa]
+        parlamentares_ocupados = [m.parlamentar for m in composicao]
         parlamentares_vagos = list(
             set(
                 [p.parlamentar for p in parlamentares if p.parlamentar.ativo]) - set(
@@ -957,7 +958,7 @@ class MesaDiretoraView(FormView):
                 'legislatura_selecionada': legislatura,
                 'sessoes': sessoes,
                 'sessao_selecionada': sessao_atual,
-                'composicao_mesa': mesa,
+                'composicao_mesa': composicao,
                 'parlamentares': parlamentares_vagos,
                 'cargos_vagos': cargos_vagos
             })
@@ -1208,17 +1209,18 @@ def altera_field_mesa_public_view(request):
             year = timezone.now().year
             logger.info(
                 f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
-            sessao_selecionada = sessoes.get(data_inicio__year=year).id
+            sessao_selecionada = sessoes.get(data_inicio__year=year)
         except ObjectDoesNotExist:
             logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
                          "Selecionado o id da primeira sessão.")
-            sessao_selecionada = sessoes.first().id
+            sessao_selecionada = sessoes.first()
+    else:
+        sessao_selecionada = SessaoLegislativa.objects.get(id=sessao_selecionada)
 
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
-
     composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
-        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
+        mesa_diretora=sessao_selecionada.mesadiretora_set.first()).order_by('cargo_id')
     cargos_ocupados = list(composicao_mesa.values_list(
         'cargo__id', 'cargo__descricao'))
     parlamentares_ocupados = list(composicao_mesa.values_list(
@@ -1227,7 +1229,7 @@ def altera_field_mesa_public_view(request):
     lista_fotos = []
     lista_partidos = []
 
-    sessao = SessaoLegislativa.objects.get(id=sessao_selecionada)
+    sessao = SessaoLegislativa.objects.get(id=sessao_selecionada.id)
     for p in parlamentares_ocupados:
         parlamentar = Parlamentar.objects.get(id=p[0])
         lista_partidos.append(
@@ -1257,7 +1259,7 @@ def altera_field_mesa_public_view(request):
         'lista_cargos': cargos_ocupados,
         'lista_sessoes': lista_sessoes,
         'lista_fotos': lista_fotos,
-        'sessao_selecionada': sessao_selecionada,
+        'sessao_selecionada': sessao_selecionada.id,
         'msg': ('', 1)
     })
 
