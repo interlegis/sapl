@@ -89,6 +89,9 @@
                     <strong>Status:</strong> &nbsp;{{m.tramitacao_set.first.status}}</br>
                     <strong>Data Fim Prazo (Tramitação):</strong>&nbsp;{{m.tramitacao_set.first.data_fim_prazo|default_if_none:""}}</br>
                   {% endif %}
+                  {% if m|resultado_votacao %}
+                    <strong>Resultado:</strong> &nbsp;{{m|resultado_votacao}}</br>
+                  {% endif %}
                   {% if m.registrovotacao_set.exists %}
                       <strong>Data Votação:</strong>
                       {% for rv in m.registrovotacao_set.all %}
