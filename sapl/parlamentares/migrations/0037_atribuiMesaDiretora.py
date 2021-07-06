@@ -13,8 +13,8 @@ def atribuiMesaDiretora(apps, schema_editor):
                                         data_fim=c.sessao_legislativa.data_fim,
                                         sessao_legislativa=c.sessao_legislativa)
             mesa_diretora.save()
-            c.mesa_diretora = mesa_diretora
-            c.save()
+        c.mesa_diretora = mesa_diretora
+        c.save()
 
 class Migration(migrations.Migration):
 
