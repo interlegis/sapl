@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sapl.api.api_core import customize, SaplApiViewSetConstrutor,\
+from sapl.api.core import customize, SaplApiViewSetConstrutor,\
     wrapper_queryset_response_for_drf_action,\
     BusinessRulesNotImplementedMixin
 from sapl.api.permissions import SaplModelPermissions
