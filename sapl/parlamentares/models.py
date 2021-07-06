@@ -10,8 +10,21 @@ from sapl.base.models import Autor
 from sapl.decorators import vigencia_atual
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
-                        intervalos_tem_intersecao,
-                        restringe_tipos_de_arquivo_img, texto_upload_path)
+                        intervalos_tem_intersecao, restringe_tipos_de_arquivo_txt,
+                        restringe_tipos_de_arquivo_img, texto_upload_path, OverwriteStorage)
+
+
+def pauta_upload_path(instance, filename):
+
+    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
+
+
+def ata_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
+
+
+def anexo_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
 
 
 @reversion.register()
@@ -627,6 +640,109 @@ class Votante(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class ReuniaoFrente(models.Model):
+    frente = models.ForeignKey(
+        Frente,
+        on_delete=models.CASCADE,
+        verbose_name=_('Frente Parlamentar'))
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    nome = models.CharField(
+        max_length=150, verbose_name=_('Nome da Reunião'))
+    tema = models.CharField(
+        max_length=150, blank=True, verbose_name=_('Tema da Reunião'))
+    data = models.DateField(verbose_name=_('Data'))
+    hora_inicio = models.TimeField(
+        null=True,
+        verbose_name=_('Horário de Início (hh:mm)'))
+    hora_fim = models.TimeField(
+        blank=True,
+        null=True,
+        verbose_name=_('Horário de Término (hh:mm)'))
+    local_reuniao = models.CharField(
+        max_length=100, blank=True, verbose_name=_('Local da Reunião'))
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+    url_audio = models.URLField(
+        max_length=150, blank=True,
+        verbose_name=_('URL do Arquivo de Áudio (Formatos MP3 / AAC)'))
+    url_video = models.URLField(
+        max_length=150, blank=True,
+        verbose_name=_('URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)'))
+    upload_pauta = models.FileField(
+        max_length=300,
+        blank=True, null=True,
+        upload_to=pauta_upload_path,
+        verbose_name=_('Pauta da Reunião'),
+        storage=OverwriteStorage(),
+        # validators=[restringe_tipos_de_arquivo_txt]
+    )
+    upload_ata = models.FileField(
+        max_length=300,
+        blank=True, null=True,
+        upload_to=ata_upload_path,
+        verbose_name=_('Ata da Reunião'),
+        storage=OverwriteStorage(),
+        # validators=[restringe_tipos_de_arquivo_txt]
+    )
+    upload_anexo = models.FileField(
+        max_length=300,
+        blank=True, null=True,
+        upload_to=anexo_upload_path,
+        storage=OverwriteStorage(),
+        verbose_name=_('Anexo da Reunião'))
+
+    class Meta:
+        verbose_name = _('Reunião de Frente Parlamentar')
+        verbose_name_plural = _('Reuniões de Frentes Parlamentares')
+        ordering = ('numero', 'frente')
+
+    def __str__(self):
+        return self.nome
+
+    def delete(self, using=None, keep_parents=False):
+        upload_pauta = self.upload_pauta
+        upload_ata = self.upload_ata
+        upload_anexo = self.upload_anexo
+
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if upload_pauta:
+            upload_pauta.delete(save=False)
+
+        if upload_ata:
+            upload_ata.delete(save=False)
+
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and (self.upload_pauta or self.upload_ata or
+                            self.upload_anexo):
+            upload_pauta = self.upload_pauta
+            upload_ata = self.upload_ata
+            upload_anexo = self.upload_anexo
+            self.upload_pauta = None
+            self.upload_ata = None
+            self.upload_anexo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+
+            self.upload_pauta = upload_pauta
+            self.upload_ata = upload_ata
+            self.upload_anexo = upload_anexo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
 
 
 @reversion.register()

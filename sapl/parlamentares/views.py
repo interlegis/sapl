@@ -42,7 +42,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro)
+                     Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro, ReuniaoFrente)
 
 
 FrenteCargoCrud = CrudAux.build(FrenteCargo, 'frente_cargo')
@@ -511,6 +511,93 @@ class FrenteCrud(Crud):
 
     class UpdateView(Crud.UpdateView):
         form_class = FrenteForm
+
+
+class ReuniaoFrenteCrud(MasterDetailCrud):
+    model = ReuniaoFrente
+    parent_field = 'frente'
+    public = [RP_LIST, RP_DETAIL, ]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data', 'nome', 'tema', 'upload_ata']
+        ordering = '-data'
+
+    class DetailView(MasterDetailCrud.DetailView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            docs = []
+            documentos = DocumentoAcessorio.objects.filter(
+                reuniao=self.kwargs['pk']).order_by('nome')
+            docs.extend(documentos)
+
+            context['docs'] = docs
+            context['num_docs'] = len(docs)
+
+            mats = []
+            materias_pauta = PautaReuniao.objects.filter(
+                reuniao=self.kwargs['pk'])
+            materias_pk = [
+                materia_pauta.materia.pk for materia_pauta in materias_pauta]
+
+            context['mats'] = MateriaLegislativa.objects.filter(
+                pk__in=materias_pk
+            ).order_by('tipo', '-ano', 'numero')
+            context['num_mats'] = len(context['mats'])
+
+            context['reuniao_pk'] = self.kwargs['pk']
+
+            return context
+
+    class ListView(MasterDetailCrud.ListView):
+        logger = logging.getLogger(__name__)
+        paginate_by = 10
+
+        def take_reuniao_pk(self):
+
+            username = self.request.user.username
+            try:
+                self.logger.debug('user=' + username +
+                                  '. Tentando obter pk da reunião.')
+                return int(self.request.GET['pk'])
+            except Exception as e:
+                self.logger.error(
+                    'user=' + username + '. Erro ao obter pk da reunião. Retornado 0. ' + str(e))
+                return 0
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            reuniao_pk = self.take_reuniao_pk()
+
+            if reuniao_pk == 0:
+                ultima_reuniao = list(context['reuniao_list'])
+                if len(ultima_reuniao) > 0:
+                    ultimo = ultima_reuniao[-1]
+                    context['reuniao_pk'] = ultimo.pk
+                else:
+                    context['reuniao_pk'] = 0
+            else:
+                context['reuniao_pk'] = reuniao_pk
+
+            context['documentoacessorio_set'] = DocumentoAcessorio.objects.filter(
+                reuniao__pk=context['reuniao_pk']
+            ).order_by('id')
+            return context
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ReuniaoForm
+
+        def get_initial(self):
+            return {'comissao': self.object.comissao}
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ReuniaoForm
+
+        def get_initial(self):
+            comissao = Comissao.objects.get(id=self.kwargs['pk'])
+
+            return {'comissao': comissao}
 
 
 class FrenteParlamentarCrud(MasterDetailCrud):
