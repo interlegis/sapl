@@ -3,10 +3,11 @@ from django.conf.urls import include, url
 from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 
+from sapl.api.api_views import SaplApiViewSetConstrutor
 from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet,\
     AutoresProvaveisListView, AutoresPossiveisListView, AutorListView,\
     ModelChoiceView
-from sapl.api.views import SaplApiViewSetConstrutor, AppVersionView, recria_token
+from sapl.api.views import AppVersionView, recria_token
 
 from .apps import AppConfig
 
