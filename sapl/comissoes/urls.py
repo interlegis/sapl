@@ -3,7 +3,7 @@ from sapl.comissoes.views import (AdicionaPautaView, CargoComissaoCrud, Comissao
                                   ComposicaoCrud, DocumentoAcessorioCrud,
                                   MateriasTramitacaoListView, ParticipacaoCrud,
                                   get_participacoes_comissao, PeriodoComposicaoCrud,
-                                  RemovePautaView, ReuniaoCrud, TipoComissaoCrud)
+                                  RemovePautaView, ReuniaoCrud, TipoComissaoCrud,PresencaReuniaoComissaoView)
 
 from .apps import AppConfig
 
@@ -27,4 +27,6 @@ urlpatterns = [
         include(PeriodoComposicaoCrud.get_urls())),
     url(r'^sistema/comissao/tipo/', include(TipoComissaoCrud.get_urls())),
     url(r'^sistema/comissao/recupera-participacoes', get_participacoes_comissao),
+    url(r'^comissao/(?P<pk>\d+)/presenca$',
+        PresencaReuniaoComissaoView.as_view(), name='presenca'),
 ]
