@@ -6,7 +6,8 @@ from rest_framework.routers import DefaultRouter
 from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet,\
     AutoresProvaveisListView, AutoresPossiveisListView, AutorListView,\
     ModelChoiceView
-from sapl.api.views import SaplApiViewSetConstrutor, AppVersionView, recria_token
+from sapl.api.views import AppVersionView, recria_token
+from sapl.api.views_customize import SaplApiViewSetConstrutor
 
 from .apps import AppConfig
 
