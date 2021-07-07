@@ -933,8 +933,8 @@ class MesaDiretoraView(FormView):
 
         mesa_diretora = sessao_atual.mesadiretora_set.order_by(
             '-data_inicio').first() if sessao_atual else None
-
-        composicao = mesa_diretora.composicaomesa_set.all()
+        
+        composicao = mesa_diretora.composicaomesa_set.all() if mesa_diretora else []
 
         cargos_ocupados = [m.cargo for m in composicao]
         cargos = CargoMesa.objects.all()
@@ -1006,7 +1006,7 @@ def altera_field_mesa(request):
     #Mesa nao deve ser informada ainda
     if not mesa_diretora:
         #Cria nova mesa diretora ou retorna a primeira
-        mesa_diretora = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada).first()
+        mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada)
             
         #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
         #      deve-se somente tentar recuperar a mesa, e caso nao exista
@@ -1061,14 +1061,14 @@ def insere_parlamentar_composicao(request):
     if request.user.has_perm(
             '%s.add_%s' % (
                 AppConfig.label, ComposicaoMesa._meta.model_name)):
-
+        import ipdb; ipdb.set_trace()
         composicao = ComposicaoMesa()
-
+        
         try:
-            logger.debug(
-                "user=" + username + ". Tentando obter SessaoLegislativa com id={}.".format(request.POST['sessao']))
-            composicao.sessao_legislativa = SessaoLegislativa.objects.get(
-                id=int(request.POST['sessao']))
+            #logger.debug(
+            #    "user=" + username + ". Tentando obter SessaoLegislativa com id={}.".format(request.POST['sessao']))
+            mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa_id=int(request.POST['sessao']))
+            composicao.mesa_diretora = mesa_diretora
         except MultiValueDictKeyError:
             logger.error(
                 "user=" + username + ". 'MultiValueDictKeyError', nenhuma sessão foi inserida!")
@@ -1253,7 +1253,7 @@ def altera_field_mesa_public_view(request):
             logger.error(f"user={username}. Mesa não encontrada com sessão Nº {sessao_selecionada.id}. ")
     else:
         #Cria nova mesa diretora ou retorna a primeira
-        mesa_diretora = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada).first()
+        mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada)
             
         #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
         #      deve-se somente tentar recuperar a mesa, e caso nao exista
