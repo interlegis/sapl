@@ -42,7 +42,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro)
+                     Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro, MesaDiretora)
 
 
 FrenteCargoCrud = CrudAux.build(FrenteCargo, 'frente_cargo')
@@ -1186,6 +1186,9 @@ def altera_field_mesa_public_view(request):
         da Mesa Diretora para usuários anônimos,
         atualizando os campos após cada alteração
     """
+
+    #TODO: Adicionar opção de selecionar mesa diretora no CRUD
+    
     logger = logging.getLogger(__name__)
     username = request.user.username
     legislatura = request.GET.get('legislatura')
@@ -1219,8 +1222,26 @@ def altera_field_mesa_public_view(request):
 
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
+
+    #Pegar Mesas diretoras da sessao
+    mesa_diretora = request.GET.get('mesa_diretora')
+
+    #Mesa nao deve ser informada ainda
+    if not mesa_diretora:
+        try:
+            mesa_diretora = sessao_selecionada.mesadiretora_set.first()
+        except ObjectDoesNotExist:
+            logger.error(f"user={username}. Mesa não encontrada com sessão Nº {sessao_selecionada.id}. ")
+    else:
+        try:
+            mesa_diretora = MesaDiretora.objects.get(id=mesa_diretora, sessao_legislativa=sessao_selecionada)
+        except ObjectDoesNotExist:
+            logger.error(f"user={username}. Mesa Nº {mesa_diretora} não encontrada na sessão Nº {sessao_selecionada.id}. "
+                        "Selecionada a mesa com o primeiro id na sessão")
+            mesa_diretora = MesaDiretora.objects.filter(sessao_legislativa=sessao_selecionada).first()
+
     composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
-        mesa_diretora=sessao_selecionada.mesadiretora_set.first()).order_by('cargo_id')
+        mesa_diretora=mesa_diretora).order_by('cargo_id')
     cargos_ocupados = list(composicao_mesa.values_list(
         'cargo__id', 'cargo__descricao'))
     parlamentares_ocupados = list(composicao_mesa.values_list(
@@ -1260,6 +1281,7 @@ def altera_field_mesa_public_view(request):
         'lista_sessoes': lista_sessoes,
         'lista_fotos': lista_fotos,
         'sessao_selecionada': sessao_selecionada.id,
+        'mesa_diretora':mesa_diretora.id,
         'msg': ('', 1)
     })
 
