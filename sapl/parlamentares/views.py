@@ -971,6 +971,8 @@ def altera_field_mesa(request):
         operação (Legislatura/Sessão/Inclusão/Remoção),
         atualizando os campos após cada alteração
     """
+    #TODO: Adicionar opção de selecionar mesa diretora no CRUD
+
     logger = logging.getLogger(__name__)
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
@@ -999,9 +1001,23 @@ def altera_field_mesa(request):
                                               "Selecionado o ID da primeira sessão.".format(year))
             sessao_selecionada = sessoes.first()
 
+    mesa_diretora = request.GET.get('mesa_diretora')
+
+    #Mesa nao deve ser informada ainda
+    if not mesa_diretora:
+        try:
+            mesa_diretora = sessao_selecionada.mesadiretora_set.first()
+        except ObjectDoesNotExist:
+            return JsonResponse({'msg': ('Nenhuma mesa encontrada na sessão!', 0)})
+    else:
+        try:
+            mesa_diretora = MesaDiretora.objects.get(id=mesa_diretora, sessao_legislativa=sessao_selecionada)
+        except ObjectDoesNotExist:
+            mesa_diretora = MesaDiretora.objects.filter(sessao_legislativa=sessao_selecionada).first()
+
     # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
-        mesa_diretora=sessao_selecionada.mesadiretora_set.first()).order_by('cargo_id')
+        mesa_diretora=mesa_diretora).order_by('cargo_id')
 
     cargos_ocupados = [m.cargo for m in composicao_mesa]
     cargos = CargoMesa.objects.all()
@@ -1188,7 +1204,7 @@ def altera_field_mesa_public_view(request):
     """
 
     #TODO: Adicionar opção de selecionar mesa diretora no CRUD
-    
+
     logger = logging.getLogger(__name__)
     username = request.user.username
     legislatura = request.GET.get('legislatura')
