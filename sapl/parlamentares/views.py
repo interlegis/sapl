@@ -1000,8 +1000,8 @@ def altera_field_mesa(request):
             sessao_selecionada = sessoes.first()
 
     # Atualiza os componentes da view após a mudança
-    composicao_mesa = ComposicaoMesa.objects.filter(
-        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
+    composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
+        mesa_diretora=sessao_selecionada.mesadiretora_set.first()).order_by('cargo_id')
 
     cargos_ocupados = [m.cargo for m in composicao_mesa]
     cargos = CargoMesa.objects.all()
