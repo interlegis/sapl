@@ -1005,10 +1005,13 @@ def altera_field_mesa(request):
 
     #Mesa nao deve ser informada ainda
     if not mesa_diretora:
-        try:
-            mesa_diretora = sessao_selecionada.mesadiretora_set.first()
-        except ObjectDoesNotExist:
-            return JsonResponse({'msg': ('Nenhuma mesa encontrada na sessão!', 0)})
+        #Cria nova mesa diretora ou retorna a primeira
+        mesa_diretora = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada).first()
+            
+        #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
+        #      deve-se somente tentar recuperar a mesa, e caso nao exista
+        #      retornar o erro abaixo
+        #      return JsonResponse({'msg': ('Nenhuma mesa encontrada na sessão!')})
     else:
         try:
             mesa_diretora = MesaDiretora.objects.get(id=mesa_diretora, sessao_legislativa=sessao_selecionada)
@@ -1249,12 +1252,14 @@ def altera_field_mesa_public_view(request):
         except ObjectDoesNotExist:
             logger.error(f"user={username}. Mesa não encontrada com sessão Nº {sessao_selecionada.id}. ")
     else:
-        try:
-            mesa_diretora = MesaDiretora.objects.get(id=mesa_diretora, sessao_legislativa=sessao_selecionada)
-        except ObjectDoesNotExist:
-            logger.error(f"user={username}. Mesa Nº {mesa_diretora} não encontrada na sessão Nº {sessao_selecionada.id}. "
-                        "Selecionada a mesa com o primeiro id na sessão")
-            mesa_diretora = MesaDiretora.objects.filter(sessao_legislativa=sessao_selecionada).first()
+        #Cria nova mesa diretora ou retorna a primeira
+        mesa_diretora = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada).first()
+            
+        #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
+        #      deve-se somente tentar recuperar a mesa, e caso nao exista
+        #      retornar o erro abaixo
+        #    logger.error(f"user={username}. Mesa Nº {mesa_diretora} não encontrada na sessão Nº {sessao_selecionada.id}. "
+        #                "Selecionada a mesa com o primeiro id na sessão")
 
     composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
         mesa_diretora=mesa_diretora).order_by('cargo_id')
