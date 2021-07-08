@@ -1208,7 +1208,7 @@ def altera_field_mesa_public_view(request):
 
     logger = logging.getLogger(__name__)
     username = request.user.username
-    legislatura = request.GET.get('legislatura')
+    legislatura = request.GET['legislatura']
     if legislatura:
         legislatura = Legislatura.objects.get(id=legislatura)
     else:
@@ -1223,16 +1223,15 @@ def altera_field_mesa_public_view(request):
     # Verifica se já tem uma sessão selecionada. Ocorre quando é alterado o
     # campo de sessão
 
-    sessao_selecionada = request.GET.get('sessao')
+    sessao_selecionada = request.GET['sessao']
     if not sessao_selecionada:
-        try:
-            year = timezone.now().year
-            logger.info(
-                f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
-            sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
-        except ObjectDoesNotExist:
+        year = timezone.now().year
+        logger.info(
+        f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
+        sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
+        if sessao_selecionada is None:
             logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
-                         "Selecionado o id da primeira sessão.")
+                          "Selecionado o id da primeira sessão.")
             sessao_selecionada = sessoes.first()
     else:
         sessao_selecionada = SessaoLegislativa.objects.get(id=sessao_selecionada)
