@@ -104,10 +104,10 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-                not proposicao.autor.operadores.filter(
-                    id=request.user.id
-                ).exists()
-            ):
+                    not proposicao.autor.operadores.filter(
+                        id=request.user.id
+                    ).exists()
+                ):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
             messages.error(request, _(
@@ -1255,8 +1255,8 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
 
         if not user.is_superuser and grupo_autor.user_set.filter(
                 id=user.id).exists():
-           autores = Autor.objects.filter(user=user)
-           qs = qs.filter(proposicao__autor__in=autores)
+            autores = Autor.objects.filter(user=user)
+            qs = qs.filter(proposicao__autor__in=autores)
         return qs
 
     def get_context_data(self, **kwargs):
