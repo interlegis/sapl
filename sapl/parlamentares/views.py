@@ -978,7 +978,7 @@ def altera_field_mesa(request):
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
     username = request.user.username
-
+    
     if not sessoes:
         return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
@@ -1061,7 +1061,6 @@ def insere_parlamentar_composicao(request):
     if request.user.has_perm(
             '%s.add_%s' % (
                 AppConfig.label, ComposicaoMesa._meta.model_name)):
-        import ipdb; ipdb.set_trace()
         composicao = ComposicaoMesa()
         
         try:
@@ -1091,12 +1090,11 @@ def insere_parlamentar_composicao(request):
             composicao.cargo = CargoMesa.objects.get(
                 id=int(request.POST['cargo']))
             parlamentar_ja_inserido = ComposicaoMesa.objects.filter(
-                sessao_legislativa_id=composicao.sessao_legislativa.id,
-                cargo_id=composicao.cargo.id).exists()
+                mesa_diretora=mesa_diretora,
+                cargo=composicao.cargo).exists()
 
             if parlamentar_ja_inserido:
                 return JsonResponse({'msg': ('Parlamentar já inserido!', 0)})
-
             composicao.save()
 
         except MultiValueDictKeyError:
@@ -1231,7 +1229,7 @@ def altera_field_mesa_public_view(request):
             year = timezone.now().year
             logger.info(
                 f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
-            sessao_selecionada = sessoes.get(data_inicio__year=year)
+            sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
         except ObjectDoesNotExist:
             logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
                          "Selecionado o id da primeira sessão.")
