@@ -35,28 +35,29 @@
     </style>
   </head>
   <body class="painel-principal">
+    <div id="app-painel">
       <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
       <div class="d-flex justify-content-center">
-        <h1 id="sessao_plenaria" class="title text-title"></h1>
+        <h1 id="sessao_plenaria" class="title text-title">[[ sessao_plenaria ]]</h1>
       </div>
-      <div class="row ">
+      <div class="row">
         <div class="col text-center">
-          <span id="sessao_plenaria_data" class="text-value"></span>
+          <span id="sessao_plenaria_data" class="text-value">[[ sessao_plenaria_data ]]</span>
         </div> 
         <div class="col text-center">
-          <span id="sessao_plenaria_hora_inicio" class="text-value"></span>
+          <span id="sessao_plenaria_hora_inicio" class="text-value">[[ sessao_plenaria_hora_inicio ]]</span>
         </div>
       </div>    
 
-      <div class="row justify-content-center">
+      <div class="row justify-content-center" v-if="brasao != ''">
         <div class="col-1">
-          <img src="" id="logo-painel" class="logo-painel" alt=""/>
+          <img v-bind:src="brasao" id="logo-painel" class="logo-painel" alt="Brasão"/>
         </div>
       </div>
 
       <div class="row justify-content-center">
-        <h2 class="text-danger"><span id="message"></span></h2>
+        <h2 class="text-danger"><span v-if="!painel_aberto">PAINEL ENCONTRA-SE FECHADO</span></h2>
       </div>
 
       <div class="row">
@@ -64,19 +65,32 @@
         <div class="col text-center"><span class="text-value data-hora" id="relogio"></span></div>
       </div>
 
-
       <div class="">
         <div class="d-flex justify-content-start">
           <div class="col-md-4">
-            <div class="text-center painel">   
-              <h2 class="text-subtitle">Parlamentares</h2>   
-              <span id="parlamentares" class="text-value text-center"></span>
+            <div class="text-center painel">
+              <h2 class="text-subtitle">Parlamentares</h2>
+              <div v-if="painel_aberto">
+                <span id="parlamentares" class="text-value text-center"></span>
+              </div>
+              <div v-else>
+                  <span style="color:white">
+                      <center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>
+                  </span>
+              </div>
             </div>
           </div>
           <div class="d-flex col-md-8 painels">
             <div class="col-md-6 text-center painel" id="aparecer_oradores">  
-              <h2 class="text-subtitle">Oradores</h2>  
-              <span id="orador"></span>     
+              <h2 class="text-subtitle">Oradores</h2>
+              <div v-if="painel_aberto">
+                <span id="orador"></span>
+              </div>
+              <div v-else>
+                  <span style="color:white">
+                      <center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>
+                  </span>
+              </div>
             </div>
 
             <div class="col-md-6 text-center painel">  
@@ -88,30 +102,42 @@
                 Considerações Finais: <span id="cronometro_consideracoes"></span>
               </div>
             </div>
-            
-            <div class="col-md-6 text-center painel" id="resultado_votacao_div">      
-              <h2 class="text-subtitle">Resultado</h2>   
-              <span id="votacao" class="text-value"></span> 
-              <h2><span id="resultado_votacao" lass="text-title"></span>
+            <div v-if="sessao_solene">
+                <div class="col-md-6 text-center painel" id="tema_solene_div">
+                  <h2 class="text-subtitle">Tema da Sessão Solene</h2>
+                    <span id="sessao_solene_tema" class="text-value">[[ sessao_solene_tema ]]</span>
+                </div>
             </div>
-
-            <div class="col-md-6 text-center painel" id="obs_materia_div">      
-              <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
-              <span id="materia_legislativa_texto" class="text-value"></span>
-              <br>
-              <span id="materia_legislativa_ementa" class="text-value"></span>
-              <br>
-              <span id="observacao_materia" class="text-value"></span>
-            </div>
-
-            <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
-              <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
-                <span id="sessao_solene_tema" class="text-value"></span>
+            <div v-else>
+                <div v-if="painel_aberto">
+                    <div class="col-md-6 text-center painel" id="resultado_votacao_div">
+                        <h2 class="text-subtitle">Resultado</h2>
+                        <span id="votacao" class="text-value"></span>
+                        <h2><span id="resultado_votacao" lass="text-title"></span></h2>
+                    </div>
+                    <div class="col-md-6 text-center painel" id="obs_materia_div">
+                      <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>
+                      <span id="materia_legislativa_texto" class="text-value"></span>
+                      <br>
+                      <span id="materia_legislativa_ementa" class="text-value"></span>
+                      <br>
+                      <span id="observacao_materia" class="text-value"></span>
+                    </div>
+                </div>
+                  <div v-else>
+                      <div class="col-md-6 text-center painel">
+                      <h2 class="text-subtitle">Resultado</h2>
+                      <span style="color:white">
+                          <center>A votação só aparecerá quando o painel estiver aberto</center>
+                      </span>
+                      </div>
+                  </div>
             </div>
           </div>
         </div>
       </div>
       </div>
+    </div>
   </body>
 
   {% block webpack_loader_js %}
@@ -249,25 +275,6 @@
            url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
            type: "GET",
            success: function(data) {
-              $("#sessao_plenaria").text(data["sessao_plenaria"])
-              $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
-              $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
-              $("#sessao_solene_tema").text(data["tema_solene"])
-              if (data["status_painel"] == false) {
-                $("#message").text("PAINEL ENCONTRA-SE FECHADO");
-              }
-              else {
-                $("#message").text("");
-              }
-
-              if (data["sessao_solene"]){
-                $("#resultado_votacao_div").hide();
-                $("#obs_materia_div").hide();
-                $('#tema_solene_div').show();
-              }
-
-              if (data["brasao"] != null)
-                $("#logo-painel").attr("src", data["brasao"]);
 
               var presentes = $("#parlamentares");
               var votacao = $("#votacao");
@@ -312,21 +319,6 @@
                   else {
                     $('#aparecer_oradores').hide();
                   }
-              }
-              else{
-                  presentes.append('<span style="color:white" id="parlamentares_list">');
-                  $('#parlamentares_list').append(
-                      '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
-                  presentes.append('</span>');
-
-                  oradores.append('<span style="color:white" id="oradores_list">');
-                  $('#oradores_list').append(
-                      '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
-                  oradores.append('</span>');
-
-                  votacao.append('<span id="votacao">');
-                  $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
-                  votacao.append('</span>');
               }
 
               if(data["status_painel"]){
@@ -489,7 +481,6 @@
                 `<font color="`+color+`">${parlamentar.partido}</font> </td> <td style="padding-right:20px">` +
                 `<font color="`+color+`">${parlamentar.voto}</font> </td></tr>`)
      }
-     
   </script>
 </html>
 
