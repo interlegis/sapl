@@ -25,21 +25,18 @@ const v = new Vue({ // eslint-disable-line
   },
   methods: {
 
-    atribuiColor (parlamentares) {
-      return parlamentares.map(parlamentar => {
-        var color = 'white'
-        if (parlamentar.voto === 'Voto Informado') {
-          color = 'yellow'
-        } else {
-          if (parlamentar.voto === 'Sim') {
-            color = 'green'
-          } else if (parlamentar.voto === 'Não') {
-            color = 'red'
-          }
+    atribuiColor (parlamentar) {
+      var color = 'white'
+      if (parlamentar.voto === 'Voto Informado') {
+        color = 'yellow'
+      } else {
+        if (parlamentar.voto === 'Sim') {
+          color = 'green'
+        } else if (parlamentar.voto === 'Não') {
+          color = 'red'
         }
-        parlamentar.color = color
-        console.info(parlamentares)
-      })
+      }
+      parlamentar.color = color
     },
     fetchData () {
       // TODO: how to get no hardcoded URL?
@@ -51,8 +48,12 @@ const v = new Vue({ // eslint-disable-line
         this.sessao_plenaria_hora_inicio = 'Hora Início: ' + response.sessao_plenaria_hora_inicio
         this.sessao_solene = response.sessao_solene
         this.sessao_solene_tema = response.sessao_solene_tema
-        this.presentes = this.atribuiColor(response.presentes)
-        console.info(this.presentes)
+
+        this.presentes = response.presentes
+        this.presentes.forEach(parlamentar => {
+          this.atribuiColor(parlamentar)
+        })
+
         this.oradores = response.oradores
       }.bind(this))
     },

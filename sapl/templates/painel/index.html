@@ -80,6 +80,11 @@
                         <td style="padding-right: 20px; color: yellow;">
                           [[ p.partido ]]
                         </td>
+                        <div v-if="voto && voto !== 'Voto Informado'">
+                          <td>
+                            [[p.voto]]
+                          </td>
+                        </div>
                     </tr>
                     </tbody>
                 </table>
@@ -92,7 +97,7 @@
             </div>
           </div>
           <div class="d-flex col-md-8 painels">
-            <div class="col-md-6 text-center painel" id="aparecer_oradores">  
+            <div v-if="oradores.length > 0" class="col-md-6 text-center painel" id="aparecer_oradores">  
               <h2 class="text-subtitle">Oradores</h2>
               <div v-if="painel_aberto">
                 <table>
@@ -295,50 +300,10 @@
            type: "GET",
            success: function(data) {
 
-              var presentes = $("#parlamentares");
               var votacao = $("#votacao");
-              var oradores = $("#orador")
               $("#votacao").text('');
-              presentes.children().remove();
               votacao.children().remove();
-              oradores.children().remove();
 
-              var oradores_list = data["oradores"];
-              var presentes_list = data["presentes"];
-
-              if (data["status_painel"] == true) {
-                  presentes.append('<table id="parlamentares_list">');
-                  $.each(presentes_list, function (index, parlamentar) {
-
-
-                    if (parlamentar.voto == 'Voto Informado'){
-                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
-                          parlamentar.nome +
-                          '</td> <td style="padding-right:20px; color:yellow">' +
-                          parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
-                          + '</td></tr>')
-                    }
-                    else{
-                      $('#parlamentares_list').append(show_voto(parlamentar))
-                    }
-
-                  });
-                  presentes.append('</table>')
-
-                  if (data["oradores"].length > 0){
-                    $('#aparecer_oradores').show();
-                    oradores.append('<table id="oradores_list">');
-                    $.each(oradores_list, function (index, orador) {
-                      $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
-                          orador.numero + 'º &nbsp' +
-                          orador.nome +'</td></tr>')
-                    });
-                    oradores.append('</table>');
-                  }
-                  else {
-                    $('#aparecer_oradores').hide();
-                  }
-              }
 
               if(data["status_painel"]){
                 if (data['materia_legislativa_texto']){
@@ -485,21 +450,6 @@
         })
       })();
       });
-
-     function show_voto(parlamentar) {
-      color = 'white'
-      if (parlamentar.voto == "Sim"){
-          color = 'green'
-      }
-      else if (parlamentar.voto == "Não"){
-          color = 'red'
-      }
-
-      return ('<tr> <td style="padding-right:20px">' +
-                `<font color="`+color+`">${parlamentar.nome}</font> </td> <td style="padding-right:20px">` +
-                `<font color="`+color+`">${parlamentar.partido}</font> </td> <td style="padding-right:20px">` +
-                `<font color="`+color+`">${parlamentar.voto}</font> </td></tr>`)
-     }
   </script>
 </html>
 
