@@ -20,7 +20,14 @@ const v = new Vue({ // eslint-disable-line
       sessao_solene: false,
       sessao_solene_tema: '',
       presentes: [],
-      oradores: []
+      oradores: [],
+      has_votos: false,
+      materia_legislativa_texto: '',
+      numero_votos_sim: '',
+      numero_votos_nao: '',
+      numero_abstencoes: '',
+      num_presentes: '',
+      total_votos: ''
     }
   },
   methods: {
@@ -29,12 +36,14 @@ const v = new Vue({ // eslint-disable-line
       var color = 'white'
       if (parlamentar.voto === 'Voto Informado') {
         color = 'yellow'
+        this.has_votos = false
       } else {
         if (parlamentar.voto === 'Sim') {
           color = 'green'
         } else if (parlamentar.voto === 'Não') {
           color = 'red'
         }
+        this.has_votos = true
       }
       parlamentar.color = color
     },
@@ -55,6 +64,13 @@ const v = new Vue({ // eslint-disable-line
         })
 
         this.oradores = response.oradores
+
+        this.materia_legislativa_texto = response.materia_legislativa_texto
+        this.numero_votos_sim = response.numero_votos_sim
+        this.numero_votos_sim = response.numero_votos_sim
+        this.numero_abstencoes = response.numero_abstencoes
+        this.num_presentes = response.num_presentes
+        this.total_votos = response.total_votos
       }.bind(this))
     },
     pollData () {
@@ -63,7 +79,7 @@ const v = new Vue({ // eslint-disable-line
       this.polling = setInterval(() => {
         console.info('Fetching data from backend')
         this.fetchData()
-      }, 500)
+      }, 1000)
     }
   },
   beforeDestroy () {

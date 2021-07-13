@@ -21,7 +21,6 @@
         {% render_bundle  'painel' 'css' %}
       {% endblock webpack_loader_css %}
 
-
     <style type="text/css">
         html, body {
             max-width: 100%;
@@ -80,7 +79,7 @@
                         <td style="padding-right: 20px; color: yellow;">
                           [[ p.partido ]]
                         </td>
-                        <div v-if="voto && voto !== 'Voto Informado'">
+                        <div v-if="has_votos">
                           <td>
                             [[p.voto]]
                           </td>
@@ -136,8 +135,19 @@
                 <div v-if="painel_aberto">
                     <div class="col-md-6 text-center painel" id="resultado_votacao_div">
                         <h2 class="text-subtitle">Resultado</h2>
-                        <span id="votacao" class="text-value"></span>
-                        <h2><span id="resultado_votacao" lass="text-title"></span></h2>
+                        <div v-if="materia_legislativa_texto">
+                            <span id="votacao" class="text-value">
+                                <li>Sim: [[ numero_votos_sim ]]</li>
+                                <li>Não: [[ numero_votos_nao ]]</li>
+                                <li>Abstenções: [[ numero_abstencoes ]]</li>
+                                <li>Presentes: [[ num_presentes ]]</li>
+                                <li>Total votos: [[ total_votos ]]</li>
+                            </span>
+                            <h2><span id="resultado_votacao" lass="text-title"></span></h2>
+                        </div>
+                        <div v-else>
+                            <center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>
+                        </div>
                     </div>
                     <div class="col-md-6 text-center painel" id="obs_materia_div">
                       <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>
@@ -148,14 +158,14 @@
                       <span id="observacao_materia" class="text-value"></span>
                     </div>
                 </div>
-                  <div v-else>
+                <div v-else>
                       <div class="col-md-6 text-center painel">
                       <h2 class="text-subtitle">Resultado</h2>
                       <span style="color:white">
                           <center>A votação só aparecerá quando o painel estiver aberto</center>
                       </span>
                       </div>
-                  </div>
+                 </div>
             </div>
           </div>
         </div>
@@ -299,26 +309,6 @@
            url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
            type: "GET",
            success: function(data) {
-
-              var votacao = $("#votacao");
-              $("#votacao").text('');
-              votacao.children().remove();
-
-
-              if(data["status_painel"]){
-                if (data['materia_legislativa_texto']){
-                  var votacao = $("#votacao");
-
-                  votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>");
-                  votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>");
-                  votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>");
-                  votacao.append("<li>Presentes: " + data["num_presentes"] + "</li>");
-                  votacao.append("<li>Total votos: " + data["total_votos"] + "</li>");
-                }
-                else{
-                    $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
-                }
-              }
 
               var discurso_current = data["cronometro_discurso"];
               if (!discurso_previous){
