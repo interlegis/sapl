@@ -18,7 +18,8 @@ const v = new Vue({ // eslint-disable-line
       sessao_plenaria_hora_inicio: '',
       brasao: '',
       sessao_solene: false,
-      sessao_solene_tema: ''
+      sessao_solene_tema: '',
+      presentes:[]
     }
   },
   methods: {
@@ -32,6 +33,7 @@ const v = new Vue({ // eslint-disable-line
         this.sessao_plenaria_hora_inicio = 'Hora Início: ' + response.sessao_plenaria_hora_inicio
         this.sessao_solene = response.sessao_solene
         this.sessao_solene_tema = response.sessao_solene_tema
+        this.presentes = response.presentes
       }.bind(this))
     },
     pollData () {
@@ -40,7 +42,7 @@ const v = new Vue({ // eslint-disable-line
       this.polling = setInterval(() => {
         console.info('Fetching data from backend')
         this.fetchData()
-      }, 5000)
+      }, 500)
     }
   },
   beforeDestroy () {

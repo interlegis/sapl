@@ -71,7 +71,25 @@
             <div class="text-center painel">
               <h2 class="text-subtitle">Parlamentares</h2>
               <div v-if="painel_aberto">
-                <span id="parlamentares" class="text-value text-center"></span>
+                <table class="table table-striped table-hover table-link-ordering">
+                  <thead>
+                    <tr>
+                      <th>Parlamentar</th>
+                      <th>Partido</th>
+                      <th>Ativo?</th>
+                    </tr>
+                  </thead>
+                    <tbody v-for="parlamentar in presentes">
+                    <tr>
+                        <th>
+                          [[ parlamentar.nome]]
+                        </th>
+                        <th>
+                          [[ parlamentar.partido ]]
+                        </th>
+                    </tr>
+                    </tbody>
+                </table>
               </div>
               <div v-else>
                   <span style="color:white">
