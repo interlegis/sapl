@@ -461,7 +461,7 @@
               console.error(err);
            },
            dataType: "json",
-           complete: setTimeout(function() {poll()}, 500),
+           complete: null, // setTimeout(function() {poll()}, 500),
            timeout: 20000 // TODO: decrease
         })
       })();
