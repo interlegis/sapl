@@ -41,20 +41,20 @@
           alt="Logo" class="img-responsive" style="height: 20vh">
         </span>
       </div>
-      <div class="row d-flex justify-content-center" v-if="brasao != ''">
-        <div class="col-md-4" style="text-align: center;">
+      <div class="d-flex justify-content-center" v-if="brasao != ''">
+        <h1 style="color: white;">
           {% if nome %}{{ nome }}{% else %}{% trans 'Câmara/Assembléia não configurada'%}{% endif %}
-        </div>
+        </h1>
       </div>
 
       <div class="d-flex justify-content-center">
         <h1 id="sessao_plenaria" class="title text-title">[[ sessao_plenaria ]]</h1>
       </div>
       <div class="row">
-        <div class="col text-center">
+        <div class="col-md-5 text-right">
           <span id="sessao_plenaria_data" class="text-value">[[ sessao_plenaria_data ]]</span>
         </div> 
-        <div class="col text-center">
+        <div class="col-md-7 text-center">
           <span id="sessao_plenaria_hora_inicio" class="text-value">[[ sessao_plenaria_hora_inicio ]]</span>
         </div>
       </div>
@@ -64,8 +64,8 @@
       </div>
 
       <div class="row">
-        <div class="col text-center"><span class="text-value data-hora" id="date"></span></div>
-        <div class="col text-center"><span class="text-value data-hora" id="relogio"></span></div>
+        <div class="col-md-5 text-right"><span class="text-value data-hora" id="date"></span></div>
+        <div class="col-md-7 text-center"><span class="text-value data-hora" id="relogio"></span></div>
       </div>
 
       <div class="">
@@ -77,13 +77,13 @@
                 <table>
                     <tbody v-for="p in presentes">
                     <tr>
-                        <td style="padding-right:20px;" v-bind:style="{ color: p.color}">
+                        <td style="padding-right: 20px;" v-bind:style="{ color: p.color}">
                           [[ p.nome]]
                         </td>
-                        <td style="padding-right:20px;" v-bind:style="{ color: p.color}">
+                        <td style="padding-right: 20px;" v-bind:style="{ color: p.color}">
                           [[ p.partido ]]
                         </td>
-                        <td v-if="p.voto !== ''" style="padding-right:20px;" v-bind:style="{ color: p.color}">
+                        <td style="padding-right: 20px;" v-if="p.voto !== ''" v-bind:style="{ color: p.color}">
                             [[p.voto]]
                         </td>
                     </tr>
@@ -97,13 +97,13 @@
               </div>
             </div>
           </div>
-          <div class="d-flex col-md-8 painels">
+          <div class="d-flex col-md-6 painels">
             <div v-if="oradores.length > 0" class="col-md-6 text-center painel" id="aparecer_oradores">  
               <h2 class="text-subtitle">Oradores</h2>
               <div v-if="painel_aberto">
                 <table>
                   <tbody v-for="o in oradores">
-                  <tr>
+                  <tr class="d-flex justify-content-center">
                       <td style="padding-right: 20px; color: white;">
                         [[ o.numero]]º &nbsp[[o.nome]]
                       </td>
