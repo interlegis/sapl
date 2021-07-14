@@ -18,6 +18,7 @@
 
 {% block detail_content %}
     {{ block.super }}
+    <strong>Protocolo:</strong> {{ object.numero_protocolo }}/{{ object.ano }} {{ object.data_entrada_protocolo }}
     {% if object.registrovotacao_set.exists %}
         <strong>Data Votação:</strong>
         {% for rv in object.registrovotacao_set.all %}
