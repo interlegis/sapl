@@ -93,7 +93,7 @@ const v = new Vue({ // eslint-disable-line
     },
     fetchData () {
       // TODO: how to get no hardcoded URL?
-      $.get('/painel/704/dados', function (response) {
+      $.get('/painel/2867/dados', function (response) {
         this.brasao = response.brasao
         this.painel_aberto = response.status_painel
         this.sessao_finalizada = response.sessao_finalizada
