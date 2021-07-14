@@ -21,7 +21,6 @@ const v = new Vue({ // eslint-disable-line
       sessao_solene_tema: '',
       presentes: [],
       oradores: [],
-      has_votos: false,
       numero_votos_sim: 0,
       numero_votos_nao: 0,
       numero_abstencoes: 0,
@@ -74,14 +73,12 @@ const v = new Vue({ // eslint-disable-line
       var color = 'white'
       if (parlamentar.voto === 'Voto Informado' || parlamentar.voto === '') {
         color = 'yellow'
-        this.has_votos = false
       } else {
         if (parlamentar.voto === 'Sim') {
           color = 'green'
         } else if (parlamentar.voto === 'Não') {
           color = 'red'
         }
-        this.has_votos = true
       }
       parlamentar.color = color
     },
