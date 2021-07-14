@@ -72,7 +72,7 @@ const v = new Vue({ // eslint-disable-line
     },
     atribuiColor (parlamentar) {
       var color = 'white'
-      if (parlamentar.voto === 'Voto Informado') {
+      if (parlamentar.voto === 'Voto Informado' || parlamentar.voto === '') {
         color = 'yellow'
         this.has_votos = false
       } else {

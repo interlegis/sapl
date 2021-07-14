@@ -70,16 +70,16 @@
               <h2 class="text-subtitle">Parlamentares</h2>
               <div v-if="painel_aberto">
                 <table>
-                    <tbody v-for="p in presentes">
+                    <tbody v-for="(p, voto) in presentes">
                     <tr>
-                        <td style="padding-right: 20px; color: yellow;">
+                        <td style="padding-right: 20px; color: [[p.color]];">
                           [[ p.nome]]
                         </td>
-                        <td style="padding-right: 20px; color: yellow;">
+                        <td style="padding-right: 20px; color: [[p.color]];">
                           [[ p.partido ]]
                         </td>
-                        <div v-if="has_votos">
-                          <td>
+                        <div>
+                          <td v-if="p.voto !== ''">
                             [[p.voto]]
                           </td>
                         </div>
