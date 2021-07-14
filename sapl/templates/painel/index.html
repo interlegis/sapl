@@ -72,17 +72,15 @@
                 <table>
                     <tbody v-for="(p, voto) in presentes">
                     <tr>
-                        <td style="padding-right: 20px; color: [[p.color]];">
+                        <td style="padding-right:20px;" v-bind:style="{ color: p.color}">
                           [[ p.nome]]
                         </td>
-                        <td style="padding-right: 20px; color: [[p.color]];">
+                        <td style="padding-right:20px;" v-bind:style="{ color: p.color}">
                           [[ p.partido ]]
                         </td>
-                        <div>
-                          <td v-if="p.voto !== ''">
-                            [[p.voto]]
-                          </td>
-                        </div>
+                        <td v-if="p.voto !== ''">
+                            [[p.color]]
+                        </td>
                     </tr>
                     </tbody>
                 </table>
