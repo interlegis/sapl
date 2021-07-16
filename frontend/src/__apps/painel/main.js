@@ -89,8 +89,9 @@ const v = new Vue({ // eslint-disable-line
       return texto
     },
     converterUrl (url) {
-      url = url.slice(-4)
-      url = '/painel/' + url + '/dados'
+      url = url.slice(-(url.length - url.lastIndexOf('/')))
+      url = '/painel' + url + '/dados'
+      console.log(url)
       return url
     },
     fetchData () {
