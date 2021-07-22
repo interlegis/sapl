@@ -1925,7 +1925,7 @@ def get_presenca_sessao(sessao_plenaria):
 
 def get_expedientes(sessao_plenaria):
     expediente = ExpedienteSessao.objects.filter(
-        sessao_plenaria_id=sessao_plenaria.id).order_by('tipo__nome')
+        sessao_plenaria_id=sessao_plenaria.id).order_by('tipo__ordenacao', 'tipo__nome')
     expedientes = []
     for e in expediente:
         tipo = TipoExpediente.objects.get(id=e.tipo_id)
