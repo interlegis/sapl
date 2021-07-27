@@ -236,16 +236,16 @@ class CompMixin(PermissionRequiredMixin):
         return context
 
     def get_notificacoes(self, object_list=None, type_notificacoes=None):
-
         p = []
 
         def padd(r, type_notificacao, reverse_url=None, test=True, msg='',
                  kwargs=None, to_position=None):
-
             if not test:
                 return
 
-            r.contextual_class = type_notificacao
+            if r is not None:
+                r.contextual_class = type_notificacao
+
             if not kwargs:
                 kwargs = {'ta_id': r.ta_id, 'pk': r.pk}
             if reverse_url:
@@ -427,6 +427,10 @@ class CompMixin(PermissionRequiredMixin):
                 rr.append(r)
 
             if r.dispositivos_alterados_set.exists():
+                if r in r.dispositivos_alterados_set.all():
+                    r.dispositivos_alterados_set.all().exclude(r)
+
+
                 rr += self.get_notificacoes(
                     r.dispositivos_alterados_set.all(), type_notificacoes)
 
