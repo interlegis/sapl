@@ -152,34 +152,46 @@ class IntegracaoTaView(TemplateView):
             content_type=related_object_type)
 
         ta_exists = bool(ta.exists())
-        if (ta_exists or
-                (request.user.has_perm(
+        self.object = ta = ta.first()
+
+        ta_perm_edit = (
+            (
+                request.user.has_perm(
                     'compilacao.change_dispositivo_edicao_dinamica') and
-                 ta_values.get('privacidade', STATUS_TA_EDITION
-                               ) != STATUS_TA_PRIVATE) or
-                (request.user.has_perm(
+                ta_values.get(
+                    'privacidade',
+                    STATUS_TA_EDITION
+                ) != STATUS_TA_PRIVATE
+            ) or (
+                request.user.has_perm(
                     'compilacao.change_your_dispositivo_edicao_dinamica') and
-                 ta_values.get('privacidade', STATUS_TA_EDITION
-                               ) == STATUS_TA_PRIVATE)):
-            """
-            o texto articulado será criado/atualizado se:
-                - texto articulado já foi criado.
+                ta_values.get(
+                    'privacidade',
+                    STATUS_TA_EDITION
+                ) == STATUS_TA_PRIVATE
+            )
+        )
 
-                - não foi criado e o usuário possui permissão para criar
-                  desde que o texto não seja um texto privado pois a permissão
-                  para criar textos privados é diferente.
+        """
+        o texto articulado será criado/atualizado se:
+            - texto articulado já foi criado.
 
-                - não foi criado e o usuário possui permissão para criar desde
-                  que o texto seja privado e a permissão seja específica para
-                  textos privados.
-            """
-            pass
-        else:
+            - não foi criado e o usuário possui permissão para criar
+              desde que o texto não seja um texto privado pois a permissão
+              para criar textos privados é diferente.
+
+            - não foi criado e o usuário possui permissão para criar desde
+              que o texto seja privado e a permissão seja específica para
+              textos privados.
+        """
+
+        if not ta_exists and not ta_perm_edit:
             messages.info(request, _('%s não possui %s.') % (
                 item, TextoArticulado._meta.verbose_name))
             return redirect('/message')
 
-        ta = TextoArticulado.update_or_create(self, item)
+        if ta_perm_edit:
+            self.object = ta = TextoArticulado.update_or_create(self, item)
 
         if not ta_exists:
             if ta.editable_only_by_owners and\
