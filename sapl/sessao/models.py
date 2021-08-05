@@ -426,6 +426,21 @@ class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
     def __str__(self):
         return '%s - %s' % (self.sessao_plenaria, self.conteudo)
 
+@reversion.register()
+class ConsideracoesFinais(models.Model):  # ConsideracoesFinaisSessaoPlenaria
+    sessao_plenaria = models.OneToOneField(SessaoPlenaria,
+                                           on_delete=models.PROTECT)
+    conteudo = models.TextField(
+        blank=True, verbose_name=_('Considerações Finais da Sessão Plenária'))
+
+    class Meta:
+        verbose_name = _('Consideração Final da Sessão Plenária')
+        verbose_name_plural = _('Considerações Finais da Sessão Plenária')
+        ordering = ('id',)
+
+    def __str__(self):
+        return '%s - %s' % (self.sessao_plenaria, self.conteudo)
+
 
 @reversion.register()
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
