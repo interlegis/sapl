@@ -12,4 +12,3 @@ steps:
       from_secret: porto_user
     password:
       from_secret: porto_pw
-
