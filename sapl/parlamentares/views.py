@@ -42,7 +42,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
-                     Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro)
+                     Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro, MesaDiretora)
 
 
 FrenteCargoCrud = CrudAux.build(FrenteCargo, 'frente_cargo')
@@ -927,20 +927,21 @@ class MesaDiretoraView(FormView):
             legislatura=legislatura).order_by("data_inicio")
 
         year = timezone.now().year
-        month = timezone.now().month
 
         sessao_atual = sessoes.filter(data_inicio__year__lte=year).exclude(
             data_inicio__gt=timezone.now()).order_by('-data_inicio').first()
 
-        mesa = sessao_atual.composicaomesa_set.all().order_by(
-            'cargo_id') if sessao_atual else []
+        mesa_diretora = sessao_atual.mesadiretora_set.order_by(
+            '-data_inicio').first() if sessao_atual else None
+        
+        composicao = mesa_diretora.composicaomesa_set.all() if mesa_diretora else []
 
-        cargos_ocupados = [m.cargo for m in mesa]
+        cargos_ocupados = [m.cargo for m in composicao]
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
         parlamentares = legislatura.mandato_set.all()
-        parlamentares_ocupados = [m.parlamentar for m in mesa]
+        parlamentares_ocupados = [m.parlamentar for m in composicao]
         parlamentares_vagos = list(
             set(
                 [p.parlamentar for p in parlamentares if p.parlamentar.ativo]) - set(
@@ -957,7 +958,7 @@ class MesaDiretoraView(FormView):
                 'legislatura_selecionada': legislatura,
                 'sessoes': sessoes,
                 'sessao_selecionada': sessao_atual,
-                'composicao_mesa': mesa,
+                'composicao_mesa': composicao,
                 'parlamentares': parlamentares_vagos,
                 'cargos_vagos': cargos_vagos
             })
@@ -970,12 +971,14 @@ def altera_field_mesa(request):
         operação (Legislatura/Sessão/Inclusão/Remoção),
         atualizando os campos após cada alteração
     """
+    #TODO: Adicionar opção de selecionar mesa diretora no CRUD
+
     logger = logging.getLogger(__name__)
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
     username = request.user.username
-
+    
     if not sessoes:
         return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
@@ -998,9 +1001,26 @@ def altera_field_mesa(request):
                                               "Selecionado o ID da primeira sessão.".format(year))
             sessao_selecionada = sessoes.first()
 
+    mesa_diretora = request.GET.get('mesa_diretora')
+
+    #Mesa nao deve ser informada ainda
+    if not mesa_diretora:
+        #Cria nova mesa diretora ou retorna a primeira
+        mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada)
+            
+        #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
+        #      deve-se somente tentar recuperar a mesa, e caso nao exista
+        #      retornar o erro abaixo
+        #      return JsonResponse({'msg': ('Nenhuma mesa encontrada na sessão!')})
+    else:
+        try:
+            mesa_diretora = MesaDiretora.objects.get(id=mesa_diretora, sessao_legislativa=sessao_selecionada)
+        except ObjectDoesNotExist:
+            mesa_diretora = MesaDiretora.objects.filter(sessao_legislativa=sessao_selecionada).first()
+
     # Atualiza os componentes da view após a mudança
-    composicao_mesa = ComposicaoMesa.objects.filter(
-        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
+    composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
+        mesa_diretora=mesa_diretora).order_by('cargo_id')
 
     cargos_ocupados = [m.cargo for m in composicao_mesa]
     cargos = CargoMesa.objects.all()
@@ -1041,14 +1061,13 @@ def insere_parlamentar_composicao(request):
     if request.user.has_perm(
             '%s.add_%s' % (
                 AppConfig.label, ComposicaoMesa._meta.model_name)):
-
         composicao = ComposicaoMesa()
-
+        
         try:
-            logger.debug(
-                "user=" + username + ". Tentando obter SessaoLegislativa com id={}.".format(request.POST['sessao']))
-            composicao.sessao_legislativa = SessaoLegislativa.objects.get(
-                id=int(request.POST['sessao']))
+            #logger.debug(
+            #    "user=" + username + ". Tentando obter SessaoLegislativa com id={}.".format(request.POST['sessao']))
+            mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa_id=int(request.POST['sessao']))
+            composicao.mesa_diretora = mesa_diretora
         except MultiValueDictKeyError:
             logger.error(
                 "user=" + username + ". 'MultiValueDictKeyError', nenhuma sessão foi inserida!")
@@ -1071,12 +1090,11 @@ def insere_parlamentar_composicao(request):
             composicao.cargo = CargoMesa.objects.get(
                 id=int(request.POST['cargo']))
             parlamentar_ja_inserido = ComposicaoMesa.objects.filter(
-                sessao_legislativa_id=composicao.sessao_legislativa.id,
-                cargo_id=composicao.cargo.id).exists()
+                mesa_diretora=mesa_diretora,
+                cargo=composicao.cargo).exists()
 
             if parlamentar_ja_inserido:
                 return JsonResponse({'msg': ('Parlamentar já inserido!', 0)})
-
             composicao.save()
 
         except MultiValueDictKeyError:
@@ -1185,9 +1203,12 @@ def altera_field_mesa_public_view(request):
         da Mesa Diretora para usuários anônimos,
         atualizando os campos após cada alteração
     """
+
+    #TODO: Adicionar opção de selecionar mesa diretora no CRUD
+
     logger = logging.getLogger(__name__)
     username = request.user.username
-    legislatura = request.GET.get('legislatura')
+    legislatura = request.GET['legislatura']
     if legislatura:
         legislatura = Legislatura.objects.get(id=legislatura)
     else:
@@ -1202,23 +1223,43 @@ def altera_field_mesa_public_view(request):
     # Verifica se já tem uma sessão selecionada. Ocorre quando é alterado o
     # campo de sessão
 
-    sessao_selecionada = request.GET.get('sessao')
+    sessao_selecionada = request.GET['sessao']
     if not sessao_selecionada:
-        try:
-            year = timezone.now().year
-            logger.info(
-                f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
-            sessao_selecionada = sessoes.get(data_inicio__year=year).id
-        except ObjectDoesNotExist:
+        year = timezone.now().year
+        logger.info(
+        f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
+        sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
+        if sessao_selecionada is None:
             logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
-                         "Selecionado o id da primeira sessão.")
-            sessao_selecionada = sessoes.first().id
+                          "Selecionado o id da primeira sessão.")
+            sessao_selecionada = sessoes.first()
+    else:
+        sessao_selecionada = SessaoLegislativa.objects.get(id=sessao_selecionada)
 
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
 
+    #Pegar Mesas diretoras da sessao
+    mesa_diretora = request.GET.get('mesa_diretora')
+
+    #Mesa nao deve ser informada ainda
+    if not mesa_diretora:
+        try:
+            mesa_diretora = sessao_selecionada.mesadiretora_set.first()
+        except ObjectDoesNotExist:
+            logger.error(f"user={username}. Mesa não encontrada com sessão Nº {sessao_selecionada.id}. ")
+    else:
+        #Cria nova mesa diretora ou retorna a primeira
+        mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada)
+            
+        #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
+        #      deve-se somente tentar recuperar a mesa, e caso nao exista
+        #      retornar o erro abaixo
+        #    logger.error(f"user={username}. Mesa Nº {mesa_diretora} não encontrada na sessão Nº {sessao_selecionada.id}. "
+        #                "Selecionada a mesa com o primeiro id na sessão")
+
     composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
-        sessao_legislativa=sessao_selecionada).order_by('cargo_id')
+        mesa_diretora=mesa_diretora).order_by('cargo_id')
     cargos_ocupados = list(composicao_mesa.values_list(
         'cargo__id', 'cargo__descricao'))
     parlamentares_ocupados = list(composicao_mesa.values_list(
@@ -1227,7 +1268,7 @@ def altera_field_mesa_public_view(request):
     lista_fotos = []
     lista_partidos = []
 
-    sessao = SessaoLegislativa.objects.get(id=sessao_selecionada)
+    sessao = SessaoLegislativa.objects.get(id=sessao_selecionada.id)
     for p in parlamentares_ocupados:
         parlamentar = Parlamentar.objects.get(id=p[0])
         lista_partidos.append(
@@ -1257,7 +1298,8 @@ def altera_field_mesa_public_view(request):
         'lista_cargos': cargos_ocupados,
         'lista_sessoes': lista_sessoes,
         'lista_fotos': lista_fotos,
-        'sessao_selecionada': sessao_selecionada,
+        'sessao_selecionada': sessao_selecionada.id,
+        'mesa_diretora':mesa_diretora.id,
         'msg': ('', 1)
     })
 
