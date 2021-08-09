@@ -1327,6 +1327,7 @@ def resumo_ata_pdf(request, pk):
     context.update(get_materias_ordem_do_dia(sessao_plenaria))
     context.update(get_oradores_ordemdia(sessao_plenaria))
     context.update(get_ocorrencias_da_sessao(sessao_plenaria))
+    context.update(get_consideracoes_finais(sessao_plenaria))
     context.update(get_oradores_explicacoes_pessoais(sessao_plenaria))
     context.update(get_assinaturas(sessao_plenaria))
     context.update({'object': sessao_plenaria})
