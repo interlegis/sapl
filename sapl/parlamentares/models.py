@@ -496,25 +496,41 @@ class CargoMesa(models.Model):
     def __str__(self):
         return self.descricao
 
+@reversion.register()
+class MesaDiretora(models.Model):
+    data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
+    data_fim = models.DateField(verbose_name=_('Data Fim'), null=True)
+    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
+                                           on_delete=models.PROTECT)
+    descricao = models.TextField(verbose_name=_('Descrição'), blank=True)
+
+    class Meta:
+        verbose_name = _('Mesa Diretora')
+        verbose_name_plural = _('Mesas Diretoras')
+        ordering = ('-data_inicio', '-sessao_legislativa')
+
+    def __str__(self):
+        return _('Mesa da %(sessao)s sessao da %(legislatura)s Legislatura') % {
+            'sessao':self.sessao_legislativa, 'legislatura':self.sessao_legislativa.legislatura
+        }
+
 
 @reversion.register()
 class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
-                                           on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
+    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT, null=True)
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
         verbose_name_plural = _('Ocupações de cargo na Mesa')
-        ordering = ('cargo', '-sessao_legislativa', 'parlamentar')
+        ordering = ('cargo', 'parlamentar')
 
     def __str__(self):
         return _('%(parlamentar)s - %(cargo)s') % {
             'parlamentar': self.parlamentar, 'cargo': self.cargo
         }
-
 
 @reversion.register()
 class Frente(models.Model):

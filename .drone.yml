@@ -1,0 +1,14 @@
+kind: pipeline
+name: default
+steps:
+- name: sapl
+  image: interlegis/sapl
+  settings:
+    repo: porto.interlegis.leg.br/spdt/sapl
+    registry: porto.interlegis.leg.br
+    dockerfile: docker/Dockerfile
+    auto_tag: true
+    username:
+      from_secret: porto_user
+    password:
+      from_secret: porto_pw
