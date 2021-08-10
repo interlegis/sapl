@@ -907,7 +907,8 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             )
         else:
             context['materia__autor'] = ''
-
+        if 'page' in qr:
+            del qr['page']
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         context['show_results'] = show_results_filter_set(qr)
 
