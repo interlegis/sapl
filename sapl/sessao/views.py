@@ -1843,7 +1843,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
             'decimo_primeiro': self.get_tupla(ordenacao.decimo_primeiro),
             'decimo_segundo': self.get_tupla(ordenacao.decimo_segundo),
             'decimo_terceiro': self.get_tupla(ordenacao.decimo_terceiro),
-            'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto)
+            'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto),
+            'decimo_quinto': self.get_tupla(ordenacao.decimo_quinto)
         }
 
         return initial
@@ -2450,7 +2451,7 @@ class ExpedienteView(FormMixin, DetailView):
 
 
 class OcorrenciaSessaoView(FormMixin, DetailView):
-    template_name = 'sessao/ocorrencia_sessao.html'
+    template_name = 'sessao/ocorrencias_da_sessao.html'
     form_class = OcorrenciaSessaoForm
     model = SessaoPlenaria
 
