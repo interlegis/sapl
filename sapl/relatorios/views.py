@@ -832,7 +832,6 @@ def get_sessao_plenaria(sessao, casa):
     # Ocorrências da Sessão
     lst_ocorrencias = []
     ocorrencias = OcorrenciaSessao.objects.filter(sessao_plenaria=sessao)
-
     for o in ocorrencias:
         conteudo = o.conteudo
 
@@ -851,7 +850,7 @@ def get_sessao_plenaria(sessao, casa):
 
     # Ocorrências da Sessão
     lst_consideracoes = []
-    consideracoes = OcorrenciaSessao.objects.filter(sessao_plenaria=sessao)
+    consideracoes = ConsideracoesFinais.objects.filter(sessao_plenaria=sessao)
 
     for c in consideracoes:
         conteudo = c.conteudo
@@ -867,7 +866,7 @@ def get_sessao_plenaria(sessao, casa):
 
         c.conteudo = conteudo
 
-        lst_consideracoes.append(o)
+        lst_consideracoes.append(c)
 
     return (inf_basicas_dic,
             cont_mult_dic,

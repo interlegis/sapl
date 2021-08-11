@@ -784,7 +784,7 @@ class ResumoOrdenacaoForm(forms.Form):
         choices=ORDENACAO_RESUMO
     )
     decimo_quinto = forms.ChoiceField(
-        label='14°',
+        label='15°',
         choices=ORDENACAO_RESUMO
     )
 
