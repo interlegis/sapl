@@ -2,7 +2,7 @@ kind: pipeline
 name: default
 steps:
 - name: docker
-  image: interlegis/sapl
+  image: plugins/docker
   settings:
     repo: porto.interlegis.leg.br/spdt/sapl
     registry: porto.interlegis.leg.br
