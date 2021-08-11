@@ -1,7 +1,7 @@
 kind: pipeline
 name: default
 steps:
-- name: sapl
+- name: docker
   image: interlegis/sapl
   settings:
     repo: porto.interlegis.leg.br/spdt/sapl
