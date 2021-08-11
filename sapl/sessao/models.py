@@ -701,7 +701,8 @@ ORDENACAO_RESUMO = [
     ('v_n_mat_o_d', 'Votações Nominais - Matérias da Ordem do Dia'),
     ('oradores_o_d', 'Oradores da Ordem do Dia'),
     ('oradores_expli', 'Oradores das Explicações Pessoais'),
-    ('ocorr_sessao', 'Ocorrências da Sessão')
+    ('ocorr_sessao', 'Ocorrências da Sessão'),
+    ('cons_finais', 'Considerações Finais')
 ]
 
 
@@ -766,6 +767,10 @@ class ResumoOrdenacao(models.Model):
     decimo_quarto = models.CharField(
         max_length=50,
         default=ORDENACAO_RESUMO[13][0]
+    )
+    decimo_quinto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[14][0]
     )
 
     class Meta:

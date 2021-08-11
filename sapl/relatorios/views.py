@@ -25,7 +25,8 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
-                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente, ResumoOrdenacao)
+                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, 
+                                ConsideracoesFinais, TipoExpediente, ResumoOrdenacao)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode
 

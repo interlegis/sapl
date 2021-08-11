@@ -2277,7 +2277,7 @@ class ResumoView(DetailView):
         # Ocorrẽncias da Sessão
         context.update(get_ocorrencias_da_sessao(self.object))
         # =====================================================================
-        # Ocorrẽncias da Sessão
+        # Consideracoes Finais da Sessão
         context.update(get_consideracoes_finais(self.object))
         # =====================================================================
         # Indica a ordem com a qual o template será renderizado
@@ -2295,7 +2295,8 @@ class ResumoView(DetailView):
             'oradores_exped': 'oradores_expediente.html',
             'oradores_o_d': 'oradores_ordemdia.html',
             'oradores_expli': 'oradores_explicacoes.html',
-            'ocorr_sessao': 'ocorrencias_da_sessao.html'
+            'ocorr_sessao': 'ocorrencias_da_sessao.html',
+            'cons_finais': 'consideracoes_finais.html'
         }
 
         ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
@@ -2314,7 +2315,8 @@ class ResumoView(DetailView):
                 'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
                 'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
                 'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto],
+                'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto]
             })
         except KeyError as e:
             self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
@@ -2333,7 +2335,8 @@ class ResumoView(DetailView):
                 'decimo_primeiro_ordenacao': 'votos_nominais_materias_ordem_dia.html',
                 'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
                 'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
-                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html'
+                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html',
+                'decimo_quinto_ordenacao': 'consideracoes_finais.html'
             })
 
         sessao = context['object']
