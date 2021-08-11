@@ -35,7 +35,7 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_materias_expediente, get_oradores_expediente,
                                get_presenca_ordem_do_dia, get_materias_ordem_do_dia,
                                get_oradores_ordemdia,
-                               get_oradores_explicacoes_pessoais, get_ocorrencias_da_sessao, get_assinaturas)
+                               get_oradores_explicacoes_pessoais, get_consideracoes_finais, get_ocorrencias_da_sessao, get_assinaturas)
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
