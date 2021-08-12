@@ -74,5 +74,3 @@ Issues
 
 * Você pode escrever suas ``issues`` em Português ou Inglês (ao menos por enquanto).
 
-
-Teste
