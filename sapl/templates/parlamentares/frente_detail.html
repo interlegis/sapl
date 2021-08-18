@@ -6,4 +6,7 @@
     <div class="actions btn-group btn-group-sm" role="group">
         <a href="{% url 'sapl.parlamentares:frenteparlamentar_list' object.pk %}" class="btn btn-outline-primary">Composição</a>
     </div>
+    <div class="actions btn-group btn-group-sm" role="group">
+        <a href="{% url 'sapl.parlamentares:reuniao_list' object.pk %}" class="btn btn-outline-primary">Reunião</a>
+    </div>
 {% endblock actions %}

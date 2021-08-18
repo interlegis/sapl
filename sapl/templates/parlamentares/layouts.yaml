@@ -165,3 +165,27 @@ BlocoMembroList:
   - id
   - cargo:4 parlamentar
   - data_entrada data_saida
+
+Reuniao:
+  {% trans 'Reunião' %}:
+  - numero
+  - nome tema local_reuniao
+  - data hora_inicio hora_fim
+  - url_video url_audio
+  - observacao
+  - upload_pauta upload_ata upload_anexo
+  - frente
+
+DocumentoAcessorio:
+  {% trans 'Documento Acessório' %}:
+  - nome data
+  - autor arquivo
+  - indexacao
+  - ementa
+
+DocumentoAcessorioEdit:
+  {% trans 'Documento Acessório' %}:
+  - nome data
+  - autor arquivo
+  - indexacao
+  - ementa
