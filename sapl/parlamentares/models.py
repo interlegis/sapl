@@ -1,14 +1,17 @@
 
+import os
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
 import reversion
+import magic
 
 from sapl.base.models import Autor
 from sapl.decorators import vigencia_atual
-from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES, SaplGenericRelation,
+from sapl.utils import (LISTA_DE_UFS, OverwriteStorage, YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
                         intervalos_tem_intersecao,
                         restringe_tipos_de_arquivo_img, texto_upload_path)
@@ -496,6 +499,7 @@ class CargoMesa(models.Model):
     def __str__(self):
         return self.descricao
 
+
 @reversion.register()
 class MesaDiretora(models.Model):
     data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
@@ -511,7 +515,7 @@ class MesaDiretora(models.Model):
 
     def __str__(self):
         return _('Mesa da %(sessao)s sessao da %(legislatura)s Legislatura') % {
-            'sessao':self.sessao_legislativa, 'legislatura':self.sessao_legislativa.legislatura
+            'sessao': self.sessao_legislativa, 'legislatura': self.sessao_legislativa.legislatura
         }
 
 
@@ -520,7 +524,8 @@ class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
-    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT, null=True)
+    mesa_diretora = models.ForeignKey(
+        MesaDiretora, on_delete=models.PROTECT, null=True)
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
@@ -531,6 +536,7 @@ class ComposicaoMesa(models.Model):
         return _('%(parlamentar)s - %(cargo)s') % {
             'parlamentar': self.parlamentar, 'cargo': self.cargo
         }
+
 
 @reversion.register()
 class Frente(models.Model):
@@ -732,3 +738,177 @@ class BlocoMembro(models.Model):
 
     def __str__(self):
         return f"{self.parlamentar} - {self.cargo.nome_cargo} - {self.bloco}"
+
+
+def pauta_upload_path(instance, filename):
+
+    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
+
+
+def ata_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
+
+
+def anexo_upload_path(instance, filename):
+    return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
+
+
+class Reuniao(models.Model):
+    frente = models.ForeignKey(
+        Frente,
+        on_delete=models.CASCADE,
+        verbose_name=_('Frente Parlamentar'))
+    numero = models.PositiveIntegerField(verbose_name=_('Número'))
+    nome = models.CharField(
+        max_length=150, verbose_name=_('Nome da Reunião'))
+    tema = models.CharField(
+        max_length=150, blank=True, verbose_name=_('Tema da Reunião'))
+    data = models.DateField(verbose_name=_('Data'))
+    hora_inicio = models.TimeField(
+        null=True,
+        verbose_name=_('Horário de Início (hh:mm)'))
+    hora_fim = models.TimeField(
+        blank=True,
+        null=True,
+        verbose_name=_('Horário de Término (hh:mm)'))
+    local_reuniao = models.CharField(
+        max_length=100, blank=True, verbose_name=_('Local da Reunião'))
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+    url_audio = models.URLField(
+        max_length=150, blank=True,
+        verbose_name=_('URL do Arquivo de Áudio (Formatos MP3 / AAC)'))
+    url_video = models.URLField(
+        max_length=150, blank=True,
+        verbose_name=_('URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)'))
+    upload_pauta = models.FileField(
+        max_length=300,
+        blank=True, null=True,
+        upload_to=pauta_upload_path,
+        verbose_name=_('Pauta da Reunião'),
+        storage=OverwriteStorage())
+    upload_ata = models.FileField(
+        max_length=300,
+        blank=True, null=True,
+        upload_to=ata_upload_path,
+        verbose_name=_('Ata da Reunião'),
+        storage=OverwriteStorage())
+    upload_anexo = models.FileField(
+        max_length=300,
+        blank=True, null=True,
+        upload_to=anexo_upload_path,
+        storage=OverwriteStorage(),
+        verbose_name=_('Anexo da Reunião'))
+
+    class Meta:
+        verbose_name = _('Reunião de Frente Parlamentar')
+        verbose_name_plural = _('Reuniões de Frentes Parlamentares')
+        ordering = ('numero', 'frente')
+
+    def __str__(self):
+        return self.nome
+
+    def delete(self, using=None, keep_parents=False):
+        upload_pauta = self.upload_pauta
+        upload_ata = self.upload_ata
+        upload_anexo = self.upload_anexo
+
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if upload_pauta:
+            upload_pauta.delete(save=False)
+
+        if upload_ata:
+            upload_ata.delete(save=False)
+
+        if upload_anexo:
+            upload_anexo.delete(save=False)
+
+        return result
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and (self.upload_pauta or self.upload_ata or
+                            self.upload_anexo):
+            upload_pauta = self.upload_pauta
+            upload_ata = self.upload_ata
+            upload_anexo = self.upload_anexo
+            self.upload_pauta = None
+            self.upload_ata = None
+            self.upload_anexo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+
+            self.upload_pauta = upload_pauta
+            self.upload_ata = upload_ata
+            self.upload_anexo = upload_anexo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
+
+
+class DocumentoAcessorio(models.Model):
+    reuniao = models.ForeignKey(Reuniao,
+                                related_name='documentoacessorio_set',
+                                on_delete=models.PROTECT)
+    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+
+    data = models.DateField(blank=True, null=True,
+                            default=None, verbose_name=_('Data'))
+    autor = models.CharField(
+        max_length=200,  verbose_name=_('Autor'))
+    ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
+    indexacao = models.TextField(blank=True)
+    arquivo = models.FileField(
+        max_length=300,
+        blank=True,
+        null=True,
+        upload_to=anexo_upload_path,
+        verbose_name=_('Texto Integral'),
+        storage=OverwriteStorage())
+
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True,
+        auto_now=True,
+        verbose_name=_('Data'))
+
+    class Meta:
+        verbose_name = _('Documento Acessório')
+        verbose_name_plural = _('Documentos Acessórios')
+        ordering = ('data', 'id')
+
+    def __str__(self):
+        return _('%(nome)s por %(autor)s') % {
+            'nome': self.nome,
+            'autor': self.autor}
+
+    def delete(self, using=None, keep_parents=False):
+        arquivo = self.arquivo
+        result = super().delete(using=using, keep_parents=keep_parents)
+
+        if arquivo:
+            arquivo.delete(save=False)
+
+        return result
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        if not self.pk and self.arquivo:
+            arquivo = self.arquivo
+            self.arquivo = None
+            models.Model.save(self, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            self.arquivo = arquivo
+
+        return models.Model.save(self, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)

@@ -19,7 +19,8 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.list import ListView
 from django_filters.views import FilterView
 from image_cropping.utils import get_backend
 
@@ -29,18 +30,18 @@ from sapl.comissoes.models import Participacao
 from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             CrudBaseForListAndDetailExternalAppView,
                             MasterDetailCrud, make_pagination)
-from sapl.materia.models import Autoria, Proposicao, Relatoria
+from sapl.materia.models import Autoria, MateriaEmTramitacao, MateriaLegislativa, PautaReuniaoFrente, Proposicao, Relatoria
 from sapl.parlamentares.apps import AppConfig
 from sapl.rules import SAPL_GROUP_VOTANTE
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
-from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
-                    ParlamentarCreateForm, ParlamentarForm, VotanteForm,
+from .forms import (ColigacaoFilterSet, DocumentoAcessorioCreateForm, DocumentoAcessorioEditForm, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
+                    ParlamentarCreateForm, ParlamentarForm, PautaReuniaoFilterSet, PautaReuniaoForm, ReuniaoForm, VotanteForm,
                     ParlamentarFilterSet, PartidoFilterSet, VincularParlamentarForm,
                     BlocoForm, FrenteParlamentarForm, BlocoMembroForm)
 from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
-                     Dependente, Filiacao, Frente, Legislatura, Mandato,
-                     NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
+                     Dependente, DocumentoAcessorio, Filiacao, Frente, Legislatura, Mandato,
+                     NivelInstrucao, Parlamentar, Partido, Reuniao, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
                      Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro, MesaDiretora)
 
@@ -55,6 +56,13 @@ TipoMilitarCrud = CrudAux.build(SituacaoMilitar, 'tipo_situa_militar')
 
 DependenteCrud = MasterDetailCrud.build(
     Dependente, 'parlamentar', 'dependente')
+
+
+def pegar_url_reuniao(pk):
+    documentoacessorio = DocumentoAcessorio.objects.get(id=pk)
+    r_pk = documentoacessorio.reuniao.pk
+    url = reverse('sapl.parlamentares:reuniao_detail', kwargs={'pk': r_pk})
+    return url
 
 
 class SessaoLegislativaCrud(CrudAux):
@@ -77,6 +85,7 @@ class PartidoCrud(CrudAux):
         form_class = PartidoForm
 
     class DeleteView(CrudAux.DeleteView):
+
         def get_success_url(self):
             return reverse('sapl.parlamentares:pesquisar_partido')
 
@@ -417,6 +426,7 @@ class ColigacaoCrud(CrudAux):
             return context
 
     class DeleteView(CrudAux.DeleteView):
+
         def get_success_url(self):
             return reverse('sapl.parlamentares:pesquisar_coligacao')
 
@@ -498,6 +508,7 @@ class FrenteCrud(Crud):
     list_field_names = ['nome', 'data_criacao', 'data_extincao']
 
     class BaseMixin(Crud.BaseMixin):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
@@ -540,6 +551,7 @@ class FrenteParlamentarCrud(MasterDetailCrud):
             return context
 
     class DetailView(MasterDetailCrud.DetailView):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
@@ -933,7 +945,7 @@ class MesaDiretoraView(FormView):
 
         mesa_diretora = sessao_atual.mesadiretora_set.order_by(
             '-data_inicio').first() if sessao_atual else None
-        
+
         composicao = mesa_diretora.composicaomesa_set.all() if mesa_diretora else []
 
         cargos_ocupados = [m.cargo for m in composicao]
@@ -971,14 +983,14 @@ def altera_field_mesa(request):
         operação (Legislatura/Sessão/Inclusão/Remoção),
         atualizando os campos após cada alteração
     """
-    #TODO: Adicionar opção de selecionar mesa diretora no CRUD
+    # TODO: Adicionar opção de selecionar mesa diretora no CRUD
 
     logger = logging.getLogger(__name__)
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
     username = request.user.username
-    
+
     if not sessoes:
         return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
@@ -1003,20 +1015,23 @@ def altera_field_mesa(request):
 
     mesa_diretora = request.GET.get('mesa_diretora')
 
-    #Mesa nao deve ser informada ainda
+    # Mesa nao deve ser informada ainda
     if not mesa_diretora:
-        #Cria nova mesa diretora ou retorna a primeira
-        mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada)
-            
-        #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
+        # Cria nova mesa diretora ou retorna a primeira
+        mesa_diretora, _ = MesaDiretora.objects.get_or_create(
+            sessao_legislativa=sessao_selecionada)
+
+        # TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
         #      deve-se somente tentar recuperar a mesa, e caso nao exista
         #      retornar o erro abaixo
-        #      return JsonResponse({'msg': ('Nenhuma mesa encontrada na sessão!')})
+        # return JsonResponse({'msg': ('Nenhuma mesa encontrada na sessão!')})
     else:
         try:
-            mesa_diretora = MesaDiretora.objects.get(id=mesa_diretora, sessao_legislativa=sessao_selecionada)
+            mesa_diretora = MesaDiretora.objects.get(
+                id=mesa_diretora, sessao_legislativa=sessao_selecionada)
         except ObjectDoesNotExist:
-            mesa_diretora = MesaDiretora.objects.filter(sessao_legislativa=sessao_selecionada).first()
+            mesa_diretora = MesaDiretora.objects.filter(
+                sessao_legislativa=sessao_selecionada).first()
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
@@ -1062,11 +1077,12 @@ def insere_parlamentar_composicao(request):
             '%s.add_%s' % (
                 AppConfig.label, ComposicaoMesa._meta.model_name)):
         composicao = ComposicaoMesa()
-        
+
         try:
-            #logger.debug(
+            # logger.debug(
             #    "user=" + username + ". Tentando obter SessaoLegislativa com id={}.".format(request.POST['sessao']))
-            mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa_id=int(request.POST['sessao']))
+            mesa_diretora, _ = MesaDiretora.objects.get_or_create(
+                sessao_legislativa_id=int(request.POST['sessao']))
             composicao.mesa_diretora = mesa_diretora
         except MultiValueDictKeyError:
             logger.error(
@@ -1204,7 +1220,7 @@ def altera_field_mesa_public_view(request):
         atualizando os campos após cada alteração
     """
 
-    #TODO: Adicionar opção de selecionar mesa diretora no CRUD
+    # TODO: Adicionar opção de selecionar mesa diretora no CRUD
 
     logger = logging.getLogger(__name__)
     username = request.user.username
@@ -1227,32 +1243,35 @@ def altera_field_mesa_public_view(request):
     if not sessao_selecionada:
         year = timezone.now().year
         logger.info(
-        f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
+            f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
         sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
         if sessao_selecionada is None:
             logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
-                          "Selecionado o id da primeira sessão.")
+                         "Selecionado o id da primeira sessão.")
             sessao_selecionada = sessoes.first()
     else:
-        sessao_selecionada = SessaoLegislativa.objects.get(id=sessao_selecionada)
+        sessao_selecionada = SessaoLegislativa.objects.get(
+            id=sessao_selecionada)
 
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
 
-    #Pegar Mesas diretoras da sessao
+    # Pegar Mesas diretoras da sessao
     mesa_diretora = request.GET.get('mesa_diretora')
 
-    #Mesa nao deve ser informada ainda
+    # Mesa nao deve ser informada ainda
     if not mesa_diretora:
         try:
             mesa_diretora = sessao_selecionada.mesadiretora_set.first()
         except ObjectDoesNotExist:
-            logger.error(f"user={username}. Mesa não encontrada com sessão Nº {sessao_selecionada.id}. ")
+            logger.error(
+                f"user={username}. Mesa não encontrada com sessão Nº {sessao_selecionada.id}. ")
     else:
-        #Cria nova mesa diretora ou retorna a primeira
-        mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada)
-            
-        #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
+        # Cria nova mesa diretora ou retorna a primeira
+        mesa_diretora, _ = MesaDiretora.objects.get_or_create(
+            sessao_legislativa=sessao_selecionada)
+
+        # TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
         #      deve-se somente tentar recuperar a mesa, e caso nao exista
         #      retornar o erro abaixo
         #    logger.error(f"user={username}. Mesa Nº {mesa_diretora} não encontrada na sessão Nº {sessao_selecionada.id}. "
@@ -1299,7 +1318,7 @@ def altera_field_mesa_public_view(request):
         'lista_sessoes': lista_sessoes,
         'lista_fotos': lista_fotos,
         'sessao_selecionada': sessao_selecionada.id,
-        'mesa_diretora':mesa_diretora.id,
+        'mesa_diretora': mesa_diretora.id,
         'msg': ('', 1)
     })
 
@@ -1376,6 +1395,7 @@ class BlocoMembroCrud(MasterDetailCrud):
             return context
 
     class DetailView(MasterDetailCrud.DetailView):
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
@@ -1400,3 +1420,253 @@ def get_sessoes_legislatura(request):
         json_response['sessoes_legislativas'].append((s.id, str(s)))
 
     return JsonResponse(json_response)
+
+
+def lista_materias_frente(frente_pk):
+    materias = MateriaEmTramitacao.objects.filter(
+        tramitacao__unidade_tramitacao_destino__frente=frente_pk
+    ).order_by('materia__tipo', '-materia__ano', '-materia__numero')
+
+    return materias
+
+
+class MateriasTramitacaoListView(ListView):
+    template_name = "parlamentares/materias_em_tramitacao.html"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return list(lista_materias_frente(self.kwargs['pk']))
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            MateriasTramitacaoListView, self).get_context_data(**kwargs)
+        context['object'] = Frente.objects.get(id=self.kwargs['pk'])
+        context['qtde'] = len(self.object_list)
+        return context
+
+
+class ReuniaoFrenteCrud(MasterDetailCrud):
+    model = Reuniao
+    parent_field = 'frente'
+    public = [RP_LIST, RP_DETAIL, ]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data', 'nome', 'tema', 'upload_ata']
+        ordering = '-data'
+
+    class DetailView(MasterDetailCrud.DetailView):
+        template_name = "parlamentares/reuniao_detail.html"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            docs = []
+            documentos = DocumentoAcessorio.objects.filter(
+                reuniao=self.kwargs['pk']).order_by('nome')
+            docs.extend(documentos)
+
+            context['docs'] = docs
+            context['num_docs'] = len(docs)
+
+            mats = []
+            materias_pauta = PautaReuniaoFrente.objects.filter(
+                reuniao=self.kwargs['pk'])
+            materias_pk = [
+                materia_pauta.materia.pk for materia_pauta in materias_pauta]
+
+            context['mats'] = MateriaLegislativa.objects.filter(
+                pk__in=materias_pk
+            ).order_by('tipo', '-ano', 'numero')
+            context['num_mats'] = len(context['mats'])
+
+            context['reuniao_pk'] = self.kwargs['pk']
+
+            return context
+
+    class ListView(MasterDetailCrud.ListView):
+        logger = logging.getLogger(__name__)
+        paginate_by = 10
+
+        def take_reuniao_pk(self):
+
+            username = self.request.user.username
+            try:
+                self.logger.debug('user=' + username +
+                                  '. Tentando obter pk da reunião.')
+                return int(self.request.GET['pk'])
+            except Exception as e:
+                self.logger.error(
+                    'user=' + username + '. Erro ao obter pk da reunião. Retornado 0. ' + str(e))
+                return 0
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+
+            reuniao_pk = self.take_reuniao_pk()
+
+            if reuniao_pk == 0:
+                ultima_reuniao = list(context['reuniao_list'])
+                if len(ultima_reuniao) > 0:
+                    ultimo = ultima_reuniao[-1]
+                    context['reuniao_pk'] = ultimo.pk
+                else:
+                    context['reuniao_pk'] = 0
+            else:
+                context['reuniao_pk'] = reuniao_pk
+
+            context['documentoacessorio_set'] = DocumentoAcessorio.objects.filter(
+                reuniao__pk=context['reuniao_pk']
+            ).order_by('id')
+            return context
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ReuniaoForm
+
+        def get_initial(self):
+            return {'frente': self.object.frente}
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ReuniaoForm
+
+        def get_initial(self):
+            frente = Frente.objects.get(id=self.kwargs['pk'])
+
+            return {'frente': frente}
+
+
+class RemovePautaView(PermissionRequiredMixin, CreateView):
+    model = PautaReuniaoFrente
+    form_class = PautaReuniaoForm
+    template_name = 'parlamentares/pauta.html'
+    permission_required = ('parlamentares.add_reuniao', )
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            RemovePautaView, self
+        ).get_context_data(**kwargs)
+
+        # Remove = 0; Adiciona = 1
+        context['opcao'] = 0
+
+        context['object'] = Reuniao.objects.get(pk=self.kwargs['pk'])
+        context['root_pk'] = context['object'].frente.pk
+
+        materias_pauta = PautaReuniaoFrente.objects.filter(
+            reuniao=context['object'])
+        materias_pk = [
+            materia_pauta.materia.pk for materia_pauta in materias_pauta]
+
+        context['materias'] = MateriaLegislativa.objects.filter(
+            pk__in=materias_pk
+        ).order_by('tipo', '-ano', 'numero')
+        context['numero_materias'] = len(context['materias'])
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        success_url = reverse('sapl.parlamentares:reuniao_detail', kwargs={
+                              'pk': kwargs['pk']})
+        marcadas = request.POST.getlist('materia_id')
+
+        if not marcadas:
+            msg = _('Nenhuma matéria foi selecionada.')
+            messages.add_message(request, messages.WARNING, msg)
+            return HttpResponseRedirect(success_url)
+
+        reuniao = Reuniao.objects.get(pk=kwargs['pk'])
+        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+            PautaReuniaoFrente.objects.filter(
+                reuniao=reuniao, materia=materia).delete()
+
+        msg = _('Matéria(s) removida(s) com sucesso!')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return HttpResponseRedirect(success_url)
+
+
+class AdicionaPautaView(PermissionRequiredMixin, FilterView):
+    filterset_class = PautaReuniaoFilterSet
+    template_name = 'parlamentares/pauta.html'
+    permission_required = ('parlamentares.add_reuniao', )
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            AdicionaPautaView, self
+        ).get_context_data(**kwargs)
+
+        # Adiciona = 1; Remove = 0
+        context['opcao'] = 1
+
+        context['object'] = Reuniao.objects.get(pk=self.kwargs['pk'])
+        context['root_pk'] = context['object'].frente.pk
+
+        qr = self.request.GET.copy()
+
+        materias_pauta = PautaReuniaoFrente.objects.filter(
+            reuniao=context['object'])
+        nao_listar = [mp.materia.pk for mp in materias_pauta]
+
+        '''context['object_list'] = context['object_list'].filter(
+            tramitacao__unidade_tramitacao_destino__frente=context['root_pk']
+        ).exclude(materia__pk__in=nao_listar).order_by(
+            "materia__tipo", "-materia__ano", "materia__numero"
+        )'''
+
+        context['numero_resultados'] = len(context['object_list'])
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        success_url = reverse('sapl.parlamentares:reuniao_detail', kwargs={
+                              'pk': kwargs['pk']})
+        marcadas = request.POST.getlist('materia_id')
+
+        if not marcadas:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.WARNING, msg)
+            return HttpResponseRedirect(success_url)
+
+        reuniao = Reuniao.objects.get(pk=kwargs['pk'])
+        pautas = []
+        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+            pauta = PautaReuniaoFrente()
+            pauta.reuniao = reuniao
+            pauta.materia = materia
+            pautas.append(pauta)
+        PautaReuniaoFrente.objects.bulk_create(pautas)
+
+        msg = _('Matéria(s) adicionada(s) com sucesso!')
+        messages.add_message(request, messages.SUCCESS, msg)
+        return HttpResponseRedirect(success_url)
+
+
+class DocumentoAcessorioCrud(MasterDetailCrud):
+    model = DocumentoAcessorio
+    parent_field = 'reuniao__frente'
+    public = [RP_DETAIL, ]
+    ListView = None
+    link_return_to_parent_field = True
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['nome', 'tipo', 'data', 'autor', 'arquivo']
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = DocumentoAcessorioCreateForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            initial['parent_pk'] = self.kwargs['pk']
+            return initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        layout_key = 'DocumentoAcessorioEdit'
+        form_class = DocumentoAcessorioEditForm
+
+    class DeleteView(MasterDetailCrud.DeleteView):
+
+        def delete(self, *args, **kwargs):
+            obj = self.get_object()
+            obj.delete()
+            return HttpResponseRedirect(
+                reverse('sapl.parlamentares:reuniao_detail',
+                        kwargs={'pk': obj.reuniao.pk}))

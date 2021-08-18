@@ -1,5 +1,6 @@
 from datetime import timedelta
 import logging
+from sapl.materia.models import MateriaEmTramitacao, PautaReuniaoFrente
 
 from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
@@ -15,15 +16,15 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from floppyforms.widgets import ClearableFileInput
 from image_cropping.widgets import CropWidget, ImageCropWidget
-from sapl.utils import FileFieldCheckMixin
+from sapl.utils import FileFieldCheckMixin, FilterOverridesMetaMixin, validar_arquivo
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
 import django_filters
 
-from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
+from .models import (Coligacao, ComposicaoColigacao,  DocumentoAcessorio, Filiacao, Frente, Legislatura,
+                     Mandato, Parlamentar, Partido, Reuniao, Votante, Bloco, FrenteParlamentar, BlocoMembro)
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
@@ -253,7 +254,8 @@ class ParlamentarFilterSet(django_filters.FilterSet):
 
 
 class ColigacaoFilterSet(django_filters.FilterSet):
-    nome = django_filters.CharFilter(label=_('Nome da Coligação'), lookup_expr='icontains')
+    nome = django_filters.CharFilter(
+        label=_('Nome da Coligação'), lookup_expr='icontains')
 
     class Meta:
         model = Coligacao
@@ -316,7 +318,8 @@ class ParlamentarCreateForm(ParlamentarForm):
             return self.cleaned_data
 
         cleaned_data = self.cleaned_data
-        parlamentar = Parlamentar.objects.filter(nome_parlamentar=cleaned_data['nome_parlamentar']).exists()
+        parlamentar = Parlamentar.objects.filter(nome_parlamentar=cleaned_data[
+                                                 'nome_parlamentar']).exists()
 
         if parlamentar:
             self.logger.error('Parlamentar já cadastrado.')
@@ -537,9 +540,11 @@ class FrenteParlamentarForm(ModelForm):
             return self.cleaned_data
 
         if cd['cargo'].cargo_unico:
-            frente_parlamentar = FrenteParlamentar.objects.filter(frente=cd['frente'], cargo=cd['cargo'])
+            frente_parlamentar = FrenteParlamentar.objects.filter(
+                frente=cd['frente'], cargo=cd['cargo'])
             if frente_parlamentar and not frente_parlamentar[0].parlamentar == cd['parlamentar']:
-                raise ValidationError(_("Cargo único já ocupado por outro parlamentar."))
+                raise ValidationError(
+                    _("Cargo único já ocupado por outro parlamentar."))
 
         return cd
 
@@ -669,11 +674,15 @@ class VincularParlamentarForm(forms.Form):
         data_expedicao_diploma = cleaned_data['data_expedicao_diploma']
 
         if parlamentar.mandato_set.filter(legislatura=legislatura):
-            self.logger.error('Parlamentar já está vinculado a legislatura informada.')
-            raise ValidationError(_('Parlamentar já está vinculado a legislatura informada.'))
+            self.logger.error(
+                'Parlamentar já está vinculado a legislatura informada.')
+            raise ValidationError(
+                _('Parlamentar já está vinculado a legislatura informada.'))
         elif data_expedicao_diploma and legislatura.data_inicio <= data_expedicao_diploma:
-            self.logger.error('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.')
-            raise ValidationError(_('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.'))
+            self.logger.error(
+                'Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.')
+            raise ValidationError(
+                _('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.'))
 
         return cleaned_data
 
@@ -736,8 +745,165 @@ class BlocoMembroForm(ModelForm):
         if cd['cargo'].cargo_unico \
                 and BlocoMembro.objects.filter(bloco=cd['bloco'], cargo=cd['cargo'], data_saida__isnull=True)\
                                        .exclude(pk=self.instance.pk).exists():
-            raise ValidationError(_("Cargo único já ocupado por outro membro."))
+            raise ValidationError(
+                _("Cargo único já ocupado por outro membro."))
         elif not cd['data_saida'] and BlocoMembro.objects.filter(parlamentar=cd['parlamentar'], data_saida__isnull=True).exists():
-            raise ValidationError(_("Parlamentar já é membro do bloco parlamentar."))
+            raise ValidationError(
+                _("Parlamentar já é membro do bloco parlamentar."))
 
         return cd
+
+
+class ReuniaoForm(ModelForm):
+
+    logger = logging.getLogger(__name__)
+    frente = forms.ModelChoiceField(queryset=Frente.objects.all(),
+                                    widget=forms.HiddenInput())
+
+    class Meta:
+        model = Reuniao
+        exclude = ['cod_andamento_reuniao']
+
+    def clean(self):
+        super(ReuniaoForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        if self.cleaned_data['hora_fim']:
+            if (self.cleaned_data['hora_fim'] <
+                    self.cleaned_data['hora_inicio']):
+                msg = _(
+                    'A hora de término da reunião não pode ser menor que a de início')
+                self.logger.warning(
+                    "A hora de término da reunião ({}) não pode ser menor que a de início ({}).".format(
+                        self.cleaned_data[
+                            'hora_fim'], self.cleaned_data['hora_inicio']
+                    )
+                )
+                raise ValidationError(msg)
+
+        upload_pauta = self.cleaned_data.get('upload_pauta', False)
+        upload_ata = self.cleaned_data.get('upload_ata', False)
+        upload_anexo = self.cleaned_data.get('upload_anexo', False)
+
+        if upload_pauta:
+            validar_arquivo(upload_pauta, "Pauta da Reunião")
+
+        if upload_ata:
+            validar_arquivo(upload_ata, "Ata da Reunião")
+
+        if upload_anexo:
+            validar_arquivo(upload_anexo, "Anexo da Reunião")
+
+        return self.cleaned_data
+
+
+class PautaReuniaoFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = MateriaEmTramitacao
+        fields = ['materia__tipo', 'materia__ano',
+                  'materia__numero', 'materia__data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super(PautaReuniaoFilterSet, self).__init__(*args, **kwargs)
+
+        self.filters['materia__tipo'].label = "Tipo da Matéria"
+        self.filters['materia__ano'].label = "Ano da Matéria"
+        self.filters['materia__numero'].label = "Número da Matéria"
+        self.filters[
+            'materia__data_apresentacao'].label = "Data (Inicial - Final)"
+
+        row1 = to_row(
+            [('materia__tipo', 4), ('materia__ano', 4), ('materia__numero', 4)])
+        row2 = to_row([('materia__data_apresentacao', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = "GET"
+        self.form.helper.layout = Layout(
+            Fieldset(
+                _("Pesquisa de Matérias"), row1, row2,
+                form_actions(label="Pesquisar")
+            )
+        )
+
+
+class PautaReuniaoForm(forms.ModelForm):
+
+    class Meta:
+        model = PautaReuniaoFrente
+        exclude = ['reuniao']
+
+
+class DocumentoAcessorioCreateForm(FileFieldCheckMixin, forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
+
+    class Meta:
+        model = DocumentoAcessorio
+        exclude = ['reuniao']
+
+    def __init__(self, user=None, **kwargs):
+        super(DocumentoAcessorioCreateForm, self).__init__(**kwargs)
+
+        if self.instance:
+            reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+            frente = reuniao.frente
+            frente_pk = frente.id
+            documentos = reuniao.documentoacessorio_set.all()
+            return self.create_documentoacessorio()
+
+    def create_documentoacessorio(self):
+        reuniao = Reuniao.objects.get(id=self.initial['parent_pk'])
+
+    def clean(self):
+        super(DocumentoAcessorioCreateForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        arquivo = self.cleaned_data.get('arquivo')
+
+        if arquivo:
+            validar_arquivo(arquivo, "Texto Integral")
+        # else:
+        #     ## TODO: definir arquivo no form e preservar o nome do campo
+        #     ## que gerou a mensagem de erro.
+        #     ## arquivo = forms.FileField(required=True, label="Texto Integral")
+        #     nome_arquivo = self.fields['arquivo'].label
+        #     raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
+
+        return self.cleaned_data
+
+
+class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
+
+    parent_pk = forms.CharField(required=False)  # widget=forms.HiddenInput())
+
+    class Meta:
+        model = DocumentoAcessorio
+        fields = ['nome', 'data', 'autor', 'ementa',
+                  'indexacao', 'arquivo']
+
+    def __init__(self, user=None, **kwargs):
+        super(DocumentoAcessorioEditForm, self).__init__(**kwargs)
+
+    def clean(self):
+        super(DocumentoAcessorioEditForm, self).clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        arquivo = self.cleaned_data.get('arquivo')
+
+        if arquivo:
+            validar_arquivo(arquivo, "Texto Integral")
+        # else:
+        #     ## TODO: definir arquivo no form e preservar o nome do campo
+        #     ## que gerou a mensagem de erro.
+        #     ## arquivo = forms.FileField(required=True, label="Texto Integral")
+        #     nome_arquivo = self.fields['arquivo'].label
+        #     raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
+
+        return self.cleaned_data

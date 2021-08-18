@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
+from sapl.parlamentares.models import Reuniao as ReuniaoFrente
 from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
@@ -445,6 +446,31 @@ class PautaReuniao(models.Model):
     )
     materia = models.ForeignKey(
         MateriaLegislativa, related_name='materia_set',
+        on_delete=models.PROTECT,
+        verbose_name=_('Matéria')
+    )
+
+    class Meta:
+        verbose_name = _('Matéria da Pauta')
+        verbose_name_plural = ('Matérias da Pauta')
+        ordering = ('id',)
+
+    def __str__(self):
+        return _('Reunião: %(reuniao)s'
+                 ' - Matéria: %(materia)s') % {
+                     'reuniao': self.reuniao,
+                     'materia': self.materia
+        }
+
+
+class PautaReuniaoFrente(models.Model):
+    reuniao = models.ForeignKey(
+        ReuniaoFrente,
+        on_delete=models.CASCADE,
+        verbose_name=_('Reunião')
+    )
+    materia = models.ForeignKey(
+        MateriaLegislativa,
         on_delete=models.PROTECT,
         verbose_name=_('Matéria')
     )
