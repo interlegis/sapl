@@ -37,7 +37,7 @@ class AudienciaCrud(Crud):
                 coluna_materia = row[2]                             # Se mudar a ordem de listagem, mudar aqui.
                 if coluna_materia[0]:
                     materia = audiencia_materia[audiencia_id][0]
-                    if materia:
+                    if materia is not None:
                         url_materia = reverse('sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
                     else:
                         url_materia = None
