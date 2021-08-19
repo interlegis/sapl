@@ -28,7 +28,7 @@
     "terser": "^4.6.11",
     "tinymce": "^5.7.1",
     "vue": "^2.6.11",
-    "webpack": "^4.43.0",
+    "webpack": "^4.46.0",
     "webpack-jquery-ui": "^2.0.1",
     "websocket-extensions": "^0.1.4"
   },
