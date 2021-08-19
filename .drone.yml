@@ -6,6 +6,7 @@ steps:
   settings:
     repo: porto.interlegis.leg.br/spdt/sapl
     registry: porto.interlegis.leg.br
+    mirror: https://registrycache.interlegis.leg.br
     dockerfile: docker/Dockerfile
     auto_tag: true
     username:
