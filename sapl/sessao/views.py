@@ -44,7 +44,7 @@ from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
                     VotacaoNominalForm, RetiradaPautaForm, OradorOrdemDiaForm)
 from .models import (Bancada, CargoBancada, CargoMesa,
-                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, IntegranteMesa,
+                     ExpedienteMateria, ExpedienteSessao, OcorrenciaSessao, ConsideracoesFinais, IntegranteMesa,
                      MateriaLegislativa, Orador, OradorExpediente, OrdemDia,
                      PresencaOrdemDia, RegistroVotacao, ResumoOrdenacao,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
@@ -1843,7 +1843,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
             'decimo_primeiro': self.get_tupla(ordenacao.decimo_primeiro),
             'decimo_segundo': self.get_tupla(ordenacao.decimo_segundo),
             'decimo_terceiro': self.get_tupla(ordenacao.decimo_terceiro),
-            'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto)
+            'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto),
+            'decimo_quinto': self.get_tupla(ordenacao.decimo_quinto)
         }
 
         return initial
@@ -2186,6 +2187,12 @@ def get_ocorrencias_da_sessao(sessao_plenaria):
     context = {'ocorrencias_da_sessao': ocorrencias_sessao}
     return context
 
+def get_consideracoes_finais(sessao_plenaria):
+    consideracoes_finais = ConsideracoesFinais.objects.filter(
+        sessao_plenaria_id=sessao_plenaria.id)
+    context = {'consideracoes_finais': consideracoes_finais}
+    return context
+
 
 class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
@@ -2271,6 +2278,9 @@ class ResumoView(DetailView):
         # Ocorrẽncias da Sessão
         context.update(get_ocorrencias_da_sessao(self.object))
         # =====================================================================
+        # Consideracoes Finais da Sessão
+        context.update(get_consideracoes_finais(self.object))
+        # =====================================================================
         # Indica a ordem com a qual o template será renderizado
         dict_ord_template = {
             'cont_mult': 'conteudo_multimidia.html',
@@ -2286,7 +2296,8 @@ class ResumoView(DetailView):
             'oradores_exped': 'oradores_expediente.html',
             'oradores_o_d': 'oradores_ordemdia.html',
             'oradores_expli': 'oradores_explicacoes.html',
-            'ocorr_sessao': 'ocorrencias_da_sessao.html'
+            'ocorr_sessao': 'ocorrencias_da_sessao.html',
+            'cons_finais': 'consideracoes_finais.html'
         }
 
         ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
@@ -2305,7 +2316,8 @@ class ResumoView(DetailView):
                 'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
                 'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
                 'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+                'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto],
+                'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto]
             })
         except KeyError as e:
             self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
@@ -2324,7 +2336,8 @@ class ResumoView(DetailView):
                 'decimo_primeiro_ordenacao': 'votos_nominais_materias_ordem_dia.html',
                 'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
                 'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
-                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html'
+                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html',
+                'decimo_quinto_ordenacao': 'consideracoes_finais.html'
             })
 
         sessao = context['object']
@@ -2438,7 +2451,7 @@ class ExpedienteView(FormMixin, DetailView):
 
 
 class OcorrenciaSessaoView(FormMixin, DetailView):
-    template_name = 'sessao/ocorrencia_sessao.html'
+    template_name = 'sessao/ocorrencias_da_sessao.html'
     form_class = OcorrenciaSessaoForm
     model = SessaoPlenaria
 
@@ -2502,6 +2515,70 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:ocorrencia_sessao', kwargs={'pk': pk})
 
+class ConsideracoesFinaisView(FormMixin, DetailView):
+    template_name = 'sessao/consideracoes_finais.html'
+    form_class = OcorrenciaSessaoForm
+    model = SessaoPlenaria
+
+    logger = logging.getLogger(__name__)
+
+    def get_context_data(self, **kwargs):
+        context = FormMixin.get_context_data(self, **kwargs)
+        context['title'] = 'Considerações Finais <small>(%s)</small>' % (
+            self.object)
+        sessao = context['object']
+        tipo_sessao = sessao.tipo
+        if tipo_sessao.nome == "Solene":
+            context.update(
+                {'subnav_template_name': 'sessao/subnav-solene.yaml'})
+        return context
+
+    def delete(self):
+        ConsideracoesFinais.objects.filter(sessao_plenaria=self.object).delete()
+
+        username = self.request.user.username
+        self.logger.info('user=' + username + '. ConsideracoesFinais com SessaoPlenaria de id={} deletada.'
+                         .format(self.object.id))
+
+        msg = _('Registro deletado com sucesso')
+        messages.add_message(self.request, messages.SUCCESS, msg)
+
+    def save(self, form):
+        conteudo = form.cleaned_data['conteudo']
+
+        ConsideracoesFinais.objects.filter(sessao_plenaria=self.object).delete()
+
+        consideracao = ConsideracoesFinais()
+        consideracao.sessao_plenaria_id = self.object.id
+        consideracao.conteudo = conteudo
+        consideracao.save()
+
+        msg = _('Registro salvo com sucesso')
+        messages.add_message(self.request, messages.SUCCESS, msg)
+
+        username = self.request.user.username
+        self.logger.info(
+            'user=' + username + '. consideracoesFinais de sessao_plenaria_id={} atualizada com sucesso.'.format(self.object.id))
+
+    @method_decorator(permission_required('sessao.add_consideraoesfinais'))
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = OcorrenciaSessaoForm(request.POST)
+
+        if not form.is_valid():
+            return self.form_invalid(form)
+
+        if request.POST.get('delete'):
+            self.delete()
+
+        elif request.POST.get('save'):
+            self.save(form)
+
+        return self.form_valid(form)
+
+    def get_success_url(self):
+        pk = self.kwargs['pk']
+        return reverse('sapl.sessao:consideracoes_finais', kwargs={'pk': pk})
 
 class VotacaoEditView(SessaoPermissionMixin):
 

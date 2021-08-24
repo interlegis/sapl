@@ -426,6 +426,21 @@ class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
     def __str__(self):
         return '%s - %s' % (self.sessao_plenaria, self.conteudo)
 
+@reversion.register()
+class ConsideracoesFinais(models.Model):  # ConsideracoesFinaisSessaoPlenaria
+    sessao_plenaria = models.OneToOneField(SessaoPlenaria,
+                                           on_delete=models.PROTECT)
+    conteudo = models.TextField(
+        blank=True, verbose_name=_('Considerações Finais da Sessão Plenária'))
+
+    class Meta:
+        verbose_name = _('Consideração Final da Sessão Plenária')
+        verbose_name_plural = _('Considerações Finais da Sessão Plenária')
+        ordering = ('id',)
+
+    def __str__(self):
+        return '%s - %s' % (self.sessao_plenaria, self.conteudo)
+
 
 @reversion.register()
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
@@ -686,7 +701,8 @@ ORDENACAO_RESUMO = [
     ('v_n_mat_o_d', 'Votações Nominais - Matérias da Ordem do Dia'),
     ('oradores_o_d', 'Oradores da Ordem do Dia'),
     ('oradores_expli', 'Oradores das Explicações Pessoais'),
-    ('ocorr_sessao', 'Ocorrências da Sessão')
+    ('ocorr_sessao', 'Ocorrências da Sessão'),
+    ('cons_finais', 'Considerações Finais')
 ]
 
 
@@ -751,6 +767,10 @@ class ResumoOrdenacao(models.Model):
     decimo_quarto = models.CharField(
         max_length=50,
         default=ORDENACAO_RESUMO[13][0]
+    )
+    decimo_quinto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[14][0]
     )
 
     class Meta:
