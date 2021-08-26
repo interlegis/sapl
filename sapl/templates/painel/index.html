@@ -59,7 +59,7 @@
         
         <div class="row">
           <div class="col-md-5 text-right"><span class="text-value data-hora" id="date"></span></div>
-          <div class="col-md-7 text-center"><span class="text-value data-hora" id="relogio"></span></div>
+          <div class="col-md-7 text-center" style="margin-top:10px"><span class="text-value data-hora" id="relogio"></span></div>
         </div>
 
         <div style="margin-bottom: 50px;"> <!-- outer div -->
@@ -120,7 +120,7 @@
           <div class="col-md-4 text-left painel">
             <h2 class="text-subtitle">Cronômetros</h2>
             <div class="text-value">
-              Discurso: <span id="cronometro_discurso"></span><br>
+              Discurso: [[ cronometro ]]</span><button v-on:click="start ('0.05')">Iniciar</button><button v-on:click="stop">Parar</button><br>
               Aparte: <span id="cronometro_aparte"></span><br>
               Questão de Ordem: <span id="cronometro_ordem"></span><br>
               Considerações Finais: <span id="cronometro_consideracoes"></span>
@@ -135,7 +135,7 @@
           <div v-else class="col-md-5" style="margin-top: -150px;">
             <div v-if="painel_aberto">
                 <div v-if="!sessao_finalizada" class="text-center painel" id="resultado_votacao_div">
-                    <h2 class="text-subtitle" style="margin-left: -50px;">Resultado</h2>
+                    <h2 class="text-subtitle" style="margin-left: -50px; margin-top: 50px;">Resultado</h2>
                     <div v-if="materia_legislativa_texto">
                         <span id="votacao" class="text-value">
                             <li>Sim: [[ numero_votos_sim ]]</li>

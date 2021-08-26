@@ -5,6 +5,11 @@ import axios from 'axios'
 axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = 'X-CSRFToken'
 
+//  Variaveis dos cronometros
+var timeBegan = null
+var running = false
+var timeExpected = null
+
 const v = new Vue({ // eslint-disable-line
   delimiters: ['[[', ']]'],
   el: '#app-painel',
@@ -17,6 +22,7 @@ const v = new Vue({ // eslint-disable-line
       sessao_plenaria_data: '',
       sessao_plenaria_hora_inicio: '',
       brasao: '',
+      cronometro: '00:10:00',
       sessao_solene: false,
       sessao_solene_tema: '',
       presentes: [],
@@ -128,6 +134,45 @@ const v = new Vue({ // eslint-disable-line
         this.tipo_votacao = response.tipo_votacao
         this.mat_em_votacao = this.msgMateria()
       }.bind(this))
+    },
+    stop: function stop () {
+      running = false
+      timeBegan = null
+      timeExpected = null
+
+      clearInterval(this.clockRunning)
+      this.cronometro = '00:10:00'
+    },
+    clockRunning () {
+      if (running) {
+        var currentTime = new Date()
+        var timeRemaining = new Date(timeExpected - currentTime)
+
+        if (timeRemaining > 0) {
+          this.cronometro = '00:' + timeRemaining.getMinutes().toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false }) +
+           ':' + timeRemaining.getSeconds().toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false })
+        } else {
+          this.cronometro.style.color = 'red'
+          this.stop()
+        }
+      } else {
+        this.stop()
+      }
+    },
+    start: function startStopWatch (time) {
+      time *= 60
+      if (running) return
+
+      if (timeBegan === null) {
+        timeBegan = new Date()
+        timeExpected = timeBegan
+        timeExpected.setSeconds(timeExpected.getSeconds() + time)
+      }
+
+      this.started = setInterval(() => {
+        this.clockRunning()
+      }, 100)
+      running = true
     },
     pollData () {
       this.fetchData()
