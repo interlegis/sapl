@@ -33,9 +33,8 @@
     "websocket-extensions": "^0.1.4"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.3.1",
-    "@vue/cli-plugin-eslint": "^4.3.1",
-    "@vue/cli-service": "^4.3.1",
+    "@vue/cli-plugin-babel": "^4.5.13",
+    "@vue/cli-service": "^4.5.13",
     "babel-eslint": "^10.1.0",
     "compression-webpack-plugin": "^3.1.0",
     "css-loader": "^3.5.2",
@@ -48,7 +47,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "eslint-plugin-vue": "^6.2.2",
-    "node-sass": "^5.0.0",
+    "node-sass": "^6.0.1",
     "sass-loader": "^10.2.0",
     "shelljs": "^0.8.4",
     "vue-template-compiler": "^2.6.11",
