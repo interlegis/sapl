@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load common_tags %}
+{% load staticfiles %}
 
 {% load render_bundle from webpack_loader %}
 {% load webpack_static from webpack_loader %}
@@ -120,10 +121,25 @@
           <div class="col-md-4 text-left painel">
             <h2 class="text-subtitle">Cronômetros</h2>
             <div class="text-value">
-              Discurso: [[ cronometro ]]</span><button v-on:click="start ('0.05')">Iniciar</button><button v-on:click="stop">Parar</button><br>
-              Aparte: <span id="cronometro_aparte"></span><br>
-              Questão de Ordem: <span id="cronometro_ordem"></span><br>
-              Considerações Finais: <span id="cronometro_consideracoes"></span>
+              Discurso:<span id='discurso' style="margin-right: 20px;">[[ cronometro_discurso ]]</span><span v-if="painel_aberto">
+                <span v-if='running != 1'><button class="btn btn-success" v-on:click="start (1)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
+                <span v-else><button class="btn btn-danger" v-on:click="stop(1)">Parar</button></span>
+              </span><br>
+
+              Aparte:<span id='discurso' style="margin-right: 20px;">[[ cronometro_aparte ]]</span><span v-if="painel_aberto">
+              <span v-if='running != 2'><button class="btn btn-success" v-on:click="start (2)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
+              <span v-else><button class="btn btn-danger" v-on:click="stop(2)">Parar</button></span>
+              </span><br>
+              
+              Questão de Ordem: <span id='discurso' style="margin-right: 20px;">[[ cronometro_ordem ]]</span><span v-if="painel_aberto">
+              <span v-if='running != 3'><button class="btn btn-success" v-on:click="start (3)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
+              <span v-else><button class="btn btn-danger" v-on:click="stop(3)">Parar</button></span>
+              </span><br>
+              
+              Considerações Finais: <span id='discurso' style="margin-right: 20px;">[[ cronometro_consideracoes ]]</span><span v-if="painel_aberto">
+              <span v-if='running != 4'><button class="btn btn-success" v-on:click="start (4)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
+              <span v-else><button class="btn btn-danger" v-on:click="stop(4)">Parar</button></span>
+              </span>
             </div>
           </div>
           <div v-if="sessao_solene">
@@ -132,7 +148,7 @@
                 <span id="sessao_solene_tema" class="text-value">[[ sessao_solene_tema ]]</span>
             </div>
           </div>
-          <div v-else class="col-md-5" style="margin-top: -150px;">
+          <div v-else class="col-md-5" style="margin-top: -45vh; margin-left: 51vw; position: absolute;">
             <div v-if="painel_aberto">
                 <div v-if="!sessao_finalizada" class="text-center painel" id="resultado_votacao_div">
                     <h2 class="text-subtitle" style="margin-left: -50px; margin-top: 50px;">Resultado</h2>
@@ -210,177 +226,6 @@
 
       $("#date").append(moment().format("DD/MM/YY"));
 
-      var offset = parseFloat({{ utc_offset }});
-
-      //TODO: replace by a fancy jQuery clock
-      function checkTime(i) {
-          if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-            return i;
-      }
-
-      function startTime() {
-          var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
-          $("#relogio").text(today)
-          var t = setTimeout(function(){
-              startTime()
-          }, 500);
-      }
-      startTime();
-
-      var audioAlertFinish = document.getElementById("audio");
-
-      $('#cronometro_discurso').runner({
-      autostart: false,
-      countdown: true,
-      startAt: {{ 'discurso'|cronometro_to_seconds }} * 1000,
-      stopAt: 0,
-      milliseconds: false,
-      format: function(value) {
-        let h = Math.floor((value/1000) / 3600);
-        h = checkTime(h);
-        let m = Math.floor((value/1000) % 3600 / 60);
-        m = checkTime(m);
-        let s = Math.floor((value/1000) % 3600 % 60);
-        s = checkTime(s);
-        return h.toString() + ":" + m.toString() + ":" + s.toString();
-      }
-      }).on('runnerFinish', function(eventObject, info){
-      audioAlertFinish.play();
-      });
-
-      $('#cronometro_aparte').runner({
-      autostart: false,
-      countdown: true,
-      startAt:  {{ 'aparte'|cronometro_to_seconds }} * 1000,
-      stopAt: 0,
-      milliseconds: false,
-      format: function(value) {
-        let h = Math.floor((value/1000) / 3600);
-        h = checkTime(h);
-        let m = Math.floor((value/1000) % 3600 / 60);
-        m = checkTime(m);
-        let s = Math.floor((value/1000) % 3600 % 60);
-        s = checkTime(s);
-        return h.toString() + ":" + m.toString() + ":" + s.toString();
-      }
-      }).on('runnerFinish', function(eventObject, info){
-        audioAlertFinish.play();
-      });
-
-      $('#cronometro_ordem').runner({
-      autostart: false,
-      countdown: true,
-      startAt:  {{ 'ordem'|cronometro_to_seconds }} * 1000,
-      stopAt: 0,
-      milliseconds: false,
-      format: function(value) {
-        let h = Math.floor((value/1000) / 3600);
-        h = checkTime(h);
-        let m = Math.floor((value/1000) % 3600 / 60);
-        m = checkTime(m);
-        let s = Math.floor((value/1000) % 3600 % 60);
-        s = checkTime(s);
-        return h.toString() + ":" + m.toString() + ":" + s.toString();
-      }
-      }).on('runnerFinish', function(eventObject, info){
-      audioAlertFinish.play();
-      });
-
-      $('#cronometro_consideracoes').runner({
-      autostart: false,
-      countdown: true,
-      startAt:  {{ 'consideracoes'|cronometro_to_seconds }} * 1000,
-      stopAt: 0,
-      milliseconds: false,
-      format: function(value) {
-        let h = Math.floor((value/1000) / 3600);
-        h = checkTime(h);
-        let m = Math.floor((value/1000) % 3600 / 60);
-        m = checkTime(m);
-        let s = Math.floor((value/1000) % 3600 % 60);
-        s = checkTime(s);
-        return h.toString() + ":" + m.toString() + ":" + s.toString();
-      }
-      }).on('runnerFinish', function(eventObject, info){
-      audioAlertFinish.play();
-      });
-
-      var discurso_previous;
-      var ordem_previous;
-      var aparte_previous;
-      var consideracoes_previous;
-
-      var counter = 1;
-      (function poll() {
-      $.ajax({
-        url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
-        type: "GET",
-        success: function(data) {
-
-          var discurso_current = data["cronometro_discurso"];
-          if (!discurso_previous){
-            discurso_previous = ''
-          }
-
-          if (discurso_current != discurso_previous) {
-            $('#cronometro_discurso').runner(discurso_current);
-            discurso_previous = discurso_current;
-          }
-
-          var aparte_current = data["cronometro_aparte"];
-          if (!aparte_previous){
-            aparte_previous = ''
-          }
-
-          if (aparte_current != aparte_previous) {
-            $('#cronometro_aparte').runner(aparte_current);
-            aparte_previous = aparte_current;
-          }
-
-          var ordem_current = data["cronometro_ordem"];
-          if (!ordem_previous){
-            ordem_previous = ''
-          }
-
-          if (ordem_current != ordem_previous) {
-            $('#cronometro_ordem').runner(ordem_current);
-            ordem_previous = ordem_current;
-          }
-
-          var consideracoes_current = data["cronometro_consideracoes"];
-          if (!consideracoes_previous){
-            consideracoes_previous = ''
-          }
-
-          if (consideracoes_current != consideracoes_previous) {
-            $('#cronometro_consideracoes').runner(consideracoes_current);
-            consideracoes_previous = consideracoes_current;
-          }
-
-          if($('#cronometro_discurso').runner('info').formattedTime == "00:00:30") {
-              audioAlertFinish.play();
-          }
-
-          if($('#cronometro_aparte').runner('info').formattedTime == "00:00:30") {
-              audioAlertFinish.play();
-          }
-
-          if($('#cronometro_ordem').runner('info').formattedTime == "00:00:30") {
-              audioAlertFinish.play();
-          }
-
-          if($('#cronometro_consideracoes').runner('info').formattedTime == "00:00:30") {
-              audioAlertFinish.play();
-          }
-        },
-        error: function(err) {
-          console.error(err);
-        },
-        dataType: "json",
-        complete: null, // setTimeout(function() {poll()}, 500),
-        timeout: 20000 // TODO: decrease
       })
-      })();
-      });
     </script>
 </html>

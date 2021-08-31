@@ -6,9 +6,11 @@ axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = 'X-CSRFToken'
 
 //  Variaveis dos cronometros
-var timeBegan = null
-var running = false
-var timeExpected = null
+var crono = 0
+var time = null
+var timeEnd = null
+var audioAlertFinish = document.getElementById('audio')
+var cronometroStart = []
 
 const v = new Vue({ // eslint-disable-line
   delimiters: ['[[', ']]'],
@@ -22,7 +24,10 @@ const v = new Vue({ // eslint-disable-line
       sessao_plenaria_data: '',
       sessao_plenaria_hora_inicio: '',
       brasao: '',
-      cronometro: '00:10:00',
+      cronometro_discurso: '',
+      cronometro_aparte: '',
+      cronometro_ordem: '',
+      cronometro_consideracoes: '',
       sessao_solene: false,
       sessao_solene_tema: '',
       presentes: [],
@@ -39,7 +44,8 @@ const v = new Vue({ // eslint-disable-line
       mat_em_votacao: '',
       resultado_votacao_css: '',
       tipo_resultado: '',
-      tipo_votacao: ''
+      tipo_votacao: '',
+      running: 0
     }
   },
   methods: {
@@ -97,7 +103,6 @@ const v = new Vue({ // eslint-disable-line
     converterUrl (url) {
       url = url.slice(-(url.length - url.lastIndexOf('/')))
       url = '/painel' + url + '/dados'
-      console.log(url)
       return url
     },
     fetchData () {
@@ -133,46 +138,114 @@ const v = new Vue({ // eslint-disable-line
         this.tipo_resultado = response.tipo_resultado
         this.tipo_votacao = response.tipo_votacao
         this.mat_em_votacao = this.msgMateria()
+
+        // Cronometros
+        cronometroStart[0] = response.cronometro_discurso
+        cronometroStart[1] = response.cronometro_aparte
+        cronometroStart[2] = response.cronometro_ordem
+        cronometroStart[3] = response.cronometro_consideracoes
+
+        if (time === null) {
+          // Pegar data atual
+          this.cronometro_discurso = new Date()
+          this.cronometro_aparte = this.cronometro_discurso
+          this.cronometro_ordem = this.cronometro_discurso
+          this.cronometro_consideracoes = this.cronometro_discurso
+
+          // Setar cada Cronometro
+          var temp = new Date()
+          temp.setSeconds(this.cronometro_discurso.getSeconds() + cronometroStart[0])
+          var res = new Date(temp - this.cronometro_discurso)
+          this.cronometro_discurso = this.formatTime(res)
+
+          temp = new Date()
+          temp.setSeconds(this.cronometro_aparte.getSeconds() + cronometroStart[1])
+          res = new Date(temp - this.cronometro_aparte)
+          this.cronometro_aparte = this.formatTime(res)
+
+          temp = new Date()
+          temp.setSeconds(this.cronometro_ordem.getSeconds() + cronometroStart[2])
+          res = new Date(temp - this.cronometro_ordem)
+          this.cronometro_ordem = this.formatTime(res)
+
+          temp = new Date()
+          temp.setSeconds(this.cronometro_consideracoes.getSeconds() + cronometroStart[3])
+          res = new Date(temp - this.cronometro_consideracoes)
+          this.cronometro_consideracoes = this.formatTime(res)
+        }
       }.bind(this))
     },
-    stop: function stop () {
-      running = false
-      timeBegan = null
-      timeExpected = null
-
-      clearInterval(this.clockRunning)
-      this.cronometro = '00:10:00'
+    formatTime (time) {
+      var tempo = '00:' + time.getMinutes().toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false
+      }) + ':' + time.getSeconds().toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false
+      })
+      return tempo
     },
-    clockRunning () {
-      if (running) {
-        var currentTime = new Date()
-        var timeRemaining = new Date(timeExpected - currentTime)
+    stop: function stop (crono) {
+      if (crono === 5) {
+        audioAlertFinish.play()
+      }
 
-        if (timeRemaining > 0) {
-          this.cronometro = '00:' + timeRemaining.getMinutes().toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false }) +
-           ':' + timeRemaining.getSeconds().toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false })
+      this.running = 0
+      clearInterval(this.started)
+      this.stopped = setInterval(() => {
+        this.timeStopped()
+      }, 100)
+    },
+    timeStopped () {
+      timeEnd.setMilliseconds(timeEnd.getMilliseconds() + 100)
+    },
+    reset: function reset () {
+      this.running = 0
+      time = null
+      clearInterval(this.started)
+      clearInterval(this.stopped)
+    },
+    clockRunning (crono) {
+      var now = new Date()
+      time = new Date(timeEnd - now)
+
+      // Definir propriamento o tempo
+      time.setHours(timeEnd.getHours() - now.getHours())
+
+      if (timeEnd > now) {
+        if (crono === 1) {
+          this.cronometro_discurso = this.formatTime(time)
+        } else if (crono === 2) {
+          this.cronometro_aparte = this.formatTime(time)
+        } else if (crono === 3) {
+          this.cronometro_ordem = this.formatTime(time)
         } else {
-          this.cronometro.style.color = 'red'
-          this.stop()
+          this.cronometro_consideracoes = this.formatTime(time)
         }
       } else {
-        this.stop()
+        audioAlertFinish.play()
+        this.alert = setTimeout(() => {
+          this.reset()
+        }, 5000)
       }
     },
-    start: function startStopWatch (time) {
-      time *= 60
-      if (running) return
+    start: function startStopWatch (temp_crono) {
+      if (this.running !== 0) return
 
-      if (timeBegan === null) {
-        timeBegan = new Date()
-        timeExpected = timeBegan
-        timeExpected.setSeconds(timeExpected.getSeconds() + time)
+      crono = temp_crono
+      if (time === null) {
+        time = cronometroStart[crono - 1]
+        console.log(time)
+        timeEnd = new Date()
+        timeEnd.setSeconds(timeEnd.getSeconds() + time)
+      } else {
+        clearInterval(this.stopped)
       }
+      this.running = crono
 
       this.started = setInterval(() => {
-        this.clockRunning()
+        this.clockRunning(crono)
       }, 100)
-      running = true
     },
     pollData () {
       this.fetchData()
@@ -180,7 +253,7 @@ const v = new Vue({ // eslint-disable-line
       this.polling = setInterval(() => {
         console.info('Fetching data from backend')
         this.fetchData()
-      }, 5000)
+      }, 100)
     }
   },
   beforeDestroy () {
