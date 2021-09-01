@@ -2171,10 +2171,13 @@ def get_oradores_explicacoes_pessoais(sessao_plenaria):
                 sigla = ''
             else:
                 sigla = partido_sigla.partido.sigla
+            observacao = orador.observacao
+
             oradores = {
                 'numero_ordem': orador.numero_ordem,
                 'parlamentar': parlamentar,
-                'sgl_partido': sigla
+                'sgl_partido': sigla,
+                'observacao': observacao
             }
             oradores_explicacoes.append(oradores)
     context = {'oradores_explicacoes': oradores_explicacoes}
