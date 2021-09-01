@@ -25,7 +25,8 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
-                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente, ResumoOrdenacao)
+                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, 
+                                ConsideracoesFinais, TipoExpediente, ResumoOrdenacao)
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode
 
@@ -34,7 +35,8 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_materias_expediente, get_oradores_expediente,
                                get_presenca_ordem_do_dia, get_materias_ordem_do_dia,
                                get_oradores_ordemdia,
-                               get_oradores_explicacoes_pessoais, get_ocorrencias_da_sessao, get_assinaturas)
+                               get_oradores_explicacoes_pessoais, get_consideracoes_finais, 
+                               get_ocorrencias_da_sessao, get_assinaturas)
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
@@ -824,13 +826,13 @@ def get_sessao_plenaria(sessao, casa):
         lst_oradores.append({
             "num_ordem": orador.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
+            "observacao": orador.observacao,
             "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
         })
 
     # Ocorrências da Sessão
     lst_ocorrencias = []
     ocorrencias = OcorrenciaSessao.objects.filter(sessao_plenaria=sessao)
-
     for o in ocorrencias:
         conteudo = o.conteudo
 
@@ -847,6 +849,26 @@ def get_sessao_plenaria(sessao, casa):
 
         lst_ocorrencias.append(o)
 
+    # Ocorrências da Sessão
+    lst_consideracoes = []
+    consideracoes = ConsideracoesFinais.objects.filter(sessao_plenaria=sessao)
+
+    for c in consideracoes:
+        conteudo = c.conteudo
+
+        # unescape HTML codes
+        # https://github.com/interlegis/sapl/issues/1046
+        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = html.unescape(conteudo)
+
+        # escape special character '&'
+        #   https://github.com/interlegis/sapl/issues/1009
+        conteudo = conteudo.replace('&', '&amp;')
+
+        c.conteudo = conteudo
+
+        lst_consideracoes.append(c)
+
     return (inf_basicas_dic,
             cont_mult_dic,
             lst_mesa,
@@ -861,7 +883,8 @@ def get_sessao_plenaria(sessao, casa):
             lst_votacao_vot_nom,
             lst_oradores_ordemdia,
             lst_oradores,
-            lst_ocorrencias)
+            lst_ocorrencias,
+            lst_consideracoes)
 
 
 def get_turno(materia):
@@ -923,7 +946,8 @@ def relatorio_sessao_plenaria(request, pk):
      lst_votacao_vot_nom,
      lst_oradores_ordemdia,
      lst_oradores,
-     lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
+     lst_ocorrencias,
+     lst_consideracoes) = get_sessao_plenaria(sessao, casa)
 
     for idx in range(len(lst_expedientes)):
         txt_expedientes = lst_expedientes[idx]['txt_expediente']
@@ -948,7 +972,8 @@ def relatorio_sessao_plenaria(request, pk):
         lst_votacao_vot_nom,
         lst_oradores_ordemdia,
         lst_oradores,
-        lst_ocorrencias)
+        lst_ocorrencias,
+        lst_consideracoes)
 
     response.write(pdf)
     return response
@@ -1327,6 +1352,7 @@ def resumo_ata_pdf(request, pk):
     context.update(get_materias_ordem_do_dia(sessao_plenaria))
     context.update(get_oradores_ordemdia(sessao_plenaria))
     context.update(get_ocorrencias_da_sessao(sessao_plenaria))
+    context.update(get_consideracoes_finais(sessao_plenaria))
     context.update(get_oradores_explicacoes_pessoais(sessao_plenaria))
     context.update(get_assinaturas(sessao_plenaria))
     context.update({'object': sessao_plenaria})
@@ -1480,7 +1506,8 @@ def relatorio_sessao_plenaria_pdf(request, pk):
      lst_votacao_vot_nom,
      lst_oradores_ordemdia,
      lst_oradores,
-     lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
+     lst_ocorrencias,
+     lst_consideracoes) = get_sessao_plenaria(sessao, casa)
 
     dict_ord_template = {
         'cont_mult': 'conteudo_multimidia.html',
@@ -1496,7 +1523,8 @@ def relatorio_sessao_plenaria_pdf(request, pk):
         'oradores_exped': 'oradores_expediente.html',
         'oradores_o_d': 'oradores_ordemdia.html',
         'oradores_expli': 'oradores_explicacoes.html',
-        'ocorr_sessao': 'ocorrencias_sessao.html'
+        'ocorr_sessao': 'ocorrencias_da_sessao.html',
+        'cons_finais': 'consideracoes_finais.html'
     }
 
     context = {
@@ -1515,6 +1543,7 @@ def relatorio_sessao_plenaria_pdf(request, pk):
         "lst_votacao_vot_nom": lst_votacao_vot_nom,
         "lst_oradores": lst_oradores,
         "lst_ocorrencias": lst_ocorrencias,
+        "lst_consideracoes": lst_consideracoes,
         "rodape": rodape,
         "data": dt.today().strftime('%d/%m/%Y')
     }
@@ -1535,7 +1564,8 @@ def relatorio_sessao_plenaria_pdf(request, pk):
             'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
             'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
             'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto],
+            'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto]
         })
     except KeyError as e:
         # self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
@@ -1554,7 +1584,8 @@ def relatorio_sessao_plenaria_pdf(request, pk):
             'decimo_primeiro_ordenacao': 'votos_nominais_ordemdia.html',
             'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
             'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
-            'decimo_quarto_ordenacao': 'ocorrencias_sessao.html'
+            'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html',
+            'decimo_quinto_ordenacao': 'consideracoes_finais.html'
         })
 
     html_template = render_to_string(

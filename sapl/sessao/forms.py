@@ -783,6 +783,10 @@ class ResumoOrdenacaoForm(forms.Form):
         label='14°',
         choices=ORDENACAO_RESUMO
     )
+    decimo_quinto = forms.ChoiceField(
+        label='15°',
+        choices=ORDENACAO_RESUMO
+    )
 
     def __init__(self, *args, **kwargs):
         row1 = to_row(
@@ -814,13 +818,16 @@ class ResumoOrdenacaoForm(forms.Form):
         row14 = to_row(
             [('decimo_quarto', 12)]
         )
+        row15 = to_row(
+            [('decimo_quinto', 12)]
+        )
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
-                     row11, row12, row13, row14,
+                     row11, row12, row13, row14, row15,
                      form_actions(label='Atualizar'))
         )
 
@@ -862,6 +869,7 @@ class ResumoOrdenacaoForm(forms.Form):
         ordenacao.decimo_segundo = cleaned_data['decimo_segundo']
         ordenacao.decimo_terceiro = cleaned_data['decimo_terceiro']
         ordenacao.decimo_quarto = cleaned_data['decimo_quarto']
+        ordenacao.decimo_quinto = cleaned_data['decimo_quinto']
 
         ordenacao.save()
 

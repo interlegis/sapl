@@ -277,7 +277,7 @@ if context.REQUEST['data'] != '':
 #    return lst_votacao
     sessao = session.id
     caminho = context.pdf_sessao_plenaria_gerar(rodape, sessao, imagem, inf_basicas_dic, lst_mesa, lst_presenca_sessao,
-                                                lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores)
+                                                lst_expedientes, lst_expediente_materia, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_oradores, lst_ocorrencias, lst_consideracoes)
     if caminho == 'aviso':
         response.redirect('mensagem_emitir_proc')
     else:
