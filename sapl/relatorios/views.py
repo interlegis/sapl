@@ -826,6 +826,7 @@ def get_sessao_plenaria(sessao, casa):
         lst_oradores.append({
             "num_ordem": orador.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
+            "observacao": orador.observacao,
             "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
         })
 

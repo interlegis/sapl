@@ -2,7 +2,7 @@
         <h2 class="gray-title">Oradores das Explicações Pessoais</h2>
         {% for orador in lst_oradores%}
         <tr>
-            <p style="page-break-after: avoid;">{{orador.num_ordem}} - {{orador.nom_parlamentar}}/{{orador.sgl_partido}}</p>
+            <p style="page-break-after: avoid;">{{orador.num_ordem}} - {{orador.nom_parlamentar}}/{{orador.sgl_partido}} - {{ orador.observacao }}</p>
         </tr>
         {% endfor %}
     </div>
