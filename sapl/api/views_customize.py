@@ -91,6 +91,7 @@ class _AutorViewSet:
             func.mapping['get'] = func.kwargs['name']
             func.url_name = func.kwargs['name']
             func.url_path = func.kwargs['name']
+            func.__name__ = func.kwargs['name']
             func.__model = _model
 
             setattr(cls, _model._meta.model_name, func)
