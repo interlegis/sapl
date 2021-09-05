@@ -129,7 +129,7 @@ class SaplApiViewSetConstrutor():
                     class Meta(_meta_filterset):
                         if not hasattr(_meta_filterset, 'model'):
                             model = _model
-
+                            
                 # Define uma classe padrão ModelViewSet de DRF
                 class ModelSaplViewSet(SaplApiViewSetConstrutor.SaplApiViewSet):
                     queryset = _model.objects.all()

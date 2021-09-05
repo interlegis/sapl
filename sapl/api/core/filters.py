@@ -1,10 +1,16 @@
-from django.db.models.fields import CharField
+
+from collections import OrderedDict
+
+from django.conf import settings
+from django.db.models.fields import DateTimeField, DateField
 from django.db.models.fields.files import FileField
 from django.template.defaultfilters import capfirst
 import django_filters
+from django_filters.constants import ALL_FIELDS
 from django_filters.filters import CharFilter
-from django_filters.rest_framework.filterset import FilterSet
-from django_filters.utils import resolve_field
+from django_filters.filterset import BaseFilterSet, FilterSetMetaclass, \
+    FilterSet
+from django_filters.utils import resolve_field, get_all_model_fields
 
 
 class SaplFilterSetMixin(FilterSet):
@@ -14,12 +20,6 @@ class SaplFilterSetMixin(FilterSet):
     class Meta:
         fields = '__all__'
         filter_overrides = {
-            CharField: {
-                'filter_class': django_filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': ['exact', 'icontains']
-                }
-            },
             FileField: {
                 'filter_class': django_filters.CharFilter,
                 'extra': lambda f: {
@@ -34,6 +34,55 @@ class SaplFilterSetMixin(FilterSet):
                 *map(str.strip, value.split(',')))
         except:
             return queryset
+
+    @classmethod
+    def get_fields(cls):
+        model = cls._meta.model
+        fields_model = get_all_model_fields(model)
+        fields_filter = cls._meta.fields
+        exclude = cls._meta.exclude
+
+        if exclude is not None and fields_filter is None:
+            fields_filter = ALL_FIELDS
+
+        fields = fields_filter if isinstance(fields_filter, dict) else {}
+        if not isinstance(fields_filter, (dict, str)):
+            for f in fields_filter:
+                fields[f] = ['exact']
+
+        for f_str in fields_model:
+            if f_str not in fields:
+                f = model._meta.get_field(f_str)
+                fields[f_str] = []
+
+                def get_keys_lookups(cl, sub_f):
+                    r = []
+                    for lk, lv in cl.items():
+                        if lk == 'contained_by':
+                            continue
+                        sflk = f'{sub_f}{"__" if sub_f else ""}{lk}'
+                        r.append(sflk)
+
+                        if hasattr(lv, 'class_lookups'):
+                            r += get_keys_lookups(lv.class_lookups, sflk)
+
+                        if hasattr(lv, 'output_field'):
+                            r.append(f'{sflk}{"__" if sflk else ""}range')
+
+                            r += get_keys_lookups(lv.output_field.class_lookups, sflk)
+
+                    return r
+
+                fields[f_str] = list(
+                    set(get_keys_lookups(f.class_lookups, '')))
+
+        # Remove excluded fields
+        exclude = exclude or []
+
+        fields = [(f, lookups)
+                  for f, lookups in fields.items() if f not in exclude]
+
+        return OrderedDict(fields)
 
     @classmethod
     def filter_for_field(cls, f, name, lookup_expr='exact'):
