@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from sapl.api.forms import SaplFilterSetMixin
+from sapl.api.core.filters import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
 from sapl.api.serializers import ChoiceSerializer, ParlamentarSerializer,\
     ParlamentarEditSerializer, ParlamentarResumeSerializer
@@ -56,6 +56,7 @@ class SaplApiViewSetConstrutor():
         # Carrega todas as classes de sapl.api.serializers que possuam
         # "Serializer" como Sufixo.
         serializers_classes = inspect.getmembers(serializers)
+
         serializers_classes = {i[0]: i[1] for i in filter(
             lambda x: x[0].endswith('Serializer'),
             serializers_classes
@@ -82,7 +83,8 @@ class SaplApiViewSetConstrutor():
                 serializer_name, rest_serializers.ModelSerializer)
 
             # Caso Exista, pega a classe sapl.api.forms.{model}FilterSet
-            # ou utiliza a base definida em sapl.forms.SaplFilterSetMixin
+            # ou utiliza a base definida em
+            # sapl.api.core.filters.SaplFilterSetMixin
             filter_name = f'{object_name}FilterSet'
             _filterset_class = filters_classes.get(
                 filter_name, SaplFilterSetMixin)
@@ -127,7 +129,7 @@ class SaplApiViewSetConstrutor():
                     class Meta(_meta_filterset):
                         if not hasattr(_meta_filterset, 'model'):
                             model = _model
-
+                            
                 # Define uma classe padrão ModelViewSet de DRF
                 class ModelSaplViewSet(SaplApiViewSetConstrutor.SaplApiViewSet):
                     queryset = _model.objects.all()
