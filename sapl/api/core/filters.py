@@ -11,6 +11,7 @@ from django_filters.filters import CharFilter
 from django_filters.filterset import BaseFilterSet, FilterSetMetaclass, \
     FilterSet
 from django_filters.utils import resolve_field, get_all_model_fields
+from sapl.materia.models import MateriaLegislativa
 
 
 class SaplFilterSetMixin(FilterSet):
@@ -53,13 +54,18 @@ class SaplFilterSetMixin(FilterSet):
         for f_str in fields_model:
             if f_str not in fields:
                 f = model._meta.get_field(f_str)
+                if f.many_to_many:
+                    continue
+
                 fields[f_str] = []
 
                 def get_keys_lookups(cl, sub_f):
                     r = []
                     for lk, lv in cl.items():
+
                         if lk == 'contained_by':
                             continue
+
                         sflk = f'{sub_f}{"__" if sub_f else ""}{lk}'
                         r.append(sflk)
 
