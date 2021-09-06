@@ -1,6 +1,7 @@
-from django.conf import settings
+
 from django.conf.urls import include, url
-from rest_framework import permissions
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView,\
+    SpectacularRedocView
 from rest_framework.routers import DefaultRouter
 
 from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet,\
@@ -28,8 +29,17 @@ for app, built_sets in SaplApiViewSetConstrutor._built_sets.items():
 
 urlpatterns_router = router.urls
 
-urlpatterns_api_doc = []
-if 'drf_yasg' in settings.INSTALLED_APPS:
+urlpatterns_api_doc = [
+    # Optional UI:
+    url('^schema/swagger-ui/',
+        SpectacularSwaggerView.as_view(url_name='sapl.api:schema_api'), name='swagger-ui'),
+    url('^schema/redoc/',
+        SpectacularRedocView.as_view(url_name='sapl.api:schema_api'), name='redoc'),
+    # YOUR PATTERNS
+    url('^schema/', SpectacularAPIView.as_view(), name='schema_api'),
+
+]
+"""if 'drf_yasg' in settings.INSTALLED_APPS:
     from drf_yasg import openapi
     from drf_yasg.views import get_schema_view
     schema_view = get_schema_view(
@@ -50,7 +60,7 @@ if 'drf_yasg' in settings.INSTALLED_APPS:
             schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
         url(r'^docs/redoc/$',
             schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    ]
+    ]"""
 
 # TODO: refatorar para customização da api automática
 deprecated_urlpatterns_api = [

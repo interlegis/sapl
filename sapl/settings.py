@@ -81,7 +81,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'floppyforms',
 
-    'drf_yasg',
+    'drf_spectacular',
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
@@ -160,12 +160,23 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         "rest_framework.authentication.SessionAuthentication",
     ),
+
+    'DEFAULT_SCHEMA_CLASS': 'sapl.api.core.schema.Schema',
+
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
+
     "DEFAULT_FILTER_BACKENDS": (
         "rest_framework.filters.SearchFilter",
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Sapl API - docs',
+    'DESCRIPTION': 'Sapl API  - Docs',
+    'VERSION': '1.0.0',
+}
+
 CACHES = {
     'default': {
         'BACKEND': 'speedinfo.backends.proxy_cache',

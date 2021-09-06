@@ -101,7 +101,7 @@ class SaplApiViewSetConstrutor():
 
                     class Meta(_meta_serializer):
                         if not hasattr(_meta_serializer, 'ref_name'):
-                            ref_name = None
+                            ref_name = f'{object_name}Serializer'
 
                         if not hasattr(_meta_serializer, 'model'):
                             model = _model
@@ -117,7 +117,7 @@ class SaplApiViewSetConstrutor():
                             else:
                                 fields = _meta_serializer.fields
 
-                    def get___str__(self, obj):
+                    def get___str__(self, obj) -> str:
                         return str(obj)
 
                 _meta_filterset = object if not hasattr(
@@ -129,7 +129,7 @@ class SaplApiViewSetConstrutor():
                     class Meta(_meta_filterset):
                         if not hasattr(_meta_filterset, 'model'):
                             model = _model
-                            
+
                 # Define uma classe padrão ModelViewSet de DRF
                 class ModelSaplViewSet(SaplApiViewSetConstrutor.SaplApiViewSet):
                     queryset = _model.objects.all()
