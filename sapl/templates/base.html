@@ -196,6 +196,7 @@
                 </small>
 		<span>Release: 3.1.162-RC10</span>
               </p>
+
             </div>
             <div class="col-md-4">
               <a class="footer__logo" href="#">
@@ -218,8 +219,11 @@
                   <span class="street-address">{{ endereco }}</span>
                   <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
                   <br>
+                  <small><a href="{% url 'sapl.api:swagger_ui_schema_api' %}">{% trans 'OpenAPI' %}</a></small> |
+
                   <a href="{{endereco_web}}" class="url">{% trans 'Site' %}</a> |
                   <a href="mailto:{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
+
 
                 </small>
               </address>

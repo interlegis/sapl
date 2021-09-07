@@ -32,12 +32,11 @@ urlpatterns_router = router.urls
 urlpatterns_api_doc = [
     # Optional UI:
     url('^schema/swagger-ui/',
-        SpectacularSwaggerView.as_view(url_name='sapl.api:schema_api'), name='swagger-ui'),
+        SpectacularSwaggerView.as_view(url_name='sapl.api:schema_api'), name='swagger_ui_schema_api'),
     url('^schema/redoc/',
-        SpectacularRedocView.as_view(url_name='sapl.api:schema_api'), name='redoc'),
+        SpectacularRedocView.as_view(url_name='sapl.api:schema_api'), name='redoc_schema_api'),
     # YOUR PATTERNS
     url('^schema/', SpectacularAPIView.as_view(), name='schema_api'),
-
 ]
 """if 'drf_yasg' in settings.INSTALLED_APPS:
     from drf_yasg import openapi
