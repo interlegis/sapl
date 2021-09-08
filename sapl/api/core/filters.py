@@ -1,17 +1,13 @@
 
 from collections import OrderedDict
 
-from django.conf import settings
-from django.db.models.fields import DateTimeField, DateField
 from django.db.models.fields.files import FileField
 from django.template.defaultfilters import capfirst
 import django_filters
 from django_filters.constants import ALL_FIELDS
 from django_filters.filters import CharFilter
-from django_filters.filterset import BaseFilterSet, FilterSetMetaclass, \
-    FilterSet
+from django_filters.filterset import FilterSet
 from django_filters.utils import resolve_field, get_all_model_fields
-from sapl.materia.models import MateriaLegislativa
 
 
 class SaplFilterSetMixin(FilterSet):
@@ -47,17 +43,15 @@ class SaplFilterSetMixin(FilterSet):
             fields_filter = ALL_FIELDS
 
         fields = fields_filter if isinstance(fields_filter, dict) else {}
-        if not isinstance(fields_filter, (dict, str)):
-            for f in fields_filter:
-                fields[f] = ['exact']
 
         for f_str in fields_model:
             if f_str not in fields:
+
                 f = model._meta.get_field(f_str)
                 if f.many_to_many:
                     continue
 
-                fields[f_str] = []
+                fields[f_str] = ['exact']
 
                 def get_keys_lookups(cl, sub_f):
                     r = []
@@ -80,7 +74,7 @@ class SaplFilterSetMixin(FilterSet):
                     return r
 
                 fields[f_str] = list(
-                    set(get_keys_lookups(f.class_lookups, '')))
+                    set(fields[f_str] + get_keys_lookups(f.class_lookups, '')))
 
         # Remove excluded fields
         exclude = exclude or []
