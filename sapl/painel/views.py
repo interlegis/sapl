@@ -352,6 +352,18 @@ def get_cronometro_status(request, name):
         cronometro = ''
     return cronometro
 
+def get_cronometro_value(request, name):
+    if name == 'discurso':
+        result = ConfiguracoesAplicacao.objects.first().cronometro_discurso
+    if name == 'aparte':
+        result = ConfiguracoesAplicacao.objects.first().cronometro_aparte
+    if name == 'ordem':
+        result = ConfiguracoesAplicacao.objects.first().cronometro_ordem
+    if name == 'consideracoes':
+        result = ConfiguracoesAplicacao.objects.first().cronometro_consideracoes
+
+    return result.total_seconds()
+
 
 def get_materia_aberta(pk):
     return OrdemDia.objects.filter(
@@ -558,10 +570,10 @@ def get_dados_painel(request, pk):
         'sessao_solene': sessao.tipo.nome == "Solene",
         'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,
-        'cronometro_aparte': get_cronometro_status(request, 'aparte'),
-        'cronometro_discurso': get_cronometro_status(request, 'discurso'),
-        'cronometro_ordem': get_cronometro_status(request, 'ordem'),
-        'cronometro_consideracoes': get_cronometro_status(request, 'consideracoes'),
+        'cronometro_aparte': get_cronometro_value(request, 'aparte'),
+        'cronometro_discurso': get_cronometro_value(request, 'discurso'),
+        'cronometro_ordem': get_cronometro_value(request, 'ordem'),
+        'cronometro_consideracoes': get_cronometro_value(request, 'consideracoes'),
         'status_painel': sessao.painel_aberto,
         'brasao': brasao
     }

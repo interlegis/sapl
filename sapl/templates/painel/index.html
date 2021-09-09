@@ -1,495 +1,231 @@
 {% load i18n %}
 {% load common_tags %}
+{% load staticfiles %}
 
 {% load render_bundle from webpack_loader %}
 {% load webpack_static from webpack_loader %}
-
-<!DOCTYPE HTML>
 <!--[if IE 8]> <html class="no-js lt-ie9" lang="pt-br"> <![endif]-->
 <!--[if gt IE 8]><!-->
 <html lang="pt-br">
-<!--<![endif]-->
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- TODO: does it need this head_title here? -->
-    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
-    
-      {% block webpack_loader_css %}
-        {% render_chunk_vendors 'css' %}
-        {% render_bundle  'global' 'css' %}
-        {% render_bundle  'painel' 'css' %}
-      {% endblock webpack_loader_css %}
+    <!--<![endif]-->
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- TODO: does it need this head_title here? -->
+        <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+           
+        {% block webpack_loader_css %}
+            {% render_chunk_vendors 'css' %}
+            {% render_bundle  'global' 'css' %}
+            {% render_bundle  'painel' 'css' %}
+        {% endblock webpack_loader_css %}
+        
+        <style type="text/css">
+            html, body {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            @media screen {
+                ul, li {
+                    list-style-type: none;
+                }
+            }
+        </style>
+    </head>
+    <body class="painel-principal">
+      <div id="app-painel"> <!-- app painel -->
+        <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
-
-    <style type="text/css">
-        html, body {
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-      @media screen {
-        ul, li {
-          list-style-type: none;
-        }
-      }
-    </style>
-  </head>
-  <body class="painel-principal">
-      <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
-
-      <div class="d-flex justify-content-center">
-        <h1 id="sessao_plenaria" class="title text-title"></h1>
-      </div>
-      <div class="row ">
-        <div class="col text-center">
-          <span id="sessao_plenaria_data" class="text-value"></span>
-        </div> 
-        <div class="col text-center">
-          <span id="sessao_plenaria_hora_inicio" class="text-value"></span>
+        <div class="row justify-content-center">
+          <img src="{{ MEDIA_URL }}{{ logotipo }}"
+            alt="Logo" class="img-responsive" style="height: 15vh"/>
         </div>
-      </div>    
-
-      <div class="row justify-content-center">
-        <div class="col-1">
-          <img src="" id="logo-painel" class="logo-painel" alt=""/>
+        
+        <div class="d-flex justify-content-center">
+          <h1 id="sessao_plenaria" class="title text-title">[[ sessao_plenaria ]]</h1>
         </div>
-      </div>
-
-      <div class="row justify-content-center">
-        <h2 class="text-danger"><span id="message"></span></h2>
-      </div>
-
-      <div class="row">
-        <div class="col text-center"><span class="text-value data-hora" id="date"></span></div>
-        <div class="col text-center"><span class="text-value data-hora" id="relogio"></span></div>
-      </div>
-
-
-      <div class="">
-        <div class="d-flex justify-content-start">
-          <div class="col-md-4">
-            <div class="text-center painel">   
-              <h2 class="text-subtitle">Parlamentares</h2>   
-              <span id="parlamentares" class="text-value text-center"></span>
-            </div>
+        
+        <div class="row">
+          <div class="col-md-5 text-right">
+            <span id="sessao_plenaria_data" class="text-value">[[ sessao_plenaria_data ]]</span>
+          </div> 
+          <div class="col-md-7 text-center">
+            <span id="sessao_plenaria_hora_inicio" class="text-value">[[ sessao_plenaria_hora_inicio ]]</span>
           </div>
-          <div class="d-flex col-md-8 painels">
-            <div class="col-md-6 text-center painel" id="aparecer_oradores">  
-              <h2 class="text-subtitle">Oradores</h2>  
-              <span id="orador"></span>     
-            </div>
+        </div>
 
-            <div class="col-md-6 text-center painel">  
-              <h2 class="text-subtitle">Cronômetros</h2>
-                <div class="text-value">
-                Discurso: <span id="cronometro_discurso"></span><br>
-                Aparte: <span id="cronometro_aparte"></span><br>
-                Questão de Ordem: <span id="cronometro_ordem"></span><br>
-                Considerações Finais: <span id="cronometro_consideracoes"></span>
+        <div class="row justify-content-center" style="margin-bottom: 50px; margin-top: 50px;">
+          <h2 class="text-danger"><span v-if="!painel_aberto">PAINEL ENCONTRA-SE FECHADO</span></h2>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-5 text-right"><span class="text-value data-hora" id="date"></span></div>
+          <div class="col-md-7 text-center" style="margin-top:10px"><span class="text-value data-hora" id="relogio"></span></div>
+        </div>
+
+        <div style="margin-bottom: 50px;"> <!-- outer div -->
+          <div class="d-flex justify-content-start">
+            <div class="col-md-2"></div>
+            <div class="col-md-3"> <!-- Lista parlamentares -->
+              <div class="text center painel">
+                <h2 class="text-subtitle">Parlamentares</h2>
+                <div v-if="painel_aberto"> <!-- v-if -->
+                  <table>
+                    <tbody v-for="p in presentes">
+                      <tr>
+                        <td style="padding-right: 20px;" class="d-flex justify-content-start" v-bind:style="{ color: p.color }">
+                          [[p.nome]]
+                        </td>
+                        <td style="padding-right: 20px;" v-bind:style="{ color: p.color }">
+                          [[p.partido]]
+                        </td>
+                        <td style="padding-right: 20px;" v-if="p.voto !== ''" v-bind:style="{ color: p.color }">
+                          [[p.voto]]
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div> <!-- v-if -->
+                <div v-else> <!-- v-else -->
+                  <span style="color:white">
+                    <center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>
+                  </span>
+                </div> <!-- v-if -->
+              </div>
+            </div> <!-- Lista parlamentares -->
+            <div class="d-flex col-md-7 painels justify-content-center">
+              <div v-if="oradores.length > 0" class="text-center painel" id="aparecer_oradores">
+                <h2 class="text-subtitle">Oradores</h2>
+                <div v-if="painel_aberto"> <!-- v-if Lista de oradores-->
+                  <table>
+                    <tbody v-for="o in oradores">
+                      <tr class="d-flex justify-content-center">
+                        <td style="padding-right: 20px; color: white; font-size: 20px;">
+                          [[ o.numero]]º &nbsp[[o.nome]]
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div> <!--v-if Lista de oradores-->
+                <div v-else>
+                  <span style="color:white">
+                      <center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>
+                  </span>
+                </div>
               </div>
             </div>
-            
-            <div class="col-md-6 text-center painel" id="resultado_votacao_div">      
-              <h2 class="text-subtitle">Resultado</h2>   
-              <span id="votacao" class="text-value"></span> 
-              <h2><span id="resultado_votacao" lass="text-title"></span>
-            </div>
+          </div>
+        </div> <!-- outer div -->
+        <div class="row"> <!-- row -->
+          <div class="col-md-2"></div>
+          <div class="col-md-4 text-left painel">
+            <h2 class="text-subtitle">Cronômetros</h2>
+            <div class="text-value">
+              Discurso:<span id='discurso' style="margin-right: 20px;">[[ cronometro_discurso ]]</span><span v-if="painel_aberto">
+                <span v-if='running != 1'><button class="btn btn-success" v-on:click="start (1)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
+                <span v-else><button class="btn btn-danger" v-on:click="stop(1)">Parar</button></span>
+              </span><br>
 
-            <div class="col-md-6 text-center painel" id="obs_materia_div">      
-              <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
-              <span id="materia_legislativa_texto" class="text-value"></span>
-              <br>
-              <span id="materia_legislativa_ementa" class="text-value"></span>
-              <br>
-              <span id="observacao_materia" class="text-value"></span>
-            </div>
-
-            <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
-              <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
-                <span id="sessao_solene_tema" class="text-value"></span>
+              Aparte:<span id='discurso' style="margin-right: 20px;">[[ cronometro_aparte ]]</span><span v-if="painel_aberto">
+              <span v-if='running != 2'><button class="btn btn-success" v-on:click="start (2)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
+              <span v-else><button class="btn btn-danger" v-on:click="stop(2)">Parar</button></span>
+              </span><br>
+              
+              Questão de Ordem: <span id='discurso' style="margin-right: 20px;">[[ cronometro_ordem ]]</span><span v-if="painel_aberto">
+              <span v-if='running != 3'><button class="btn btn-success" v-on:click="start (3)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
+              <span v-else><button class="btn btn-danger" v-on:click="stop(3)">Parar</button></span>
+              </span><br>
+              
+              Considerações Finais: <span id='discurso' style="margin-right: 20px;">[[ cronometro_consideracoes ]]</span><span v-if="painel_aberto">
+              <span v-if='running != 4'><button class="btn btn-success" v-on:click="start (4)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
+              <span v-else><button class="btn btn-danger" v-on:click="stop(4)">Parar</button></span>
+              </span>
             </div>
           </div>
+          <div v-if="sessao_solene">
+            <div class="col-md-4 text-center painel" id="tema_solene_div">
+                <h2 class="text-subtitle">Tema da Sessão Solene</h2>
+                <span id="sessao_solene_tema" class="text-value">[[ sessao_solene_tema ]]</span>
+            </div>
+          </div>
+          <div v-else class="col-md-5" style="margin-top: -45vh; margin-left: 51vw; position: absolute;">
+            <div v-if="painel_aberto">
+                <div v-if="!sessao_finalizada" class="text-center painel" id="resultado_votacao_div">
+                    <h2 class="text-subtitle" style="margin-left: -50px; margin-top: 50px;">Resultado</h2>
+                    <div v-if="materia_legislativa_texto">
+                        <span id="votacao" class="text-value">
+                            <li>Sim: [[ numero_votos_sim ]]</li>
+                            <li>Não: [[ numero_votos_nao ]]</li>
+                            <li>Abstenções: [[ numero_abstencoes ]]</li>
+                            <li>Presentes: [[ num_presentes ]]</li>
+                            <li>Total votos: [[ total_votos ]]</li>
+                        </span>
+                        <h2><span id="resultado_votacao" v-bind:style="resultado_votacao_css" lass="text-title">[[ tipo_resultado ]]</span></h2>
+                    </div>
+                    <div v-else>
+                        <center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>
+                    </div>
+                </div>
+                <div v-if="painel_aberto">
+                    <div v-if="!sessao_finalizada" class="text-center painel" id="obs_materia_div">
+                        <h2 class="text-subtitle" id="mat_em_votacao">[[ mat_em_votacao ]]</h2>
+                        <div v-if="materia_legislativa_texto !== ''">
+                        <span id="materia_legislativa_texto" class="text-value">[[ materia_legislativa_texto ]] </span>
+                          <br>
+                          <span id="materia_legislativa_ementa" class="text-value">[[ materia_legislativa_ementa ]]</span>
+                          <br>
+                          <span id="observacao_materia" class="text-value"> [[ observacao_materia ]]</span>
+                        </div>
+                        <div v-else>
+                            <span class="text-value">Não há nenhuma matéria votada ou para votação.</span>
+                        </div>
+                    </div>
+                </div>
+                <div v-else>
+                    <span class="text-value">A Matéria em votação só aparecerá quando o painel estiver aberto</span>
+                </div>
+            </div>
+            <div v-else>
+                <div class="text-center painel">
+                    <h2 class="text-subtitle" style="margin-top: 50px;">Resultado</h2>
+                    <span style="color:white">
+                        <h1>A votação só aparecerá quando o painel estiver aberto</h1>
+                    </span>
+                    </div>
+              </div>
         </div>
-      </div>
-      </div>
-  </body>
+        </div> <!-- row -->
+      </div> <!-- app painel -->
+    </body>
 
-  {% block webpack_loader_js %}
-    {% render_chunk_vendors 'js' %}
-    {% render_bundle  'global' 'js' %}  
-    {% render_bundle  'painel' 'js' %}      
-  {% endblock webpack_loader_js %}
+    {% block webpack_loader_js %}
+      {% render_chunk_vendors 'js' %}
+      {% render_bundle  'global' 'js' %}  
+      {% render_bundle  'painel' 'js' %}      
+    {% endblock webpack_loader_js %}
 
-  {% block webpack_loader_chunks_js %}
-  {% endblock webpack_loader_chunks_js %}
+    {% block webpack_loader_chunks_js %}
+    {% endblock webpack_loader_chunks_js %}
 
-  <script type="text/javascript">
-
+    <script type='text/javascript'>
       $(document).ready(function() {
 
-         // As constantes decisões sobre a existência ou não do horário de verão,
-         // assim como que data de início e termino do mesmo, fizeram com que fosse necessário
-         // substituir a chamada a Date() por um esquema mais elaborado, onde se
-         // recupera o offset do UTC (-3 GMT, no caso de Brasília) e seta-se
-         // manualmente. Esta informação vem do servidor, desta forma não ficamos
-         // na dependência da atualização de browser, pois tanto o Date() em JS
-         // quanto as libs python (django.utils.timezone, datetime, pytz, etc)
-         // lêem do tzdata, que precisa ser atualizado toda vez que o governo
-         // brasileiro modifica alguma coisa relacionada ao horário de verão.
-         // Recuperando essa informação do servidor só teremos que atualizar as
-         // libs tzdata (Linux) e pytz (Python) uma vez. Além disso, o uso da
-         // biblioteca moment.js é recomendada, pois ela trata data e hora
-         // melhor que o Date() do JS.
+      // As constantes decisões sobre a existência ou não do horário de verão,
+      // assim como que data de início e termino do mesmo, fizeram com que fosse necessário
+      // substituir a chamada a Date() por um esquema mais elaborado, onde se
+      // recupera o offset do UTC (-3 GMT, no caso de Brasília) e seta-se
+      // manualmente. Esta informação vem do servidor, desta forma não ficamos
+      // na dependência da atualização de browser, pois tanto o Date() em JS
+      // quanto as libs python (django.utils.timezone, datetime, pytz, etc)
+      // lêem do tzdata, que precisa ser atualizado toda vez que o governo
+      // brasileiro modifica alguma coisa relacionada ao horário de verão.
+      // Recuperando essa informação do servidor só teremos que atualizar as
+      // libs tzdata (Linux) e pytz (Python) uma vez. Além disso, o uso da
+      // biblioteca moment.js é recomendada, pois ela trata data e hora
+      // melhor que o Date() do JS.
 
-         $("#date").append(moment().format("DD/MM/YY"));
+      $("#date").append(moment().format("DD/MM/YY"));
 
-         var offset = parseFloat({{ utc_offset }});
-
-         //TODO: replace by a fancy jQuery clock
-         function checkTime(i) {
-             if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-                return i;
-         }
-
-         function startTime() {
-             var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
-             $("#relogio").text(today)
-             var t = setTimeout(function(){
-                 startTime()
-             }, 500);
-         }
-         startTime();
-
-        var audioAlertFinish = document.getElementById("audio");
-
-        $('#cronometro_discurso').runner({
-          autostart: false,
-          countdown: true,
-          startAt: {{ 'discurso'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-          audioAlertFinish.play();
-        });
-
-        $('#cronometro_aparte').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'aparte'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-            audioAlertFinish.play();
-        });
-
-        $('#cronometro_ordem').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'ordem'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-          audioAlertFinish.play();
-        });
-
-        $('#cronometro_consideracoes').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'consideracoes'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-          audioAlertFinish.play();
-        });
-
-    var discurso_previous;
-    var ordem_previous;
-    var aparte_previous;
-    var consideracoes_previous;
-
-    var counter = 1;
-    (function poll() {
-        $.ajax({
-           url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
-           type: "GET",
-           success: function(data) {
-              $("#sessao_plenaria").text(data["sessao_plenaria"])
-              $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
-              $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
-              $("#sessao_solene_tema").text(data["tema_solene"])
-              if (data["status_painel"] == false) {
-                $("#message").text("PAINEL ENCONTRA-SE FECHADO");
-              }
-              else {
-                $("#message").text("");
-              }
-
-              if (data["sessao_solene"]){
-                $("#resultado_votacao_div").hide();
-                $("#obs_materia_div").hide();
-                $('#tema_solene_div').show();
-              }
-
-              if (data["brasao"] != null)
-                $("#logo-painel").attr("src", data["brasao"]);
-
-              var presentes = $("#parlamentares");
-              var votacao = $("#votacao");
-              var oradores = $("#orador")
-              $("#votacao").text('');
-              presentes.children().remove();
-              votacao.children().remove();
-              oradores.children().remove();
-
-              var oradores_list = data["oradores"];
-              var presentes_list = data["presentes"];
-
-              if (data["status_painel"] == true) {
-                  presentes.append('<table id="parlamentares_list">');
-                  $.each(presentes_list, function (index, parlamentar) {
-
-
-                    if (parlamentar.voto == 'Voto Informado'){
-                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
-                          parlamentar.nome +
-                          '</td> <td style="padding-right:20px; color:yellow">' +
-                          parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
-                          + '</td></tr>')
-                    }
-                    else{
-                      $('#parlamentares_list').append(show_voto(parlamentar))
-                    }
-
-                  });
-                  presentes.append('</table>')
-
-                  if (data["oradores"].length > 0){
-                    $('#aparecer_oradores').show();
-                    oradores.append('<table id="oradores_list">');
-                    $.each(oradores_list, function (index, orador) {
-                      $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
-                          orador.numero + 'º &nbsp' +
-                          orador.nome +'</td></tr>')
-                    });
-                    oradores.append('</table>');
-                  }
-                  else {
-                    $('#aparecer_oradores').hide();
-                  }
-              }
-              else{
-                  presentes.append('<span style="color:white" id="parlamentares_list">');
-                  $('#parlamentares_list').append(
-                      '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
-                  presentes.append('</span>');
-
-                  oradores.append('<span style="color:white" id="oradores_list">');
-                  $('#oradores_list').append(
-                      '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
-                  oradores.append('</span>');
-
-                  votacao.append('<span id="votacao">');
-                  $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
-                  votacao.append('</span>');
-              }
-
-              if(data["status_painel"]){
-                if (data['materia_legislativa_texto']){
-                  var votacao = $("#votacao");
-
-                  votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>");
-                  votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>");
-                  votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>");
-                  votacao.append("<li>Presentes: " + data["num_presentes"] + "</li>");
-                  votacao.append("<li>Total votos: " + data["total_votos"] + "</li>");
-                }
-                else{
-                    $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
-                }
-              }
-
-              var discurso_current = data["cronometro_discurso"];
-              if (!discurso_previous){
-                discurso_previous = ''
-              }
-
-              if (discurso_current != discurso_previous) {
-                $('#cronometro_discurso').runner(discurso_current);
-                discurso_previous = discurso_current;
-              }
-
-              var aparte_current = data["cronometro_aparte"];
-              if (!aparte_previous){
-                aparte_previous = ''
-              }
-
-              if (aparte_current != aparte_previous) {
-                $('#cronometro_aparte').runner(aparte_current);
-                aparte_previous = aparte_current;
-              }
-
-              var ordem_current = data["cronometro_ordem"];
-              if (!ordem_previous){
-                ordem_previous = ''
-              }
-
-              if (ordem_current != ordem_previous) {
-                $('#cronometro_ordem').runner(ordem_current);
-                ordem_previous = ordem_current;
-              }
-
-              var consideracoes_current = data["cronometro_consideracoes"];
-              if (!consideracoes_previous){
-                consideracoes_previous = ''
-              }
-
-              if (consideracoes_current != consideracoes_previous) {
-                $('#cronometro_consideracoes').runner(consideracoes_current);
-                consideracoes_previous = consideracoes_current;
-              }
-
-              if($('#cronometro_discurso').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_aparte').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_ordem').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_consideracoes').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if(data['sessao_finalizada']){
-                $("#obs_materia_div").hide();
-                $("#resultado_votacao_div").hide();
-              }
-              else if (data['materia_legislativa_texto']){
-                if (data["status_painel"] == true){
-                  $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
-                  $("#materia_legislativa_ementa").text(data["materia_legislativa_ementa"]);
-                }
-                else{
-                  $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
-                }
-              }
-              else{
-                $("#materia_legislativa_texto").text('Não há nenhuma matéria votada ou para votação.');
-              }
-
-              if (data['observacao_materia'] && data["status_painel"] == true){
-                var texto = data['observacao_materia'];
-                if(texto.length > 151) {
-                  $("#observacao_materia").text(texto.substr(0, 145).concat('(...)'));
-                }
-                else{
-                    $("#observacao_materia").text(texto);
-                }
-              }
-              else{
-                $("#observacao_materia").text('');
-              }
-              if (data['tipo_resultado'] && data['status_painel'] == true){
-                if(data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]){
-                  $("#resultado_votacao").css("color", "#45919D");
-                  $("#mat_em_votacao").text("Matéria em Votação");
-                  $("#resultado_votacao_div").show();
-                }
-                else{
-                  $("#resultado_votacao_div").hide();
-                  $("#mat_em_votacao").text("Matéria em Leitura");
-                }
-                console.log(data["tipo_resultado"], data['tipo_votacao']);
-                $("#resultado_votacao").text(data["tipo_resultado"]);
-
-                var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
-                console.log(resultado_votacao_upper, data['tipo_resultado']);
-                if (resultado_votacao_upper.search("APROV") != -1){
-                  $("#resultado_votacao").css("color", "#7CFC00");
-                  $("#mat_em_votacao").text("Matéria Votada");
-                }
-                else if (resultado_votacao_upper.search("REJEIT") != -1){
-                  $("#resultado_votacao").css("color", "red");
-                  $("#mat_em_votacao").text("Matéria Votada");
-                }
-                else if (resultado_votacao_upper.search("LIDA") != -1){
-                  $("#mat_em_votacao").text("Matéria Lida");
-                }
-              }
-              else{
-                $("#resultado_votacao").text('');
-                if(data['tipo_votacao'] != 'Leitura')
-                  $("#mat_em_votacao").text("Matéria em Votação");
-                else{
-                  $("#mat_em_votacao").text("Matéria em Leitura");
-                }
-              }
-           },
-           error: function(err) {
-              console.error(err);
-           },
-           dataType: "json",
-           complete: setTimeout(function() {poll()}, 500),
-           timeout: 20000 // TODO: decrease
-        })
-      })();
-      });
-
-     function show_voto(parlamentar) {
-      color = 'white'
-      if (parlamentar.voto == "Sim"){
-          color = 'green'
-      }
-      else if (parlamentar.voto == "Não"){
-          color = 'red'
-      }
-
-      return ('<tr> <td style="padding-right:20px">' +
-                `<font color="`+color+`">${parlamentar.nome}</font> </td> <td style="padding-right:20px">` +
-                `<font color="`+color+`">${parlamentar.partido}</font> </td> <td style="padding-right:20px">` +
-                `<font color="`+color+`">${parlamentar.voto}</font> </td></tr>`)
-     }
-     
-  </script>
+      })
+    </script>
 </html>
-

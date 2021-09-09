@@ -550,7 +550,8 @@ FILTER_OVERRIDES_DATEFIELD = {
 
 class FilterOverridesMetaMixin:
     filter_overrides = {
-        models.DateField: FILTER_OVERRIDES_DATEFIELD
+        models.DateField: FILTER_OVERRIDES_DATEFIELD,
+        models.DateTimeField: FILTER_OVERRIDES_DATEFIELD
     }
 
 
