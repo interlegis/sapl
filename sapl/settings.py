@@ -204,6 +204,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
 
+CELERY_BROKER_URL = 'redis://localhost:6379'
+
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 

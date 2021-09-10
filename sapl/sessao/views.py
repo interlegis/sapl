@@ -2,6 +2,7 @@
 import logging
 from collections import OrderedDict
 from re import sub
+from sapl.painel.views import get_cronometro_status
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -308,7 +309,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                 page_number = ""
                 if 'page' in context:
                     #url += "?page={}".format(context['page'])
-                    page_number = "<input type='hidden' name='page' value='%s' />" % context['page']
+                    page_number = "<input type='hidden' name='page' value='%s' />" % context[
+                        'page']
 
                 if has_permission:
                     if obj.tipo_votacao != LEITURA:
@@ -649,7 +651,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             numero_ordem = exp.last().numero_ordem if exp.exists() else 0
             for num_ordem, expediente in enumerate(
                 ExpedienteMateria.objects.filter(id__in=marcadas),
-                numero_ordem+1
+                numero_ordem + 1
             ):
                 lista_expediente.append(
                     ExpedienteMateria(
@@ -669,7 +671,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             o = OrdemDia.objects.filter(sessao_plenaria=sessao)
             numero_ordem = o.last().numero_ordem if o.exists() else 0
             for num_ordem, ordemdia in enumerate(
-                OrdemDia.objects.filter(id__in=marcadas), numero_ordem+1
+                OrdemDia.objects.filter(id__in=marcadas), numero_ordem + 1
             ):
                 lista_ordemdia.append(
                     OrdemDia(
@@ -945,7 +947,8 @@ class OradorCrud(MasterDetailCrud):
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             ultimo_orador = Orador.objects.filter(
                 sessao_plenaria=kwargs['root_pk']).order_by("-numero_ordem").first()
-            context["ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
+            context[
+                "ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
             return context
 
         def get_success_url(self):
@@ -1018,7 +1021,8 @@ class OradorExpedienteCrud(OradorCrud):
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             ultimo_orador = OradorExpediente.objects.filter(
                 sessao_plenaria=kwargs['root_pk']).order_by("-numero_ordem").first()
-            context["ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
+            context[
+                "ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
             return context
 
         def get_success_url(self):
@@ -1098,7 +1102,8 @@ class OradorOrdemDiaCrud(OradorCrud):
             context = super().get_context_data(**kwargs)
             ultimo_orador = OradorOrdemDia.objects.filter(
                 sessao_plenaria=kwargs['root_pk']).order_by("-numero_ordem").first()
-            context["ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
+            context[
+                "ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
             return context
 
     class UpdateView(MasterDetailCrud.UpdateView):
@@ -2936,7 +2941,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             elif self.expediente:
                 votacao.expediente_id = expediente_id
 
-            votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+            votacao.tipo_resultado_votacao = form.cleaned_data[
+                'resultado_votacao']
             votacao.save()
 
             for votos in request.POST.getlist('voto_parlamentar'):
@@ -4496,7 +4502,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         votacao.observacao = request.POST['observacao']
                         votacao.materia = ordem.materia
                         votacao.ordem = ordem
-                        votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.tipo_resultado_votacao = form.cleaned_data[
+                            'resultado_votacao']
                         votacao.user = request.user
                         votacao.ip = get_client_ip(request)
                         votacao.save()
@@ -4517,7 +4524,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                             voto_parlamentar.ip = get_client_ip(request)
                             voto_parlamentar.save()
 
-                            ordem.resultado = form.cleaned_data['resultado_votacao'].nome
+                            ordem.resultado = form.cleaned_data[
+                                'resultado_votacao'].nome
                             ordem.votacao_aberta = False
                             ordem.save()
 
@@ -4541,7 +4549,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         votacao.observacao = request.POST['observacao']
                         votacao.materia = expediente.materia
                         votacao.expediente = expediente
-                        votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
+                        votacao.tipo_resultado_votacao = form.cleaned_data[
+                            'resultado_votacao']
                         votacao.user = request.user
                         votacao.ip = get_client_ip(request)
                         votacao.save()
@@ -4563,7 +4572,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                             voto_parlamentar.ip = get_client_ip(request)
                             voto_parlamentar.save()
 
-                            expediente.resultado = form.cleaned_data['resultado_votacao'].nome
+                            expediente.resultado = form.cleaned_data[
+                                'resultado_votacao'].nome
                             expediente.votacao_aberta = False
                             expediente.save()
 
