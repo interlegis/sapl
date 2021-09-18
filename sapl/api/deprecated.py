@@ -1,6 +1,5 @@
 
 import logging
-import logging
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -10,11 +9,9 @@ from django.forms.widgets import MultiWidget, TextInput
 from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import ugettext_lazy as _
 from django_filters.filters import CharFilter, ModelChoiceFilter, DateFilter
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.rest_framework.filterset import FilterSet
-from rest_framework import serializers
 from rest_framework import serializers
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
@@ -22,7 +19,7 @@ from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, AllowAny)
 from rest_framework.viewsets import GenericViewSet
 
-from sapl.api.serializers import ModelChoiceSerializer, AutorSerializer,\
+from sapl.api.serializers import ModelChoiceSerializer, AutorSerializer, \
     ChoiceSerializer
 from sapl.base.models import TipoAutor, Autor, CasaLegislativa
 from sapl.materia.models import MateriaLegislativa
@@ -514,7 +511,7 @@ class AutorListView(ListAPIView):
     model = Autor
 
     filter_class = AutorChoiceFilterSet
-    filter_backends = (DjangoFilterBackend, )
+    filter_backends = (DjangoFilterBackend,)
     serializer_class = AutorChoiceSerializer
 
     @property
@@ -660,7 +657,7 @@ class MateriaLegislativaViewSet(ListModelMixin,
     serializer_class = MateriaLegislativaOldSerializer
     queryset = MateriaLegislativa.objects.all()
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('numero', 'ano', 'tipo', )
+    filter_fields = ('numero', 'ano', 'tipo',)
 
 
 class SessaoPlenariaViewSet(ListModelMixin,

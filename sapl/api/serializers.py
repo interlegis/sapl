@@ -1,16 +1,18 @@
 import logging
+
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.db.models import F, Q
+from django.db.models import Q
+from image_cropping.utils import get_backend
 from rest_framework import serializers
 from rest_framework.relations import StringRelatedField
-from sapl.parlamentares.models import Parlamentar, Mandato, Filiacao, Legislatura
+
 from sapl.base.models import Autor, CasaLegislativa
-from sapl.utils import filiacao_data
-from image_cropping.utils import get_backend
+from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
 
 
 class IntRelatedField(StringRelatedField):
+
     def to_representation(self, value):
         return int(value)
 
@@ -86,33 +88,33 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
     fotografia_cropped = serializers.SerializerMethodField('crop_fotografia')
     logger = logging.getLogger(__name__)
 
-    def crop_fotografia(self,obj):
+    def crop_fotografia(self, obj):
         thumbnail_url = ""
         try:
             import os
             if not obj.fotografia or not os.path.exists(obj.fotografia.path):
                 return thumbnail_url
-            thumbnail_url = get_backend().get_thumbnail_url( 
-                obj.fotografia, 
-                { 
-                    'size': (128, 128), 
-                    'box': obj.cropping, 
-                    'crop': True, 
-                    'detail': True, 
-                } 
+            thumbnail_url = get_backend().get_thumbnail_url(
+                obj.fotografia,
+                {
+                    'size': (128, 128),
+                    'box': obj.cropping,
+                    'crop': True,
+                    'detail': True,
+                }
             )
         except Exception as e:
             self.logger.error(e)
             self.logger.error('erro processando arquivo: %s' % obj.fotografia.path)
-        
+
         return thumbnail_url
 
-    def check_titular(self,obj):
+    def check_titular(self, obj):
         is_titular = None
         if not Legislatura.objects.exists():
             self.logger.error("Não há legislaturas cadastradas.")
             return ""
-        
+
         try:
             legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
         except ObjectDoesNotExist:
@@ -125,17 +127,17 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
         if mandato:
             is_titular = 'Sim' if mandato.titular else 'Não'
         else:
-            is_titular = '-'        
+            is_titular = '-'
         return is_titular
 
-    def check_partido(self,obj):
+    def check_partido(self, obj):
         # Coloca a filiação atual ao invés da última
         # As condições para mostrar a filiação são:
         # A data de filiacao deve ser menor que a data de fim
         # da legislatura e data de desfiliação deve nula, ou maior,
         # ou igual a data de fim da legislatura
-        
-        username =  self.context['request'].user.username
+
+        username = self.context['request'].user.username
         if not Legislatura.objects.exists():
             self.logger.error("Não há legislaturas cadastradas.")
             return ""
@@ -143,7 +145,7 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
             legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
         except ObjectDoesNotExist:
             legislatura = Legislatura.objects.first()
-    
+
         try:
             self.logger.debug("user=" + username + ". Tentando obter filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
                               "ou (data<={} e data_desfiliacao=Null))."
@@ -174,7 +176,7 @@ class ParlamentarResumeSerializer(serializers.ModelSerializer):
             self.logger.debug("user=" + username +
                               ". Filiação encontrada com sucesso.")
             filiacao = filiacao.partido.sigla
-        
+
         return filiacao
 
     class Meta:

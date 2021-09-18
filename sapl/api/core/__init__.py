@@ -22,11 +22,12 @@ from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.core.filters import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
-from sapl.api.serializers import ChoiceSerializer, ParlamentarSerializer,\
+from sapl.api.serializers import ChoiceSerializer, ParlamentarSerializer, \
     ParlamentarEditSerializer, ParlamentarResumeSerializer
 
 
 class BusinessRulesNotImplementedMixin:
+
     def create(self, request, *args, **kwargs):
         raise Exception(_("POST Create não implementado"))
 
@@ -126,6 +127,7 @@ class SaplApiViewSetConstrutor():
                 # Define uma classe padrão para filtro caso não tenha sido
                 # criada a classe sapl.api.forms.{model}FilterSet
                 class SaplFilterSet(_filterset_class):
+
                     class Meta(_meta_filterset):
                         if not hasattr(_meta_filterset, 'model'):
                             model = _model
@@ -158,7 +160,6 @@ class SaplApiViewSetConstrutor():
                 cls._built_sets[app][model] = build(model)
 
         return cls
-
 
 """
 1. Constroi uma rest_framework.viewsets.ModelViewSet para
@@ -232,6 +233,7 @@ class SaplApiViewSetConstrutor():
 
 
 class wrapper_queryset_response_for_drf_action(object):
+
     def __init__(self, model):
         self.model = model
 
@@ -268,6 +270,7 @@ class wrapper_queryset_response_for_drf_action(object):
 
 # decorator para recuperar e transformar o default
 class customize(object):
+
     def __init__(self, model):
         self.model = model
 

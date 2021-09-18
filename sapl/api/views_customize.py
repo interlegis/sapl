@@ -8,23 +8,22 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sapl.api.core import customize, SaplApiViewSetConstrutor,\
-    wrapper_queryset_response_for_drf_action,\
+from sapl.api.core import customize, SaplApiViewSetConstrutor, \
+    wrapper_queryset_response_for_drf_action, \
     BusinessRulesNotImplementedMixin
 from sapl.api.permissions import SaplModelPermissions
 from sapl.api.serializers import ChoiceSerializer, \
     ParlamentarEditSerializer, ParlamentarResumeSerializer
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
-from sapl.materia.models import Proposicao, TipoMateriaLegislativa,\
+from sapl.materia.models import Proposicao, TipoMateriaLegislativa, \
     MateriaLegislativa, Tramitacao
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Mandato, Legislatura
 from sapl.parlamentares.models import Parlamentar
-from sapl.protocoloadm.models import DocumentoAdministrativo,\
+from sapl.protocoloadm.models import DocumentoAdministrativo, \
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
-
 
 SaplApiViewSetConstrutor = SaplApiViewSetConstrutor.build_class()
 
@@ -33,7 +32,7 @@ SaplApiViewSetConstrutor = SaplApiViewSetConstrutor.build_class()
 class _AutorViewSet:
     # Customização para AutorViewSet com implementação de actions específicas
     """
-    Neste exemplo de customização do que foi criado em
+    Nesta customização do que foi criado em
     SaplApiViewSetConstrutor além do ofertado por
     rest_framework.viewsets.ModelViewSet, dentre outras customizações
     possíveis, foi adicionado as rotas referentes aos relacionamentos genéricos
@@ -100,7 +99,9 @@ class _AutorViewSet:
 
 @customize(Parlamentar)
 class _ParlamentarViewSet:
+
     class ParlamentarPermission(SaplModelPermissions):
+
         def has_permission(self, request, view):
             if request.method == 'GET':
                 return True
@@ -108,7 +109,7 @@ class _ParlamentarViewSet:
                 perm = super().has_permission(request, view)
                 return perm
 
-    permission_classes = (ParlamentarPermission, )
+    permission_classes = (ParlamentarPermission,)
 
     def get_serializer(self, *args, **kwargs):
         if self.request.user.has_perm('parlamentares.add_parlamentar'):
@@ -219,7 +220,9 @@ class _ProposicaoViewSet:
                 * Pode recuperar qualquer das proposições incorporadas
 
     """
+
     class ProposicaoPermission(SaplModelPermissions):
+
         def has_permission(self, request, view):
             if request.method == 'GET':
                 return True
@@ -234,7 +237,7 @@ class _ProposicaoViewSet:
                 # não é list ou detail, então passa pelas regras de permissão e,
                 # depois disso ainda passa pelo filtro de get_queryset
 
-    permission_classes = (ProposicaoPermission, )
+    permission_classes = (ProposicaoPermission,)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -259,6 +262,7 @@ class _ProposicaoViewSet:
 
 @customize(MateriaLegislativa)
 class _MateriaLegislativaViewSet:
+
     class Meta:
         ordering = ['-ano', 'tipo', 'numero']
 
@@ -305,6 +309,7 @@ class _TipoMateriaLegislativaViewSet:
 class _DocumentoAdministrativoViewSet:
 
     class DocumentoAdministrativoPermission(SaplModelPermissions):
+
         def has_permission(self, request, view):
             if request.method == 'GET':
                 comportamento = AppConfig.attr('documentos_administrativos')
@@ -320,7 +325,7 @@ class _DocumentoAdministrativoViewSet:
                     """
             return super().has_permission(request, view)
 
-    permission_classes = (DocumentoAdministrativoPermission, )
+    permission_classes = (DocumentoAdministrativoPermission,)
 
     def get_queryset(self):
         """
@@ -340,7 +345,7 @@ class _DocumentoAdministrativoViewSet:
 class _DocumentoAcessorioAdministrativoViewSet:
 
     permission_classes = (
-        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -355,7 +360,7 @@ class _TramitacaoAdministrativoViewSet(BusinessRulesNotImplementedMixin):
     # TODO: Implementar regras de manutenção das tramitações de docs adms
 
     permission_classes = (
-        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -369,7 +374,7 @@ class _TramitacaoAdministrativoViewSet(BusinessRulesNotImplementedMixin):
 class _AnexadoViewSet(BusinessRulesNotImplementedMixin):
 
     permission_classes = (
-        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission, )
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,)
 
     def get_queryset(self):
         qs = super().get_queryset()

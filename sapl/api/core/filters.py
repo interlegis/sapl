@@ -3,11 +3,11 @@ from collections import OrderedDict
 
 from django.db.models.fields.files import FileField
 from django.template.defaultfilters import capfirst
-import django_filters
 from django_filters.constants import ALL_FIELDS
 from django_filters.filters import CharFilter
 from django_filters.filterset import FilterSet
 from django_filters.utils import resolve_field, get_all_model_fields
+import django_filters
 
 
 class SaplFilterSetMixin(FilterSet):
