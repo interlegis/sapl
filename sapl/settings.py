@@ -320,10 +320,20 @@ FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
+LOGGING_CONSOLE_VERBOSE = config('LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
 
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s ' + host + ' %(pathname)s %(name)s:%(funcName)s:%(lineno)d %(message)s'
@@ -336,7 +346,14 @@ LOGGING = {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
+            'filters': ['require_debug_true'],
             'formatter': 'simple',
+        },
+        'console_verbose': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'filters': ['require_debug_true'],
+            'formatter': 'verbose',
         },
         'applogfile': {
             'level': 'INFO',
@@ -349,8 +366,8 @@ LOGGING = {
     },
     'loggers': {
         'sapl': {
-            'handlers': ['applogfile'],
-            'level': 'INFO',
+            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
+            'level': 'DEBUG' if LOGGING_CONSOLE_VERBOSE else 'INFO',
             'propagate': True,
         },
         'django': {
