@@ -84,7 +84,7 @@ class SaplApiViewSetConstrutor():
             _serializer_class = serializers_classes.get(
                 serializer_name, rest_serializers.ModelSerializer)
 
-            # Caso Exista, pega a classe sapl.api.forms.{model}FilterSet
+            # Caso Exista, pega a classe sapl.api.core.forms.{model}FilterSet
             # ou utiliza a base definida em
             # sapl.api.core.filters.SaplFilterSetMixin
             filter_name = f'{object_name}FilterSet'
@@ -97,7 +97,7 @@ class SaplApiViewSetConstrutor():
                     _serializer_class, 'Meta') else _serializer_class.Meta
 
                 # Define uma classe padrão para serializer caso não tenha sido
-                # criada a classe sapl.api.serializers.{model}Serializer
+                # criada a classe sapl.api.core.serializers.{model}Serializer
                 class SaplSerializer(_serializer_class):
                     __str__ = SerializerMethodField()
 
@@ -138,12 +138,12 @@ class SaplApiViewSetConstrutor():
                     queryset = _model.objects.all()
 
                     # Utiliza o filtro customizado pela classe
-                    # sapl.api.forms.{model}FilterSet
+                    # sapl.api.core.forms.{model}FilterSet
                     # ou utiliza o trivial SaplFilterSet definido acima
                     filterset_class = SaplFilterSet
 
                     # Utiliza o serializer customizado pela classe
-                    # sapl.api.serializers.{model}Serializer
+                    # sapl.api.core.serializers.{model}Serializer
                     # ou utiliza o trivial SaplSerializer definido acima
                     serializer_class = SaplSerializer
 
@@ -168,15 +168,15 @@ class SaplApiViewSetConstrutor():
 2. Define DjangoFilterBackend como ferramenta de filtro dos campos
 3. Define Serializer como a seguir:
     3.1 - Define um Serializer genérico para cada módel
-    3.2 - Recupera Serializer customizado em sapl.api.serializers
+    3.2 - Recupera Serializer customizado em sapl.api.core.serializers
     3.3 - Para todo model é opcional a existência de
-          sapl.api.serializers.{model}Serializer.
+          sapl.api.core.serializers.{model}Serializer.
           Caso não seja definido um Serializer customizado, utiliza-se o trivial
 4. Define um FilterSet como a seguir:
     4.1 - Define um FilterSet genérico para cada módel
-    4.2 - Recupera FilterSet customizado em sapl.api.forms
+    4.2 - Recupera FilterSet customizado em sapl.api.core.forms
     4.3 - Para todo model é opcional a existência de
-          sapl.api.forms.{model}FilterSet.
+          sapl.api.core.forms.{model}FilterSet.
           Caso não seja definido um FilterSet customizado, utiliza-se o trivial
     4.4 - todos os campos que aceitam lookup 'exact'
           podem ser filtrados por default
