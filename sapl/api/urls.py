@@ -8,7 +8,7 @@ from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet
     AutoresProvaveisListView, AutoresPossiveisListView, AutorListView, \
     ModelChoiceView
 from sapl.api.views import AppVersionView, recria_token
-from sapl.api.views_customize import SaplApiViewSetConstrutor
+from sapl.api.viewset import SaplApiViewSetConstrutor
 
 from .apps import AppConfig
 

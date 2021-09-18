@@ -19,8 +19,8 @@ from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, AllowAny)
 from rest_framework.viewsets import GenericViewSet
 
-from sapl.api.serializers import ModelChoiceSerializer, AutorSerializer, \
-    ChoiceSerializer
+from sapl.api.core.serializers import ModelChoiceSerializer, ChoiceSerializer
+from sapl.api.serializers import AutorSerializer
 from sapl.base.models import TipoAutor, Autor, CasaLegislativa
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import Legislatura

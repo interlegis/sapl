@@ -5,9 +5,9 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db.models import Q
 from image_cropping.utils import get_backend
 from rest_framework import serializers
-from rest_framework.relations import StringRelatedField
 
-from sapl.base.models import Autor, CasaLegislativa
+from sapl.api.core.serializers import ModelChoiceObjectRelatedField
+from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
 
 
@@ -22,18 +22,7 @@ class AutorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CasaLegislativaSerializer(serializers.ModelSerializer):
-    version = serializers.SerializerMethodField()
-
-    def get_version(self, obj):
-        return settings.SAPL_VERSION
-
-    class Meta:
-        model = CasaLegislativa
-        fields = '__all__'
-
-
-class ParlamentarSerializer(serializers.ModelSerializer):
+class ParlamentarSerializerPublic(serializers.ModelSerializer):
 
     class Meta:
         model = Parlamentar
@@ -43,14 +32,7 @@ class ParlamentarSerializer(serializers.ModelSerializer):
                    "telefone_residencia", "titulo_eleitor", "fax_residencia"]
 
 
-class ParlamentarEditSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Parlamentar
-        fields = '__all__'
-
-
-class ParlamentarResumeSerializer(serializers.ModelSerializer):
+class ParlamentarSerializerVerbose(serializers.ModelSerializer):
     titular = serializers.SerializerMethodField('check_titular')
     partido = serializers.SerializerMethodField('check_partido')
     fotografia_cropped = serializers.SerializerMethodField('crop_fotografia')

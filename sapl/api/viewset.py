@@ -11,9 +11,10 @@ from rest_framework.response import Response
 from sapl.api.core import customize, SaplApiViewSetConstrutor, \
     wrapper_queryset_response_for_drf_action, \
     BusinessRulesNotImplementedMixin
+from sapl.api.core.serializers import ChoiceSerializer
 from sapl.api.permissions import SaplModelPermissions
-from sapl.api.serializers import ChoiceSerializer, \
-    ParlamentarEditSerializer, ParlamentarResumeSerializer
+from sapl.api.serializers import ParlamentarSerializerVerbose, \
+    ParlamentarSerializerPublic
 from sapl.base.models import Autor, AppConfig, DOC_ADM_OSTENSIVO
 from sapl.materia.models import Proposicao, TipoMateriaLegislativa, \
     MateriaLegislativa, Tramitacao
@@ -112,8 +113,8 @@ class _ParlamentarViewSet:
     permission_classes = (ParlamentarPermission,)
 
     def get_serializer(self, *args, **kwargs):
-        if self.request.user.has_perm('parlamentares.add_parlamentar'):
-            self.serializer_class = ParlamentarEditSerializer
+        if not self.request.user.has_perm('parlamentares.add_parlamentar'):
+            self.serializer_class = ParlamentarSerializerPublic
         return super().get_serializer(*args, **kwargs)
 
     @action(detail=True)
@@ -147,7 +148,7 @@ class _ParlamentarViewSet:
         nome = request.query_params.get('nome_parlamentar', '')
         parlamentares = Parlamentar.objects.filter(
             nome_parlamentar__icontains=nome)
-        serializer_class = ParlamentarResumeSerializer(
+        serializer_class = ParlamentarSerializerVerbose(
             parlamentares, many=True, context={'request': request})
         return Response(serializer_class.data)
 
@@ -164,7 +165,7 @@ class _LegislaturaViewSet:
             }
 
         def get_serializer_class():
-            return ParlamentarResumeSerializer
+            return ParlamentarSerializerVerbose
 
         self.get_serializer_context = get_serializer_context
         self.get_serializer_class = get_serializer_class

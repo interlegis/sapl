@@ -22,8 +22,6 @@ from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.core.filters import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
-from sapl.api.serializers import ChoiceSerializer, ParlamentarSerializer, \
-    ParlamentarEditSerializer, ParlamentarResumeSerializer
 
 # ATENÇÃO: MUDANÇAS NO CORE DEVEM SER REALIZADAS COM
 #          EXTREMA CAUTELA
@@ -55,7 +53,7 @@ class SaplApiViewSetConstrutor():
     @classonlymethod
     def build_class(cls):
         import inspect
-        from sapl.api import serializers
+        from sapl.api.core import serializers
 
         # Carrega todas as classes de sapl.api.serializers que possuam
         # "Serializer" como Sufixo.
