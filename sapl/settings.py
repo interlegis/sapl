@@ -22,12 +22,12 @@ from dj_database_url import parse as db_url
 from easy_thumbnails.conf import Settings as thumbnail_settings
 from unipath import Path
 
+logging.captureWarnings(True)
 
 host = socket.gethostbyname_ex(socket.gethostname())[0]
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
@@ -47,7 +47,6 @@ if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
 
 # SAPL business apps in dependency order
 SAPL_APPS = (
@@ -139,7 +138,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar', )
+    INSTALLED_APPS += ('debug_toolbar',)
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
     INTERNAL_IPS = ('127.0.0.1')
 
@@ -185,7 +184,6 @@ CACHES = {
     }
 }
 
-
 ROOT_URLCONF = 'sapl.urls'
 
 TEMPLATES = [
@@ -211,7 +209,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
 
@@ -284,7 +281,7 @@ WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
         'BUNDLE_DIR_NAME': 'sapl/static/sapl/frontend',
-        'STATS_FILE':  PROJECT_DIR.child('frontend').child(f'{"dev-" if DEBUG else ""}webpack-stats.json'),
+        'STATS_FILE': PROJECT_DIR.child('frontend').child(f'{"dev-" if DEBUG else ""}webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
@@ -293,7 +290,6 @@ WEBPACK_LOADER = {
 if DEBUG and not WEBPACK_LOADER['DEFAULT']['STATS_FILE'].exists():
     WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = PROJECT_DIR.child(
         'frontend').child(f'webpack-stats.json')
-
 
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
@@ -327,6 +323,7 @@ FILTERS_HELP_TEXT_FILTER = False
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s ' + host + ' %(pathname)s %(name)s:%(funcName)s:%(lineno)d %(message)s'
@@ -369,15 +366,4 @@ PASSWORD_HASHERS = [
     'sapl.hashers.ZopeSHA1PasswordHasher',
 ]
 
-
-def remove_warnings():
-    import warnings
-    warnings.filterwarnings(
-        'ignore', module='floppyforms',
-        message='Unable to import floppyforms.gis'
-    )
-
-
 LOGOUT_REDIRECT_URL = '/login'
-
-remove_warnings()
