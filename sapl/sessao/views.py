@@ -1,16 +1,16 @@
 
-import logging
 from collections import OrderedDict
 from re import sub
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
 from django.db.models import Max, Q
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
@@ -51,7 +51,6 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
                      ORDENACAO_RESUMO, RegistroLeitura)
-
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
@@ -307,7 +306,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
                 page_number = ""
                 if 'page' in context:
-                    #url += "?page={}".format(context['page'])
+                    # url += "?page={}".format(context['page'])
                     page_number = "<input type='hidden' name='page' value='%s' />" % context['page']
 
                 if has_permission:
@@ -649,7 +648,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             numero_ordem = exp.last().numero_ordem if exp.exists() else 0
             for num_ordem, expediente in enumerate(
                 ExpedienteMateria.objects.filter(id__in=marcadas),
-                numero_ordem+1
+                numero_ordem + 1
             ):
                 lista_expediente.append(
                     ExpedienteMateria(
@@ -669,7 +668,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             o = OrdemDia.objects.filter(sessao_plenaria=sessao)
             numero_ordem = o.last().numero_ordem if o.exists() else 0
             for num_ordem, ordemdia in enumerate(
-                OrdemDia.objects.filter(id__in=marcadas), numero_ordem+1
+                OrdemDia.objects.filter(id__in=marcadas), numero_ordem + 1
             ):
                 lista_ordemdia.append(
                     OrdemDia(
@@ -700,7 +699,7 @@ class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
     listagem_url = 'sapl.sessao:expedientemateria_list'
 
     model = ExpedienteMateria
-    permission_required = ('sessao.change_expedientemateria', )
+    permission_required = ('sessao.change_expedientemateria',)
 
 
 class TransferenciaMateriasOrdemDia(TransferenciaMateriasSessaoAbstract):
@@ -711,7 +710,7 @@ class TransferenciaMateriasOrdemDia(TransferenciaMateriasSessaoAbstract):
     listagem_url = 'sapl.sessao:ordemdia_list'
 
     model = OrdemDia
-    permission_required = ('sessao.change_ordemdia', )
+    permission_required = ('sessao.change_ordemdia',)
 
 
 class TipoExpedienteCrud(CrudAux):
@@ -1349,7 +1348,7 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+                +request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1464,7 +1463,7 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+                +request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -2190,6 +2189,7 @@ def get_ocorrencias_da_sessao(sessao_plenaria):
     context = {'ocorrencias_da_sessao': ocorrencias_sessao}
     return context
 
+
 def get_consideracoes_finais(sessao_plenaria):
     consideracoes_finais = ConsideracoesFinais.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id)
@@ -2358,7 +2358,6 @@ class ResumoView(DetailView):
 class ResumoAtaView(ResumoView):
     template_name = 'sessao/resumo_ata.html'
     logger = logging.getLogger(__name__)
-    logger.debug('Gerando Resumo.')
 
 
 class ExpedienteView(FormMixin, DetailView):
@@ -2518,6 +2517,7 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:ocorrencia_sessao', kwargs={'pk': pk})
 
+
 class ConsideracoesFinaisView(FormMixin, DetailView):
     template_name = 'sessao/consideracoes_finais.html'
     form_class = OcorrenciaSessaoForm
@@ -2582,6 +2582,7 @@ class ConsideracoesFinaisView(FormMixin, DetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:consideracoes_finais', kwargs={'pk': pk})
+
 
 class VotacaoEditView(SessaoPermissionMixin):
 
@@ -3867,7 +3868,6 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     template_name = 'sessao/pauta_sessao_filter.html'
 
     logger = logging.getLogger(__name__)
-    logger.debug('Pesquisa de PautaSessao.')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
