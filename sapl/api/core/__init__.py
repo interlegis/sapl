@@ -25,6 +25,9 @@ from sapl.api.permissions import SaplModelPermissions
 from sapl.api.serializers import ChoiceSerializer, ParlamentarSerializer, \
     ParlamentarEditSerializer, ParlamentarResumeSerializer
 
+# ATENÇÃO: MUDANÇAS NO CORE DEVEM SER REALIZADAS COM
+#          EXTREMA CAUTELA
+
 
 class BusinessRulesNotImplementedMixin:
 
@@ -65,7 +68,7 @@ class SaplApiViewSetConstrutor():
 
         # Carrega todas as classes de sapl.api.forms que possuam
         # "FilterSet" como Sufixo.
-        from sapl.api import forms
+        from sapl.api.core import forms
         filters_classes = inspect.getmembers(forms)
         filters_classes = {i[0]: i[1] for i in filter(
             lambda x: x[0].endswith('FilterSet'),
