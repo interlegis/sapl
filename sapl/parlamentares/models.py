@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
+from prompt_toolkit.key_binding.bindings.named_commands import self_insert
 import reversion
 
 from sapl.base.models import Autor
@@ -311,7 +312,7 @@ class Parlamentar(models.Model):
     @property
     def avatar_html(self):
         return '<img class="avatar-parlamentar" src='\
-            + self.fotografia.url + '>'if self.fotografia else ''
+            +self.fotografia.url + '>'if self.fotografia else ''
 
     def delete(self, using=None, keep_parents=False):
         if self.fotografia:
@@ -496,6 +497,7 @@ class CargoMesa(models.Model):
     def __str__(self):
         return self.descricao
 
+
 @reversion.register()
 class MesaDiretora(models.Model):
     data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
@@ -531,6 +533,7 @@ class ComposicaoMesa(models.Model):
         return _('%(parlamentar)s - %(cargo)s') % {
             'parlamentar': self.parlamentar, 'cargo': self.cargo
         }
+
 
 @reversion.register()
 class Frente(models.Model):
