@@ -44,7 +44,6 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
                      Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro, MesaDiretora)
 
-
 FrenteCargoCrud = CrudAux.build(FrenteCargo, 'frente_cargo')
 BlocoCargoCrud = CrudAux.build(BlocoCargo, 'bloco_cargo')
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
@@ -154,7 +153,7 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
     class ListView(CrudBaseForListAndDetailExternalAppView.ListView):
 
         def get_context_data(self, **kwargs):
-            context = CrudBaseForListAndDetailExternalAppView\
+            context = CrudBaseForListAndDetailExternalAppView \
                 .ListView.get_context_data(self, **kwargs)
             return context
 
@@ -172,14 +171,13 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
         @property
         def extras_url(self):
-
             if self.object.texto_articulado.exists():
                 ta = self.object.texto_articulado.first()
                 yield (str(reverse_lazy(
                     'sapl.compilacao:ta_text',
                     kwargs={'ta_id': ta.pk})) + '?back_type=history',
-                    'btn-success',
-                    _('Texto Eletrônico'))
+                       'btn-success',
+                       _('Texto Eletrônico'))
 
 
 class PesquisarParlamentarView(FilterView):
@@ -361,14 +359,21 @@ class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 
             comissoes = []
             for p in object_list:
+                ## TODO: atualmente periodo.data_fim pode ser nulo o que pode gerar um erro nessa tela
+                data_fim = p.composicao.periodo.data_fim
+                if data_fim:
+                    data_fim = data_fim.strftime("%d/%m/%Y")
+                else:
+                    data_fim = ' - '
+
                 comissao = [
                     (p.composicao.comissao.nome, reverse(
                         'sapl.comissoes:comissao_detail', kwargs={
                             'pk': p.composicao.comissao.pk})),
                     (p.cargo.nome, None),
                     (p.composicao.periodo.data_inicio.strftime(
-                     "%d/%m/%Y") + ' a ' +
-                     p.composicao.periodo.data_fim.strftime("%d/%m/%Y"),
+                        "%d/%m/%Y") + ' a ' +
+                     data_fim,
                      None)
                 ]
                 comissoes.append(comissao)
@@ -558,8 +563,8 @@ class FrenteParlamentarCrud(MasterDetailCrud):
 def get_parlamentar_frentes(request, pk):
     template_name = 'parlamentares/parlamentar_frentes_list.html'
     frentes = [f for f in FrenteParlamentar.objects.filter(parlamentar_id=pk)
-                                                   .select_related('frente', 'cargo')
-                                                   .order_by('-data_entrada', '-data_saida')]
+        .select_related('frente', 'cargo')
+        .order_by('-data_entrada', '-data_saida')]
 
     context = {
         'subnav_template_name': 'parlamentares/subnav.yaml',
@@ -605,7 +610,7 @@ class MandatoCrud(MasterDetailCrud):
 
         def get_initial(self):
             return {'parlamentar': Parlamentar.objects.get(
-                    pk=self.kwargs['pk'])}
+                pk=self.kwargs['pk'])}
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = MandatoForm
@@ -629,7 +634,6 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
 
 
 class LegislaturaCrud(CrudAux):
-
     model = Legislatura
     help_topic = 'legislatura'
 
@@ -840,20 +844,20 @@ class ParlamentarMateriasView(FormView):
 
         autoria = Autoria.objects.filter(
             autor=autor, primeiro_autor=True).values(
-                'materia__ano',
-                'materia__tipo__pk',
-                'materia__tipo__sigla',
-                'materia__tipo__descricao').annotate(
-                    total=Count('materia__tipo__pk')).order_by(
-                        '-materia__ano', 'materia__tipo')
+            'materia__ano',
+            'materia__tipo__pk',
+            'materia__tipo__sigla',
+            'materia__tipo__descricao').annotate(
+            total=Count('materia__tipo__pk')).order_by(
+            '-materia__ano', 'materia__tipo')
 
         coautoria = Autoria.objects.filter(
             autor=autor, primeiro_autor=False).values(
-                'materia__ano',
-                'materia__tipo__pk',
-                'materia__tipo__sigla',
-                'materia__tipo__descricao').annotate(
-                    total=Count('materia__tipo__pk')).order_by(
+            'materia__ano',
+            'materia__tipo__pk',
+            'materia__tipo__sigla',
+            'materia__tipo__descricao').annotate(
+            total=Count('materia__tipo__pk')).order_by(
             '-materia__ano', 'materia__tipo')
 
         autor_list = self.get_autoria(autoria)
@@ -912,8 +916,8 @@ class MesaDiretoraView(FormView):
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
-                'legislatura_selecionada': Legislatura.objects.last(),
-                'cargos_vagos': CargoMesa.objects.all()})
+             'legislatura_selecionada': Legislatura.objects.last(),
+             'cargos_vagos': CargoMesa.objects.all()})
 
     @xframe_options_exempt
     def get(self, request, *args, **kwargs):
@@ -933,7 +937,7 @@ class MesaDiretoraView(FormView):
 
         mesa_diretora = sessao_atual.mesadiretora_set.order_by(
             '-data_inicio').first() if sessao_atual else None
-        
+
         composicao = mesa_diretora.composicaomesa_set.all() if mesa_diretora else []
 
         cargos_ocupados = [m.cargo for m in composicao]
@@ -955,13 +959,13 @@ class MesaDiretoraView(FormView):
         return self.render_to_response(
             {'legislaturas': Legislatura.objects.all(
             ).order_by('-numero'),
-                'legislatura_selecionada': legislatura,
-                'sessoes': sessoes,
-                'sessao_selecionada': sessao_atual,
-                'composicao_mesa': composicao,
-                'parlamentares': parlamentares_vagos,
-                'cargos_vagos': cargos_vagos
-            })
+             'legislatura_selecionada': legislatura,
+             'sessoes': sessoes,
+             'sessao_selecionada': sessao_atual,
+             'composicao_mesa': composicao,
+             'parlamentares': parlamentares_vagos,
+             'cargos_vagos': cargos_vagos
+             })
 
 
 def altera_field_mesa(request):
@@ -971,14 +975,14 @@ def altera_field_mesa(request):
         operação (Legislatura/Sessão/Inclusão/Remoção),
         atualizando os campos após cada alteração
     """
-    #TODO: Adicionar opção de selecionar mesa diretora no CRUD
+    # TODO: Adicionar opção de selecionar mesa diretora no CRUD
 
     logger = logging.getLogger(__name__)
     legislatura = request.GET['legislatura']
     sessoes = SessaoLegislativa.objects.filter(
         legislatura=legislatura).order_by('-data_inicio')
     username = request.user.username
-    
+
     if not sessoes:
         return JsonResponse({'msg': ('Nenhuma sessão encontrada!', 0)})
 
@@ -1003,12 +1007,12 @@ def altera_field_mesa(request):
 
     mesa_diretora = request.GET.get('mesa_diretora')
 
-    #Mesa nao deve ser informada ainda
+    # Mesa nao deve ser informada ainda
     if not mesa_diretora:
-        #Cria nova mesa diretora ou retorna a primeira
+        # Cria nova mesa diretora ou retorna a primeira
         mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada)
-            
-        #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
+
+        # TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
         #      deve-se somente tentar recuperar a mesa, e caso nao exista
         #      retornar o erro abaixo
         #      return JsonResponse({'msg': ('Nenhuma mesa encontrada na sessão!')})
@@ -1060,11 +1064,11 @@ def insere_parlamentar_composicao(request):
     username = request.user.username
     if request.user.has_perm(
             '%s.add_%s' % (
-                AppConfig.label, ComposicaoMesa._meta.model_name)):
+                    AppConfig.label, ComposicaoMesa._meta.model_name)):
         composicao = ComposicaoMesa()
-        
+
         try:
-            #logger.debug(
+            # logger.debug(
             #    "user=" + username + ". Tentando obter SessaoLegislativa com id={}.".format(request.POST['sessao']))
             mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa_id=int(request.POST['sessao']))
             composicao.mesa_diretora = mesa_diretora
@@ -1120,8 +1124,8 @@ def remove_parlamentar_composicao(request):
     logger = logging.getLogger(__name__)
     username = request.user.username
     if request.POST and request.user.has_perm(
-        '%s.delete_%s' % (
-            AppConfig.label, ComposicaoMesa._meta.model_name)):
+            '%s.delete_%s' % (
+                    AppConfig.label, ComposicaoMesa._meta.model_name)):
 
         if 'composicao_mesa' in request.POST:
             try:
@@ -1130,8 +1134,9 @@ def remove_parlamentar_composicao(request):
                 composicao = ComposicaoMesa.objects.get(
                     id=request.POST['composicao_mesa'])
             except ObjectDoesNotExist:
-                logger.error("user=" + username + ". ComposicaoMesa com id={} não encontrada, portanto não pode ser removida."
-                             .format(request.POST['composicao_mesa']))
+                logger.error(
+                    "user=" + username + ". ComposicaoMesa com id={} não encontrada, portanto não pode ser removida."
+                    .format(request.POST['composicao_mesa']))
                 return JsonResponse(
                     {'msg': (
                         'Composição da Mesa não pôde ser removida!', 0)})
@@ -1204,7 +1209,7 @@ def altera_field_mesa_public_view(request):
         atualizando os campos após cada alteração
     """
 
-    #TODO: Adicionar opção de selecionar mesa diretora no CRUD
+    # TODO: Adicionar opção de selecionar mesa diretora no CRUD
 
     logger = logging.getLogger(__name__)
     username = request.user.username
@@ -1227,11 +1232,11 @@ def altera_field_mesa_public_view(request):
     if not sessao_selecionada:
         year = timezone.now().year
         logger.info(
-        f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
+            f"user={username}. Tentando obter sessões com data_inicio.ano = {year}.")
         sessao_selecionada = sessoes.filter(data_inicio__year=year).first()
         if sessao_selecionada is None:
             logger.error(f"user={username}. Sessões não encontradas com com data_inicio.ano = {year}. "
-                          "Selecionado o id da primeira sessão.")
+                         "Selecionado o id da primeira sessão.")
             sessao_selecionada = sessoes.first()
     else:
         sessao_selecionada = SessaoLegislativa.objects.get(id=sessao_selecionada)
@@ -1239,20 +1244,20 @@ def altera_field_mesa_public_view(request):
     # Atualiza os componentes da view após a mudança
     lista_sessoes = [(s.id, s.__str__()) for s in sessoes]
 
-    #Pegar Mesas diretoras da sessao
+    # Pegar Mesas diretoras da sessao
     mesa_diretora = request.GET.get('mesa_diretora')
 
-    #Mesa nao deve ser informada ainda
+    # Mesa nao deve ser informada ainda
     if not mesa_diretora:
         try:
             mesa_diretora = sessao_selecionada.mesadiretora_set.first()
         except ObjectDoesNotExist:
             logger.error(f"user={username}. Mesa não encontrada com sessão Nº {sessao_selecionada.id}. ")
     else:
-        #Cria nova mesa diretora ou retorna a primeira
+        # Cria nova mesa diretora ou retorna a primeira
         mesa_diretora, _ = MesaDiretora.objects.get_or_create(sessao_legislativa=sessao_selecionada)
-            
-        #TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
+
+        # TODO: quando a mesa for criada explicitamente em tabelas auxiliares,
         #      deve-se somente tentar recuperar a mesa, e caso nao exista
         #      retornar o erro abaixo
         #    logger.error(f"user={username}. Mesa Nº {mesa_diretora} não encontrada na sessão Nº {sessao_selecionada.id}. "
@@ -1299,7 +1304,7 @@ def altera_field_mesa_public_view(request):
         'lista_sessoes': lista_sessoes,
         'lista_fotos': lista_fotos,
         'sessao_selecionada': sessao_selecionada.id,
-        'mesa_diretora':mesa_diretora.id,
+        'mesa_diretora': mesa_diretora.id,
         'msg': ('', 1)
     })
 
@@ -1308,7 +1313,7 @@ class VincularParlamentarView(PermissionRequiredMixin, FormView):
     logger = logging.getLogger(__name__)
     form_class = VincularParlamentarForm
     template_name = 'parlamentares/vincular_parlamentar.html'
-    permission_required = ('parlamentares.add_parlamentar', )
+    permission_required = ('parlamentares.add_parlamentar',)
 
     def get_success_url(self):
         return reverse('sapl.parlamentares:parlamentar_list')
@@ -1392,7 +1397,6 @@ class BlocoMembroCrud(MasterDetailCrud):
 
 
 def get_sessoes_legislatura(request):
-
     legislatura_id = request.GET['legislatura']
 
     json_response = {'sessoes_legislativas': []}
