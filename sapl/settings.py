@@ -96,6 +96,7 @@ INSTALLED_APPS = (
     'speedinfo',
 
     'webpack_loader',
+    'channels'
 
 ) + SAPL_APPS
 
@@ -124,6 +125,20 @@ HAYSTACK_CONNECTIONS = {
         'BATCH_SIZE': 1000,
         'TIMEOUT': 20,
     },
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        ### Method 1: Via local Redis
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #      "hosts": [('127.0.0.1', 6379)],
+        # },
+
+        ### Method 3: Via In-memory channel layer
+        ## Using this method.
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }
 
 MIDDLEWARE = [
@@ -203,6 +218,8 @@ TEMPLATES = [
 
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
+ASGI_APPLICATION = 'sapl.asgi.application'
+
 
 CELERY_BROKER_URL = 'redis://localhost:6379'
 

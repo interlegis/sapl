@@ -35,3 +35,5 @@ whitenoise==5.1.0
 
 git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped
+channels==3.0.4
+channels-redis==3.3.0

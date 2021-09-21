@@ -643,3 +643,9 @@ def get_dados_painel(request, pk):
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(get_presentes(pk, response, None))
+
+
+def room(request, room_name):
+    return render(request, 'painel/room.html', {
+        'room_name': room_name
+    })
