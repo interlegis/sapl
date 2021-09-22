@@ -266,16 +266,12 @@ const v = new Vue({ // eslint-disable-line
 
     socket.onopen = function (e) {
       console.log('Connection established')
+      console.log(e)
+      socket.send('teste')
     }
 
     socket.onclose = function (e) {
       console.error('Ws fechou!')
-    }
-
-    socket.onmessage = function (e) {
-      console.log('got to onmessage')
-      // this.teste = JSON.parse(e.data)
-      // console.log(this.teste)
     }
 
     console.info('Start polling data...')

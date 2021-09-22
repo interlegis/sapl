@@ -6,6 +6,7 @@ class PainelConsumer(WebsocketConsumer):
     def connect(self):
         self.channel_layer.group_add('message', self.channel_name)
         self.accept()
+        self.send('Teste')
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard('message', self.channel_name)
@@ -18,8 +19,8 @@ class PainelConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'message': message
         }))
-        
-    async def send(self, event):
+
+    async def send_message (self, event):
         new_data = event['text']
         print(new_data)
         await self.send(json.dumps(new_data))

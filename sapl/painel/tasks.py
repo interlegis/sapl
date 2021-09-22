@@ -25,4 +25,4 @@ def get_cronometro():
         json_data = r.json()
         print(json_data)
 
-    async_to_sync(channel_layer.group_send)('message', {'type':'send', 'text': json_data})
+    async_to_sync(channel_layer.group_send)('message', {'type':'send_message', 'text': json_data})
