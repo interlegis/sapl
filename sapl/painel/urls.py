@@ -26,5 +26,5 @@ urlpatterns = [
 
     url(r'^voto-individual/$', votante_view,
         name='voto_individual'),
-    path(r'<str:room_name>/', room, name='room'),
+    path(r'chat/', room, name='room'),
 ]

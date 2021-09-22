@@ -645,7 +645,7 @@ def get_dados_painel(request, pk):
     return response_nenhuma_materia(get_presentes(pk, response, None))
 
 
-def room(request, room_name):
+def room(request):
     return render(request, 'painel/room.html', {
-        'room_name': room_name
+        'room_name': 'chat'
     })

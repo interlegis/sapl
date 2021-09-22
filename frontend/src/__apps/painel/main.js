@@ -17,7 +17,7 @@ const v = new Vue({ // eslint-disable-line
   el: '#app-painel',
   data () {
     return {
-      message: 'Hello VueJUS', // TODO: remove when porting to VueJS is done
+      message: null, // TODO: remove when porting to VueJS is done
       polling: null,
       painel_aberto: true,
       sessao_plenaria: '',
@@ -45,6 +45,7 @@ const v = new Vue({ // eslint-disable-line
       resultado_votacao_css: '',
       tipo_resultado: '',
       tipo_votacao: '',
+      teste: null,
       running: 0
     }
   },
@@ -251,7 +252,7 @@ const v = new Vue({ // eslint-disable-line
       this.fetchData()
 
       this.polling = setInterval(() => {
-        console.info('Fetching data from backend')
+        // console.info('Fetching data from backend')
         this.fetchData()
       }, 100)
     }
@@ -261,6 +262,22 @@ const v = new Vue({ // eslint-disable-line
     clearInterval(this.polling)
   },
   created () {
+    const socket = new WebSocket(`ws://${window.location.host}/ws/painel/`)
+
+    socket.onopen = function (e) {
+      console.log('Connection established')
+    }
+
+    socket.onclose = function (e) {
+      console.error('Ws fechou!')
+    }
+
+    socket.onmessage = function (e) {
+      console.log('got to onmessage')
+      // this.teste = JSON.parse(e.data)
+      // console.log(this.teste)
+    }
+
     console.info('Start polling data...')
     this.pollData()
   }
