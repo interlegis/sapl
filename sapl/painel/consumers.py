@@ -1,26 +1,29 @@
 import json
-from channels.generic.websocket import WebsocketConsumer
+import requests
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
-class PainelConsumer(WebsocketConsumer):
-    def connect(self):
-        self.channel_layer.group_add('message', self.channel_name)
-        self.accept()
-        self.send('Teste')
+
+class PainelConsumer(AsyncJsonWebsocketConsumer):
+    async def connect (self):
+        await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard('message', self.channel_name)
+        pass
 
-    def receive(self, text_data):
-        print('receive message')
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+    async def receive(self, text_data):
+        print('Received Message')
 
-        self.send(text_data=json.dumps({
-            'message': message
-        }))
+        print('Enviando...')
+        url_dados = 'http://localhost:8000/painel/786/dados'
 
-    async def send_message (self, event):
-        new_data = event['text']
-        print(new_data)
-        await self.send(json.dumps(new_data))
+        #response = requests.get(url_dados)
+        #print(response)
+
+        await self.send_json({
+            'message': 'teste'
+        })
+
+    async def send(self, event):
+        print('Entrou')
+    

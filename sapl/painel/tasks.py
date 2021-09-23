@@ -23,6 +23,5 @@ def get_cronometro():
         if post.ok: print('conexao realizada com sucesso')
         r = session.get('http://localhost:8000/painel/786/dados')
         json_data = r.json()
-        print(json_data)
 
     async_to_sync(channel_layer.group_send)('message', {'type':'send_message', 'text': json_data})

@@ -11,6 +11,7 @@ var time = null
 var timeEnd = null
 var audioAlertFinish = document.getElementById('audio')
 var cronometroStart = []
+const socket = new WebSocket(`ws://${window.location.host}/ws/painel/`)
 
 const v = new Vue({ // eslint-disable-line
   delimiters: ['[[', ']]'],
@@ -248,9 +249,11 @@ const v = new Vue({ // eslint-disable-line
         this.clockRunning(crono)
       }, 100)
     },
+    foi: function foi () {
+      socket.send('teste')
+    },
     pollData () {
       this.fetchData()
-
       this.polling = setInterval(() => {
         // console.info('Fetching data from backend')
         this.fetchData()
@@ -262,12 +265,15 @@ const v = new Vue({ // eslint-disable-line
     clearInterval(this.polling)
   },
   created () {
-    const socket = new WebSocket(`ws://${window.location.host}/ws/painel/`)
-
     socket.onopen = function (e) {
       console.log('Connection established')
-      console.log(e)
-      socket.send('teste')
+    }
+
+    const _this = this
+
+    socket.onmessage = function (e) {
+      _this.teste = e.data
+      console.log(_this.teste)
     }
 
     socket.onclose = function (e) {
