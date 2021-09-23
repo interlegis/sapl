@@ -24,4 +24,4 @@ def get_cronometro():
         r = session.get('http://localhost:8000/painel/786/dados')
         json_data = r.json()
 
-    async_to_sync(channel_layer.group_send)('message', {'type':'send_message', 'text': json_data})
+    async_to_sync(channel_layer.group_send)('painel', {'type':'send_data', 'message': json_data})

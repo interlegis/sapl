@@ -250,14 +250,14 @@ const v = new Vue({ // eslint-disable-line
       }, 100)
     },
     foi: function foi () {
-      socket.send('teste')
+      socket.send('Teste de entrada')
     },
     pollData () {
       this.fetchData()
       this.polling = setInterval(() => {
         // console.info('Fetching data from backend')
-        this.fetchData()
-      }, 100)
+        this.foi()
+      }, 30000)
     }
   },
   beforeDestroy () {
@@ -269,11 +269,9 @@ const v = new Vue({ // eslint-disable-line
       console.log('Connection established')
     }
 
-    const _this = this
-
     socket.onmessage = function (e) {
-      _this.teste = e.data
-      console.log(_this.teste)
+      this.teste = JSON.parse(e.data)
+      console.log(this.teste.sessao_plenaria)
     }
 
     socket.onclose = function (e) {
