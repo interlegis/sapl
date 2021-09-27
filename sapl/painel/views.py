@@ -348,7 +348,7 @@ def cronometro_painel(request):
     return HttpResponse({})
 
 
-def get_cronometro_status(request, name):
+def get_cronometro_status(name):
     logger = logging.getLogger(__name__)
     username = request.user.username
     try:
@@ -361,7 +361,7 @@ def get_cronometro_status(request, name):
     return cronometro
 
 
-def get_cronometro_value(request, name):
+def get_cronometro_value(name):
     if name == 'discurso':
         result = ConfiguracoesAplicacao.objects.first().cronometro_discurso
     if name == 'aparte':
@@ -562,8 +562,8 @@ def get_votos(response, materia):
     return response
 
 
-@user_passes_test(check_permission)
-def get_dados_painel(request, pk):
+#@user_passes_test(check_permission)
+def get_dados_painel(pk):
     sessao = SessaoPlenaria.objects.get(id=pk)
 
     casa = CasaLegislativa.objects.first()
@@ -582,15 +582,15 @@ def get_dados_painel(request, pk):
         'sessao_solene': sessao.tipo.nome == "Solene",
         'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,
-        'status_cronometro_discurso': get_cronometro_status(request, 'discurso'),
-        'cronometro_aparte': get_cronometro_value(request, 'aparte'),
-        'cronometro_discurso': get_cronometro_value(request, 'discurso'),
-        'cronometro_ordem': get_cronometro_value(request, 'ordem'),
-        'cronometro_consideracoes': get_cronometro_value(request, 'consideracoes'),
+        #'status_cronometro_discurso': get_cronometro_status(request, 'discurso'),
+        'cronometro_aparte': get_cronometro_value('aparte'),
+        'cronometro_discurso': get_cronometro_value('discurso'),
+        'cronometro_ordem': get_cronometro_value('ordem'),
+        'cronometro_consideracoes': get_cronometro_value('consideracoes'),
         'status_painel': sessao.painel_aberto,
         'brasao': brasao
     }
-
+    return response
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
 
@@ -643,9 +643,3 @@ def get_dados_painel(request, pk):
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(get_presentes(pk, response, None))
-
-
-def room(request):
-    return render(request, 'painel/room.html', {
-        'room_name': 'chat'
-    })
