@@ -102,80 +102,74 @@ const v = new Vue({ // eslint-disable-line
       }
       return texto
     },
-    converterUrl (url) {
-      url = url.slice(-(url.length - url.lastIndexOf('/')))
-      url = '/painel' + url + '/dados'
-      return url
-    },
     fetchData () {
       // TODO: how to get no hardcoded URL?
-      $.get(this.converterUrl(window.location.pathname), function (response) {
-        this.brasao = response.brasao
-        this.painel_aberto = response.status_painel
-        this.sessao_finalizada = response.sessao_finalizada
-        this.sessao_plenaria = response.sessao_plenaria
-        this.sessao_plenaria_data = 'Data Início: ' + response.sessao_plenaria_data
-        this.sessao_plenaria_hora_inicio = 'Hora Início: ' + response.sessao_plenaria_hora_inicio
-        this.sessao_solene = response.sessao_solene
-        this.sessao_solene_tema = response.sessao_solene_tema
+      const objeto = JSON.parse(this.teste)
+      this.brasao = objeto.brasao
+      this.painel_aberto = objeto.status_painel
+      this.sessao_finalizada = objeto.sessao_finalizada
+      this.sessao_plenaria = objeto.sessao_plenaria
+      this.sessao_plenaria_data = 'Data Início: ' + objeto.sessao_plenaria_data
+      this.sessao_plenaria_hora_inicio = 'Hora Início: ' + objeto.sessao_plenaria_hora_inicio
+      this.sessao_solene = objeto.sessao_solene
+      this.sessao_solene_tema = objeto.sessao_solene_tema
 
-        this.presentes = response.presentes
-        this.presentes.forEach(parlamentar => {
-          this.atribuiColor(parlamentar)
-        })
+      this.presentes = objeto.presentes
+      this.presentes.forEach(parlamentar => {
+        this.atribuiColor(parlamentar)
+      })
 
-        this.oradores = response.oradores
+      this.oradores = objeto.oradores
 
-        this.materia_legislativa_texto = response.materia_legislativa_texto
-        this.numero_votos_sim = response.numero_votos_sim
-        this.numero_votos_nao = response.numero_votos_nao
-        this.numero_abstencoes = response.numero_abstencoes
-        this.num_presentes = response.num_presentes
-        this.total_votos = response.total_votos
+      this.materia_legislativa_texto = objeto.materia_legislativa_texto
+      this.numero_votos_sim = objeto.numero_votos_sim
+      this.numero_votos_nao = objeto.numero_votos_nao
+      this.numero_abstencoes = objeto.numero_abstencoes
+      this.num_presentes = objeto.num_presentes
+      this.total_votos = objeto.total_votos
 
-        this.materia_legislativa_texto = response.materia_legislativa_texto
-        this.materia_legislativa_ementa = response.materia_legislativa_ementa
-        this.observacao_materia = this.capObservacao(response.observacao_materia)
+      this.materia_legislativa_texto = objeto.materia_legislativa_texto
+      this.materia_legislativa_ementa = objeto.materia_legislativa_ementa
+      this.observacao_materia = this.capObservacao(objeto.observacao_materia)
 
-        this.tipo_resultado = response.tipo_resultado
-        this.tipo_votacao = response.tipo_votacao
-        this.mat_em_votacao = this.msgMateria()
+      this.tipo_resultado = objeto.tipo_resultado
+      this.tipo_votacao = objeto.tipo_votacao
+      this.mat_em_votacao = this.msgMateria()
 
-        // Cronometros
-        cronometroStart[0] = response.cronometro_discurso
-        cronometroStart[1] = response.cronometro_aparte
-        cronometroStart[2] = response.cronometro_ordem
-        cronometroStart[3] = response.cronometro_consideracoes
+      // Cronometros
+      cronometroStart[0] = objeto.cronometro_discurso
+      cronometroStart[1] = objeto.cronometro_aparte
+      cronometroStart[2] = objeto.cronometro_ordem
+      cronometroStart[3] = objeto.cronometro_consideracoes
 
-        if (time === null) {
-          // Pegar data atual
-          this.cronometro_discurso = new Date()
-          this.cronometro_aparte = this.cronometro_discurso
-          this.cronometro_ordem = this.cronometro_discurso
-          this.cronometro_consideracoes = this.cronometro_discurso
+      if (time === null) {
+        // Pegar data atual
+        this.cronometro_discurso = new Date()
+        this.cronometro_aparte = this.cronometro_discurso
+        this.cronometro_ordem = this.cronometro_discurso
+        this.cronometro_consideracoes = this.cronometro_discurso
 
-          // Setar cada Cronometro
-          var temp = new Date()
-          temp.setSeconds(this.cronometro_discurso.getSeconds() + cronometroStart[0])
-          var res = new Date(temp - this.cronometro_discurso)
-          this.cronometro_discurso = this.formatTime(res)
+        // Setar cada Cronometro
+        var temp = new Date()
+        temp.setSeconds(this.cronometro_discurso.getSeconds() + cronometroStart[0])
+        var res = new Date(temp - this.cronometro_discurso)
+        this.cronometro_discurso = this.formatTime(res)
 
-          temp = new Date()
-          temp.setSeconds(this.cronometro_aparte.getSeconds() + cronometroStart[1])
-          res = new Date(temp - this.cronometro_aparte)
-          this.cronometro_aparte = this.formatTime(res)
+        temp = new Date()
+        temp.setSeconds(this.cronometro_aparte.getSeconds() + cronometroStart[1])
+        res = new Date(temp - this.cronometro_aparte)
+        this.cronometro_aparte = this.formatTime(res)
 
-          temp = new Date()
-          temp.setSeconds(this.cronometro_ordem.getSeconds() + cronometroStart[2])
-          res = new Date(temp - this.cronometro_ordem)
-          this.cronometro_ordem = this.formatTime(res)
+        temp = new Date()
+        temp.setSeconds(this.cronometro_ordem.getSeconds() + cronometroStart[2])
+        res = new Date(temp - this.cronometro_ordem)
+        this.cronometro_ordem = this.formatTime(res)
 
-          temp = new Date()
-          temp.setSeconds(this.cronometro_consideracoes.getSeconds() + cronometroStart[3])
-          res = new Date(temp - this.cronometro_consideracoes)
-          this.cronometro_consideracoes = this.formatTime(res)
-        }
-      }.bind(this))
+        temp = new Date()
+        temp.setSeconds(this.cronometro_consideracoes.getSeconds() + cronometroStart[3])
+        res = new Date(temp - this.cronometro_consideracoes)
+        this.cronometro_consideracoes = this.formatTime(res)
+      }
     },
     formatTime (time) {
       var tempo = '00:' + time.getMinutes().toLocaleString('en-US', {
@@ -253,11 +247,13 @@ const v = new Vue({ // eslint-disable-line
       socket.send('Calling Data...')
     },
     pollData () {
-      this.fetchData()
+      /* this.fetchData() */
       this.polling = setInterval(() => {
         // console.info('Fetching data from backend')
         this.call_data()
-      }, 300)
+        this.fetchData()
+        /* console.log(this.teste) */
+      }, 1000)
     }
   },
   beforeDestroy () {
@@ -269,8 +265,10 @@ const v = new Vue({ // eslint-disable-line
       console.log('Connection established')
     }
 
+    const _this = this
+
     socket.onmessage = function (e) {
-      this.teste = JSON.parse(e.data)
+      _this.teste = JSON.parse(e.data)
       console.log('Data Received...')
     }
 

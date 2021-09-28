@@ -590,18 +590,17 @@ def get_dados_painel(pk):
         'status_painel': sessao.painel_aberto,
         'brasao': brasao
     }
-    return response
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
 
     # Caso tenha alguma matéria com votação aberta, ela é mostrada no painel
     # com prioridade para Ordem do Dia.
     if ordem_dia:
-        return JsonResponse(get_votos(
+        return json.dumps(get_votos(
             get_presentes(pk, response, ordem_dia),
             ordem_dia))
     elif expediente:
-        return JsonResponse(get_votos(
+        return json.dumps(get_votos(
             get_presentes(pk, response, expediente),
             expediente))
 
@@ -637,9 +636,9 @@ def get_dados_painel(pk):
         ultimo_timestamp = last_expediente_leitura.data_hora
 
     if ordem_expediente:
-        return JsonResponse(get_votos(
+        return json.dumps(get_votos(
                             get_presentes(pk, response, ordem_expediente),
                             ordem_expediente))
 
     # Retorna que não há nenhuma matéria já votada ou aberta
-    return response_nenhuma_materia(get_presentes(pk, response, None))
+    return json.dumps(get_presentes(pk, response, None))
