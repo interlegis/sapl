@@ -24,10 +24,9 @@ from django.views.generic.list import MultipleObjectMixin
 
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
-from sapl.rules.map_rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
+from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                                   RP_LIST)
 from sapl.utils import normalize
-
 
 logger = logging.getLogger(settings.BASE_DIR.name)
 
@@ -78,7 +77,6 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
-
 
 """
 variáveis do crud:
