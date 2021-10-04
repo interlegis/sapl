@@ -157,6 +157,10 @@ class SessaoPlenaria(models.Model):
 
     painel_aberto = models.BooleanField(blank=True, default=False,
                                         verbose_name=_('Painel está aberto?'))
+    status_cronometro = models.CharField(
+        max_length=1,
+        verbose_name=_('Status do cronômetro painel'),
+        default='S')
     tipo = models.ForeignKey(TipoSessaoPlenaria,
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))

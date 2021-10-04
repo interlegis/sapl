@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
+from sapl.painel import tasks
 from sapl.painel.apps import AppConfig
 from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
 from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
@@ -307,7 +308,8 @@ def painel_view(request, pk):
 
 @user_passes_test(check_permission)
 def switch_painel(request):
-    sessao = SessaoPlenaria.objects.get(id=request.POST['pk_sessao'])
+    pk = request.POST['pk_sessao']
+    sessao = SessaoPlenaria.objects.get(id=pk)
     switch = json.loads(request.POST['aberto'])
 
     if switch:
@@ -316,6 +318,7 @@ def switch_painel(request):
         sessao.painel_aberto = False
 
     sessao.save()
+    tasks.get_dados_painel_final(pk)
     return JsonResponse({})
 
 
@@ -349,16 +352,21 @@ def cronometro_painel(request):
 
 
 def get_cronometro_status(request, name):
+    pk = request.POST['pk_sessao']
+    sessao = SessaoPlenaria.objects.get(id=pk)
     logger = logging.getLogger(__name__)
     username = request.user.username
     try:
         logger.debug("user=" + username + ". Tentando obter cronometro.")
         cronometro = request.session[name]
+        sessao.status_cronometro = cronometro
     except KeyError as e:
         logger.error("user=" + username +
                      ". Erro ao obter cronometro. Retornado como vazio. " + str(e))
         cronometro = ''
-    return cronometro
+    sessao.save()
+    tasks.get_dados_painel_final(pk)
+    return JsonResponse({})
 
 
 def get_cronometro_value(name):
@@ -582,7 +590,7 @@ def get_dados_painel(pk):
         'sessao_solene': sessao.tipo.nome == "Solene",
         'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,
-        #'status_cronometro_discurso': get_cronometro_status(request, 'discurso'),
+        'status_cronometro': sessao.status_cronometro,
         'cronometro_aparte': get_cronometro_value('aparte'),
         'cronometro_discurso': get_cronometro_value('discurso'),
         'cronometro_ordem': get_cronometro_value('ordem'),
