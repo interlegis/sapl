@@ -8,18 +8,14 @@ from sapl.painel import views
 class PainelConsumer(AsyncJsonWebsocketConsumer):
     async def connect (self):
         print('Conectado')
+        await self.channel_layer.group_add('painel', self.channel_name)
         await self.accept()
 
-    async def disconnect(self, close_code):
-        print('Desconectado:', close_code)
-        pass
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard('painel', self.channel_name)
 
-    async def receive(self, text_data):
 
-        await self.send_data(786)
-
-    async def send_data(self, id):
-        response = views.get_dados_painel(id)
-
-        await self.send_json(response)
+    async def send_data(self, event):
+        new_data = event['message']
+        await self.send(json.dumps(new_data))
     

@@ -348,7 +348,7 @@ def cronometro_painel(request):
     return HttpResponse({})
 
 
-def get_cronometro_status(name):
+def get_cronometro_status(request, name):
     logger = logging.getLogger(__name__)
     username = request.user.username
     try:

@@ -8,9 +8,9 @@ app = Celery('sapl')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.beat_schedule = {
-    'get_cronometro_inst': {
-        'task': 'sapl.painel.tasks.get_cronometro',
-        'schedule': 1.0
+    'get_dados_inst': {
+        'task': 'sapl.painel.tasks.get_dados_painel_celery',
+        'schedule': 0.2
     }
 }
 

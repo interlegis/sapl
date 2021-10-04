@@ -242,23 +242,7 @@ const v = new Vue({ // eslint-disable-line
       this.started = setInterval(() => {
         this.clockRunning(crono)
       }, 100)
-    },
-    call_data: function call_data () {
-      socket.send('Calling Data...')
-    },
-    pollData () {
-      /* this.fetchData() */
-      this.polling = setInterval(() => {
-        // console.info('Fetching data from backend')
-        this.call_data()
-        this.fetchData()
-        /* console.log(this.teste) */
-      }, 1000)
     }
-  },
-  beforeDestroy () {
-    console.info('Destroying polling.')
-    clearInterval(this.polling)
   },
   created () {
     socket.onopen = function (e) {
@@ -269,14 +253,12 @@ const v = new Vue({ // eslint-disable-line
 
     socket.onmessage = function (e) {
       _this.teste = JSON.parse(e.data)
+      _this.fetchData()
       console.log('Data Received...')
     }
 
     socket.onclose = function (e) {
       console.error('Ws fechou!')
     }
-
-    console.info('Start polling data...')
-    this.pollData()
   }
 })
