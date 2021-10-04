@@ -14,6 +14,9 @@ class PainelConsumer(AsyncJsonWebsocketConsumer):
     async def disconnect(self, code):
         await self.channel_layer.group_discard('painel', self.channel_name)
 
+    async def receive (self, text_data):
+        json_data = views.get_dados_painel(text_data)
+        await self.send(json.dumps(json_data))
 
     async def send_data(self, event):
         new_data = event['message']

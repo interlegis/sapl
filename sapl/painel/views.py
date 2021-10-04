@@ -183,7 +183,7 @@ def sessao_votacao(context, context_vars):
         context, context_vars = votacao(context, context_vars)
     else:
         context.update({'error_message': errors_msgs[erro]})
-
+    tasks.get_dados_painel_final(pk)
     return context, context_vars
 
 
@@ -303,6 +303,7 @@ def painel_view(request, pk):
 
     context = {'head_title': str(
         _('Painel Plenário')), 'sessao_id': pk, 'utc_offset': utc_offset}
+
     return render(request, 'painel/index.html', context)
 
 
@@ -365,7 +366,6 @@ def get_cronometro_status(request, name):
                      ". Erro ao obter cronometro. Retornado como vazio. " + str(e))
         cronometro = ''
     sessao.save()
-    tasks.get_dados_painel_final(pk)
     return JsonResponse({})
 
 

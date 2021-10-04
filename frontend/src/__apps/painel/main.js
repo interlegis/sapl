@@ -247,6 +247,12 @@ const v = new Vue({ // eslint-disable-line
   created () {
     socket.onopen = function (e) {
       console.log('Connection established')
+
+      // Pedir os dados uma vez
+      const id = window.location.href.slice(-3)
+      console.log(id)
+
+      socket.send(id)
     }
 
     const _this = this
