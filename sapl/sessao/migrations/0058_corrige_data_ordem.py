@@ -32,7 +32,7 @@ def corrige_data_ordem_em_item_de_sessao(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parlamentares', '0020_fix_inicio_mandato'),
+        ('sessao', '0057_resumoordenacao_decimo_quinto'),
     ]
 
     operations = [
