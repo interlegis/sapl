@@ -5,7 +5,7 @@ from django.db import migrations
 from django.db.models import F
 
 
-def clear_thumbnails_cache_migrate(apps, schema_editor):
+def corrige_data_ordem_em_item_de_sessao(apps, schema_editor):
     SessaoPlenaria = apps.get_model("sessao", "SessaoPlenaria")
     OrdemDia = apps.get_model("sessao", "OrdemDia")
     ExpedienteMateria = apps.get_model("sessao", "ExpedienteMateria")
@@ -36,5 +36,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(clear_thumbnails_cache_migrate),
+        migrations.RunPython(corrige_data_ordem_em_item_de_sessao),
     ]
