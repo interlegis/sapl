@@ -2,7 +2,7 @@ from operator import xor
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils import timezone, formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -277,7 +277,7 @@ class SessaoPlenaria(models.Model):
         upload_pauta = self.upload_pauta
         upload_ata = self.upload_ata
         upload_anexo = self.upload_anexo
-        
+
         result = super().delete(using=using, keep_parents=keep_parents)
 
         if upload_pauta:
@@ -311,10 +311,20 @@ class SessaoPlenaria(models.Model):
             self.upload_ata = upload_ata
             self.upload_anexo = upload_anexo
 
-        return models.Model.save(self, force_insert=force_insert,
+        sp = models.Model.save(self, force_insert=force_insert,
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+        sp.ordemdia_set.exclude(
+            data_ordem=F('sessao_plenaria__data_inicio')
+        ).update(data_ordem=sp.data_inicio)
+
+        sp.expedientemateria_set.exclude(
+            data_ordem=F('sessao_plenaria__data_inicio')
+        ).update(data_ordem=sp.data_inicio)
+
+        return sp
 
 
 @reversion.register()
@@ -426,6 +436,7 @@ class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
     def __str__(self):
         return '%s - %s' % (self.sessao_plenaria, self.conteudo)
 
+
 @reversion.register()
 class ConsideracoesFinais(models.Model):  # ConsideracoesFinaisSessaoPlenaria
     sessao_plenaria = models.OneToOneField(SessaoPlenaria,
@@ -495,6 +506,7 @@ class AbstractOrador(models.Model):  # Oradores
             upload_anexo.delete(save=False)
 
         return result
+
 
 @reversion.register()
 class Orador(AbstractOrador):  # Oradores
