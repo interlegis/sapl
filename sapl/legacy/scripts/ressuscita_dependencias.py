@@ -414,7 +414,7 @@ def get_ressuscitar(slug):
 def get_slug():
     arq = DIR_DADOS_MIGRACAO.child('siglas_para_slugs.yaml')
     with open(arq, 'r') as arq:
-        siglas_para_slugs = yaml.load(arq, yaml.Loader)
+        siglas_para_slugs = yaml.load(arq, yaml.SafeLoader)
     sigla = NOME_BANCO_LEGADO[-3:]
     return siglas_para_slugs[sigla]
 
