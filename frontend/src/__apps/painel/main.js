@@ -250,8 +250,6 @@ const v = new Vue({ // eslint-disable-line
 
       // Pedir os dados uma vez
       const id = window.location.href.slice(-3)
-      console.log(id)
-
       socket.send(id)
     }
 

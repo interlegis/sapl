@@ -53,6 +53,7 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
                      ORDENACAO_RESUMO, RegistroLeitura)
 
+from sapl.painel import tasks
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
@@ -199,7 +200,7 @@ def abrir_votacao(request, pk, spk):
 
     success_url = reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk})
     success_url += query_params
-
+    tasks.get_dados_painel_final(spk)
     return HttpResponseRedirect(success_url)
 
 
@@ -2517,7 +2518,6 @@ class VotacaoEditView(SessaoPermissionMixin):
     template_name = 'sessao/votacao/votacao_edit.html'
 
     def post(self, request, *args, **kwargs):
-
         self.object = self.get_object()
         form = VotacaoEditForm(request.POST)
 
@@ -2837,7 +2837,6 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                    'parlamentares': self.get_parlamentares(presentes),
                    'form': self.get_form(),
                    'total': total}
-
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
@@ -4466,7 +4465,6 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                     kwargs={'pk': self.kwargs['pk']}))
 
         if 'salvar-votacao' in request.POST:
-
             if form.is_valid():
                 if form.cleaned_data['resultado_votacao'] == None:
                     form.add_error(None, 'Não é possível finalizar a votação sem '
