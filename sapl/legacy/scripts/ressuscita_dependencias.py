@@ -198,7 +198,7 @@ Para facilitar sua conferência, seguem os links para as proposições envolvida
 def get_dependencias_a_ressuscitar(slug):
     ocorrencias = yaml.load(
         Path(DIR_REPO.child('ocorrencias.yaml').read_file()),
-        yaml.Loader
+        yaml.SafeLoader
     )
     fks_faltando = ocorrencias.get('fk')
     if not fks_faltando:
