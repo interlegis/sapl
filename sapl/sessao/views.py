@@ -2668,6 +2668,7 @@ class VotacaoView(SessaoPermissionMixin):
         if 'cancelar-votacao' in request.POST:
             ordem.votacao_aberta = False
             ordem.save()
+            tasks.get_dados_painel_final(self.kwargs['pk'])
             return self.form_valid(form)
 
         if form.is_valid():
@@ -2712,7 +2713,7 @@ class VotacaoView(SessaoPermissionMixin):
                     ordem.resultado = resultado.nome
                     ordem.votacao_aberta = False
                     ordem.save()
-
+                tasks.get_dados_painel_final(self.kwargs['pk'])
                 return self.form_valid(form)
         else:
             return self.render_to_response(context)
@@ -2745,7 +2746,7 @@ def fechar_votacao_materia(materia):
     materia.votacao_aberta = False
     materia.registro_aberto = False
     materia.save()
-
+    print("UAU")
 
 class VotacaoNominalAbstract(SessaoPermissionMixin):
     template_name = 'sessao/votacao/nominal.html'
@@ -2790,6 +2791,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 
             ordem.registro_aberto = True
             ordem.save()
+            print(2)
 
         elif self.expediente:
             expediente_id = kwargs['oid']
@@ -2878,6 +2880,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 
             if 'cancelar-votacao' in request.POST:
                 fechar_votacao_materia(materia_votacao)
+                tasks.get_dados_painel_final(self.kwargs['pk'])
                 if self.ordem:
                     return HttpResponseRedirect(
                         reverse(
@@ -2983,6 +2986,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 VotoParlamentar.objects.filter(
                     expediente_id=expediente_id,
                     votacao__isnull=True).delete()
+            tasks.get_dados_painel_final(self.kwargs['pk'])
             return self.form_valid(form)
 
         else:
@@ -3469,7 +3473,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
                     expediente.resultado = resultado.nome
                     expediente.votacao_aberta = False
                     expediente.save()
-
+                tasks.get_dados_painel_final(self.kwargs['pk'])
                 return self.form_valid(form)
         else:
             return self.render_to_response(context)
@@ -4311,7 +4315,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             expediente.resultado = resultado.nome
                             expediente.votacao_aberta = False
                             expediente.save()
-
+                tasks.get_dados_painel_final(self.kwargs['pk'])
                 return HttpResponseRedirect(self.get_success_url())
 
             else:
@@ -4331,6 +4335,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                     expediente.votacao_aberta = False
                     expediente.save()
 
+            tasks.get_dados_painel_final(self.kwargs['pk'])
             return HttpResponseRedirect(self.get_success_url())
 
         return self.render_to_response(context)
@@ -4453,6 +4458,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                 for ordem_id in request.POST.getlist('ordens'):
                     ordem = OrdemDia.objects.get(id=ordem_id)
                     fechar_votacao_materia(ordem)
+                tasks.get_dados_painel_final(self.kwargs['pk'])
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:ordemdia_list', kwargs={'pk': self.kwargs['pk']}))
             else:
@@ -4460,6 +4466,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                     expediente = ExpedienteMateria.objects.get(
                         id=expediente_id)
                     fechar_votacao_materia(expediente)
+                tasks.get_dados_painel_final(self.kwargs['pk'])
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:expedientemateria_list',
                     kwargs={'pk': self.kwargs['pk']}))
@@ -4579,6 +4586,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                         expediente_id=expediente_id,
                         votacao__isnull=True).delete()
 
+                tasks.get_dados_painel_final(self.kwargs['pk'])
                 return HttpResponseRedirect(self.get_success_url())
 
             else:
