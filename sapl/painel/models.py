@@ -48,6 +48,12 @@ class Cronometro(models.Model):
     tipo = models.CharField(
         max_length=1, choices=CRONOMETRO_TYPES,
         verbose_name=_('Tipo Cronômetro'))
+    
+    tempo_restante = models.DurationField(
+        verbose_name=_('Tempo restante no cronômetro'),
+        blank=True,
+        null=True
+    )
 
     class Meta:
         ordering = ('-data_cronometro',)
