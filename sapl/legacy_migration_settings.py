@@ -54,7 +54,7 @@ match = re.match('sapl_cm_(.*)', NOME_BANCO_LEGADO)
 SIGLA_CASA = match.group(1)
 _PATH_TABELA_TIMEZONES = DIR_DADOS_MIGRACAO.child('tabela_timezones.yaml')
 with open(_PATH_TABELA_TIMEZONES, 'r') as arq:
-    tabela_timezones = yaml.load(arq, yaml.Loader)
+    tabela_timezones = yaml.load(arq, yaml.SafeLoader)
 municipio, uf, nome_timezone = tabela_timezones[SIGLA_CASA]
 if nome_timezone:
     PYTZ_TIMEZONE = pytz.timezone(nome_timezone)
