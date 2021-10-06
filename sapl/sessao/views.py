@@ -2,7 +2,6 @@
 import logging
 from collections import OrderedDict
 from re import sub
-from sapl.painel.views import get_cronometro_status
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required

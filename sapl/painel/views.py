@@ -352,20 +352,23 @@ def cronometro_painel(request):
     return HttpResponse({})
 
 
-def get_cronometro_status(request, name):
+@user_passes_test(check_permission)
+def get_cronometro_status(request):
     pk = request.POST['pk_sessao']
     sessao = SessaoPlenaria.objects.get(id=pk)
-    logger = logging.getLogger(__name__)
-    username = request.user.username
-    try:
-        logger.debug("user=" + username + ". Tentando obter cronometro.")
-        cronometro = request.session[name]
-        sessao.status_cronometro = cronometro
-    except KeyError as e:
-        logger.error("user=" + username +
-                     ". Erro ao obter cronometro. Retornado como vazio. " + str(e))
-        cronometro = ''
-    sessao.save()
+    ligado = json.loads(request.POST['ligado'])
+    tipo = json.loads(request.POST['teste'])
+    
+
+    if ligado:
+        if tipo == 1:
+            sessao.status_cronometro_discurso = 'I'
+            sessao.save()
+    else:
+        if tipo == 1:
+            sessao.status_cronometro_discurso = 'S'
+            sessao.save()
+    tasks.get_dados_painel_final(pk)
     return JsonResponse({})
 
 
@@ -590,7 +593,7 @@ def get_dados_painel(pk):
         'sessao_solene': sessao.tipo.nome == "Solene",
         'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,
-        'status_cronometro': sessao.status_cronometro,
+        'status_cronometro': sessao.status_cronometro_discurso,
         'cronometro_aparte': get_cronometro_value('aparte'),
         'cronometro_discurso': get_cronometro_value('discurso'),
         'cronometro_ordem': get_cronometro_value('ordem'),

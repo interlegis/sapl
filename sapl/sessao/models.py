@@ -157,9 +157,21 @@ class SessaoPlenaria(models.Model):
 
     painel_aberto = models.BooleanField(blank=True, default=False,
                                         verbose_name=_('Painel está aberto?'))
-    status_cronometro = models.CharField(
+    status_cronometro_discurso = models.CharField(
         max_length=1,
-        verbose_name=_('Status do cronômetro painel'),
+        verbose_name=_('Status do cronômetro discurso'),
+        default='S')
+    status_cronometro_aparte = models.CharField(
+        max_length=1,
+        verbose_name=_('Status do cronômetro discurso'),
+        default='S')
+    status_cronometro_ordem_do_dia = models.CharField(
+        max_length=1,
+        verbose_name=_('Status do cronômetro discurso'),
+        default='S')
+    status_cronometro_consideracoes_finais = models.CharField(
+        max_length=1,
+        verbose_name=_('Status do cronômetro discurso'),
         default='S')
     tipo = models.ForeignKey(TipoSessaoPlenaria,
                              on_delete=models.PROTECT,

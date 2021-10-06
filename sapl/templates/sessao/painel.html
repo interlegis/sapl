@@ -35,7 +35,8 @@
 	<br />
 
   <div class="row">
-    <div class="col-md-6"><button type="button" id="discursoStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-6"><button onclick="switch_cronometro(true, 1)" id="discursoStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-6"><button onclick="switch_cronometro(false, 1)" id="discursoStop" class="btn btn-success">Parar</button></div>
     <div class="col-md-6"><button type="button" id="discursoReset" class="btn btn-success">Reiniciar</button></div>
   </div>
 
@@ -148,22 +149,20 @@ $(function() {
 
     $('#discursoStart').click(function() {
 
-		if ($('#discursoStart').text() == 'Iniciar'){
-
 			$.get('/painel/cronometro', { tipo: 'discurso', action: 'start' } );
 
 			$('#discursoReset').hide();
-			$('#discurso').runner('start');
-			$('#discursoStart').text('Parar');
+			$('#discurso').runner('start');	
 
-		} else {
+    });
+
+    $('#discursoStop').click(function() {
 
 			$.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
 
 			$('#discursoReset').show();
 			$('#discurso').runner('stop');
-			$('#discursoStart').text('Iniciar');
-		}
+		
     });
 
     $('#discursoReset').click(function() {
@@ -354,6 +353,17 @@ function switch_painel(aberto) {
         botao_abrir.show();
         botao_fechar.hide();
     }
+}
+
+function switch_cronometro(ligado, teste){
+  var pk_sessao = {{root_pk}};
+
+  $.ajax({
+        data: {pk_sessao: pk_sessao, ligado: ligado, teste: teste},
+        type: 'POST',
+        url: "{% url 'sapl.painel:get_cronometro_status' %}",
+        headers: {'X-CSRFToken': getCookie('csrftoken')},
+    });
 }
 
 $(document).ready(function(){

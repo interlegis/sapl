@@ -47,7 +47,8 @@ const v = new Vue({ // eslint-disable-line
       tipo_resultado: '',
       tipo_votacao: '',
       teste: null,
-      running: 0
+      running: 0,
+      status_cronometro_discurso: ''
     }
   },
   methods: {
@@ -113,6 +114,7 @@ const v = new Vue({ // eslint-disable-line
       this.sessao_plenaria_hora_inicio = 'Hora Início: ' + objeto.sessao_plenaria_hora_inicio
       this.sessao_solene = objeto.sessao_solene
       this.sessao_solene_tema = objeto.sessao_solene_tema
+      this.status_cronometro_discurso = objeto.status_cronometro
 
       this.presentes = objeto.presentes
       this.presentes.forEach(parlamentar => {
@@ -169,6 +171,12 @@ const v = new Vue({ // eslint-disable-line
         temp.setSeconds(this.cronometro_consideracoes.getSeconds() + cronometroStart[3])
         res = new Date(temp - this.cronometro_consideracoes)
         this.cronometro_consideracoes = this.formatTime(res)
+      }
+      if (this.status_cronometro_discurso === 'I') {
+        this.start(1)
+        console.log(cronometroStart)
+      } else if (this.status_cronometro_discurso === 'S') {
+        this.stop(1)
       }
     },
     formatTime (time) {
