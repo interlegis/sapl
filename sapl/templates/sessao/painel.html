@@ -355,11 +355,11 @@ function switch_painel(aberto) {
     }
 }
 
-function switch_cronometro(ligado, teste){
+function switch_cronometro(ligado, tipo_crono){
   var pk_sessao = {{root_pk}};
 
   $.ajax({
-        data: {pk_sessao: pk_sessao, ligado: ligado, teste: teste},
+        data: {pk_sessao: pk_sessao, ligado: ligado, tipo_crono: tipo_crono},
         type: 'POST',
         url: "{% url 'sapl.painel:get_cronometro_status' %}",
         headers: {'X-CSRFToken': getCookie('csrftoken')},

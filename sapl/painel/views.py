@@ -357,7 +357,7 @@ def get_cronometro_status(request):
     pk = request.POST['pk_sessao']
     sessao = SessaoPlenaria.objects.get(id=pk)
     ligado = json.loads(request.POST['ligado'])
-    tipo = json.loads(request.POST['teste'])
+    tipo = json.loads(request.POST['tipo_crono'])
     
 
     if ligado:

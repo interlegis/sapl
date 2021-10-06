@@ -144,6 +144,15 @@ const v = new Vue({ // eslint-disable-line
       cronometroStart[2] = objeto.cronometro_ordem
       cronometroStart[3] = objeto.cronometro_consideracoes
 
+      this.setTimer()
+
+      if (this.status_cronometro_discurso === 'I') {
+        this.start(1)
+      } else if (this.status_cronometro_discurso === 'S') {
+        this.stop(1)
+      }
+    },
+    setTimer () {
       if (time === null) {
         // Pegar data atual
         this.cronometro_discurso = new Date()
@@ -155,32 +164,33 @@ const v = new Vue({ // eslint-disable-line
         var temp = new Date()
         temp.setSeconds(this.cronometro_discurso.getSeconds() + cronometroStart[0])
         var res = new Date(temp - this.cronometro_discurso)
+        res.setHours(temp.getHours() - this.cronometro_discurso.getHours())
         this.cronometro_discurso = this.formatTime(res)
 
         temp = new Date()
         temp.setSeconds(this.cronometro_aparte.getSeconds() + cronometroStart[1])
         res = new Date(temp - this.cronometro_aparte)
+        res.setHours(temp.getHours() - this.cronometro_aparte.getHours())
         this.cronometro_aparte = this.formatTime(res)
 
         temp = new Date()
         temp.setSeconds(this.cronometro_ordem.getSeconds() + cronometroStart[2])
         res = new Date(temp - this.cronometro_ordem)
+        res.setHours(temp.getHours() - this.cronometro_ordem.getHours())
         this.cronometro_ordem = this.formatTime(res)
 
         temp = new Date()
         temp.setSeconds(this.cronometro_consideracoes.getSeconds() + cronometroStart[3])
         res = new Date(temp - this.cronometro_consideracoes)
+        res.setHours(temp.getHours() - this.cronometro_consideracoes.getHours())
         this.cronometro_consideracoes = this.formatTime(res)
-      }
-      if (this.status_cronometro_discurso === 'I') {
-        this.start(1)
-        console.log(cronometroStart)
-      } else if (this.status_cronometro_discurso === 'S') {
-        this.stop(1)
       }
     },
     formatTime (time) {
-      var tempo = '00:' + time.getMinutes().toLocaleString('en-US', {
+      var tempo = time.getHours().toLocaleString('en-US', {
+        minimumIntegerDigits: 2,
+        useGrouping: false
+      }) + ':' + time.getMinutes().toLocaleString('en-US', {
         minimumIntegerDigits: 2,
         useGrouping: false
       }) + ':' + time.getSeconds().toLocaleString('en-US', {
@@ -203,6 +213,8 @@ const v = new Vue({ // eslint-disable-line
       time = null
       clearInterval(this.started)
       clearInterval(this.stopped)
+
+      this.setTimer()
     },
     clockRunning (crono) {
       var now = new Date()
@@ -240,7 +252,8 @@ const v = new Vue({ // eslint-disable-line
       } else {
         timeEnd = new Date()
         timeEnd.setMinutes(timeEnd.getMinutes() + time.getMinutes())
-        timeEnd.setSeconds(timeEnd.getSeconds() + time.getSeconds() + 1)
+        timeEnd.setSeconds(timeEnd.getSeconds() + time.getSeconds())
+        timeEnd.setMilliseconds(timeEnd.getMilliseconds() + time.getMilliseconds())
         clearInterval(this.timeStopped)
       }
       this.running = crono
