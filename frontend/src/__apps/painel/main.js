@@ -196,12 +196,7 @@ const v = new Vue({ // eslint-disable-line
 
       this.running = 0
       clearInterval(this.started)
-      this.stopped = setInterval(() => {
-        this.timeStopped()
-      }, 100)
-    },
-    timeStopped () {
-      timeEnd.setMilliseconds(timeEnd.getMilliseconds() + 100)
+      console.log(time)
     },
     reset: function reset () {
       this.running = 0
@@ -239,17 +234,20 @@ const v = new Vue({ // eslint-disable-line
       crono = temp_crono
       if (time === null) {
         time = cronometroStart[crono - 1]
-        console.log(time)
         timeEnd = new Date()
         timeEnd.setSeconds(timeEnd.getSeconds() + time)
+        console.log(timeEnd)
       } else {
-        clearInterval(this.stopped)
+        timeEnd = new Date()
+        timeEnd.setMinutes(timeEnd.getMinutes() + time.getMinutes())
+        timeEnd.setSeconds(timeEnd.getSeconds() + time.getSeconds() + 1)
+        clearInterval(this.timeStopped)
       }
       this.running = crono
 
       this.started = setInterval(() => {
         this.clockRunning(crono)
-      }, 100)
+      }, 50)
     }
   },
   created () {
