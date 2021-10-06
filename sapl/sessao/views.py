@@ -4189,6 +4189,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
     logger = logging.getLogger(__name__)
 
     def post(self, request, *args, **kwargs):
+        tasks.get_dados_painel_final(self.kwargs['pk'])
 
         if not 'context' in locals():
             context = {'pk': self.kwargs['pk'],
@@ -4243,7 +4244,7 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                 context.update({'expedientes': expedientes,
                                 'total_presentes': qtde_presentes,
                                 'total_votantes': qtde_ativos})
-
+        
         if 'salvar-votacao' in request.POST:
             form = VotacaoForm(request.POST)
 
