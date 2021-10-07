@@ -6,11 +6,17 @@ axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = 'X-CSRFToken'
 
 //  Variaveis dos cronometros
-var crono = 0
-var time = null
-var timeEnd = null
+var time_d = null
+var time_o = null
+var time_a = null
+var time_c = null
+var timeEnd_o = null
+var timeEnd_d = null
+var timeEnd_a = null
+var timeEnd_c = null
 var audioAlertFinish = document.getElementById('audio')
 var cronometroStart = []
+var started = []
 const socket = new WebSocket(`ws://${window.location.host}/ws/painel/`)
 
 const v = new Vue({ // eslint-disable-line
@@ -47,8 +53,11 @@ const v = new Vue({ // eslint-disable-line
       tipo_resultado: '',
       tipo_votacao: '',
       teste: null,
-      running: 0,
-      status_cronometro_discurso: ''
+      running: [],
+      status_cronometro_discurso: '',
+      status_cronometro_aparte: '',
+      status_cronometro_ordem: '',
+      status_cronometro_consideracoes: ''
     }
   },
   methods: {
@@ -114,8 +123,11 @@ const v = new Vue({ // eslint-disable-line
       this.sessao_plenaria_hora_inicio = 'Hora Início: ' + objeto.sessao_plenaria_hora_inicio
       this.sessao_solene = objeto.sessao_solene
       this.sessao_solene_tema = objeto.sessao_solene_tema
-      this.status_cronometro_discurso = objeto.status_cronometro
-
+      this.status_cronometro_discurso = objeto.status_cronometro_discurso
+      this.status_cronometro_ordem = objeto.status_cronometro_ordem
+      this.status_cronometro_aparte = objeto.status_cronometro_aparte
+      this.status_cronometro_consideracoes = objeto.status_cronometro_consideracoes
+      console.log(objeto)
       this.presentes = objeto.presentes
       this.presentes.forEach(parlamentar => {
         this.atribuiColor(parlamentar)
@@ -144,16 +156,68 @@ const v = new Vue({ // eslint-disable-line
       cronometroStart[2] = objeto.cronometro_ordem
       cronometroStart[3] = objeto.cronometro_consideracoes
 
-      this.setTimer()
+      this.running[0] = 0
+      this.running[1] = 0
+      this.running[2] = 0
+      this.running[3] = 0
 
-      if (this.status_cronometro_discurso === 'I') {
-        this.start(1)
-      } else if (this.status_cronometro_discurso === 'S') {
+      // Pausar os cronometros
+      if (this.status_cronometro_discurso === 'S') {
         this.stop(1)
       }
+
+      if (this.status_cronometro_aparte === 'S') {
+        this.stop(2)
+      }
+
+      if (this.status_cronometro_ordem === 'S') {
+        this.stop(3)
+      }
+
+      if (this.status_cronometro_consideracoes === 'S') {
+        this.stop(4)
+      }
+
+      // Iniciar os cronometros
+      if (this.status_cronometro_discurso === 'I') {
+        this.start(1)
+      }
+
+      if (this.status_cronometro_aparte === 'I') {
+        this.start(2)
+      }
+
+      if (this.status_cronometro_ordem === 'I') {
+        this.start(3)
+      }
+
+      if (this.status_cronometro_consideracoes === 'I') {
+        this.start(4)
+      }
+
+      // Setar os timers no caso de nulo
+      if (time_d === null || this.status_cronometro_discurso === 'R') {
+        this.setTimer(1)
+        this.stop(1)
+      }
+      if (time_a === null || this.status_cronometro_aparte === 'R') {
+        this.setTimer(2)
+        this.stop(2)
+      }
+      if (time_o === null || this.status_cronometro_ordem === 'R') {
+        this.setTimer(3)
+        this.stop(3)
+      }
+      if (time_c === null || this.status_cronometro_consideracoes === 'R') {
+        this.setTimer(4)
+        this.stop(4)
+      }
     },
-    setTimer () {
-      if (time === null) {
+    setTimer (temp_crono) {
+      var temp
+      var res
+      var now
+      if (temp_crono === 5) {
         // Pegar data atual
         this.cronometro_discurso = new Date()
         this.cronometro_aparte = this.cronometro_discurso
@@ -161,9 +225,9 @@ const v = new Vue({ // eslint-disable-line
         this.cronometro_consideracoes = this.cronometro_discurso
 
         // Setar cada Cronometro
-        var temp = new Date()
+        temp = new Date()
         temp.setSeconds(this.cronometro_discurso.getSeconds() + cronometroStart[0])
-        var res = new Date(temp - this.cronometro_discurso)
+        res = new Date(temp - this.cronometro_discurso)
         res.setHours(temp.getHours() - this.cronometro_discurso.getHours())
         this.cronometro_discurso = this.formatTime(res)
 
@@ -184,6 +248,37 @@ const v = new Vue({ // eslint-disable-line
         res = new Date(temp - this.cronometro_consideracoes)
         res.setHours(temp.getHours() - this.cronometro_consideracoes.getHours())
         this.cronometro_consideracoes = this.formatTime(res)
+      } else {
+        now = new Date()
+        switch (temp_crono) {
+          case 1:
+            temp = new Date()
+            temp.setSeconds(now.getSeconds() + cronometroStart[0])
+            res = new Date(temp - now)
+            res.setHours(temp.getHours() - now.getHours())
+            this.cronometro_discurso = this.formatTime(res)
+            break
+          case 2:
+            temp = new Date()
+            temp.setSeconds(now.getSeconds() + cronometroStart[1])
+            res = new Date(temp - now)
+            res.setHours(temp.getHours() - now.getHours())
+            this.cronometro_aparte = this.formatTime(res)
+            break
+          case 3:
+            temp = new Date()
+            temp.setSeconds(now.getSeconds() + cronometroStart[2])
+            res = new Date(temp - now)
+            res.setHours(temp.getHours() - now.getHours())
+            this.cronometro_ordem = this.formatTime(res)
+            break
+          case 4:
+            temp = new Date()
+            temp.setSeconds(now.getSeconds() + cronometroStart[3])
+            res = new Date(temp - now)
+            res.setHours(temp.getHours() - now.getHours())
+            this.cronometro_consideracoes = this.formatTime(res)
+        }
       }
     },
     formatTime (time) {
@@ -202,64 +297,174 @@ const v = new Vue({ // eslint-disable-line
     stop: function stop (crono) {
       if (crono === 5) {
         audioAlertFinish.play()
+      } else {
+        this.running[crono - 1] = 0
+        clearInterval(started[crono - 1])
       }
-
-      this.running = 0
-      clearInterval(this.started)
-      console.log(time)
     },
-    reset: function reset () {
-      this.running = 0
-      time = null
-      clearInterval(this.started)
-      clearInterval(this.stopped)
+    reset: function reset (crono) {
+      console.log('AQUI TAMBEM?')
+      this.running[crono - 1] = 0
+      clearInterval(started[crono - 1])
+
+      switch (crono) {
+        case 1:
+          time_d = null
+          break
+        case 2:
+          time_a = null
+          break
+        case 3:
+          time_o = null
+          break
+        case 4:
+          time_c = null
+          break
+      }
 
       this.setTimer()
     },
     clockRunning (crono) {
-      var now = new Date()
-      time = new Date(timeEnd - now)
+      switch (crono) {
+        case 1:
+          var now_d = new Date()
+          time_d = new Date(timeEnd_d - now_d)
 
-      // Definir propriamento o tempo
-      time.setHours(timeEnd.getHours() - now.getHours())
+          // Definir propriamento o tempo
+          time_d.setHours(timeEnd_d.getHours() - now_d.getHours())
 
-      if (timeEnd > now) {
-        if (crono === 1) {
-          this.cronometro_discurso = this.formatTime(time)
-        } else if (crono === 2) {
-          this.cronometro_aparte = this.formatTime(time)
-        } else if (crono === 3) {
-          this.cronometro_ordem = this.formatTime(time)
-        } else {
-          this.cronometro_consideracoes = this.formatTime(time)
-        }
-      } else {
-        audioAlertFinish.play()
-        this.alert = setTimeout(() => {
-          this.reset()
-        }, 5000)
+          if (timeEnd_d > now_d) {
+            this.cronometro_discurso = this.formatTime(time_d)
+          } else {
+            audioAlertFinish.play()
+            this.alert = setTimeout(() => {
+              this.reset()
+            }, 5000)
+          }
+          break
+        case 2:
+          var now_a = new Date()
+          time_a = new Date(timeEnd_a - now_a)
+
+          // Definir propriamento o tempo
+          time_a.setHours(timeEnd_a.getHours() - now_a.getHours())
+
+          if (timeEnd_a > now_a) {
+            this.cronometro_aparte = this.formatTime(time_a)
+          } else {
+            audioAlertFinish.play()
+            this.alert = setTimeout(() => {
+              this.reset()
+            }, 5000)
+          }
+          break
+        case 3:
+          var now_o = new Date()
+          time_o = new Date(timeEnd_o - now_o)
+
+          // Definir propriamento o tempo
+          time_o.setHours(timeEnd_o.getHours() - now_o.getHours())
+
+          if (timeEnd_o > now_o) {
+            this.cronometro_ordem = this.formatTime(time_o)
+          } else {
+            audioAlertFinish.play()
+            this.alert = setTimeout(() => {
+              this.reset()
+            }, 5000)
+          }
+          break
+        case 4:
+          var now_c = new Date()
+          time_c = new Date(timeEnd_c - now_c)
+
+          // Definir propriamento o tempo
+          time_c.setHours(timeEnd_c.getHours() - now_c.getHours())
+
+          if (timeEnd_c > now_c) {
+            this.cronometro_consideracoes = this.formatTime(time_c)
+          } else {
+            audioAlertFinish.play()
+            this.alert = setTimeout(() => {
+              this.reset()
+            }, 5000)
+          }
+          break
       }
     },
     start: function startStopWatch (temp_crono) {
-      if (this.running === temp_crono) return
+      if (this.running[temp_crono - 1] === 1) return
 
-      crono = temp_crono
-      if (time === null) {
-        time = cronometroStart[crono - 1]
-        timeEnd = new Date()
-        timeEnd.setSeconds(timeEnd.getSeconds() + time)
-        console.log(timeEnd)
-      } else {
-        timeEnd = new Date()
-        timeEnd.setMinutes(timeEnd.getMinutes() + time.getMinutes())
-        timeEnd.setSeconds(timeEnd.getSeconds() + time.getSeconds())
-        timeEnd.setMilliseconds(timeEnd.getMilliseconds() + time.getMilliseconds())
+      switch (temp_crono) {
+        case 1:
+          if (time_d === null) {
+            time_d = cronometroStart[0]
+            timeEnd_d = new Date()
+            timeEnd_d.setSeconds(timeEnd_d.getSeconds() + time_d)
+          } else {
+            timeEnd_d = new Date()
+            timeEnd_d.setMinutes(timeEnd_d.getMinutes() + time_d.getMinutes())
+            timeEnd_d.setSeconds(timeEnd_d.getSeconds() + time_d.getSeconds())
+            timeEnd_d.setMilliseconds(timeEnd_d.getMilliseconds() + time_d.getMilliseconds())
+          }
+          this.running[0] = 1
+
+          started[0] = setInterval(() => {
+            this.clockRunning(temp_crono)
+          }, 50)
+          break
+        case 2:
+          if (time_a === null) {
+            time_a = cronometroStart[1]
+            timeEnd_a = new Date()
+            timeEnd_a.setSeconds(timeEnd_a.getSeconds() + time_a)
+          } else {
+            timeEnd_a = new Date()
+            timeEnd_a.setMinutes(timeEnd_a.getMinutes() + time_a.getMinutes())
+            timeEnd_a.setSeconds(timeEnd_a.getSeconds() + time_a.getSeconds())
+            timeEnd_a.setMilliseconds(timeEnd_a.getMilliseconds() + time_a.getMilliseconds())
+          }
+          this.running[1] = 1
+
+          started[1] = setInterval(() => {
+            this.clockRunning(temp_crono)
+          }, 50)
+          break
+        case 3:
+          if (time_o === null) {
+            time_o = cronometroStart[2]
+            timeEnd_o = new Date()
+            timeEnd_o.setSeconds(timeEnd_o.getSeconds() + time_o)
+          } else {
+            timeEnd_o = new Date()
+            timeEnd_o.setMinutes(timeEnd_o.getMinutes() + time_o.getMinutes())
+            timeEnd_o.setSeconds(timeEnd_o.getSeconds() + time_o.getSeconds())
+            timeEnd_o.setMilliseconds(timeEnd_o.getMilliseconds() + time_o.getMilliseconds())
+          }
+          this.running[2] = 1
+
+          started[2] = setInterval(() => {
+            this.clockRunning(temp_crono)
+          }, 50)
+          break
+        case 4:
+          if (time_c === null) {
+            time_c = cronometroStart[3]
+            timeEnd_c = new Date()
+            timeEnd_c.setSeconds(timeEnd_c.getSeconds() + time_c)
+          } else {
+            timeEnd_c = new Date()
+            timeEnd_c.setMinutes(timeEnd_c.getMinutes() + time_c.getMinutes())
+            timeEnd_c.setSeconds(timeEnd_c.getSeconds() + time_c.getSeconds())
+            timeEnd_c.setMilliseconds(timeEnd_c.getMilliseconds() + time_c.getMilliseconds())
+          }
+          this.running[3] = 1
+
+          started[3] = setInterval(() => {
+            this.clockRunning(temp_crono)
+          }, 50)
+          break
       }
-      this.running = crono
-
-      this.started = setInterval(() => {
-        this.clockRunning(crono)
-      }, 50)
     }
   },
   created () {

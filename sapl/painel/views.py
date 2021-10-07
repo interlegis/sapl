@@ -358,16 +358,47 @@ def get_cronometro_status(request):
     sessao = SessaoPlenaria.objects.get(id=pk)
     ligado = json.loads(request.POST['ligado'])
     tipo = json.loads(request.POST['tipo_crono'])
-    
 
-    if ligado:
+    if ligado == 1:
         if tipo == 1:
             sessao.status_cronometro_discurso = 'I'
-            sessao.save()
-    else:
+
+        elif tipo == 2:
+            sessao.status_cronometro_aparte = 'I'
+
+        elif tipo == 3:
+            sessao.status_cronometro_ordem_do_dia = 'I'
+
+        elif tipo == 4:
+            sessao.status_cronometro_consideracoes_finais = 'I'
+
+    elif ligado == 2:
         if tipo == 1:
             sessao.status_cronometro_discurso = 'S'
-            sessao.save()
+
+        elif tipo == 2:
+            sessao.status_cronometro_aparte = 'S'
+
+        elif tipo == 3:
+            sessao.status_cronometro_ordem_do_dia = 'S'
+
+        elif tipo == 4:
+            sessao.status_cronometro_consideracoes_finais = 'S'
+
+    elif ligado == 3:
+        if tipo == 1:
+            sessao.status_cronometro_discurso = 'R'
+
+        elif tipo == 2:
+            sessao.status_cronometro_aparte = 'R'
+
+        elif tipo == 3:
+            sessao.status_cronometro_ordem_do_dia = 'R'
+
+        elif tipo == 4:
+            sessao.status_cronometro_consideracoes_finais = 'R'
+    
+    sessao.save()
     tasks.get_dados_painel_final(pk)
     return JsonResponse({})
 
@@ -593,7 +624,10 @@ def get_dados_painel(pk):
         'sessao_solene': sessao.tipo.nome == "Solene",
         'sessao_finalizada': sessao.finalizada,
         'tema_solene': sessao.tema_solene,
-        'status_cronometro': sessao.status_cronometro_discurso,
+        'status_cronometro_discurso': sessao.status_cronometro_discurso,
+        'status_cronometro_aparte': sessao.status_cronometro_aparte,
+        'status_cronometro_ordem': sessao.status_cronometro_ordem_do_dia,
+        'status_cronometro_consideracoes': sessao.status_cronometro_consideracoes_finais,
         'cronometro_aparte': get_cronometro_value('aparte'),
         'cronometro_discurso': get_cronometro_value('discurso'),
         'cronometro_ordem': get_cronometro_value('ordem'),
