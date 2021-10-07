@@ -32,13 +32,13 @@
             }
         </style>
     </head>
-    <body class="painel-principal">
+    <body class="painel-principal" style="margin: 0;">
       <div id="app-painel"> <!-- app painel -->
         <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
         <div class="row justify-content-center">
           <img src="{{ MEDIA_URL }}{{ logotipo }}"
-            alt="Logo" class="img-responsive" style="height: 15vh"/>
+          alt="Logo" class="img-responsive" style="height: 10vh"/>
         </div>
         
         <div class="d-flex justify-content-center">
@@ -54,8 +54,8 @@
           </div>
         </div>
 
-        <div class="row justify-content-center" style="margin-bottom: 50px; margin-top: 50px;">
-          <h2 class="text-danger"><span v-if="!painel_aberto">PAINEL ENCONTRA-SE FECHADO</span></h2>
+        <div v-if="!painel_aberto" class="row justify-content-center" style="margin-bottom: 50px; margin-top: 50px;">
+          <h2 class="text-danger"><span>PAINEL ENCONTRA-SE FECHADO</span></h2>
         </div>
         
         <div class="row">

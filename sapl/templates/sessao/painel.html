@@ -5,9 +5,9 @@
 {% block actions %} {% endblock %}
 
 {% block title %}
-	<h1 class="page-header">
-		Painel Eletrônico <small>({{sessaoplenaria}})</small>
-	</h1>
+  <h1 class="page-header">
+    Painel Eletrônico <small>({{sessaoplenaria}})</small>
+  </h1>
 {% endblock %}
 
 
@@ -16,15 +16,15 @@
   <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
   <div class="row">
-    <div class="col-md-6"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=1920, height=1080, scrollbars=yes'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
+    <div class="col-md-6"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=800, height=800, scrollbars=no'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
     <div class="col-md-3"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active" style="display: none">Abrir Painel</button></div>
     <div class="col-md-3"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-danger btn-sm active" style="display: none;">Fechar Painel</button></div>
   </div>
-	<br />
+  <br />
 
-	<h1>Operação do Painel Eletrônico</h1>
-	<h2><span id="relogio"></span></h2>
-	<br />
+  <h1>Operação do Painel Eletrônico</h1>
+  <h2><span id="relogio"></span></h2>
+  <br />
   <div class="row">
     <div class="col-md-12 mb-2"><h3>Cronômetro do Discurso</h3></div>
   </div>
@@ -32,7 +32,7 @@
   <div class="row">
     <div class="col-md-2"><input size="2" id="discurso" name="discurso" value="" readyonly="true" class="form-control"></div>
   </div>
-	<br />
+  <br />
 
   <div class="row">
     <div class="col-md-3"><button onclick="switch_cronometro(1, 1)" id="discursoStart" class="btn btn-success">Iniciar</button></div>
@@ -40,7 +40,7 @@
     <div class="col-md-6"><button onclick="switch_cronometro(3, 1)" id="discursoReset" class="btn btn-success">Reiniciar</button></div>
   </div>
 
-	<br /><br >
+  <br /><br >
   <div class="row">
     <div class="col-md-12 mb-2"><h3>Cronômetro do Aparte</h3></div>
   </div>
@@ -48,7 +48,7 @@
   <div class="row">
     <div class="col-md-2"><input size="2" id="aparte" name="aparte" value="" readyonly="true" class="form-control"></div>
   </div>
-	<br />
+  <br />
 
   <div class="row">
     <div class="col-md-3"><button onclick="switch_cronometro(1, 2)" id="aparteStart" class="btn btn-success">Iniciar</button></div>
@@ -56,7 +56,7 @@
     <div class="col-md-6"><button onclick="switch_cronometro(3, 2)" id="aparteReset" class="btn btn-success">Reiniciar</button></div>
   </div>
 
-	<br /><br >
+  <br /><br >
   <div class="row">
     <div class="col-md-12 mb-2"><h3>Cronômetro da Questão de Ordem </h3></div>
   </div>
@@ -64,7 +64,7 @@
   <div class="row">
     <div class="col-md-2"><input size="2" id="ordem" name="ordem" value="" readyonly="true" class="form-control"></div>
   </div>
-	<br />
+  <br />
 
   <div class="row">
     <div class="col-md-3"><button onclick="switch_cronometro(1, 3)" id="ordemStart" class="btn btn-success">Iniciar</button></div>
@@ -101,29 +101,29 @@
 <script language="JavaScript">
 $(function() {
 
-	function checkTime(i) {
-		if (i<10) {i = "0" + i};
-			return i;
-	}
+  function checkTime(i) {
+    if (i<10) {i = "0" + i};
+      return i;
+  }
 
-	function startTime() {
-		var today=new Date();
-	 	var h=today.getHours();
-		var m=today.getMinutes();
-		var s=today.getSeconds();
-		m = checkTime(m);
-		s = checkTime(s);
-		$("#relogio").text(h+":"+m+":"+s)
-		var t = setTimeout(function(){
-		    startTime()
-		},100);
-	}
+  function startTime() {
+    var today=new Date();
+    var h=today.getHours();
+    var m=today.getMinutes();
+    var s=today.getSeconds();
+    m = checkTime(m);
+    s = checkTime(s);
+    $("#relogio").text(h+":"+m+":"+s)
+    var t = setTimeout(function(){
+        startTime()
+    },100);
+  }
 
-	startTime();
+  startTime();
     var audioAlertFinish = document.getElementById("audio");
-	$('#discurso').prop('disabled', false);
-	$('#aparte').prop('disabled', false);
-	$('#ordem').prop('disabled', false);
+  $('#discurso').prop('disabled', false);
+  $('#aparte').prop('disabled', false);
+  $('#ordem').prop('disabled', false);
     $('#consideracoes').prop('disabled', false);
 
     $('#discurso').runner({
@@ -141,7 +141,7 @@ $(function() {
           s = checkTime(s);
           return h.toString() + ":" + m.toString() + ":" + s.toString();
         }
-	}).on('runnerFinish', function(eventObject, info){
+  }).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
         audioAlertFinish.play();
         $('#discursoReset').show();
@@ -152,23 +152,23 @@ $(function() {
 
     $('#discursoStart').click(function() {
 
-			$.get('/painel/cronometro', { tipo: 'discurso', action: 'start' } );
+      $.get('/painel/cronometro', { tipo: 'discurso', action: 'start' } );
       
-			$('#discurso').runner('start');	
+      $('#discurso').runner('start'); 
 
     });
 
     $('#discursoStop').click(function() {
 
-			$.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
+      $.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
 
-			$('#discurso').runner('stop');
-		
+      $('#discurso').runner('stop');
+    
     });
 
     $('#discursoReset').click(function() {
 
-		$.get('/painel/cronometro', { tipo: 'discurso', action: 'reset' } );
+    $.get('/painel/cronometro', { tipo: 'discurso', action: 'reset' } );
 
         $('#discurso').runner('stop');
         $('#discurso').runner('reset');
@@ -189,7 +189,7 @@ $(function() {
           s = checkTime(s);
           return h.toString() + ":" + m.toString() + ":" + s.toString();
         }
-	}).on('runnerFinish', function(eventObject, info){
+  }).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
         audioAlertFinish.play();
         $('#aparteReset').show();
@@ -210,7 +210,7 @@ $(function() {
 
     $('#aparteReset').click(function() {
 
-		$.get('/painel/cronometro', { tipo: 'aparte', action: 'reset' } );
+    $.get('/painel/cronometro', { tipo: 'aparte', action: 'reset' } );
 
         $('#aparte').runner('stop');
         $('#aparte').runner('reset');
@@ -231,7 +231,7 @@ $(function() {
           s = checkTime(s);
           return h.toString() + ":" + m.toString() + ":" + s.toString();
         }
-	}).on('runnerFinish', function(eventObject, info){
+  }).on('runnerFinish', function(eventObject, info){
         $.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
         audioAlertFinish.play();
         $('#ordemReset').show();
@@ -251,7 +251,7 @@ $(function() {
 
     $('#ordemReset').click(function() {
 
-		$.get('/painel/cronometro', { tipo: 'ordem', action: 'reset' } );
+    $.get('/painel/cronometro', { tipo: 'ordem', action: 'reset' } );
 
         $('#ordem').runner('stop');
         $('#ordem').runner('reset');
