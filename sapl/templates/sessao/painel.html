@@ -35,8 +35,8 @@
 	<br />
 
   <div class="row">
-    <div class="col-md-6"><button onclick="switch_cronometro(true, 1)" id="discursoStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button onclick="switch_cronometro(false, 1)" id="discursoStop" class="btn btn-success">Parar</button></div>
+    <div class="col-md-3"><button onclick="switch_cronometro(true, 1)" id="discursoStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-3"><button onclick="switch_cronometro(false, 1)" id="discursoStop" class="btn btn-danger">Parar</button></div>
     <div class="col-md-6"><button type="button" id="discursoReset" class="btn btn-success">Reiniciar</button></div>
   </div>
 
@@ -51,8 +51,9 @@
 	<br />
 
   <div class="row">
-    <div class="col-md-6"><button type="button" id="aparteStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="aparteReset" class="btn btn-success" class="btn btn-success">Reiniciar</button></div>
+    <div class="col-md-3"><button onclick="switch_cronometro(true, 2)" id="aparteStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-3"><button onclick="switch_cronometro(false, 2)" id="aparteStop" class="btn btn-danger">Parar</button></div>
+    <div class="col-md-6"><button type="button" id="aparteReset" class="btn btn-success">Reiniciar</button></div>
   </div>
 
 	<br /><br >
@@ -66,7 +67,8 @@
 	<br />
 
   <div class="row">
-    <div class="col-md-6"><button type="button" id="ordemStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-3"><button onclick="switch_cronometro(true, 3)" id="ordemStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-3"><button onclick="switch_cronometro(false, 3)" id="ordemStop" class="btn btn-danger">Parar</button></div>
     <div class="col-md-6"><button type="button" id="ordemReset" class="btn btn-success">Reiniciar</button></div>
   </div>
 
@@ -83,7 +85,8 @@
   <br />
 
   <div class="row">
-    <div class="col-md-6"><button type="button" id="consideracoesStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-3"><button onclick="switch_cronometro(true, 3)" id="consideracoesStart" class="btn btn-success">Iniciar</button></div>
+    <div class="col-md-3"><button onclick="switch_cronometro(false, 3)" id="consideracoesStop" class="btn btn-danger">Parar</button></div>
     <div class="col-md-6"><button type="button" id="consideracoesReset" class="btn btn-success">Reiniciar</button></div>
   </div>
   <br /><br >
@@ -150,8 +153,7 @@ $(function() {
     $('#discursoStart').click(function() {
 
 			$.get('/painel/cronometro', { tipo: 'discurso', action: 'start' } );
-
-			$('#discursoReset').hide();
+      
 			$('#discurso').runner('start');	
 
     });
@@ -160,7 +162,6 @@ $(function() {
 
 			$.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
 
-			$('#discursoReset').show();
 			$('#discurso').runner('stop');
 		
     });
@@ -197,24 +198,14 @@ $(function() {
 
     });
 
-	$('#aparteStart').click(function(){
-		if ($('#aparteStart').text() == 'Iniciar') {
+    $('#aparteStart').click(function(){
+      $.get('/painel/cronometro', { tipo: 'aparte', action: 'start' } );
+      $('#aparte').runner('start');
+    });
 
-			$.get('/painel/cronometro', { tipo: 'aparte', action: 'start' } );
-
-			$('#aparteReset').hide();
-	        $('#aparte').runner('start');
-			$('#aparteStart').text('Parar');
-
-		} else {
-
-			$.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
-
-			$('#aparteReset').show();
-			$('#aparte').runner('stop');
-			$('#aparteStart').text('Iniciar');
-
-		}
+    $('#aparteStop').click(function(){
+      $.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
+      $('#aparte').runner('stop');
     });
 
     $('#aparteReset').click(function() {
@@ -248,26 +239,14 @@ $(function() {
         $('#ordemStart').text('Iniciar');
 
     });
+    $('#ordemStart').click(function(){
+      $.get('/painel/cronometro', { tipo: 'ordem', action: 'start' } );
+      $('#ordem').runner('start');
+    });
 
-    $('#ordemStart').click(function() {
-		if ($('#ordemStart').text() == 'Iniciar') {
-
-			$.get('/painel/cronometro', { tipo: 'ordem', action: 'start' } );
-
-			$('#ordemReset').hide();
-	        $('#ordem').runner('start');
-			$('#ordemStart').text('Parar');
-
-
-		} else {
-
-			$.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
-
-			$('#ordemReset').show();
-	        $('#ordem').runner('stop');
-			$('#ordemStart').text('Iniciar');
-
-		}
+    $('#ordemStop').click(function(){
+      $.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
+      $('#ordem').runner('stop');
     });
 
     $('#ordemReset').click(function() {
@@ -304,23 +283,13 @@ $(function() {
     });
 
     $('#consideracoesStart').click(function(){
-        if ($('#consideracoesStart').text() == 'Iniciar') {
+      $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'start' } );
+      $('#consideracoes').runner('start');
+    });
 
-            $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'start' } );
-
-            $('#consideracoesReset').hide();
-            $('#consideracoes').runner('start');
-            $('#consideracoesStart').text('Parar');
-
-        } else {
-
-            $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
-
-            $('#consideracoesReset').show();
-            $('#consideracoes').runner('stop');
-            $('#consideracoesStart').text('Iniciar');
-
-        }
+    $('#consideracoesStop').click(function(){
+      $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
+      $('#consideracoes').runner('stop');
     });
 
     $('#consideracoesReset').click(function() {

@@ -122,23 +122,15 @@
             <h2 class="text-subtitle">Cronômetros</h2>
             <div class="text-value">
               Discurso:<span id='discurso' style="margin-right: 20px;">[[ cronometro_discurso ]]</span><span v-if="painel_aberto">
-                <span v-if='running != 1'><button class="btn btn-success" v-on:click="start (1)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
-                <span v-else><button class="btn btn-danger" v-on:click="stop(1)">Parar</button></span>
               </span><br>
 
               Aparte:<span id='discurso' style="margin-right: 20px;">[[ cronometro_aparte ]]</span><span v-if="painel_aberto">
-              <span v-if='running != 2'><button class="btn btn-success" v-on:click="start (2)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
-              <span v-else><button class="btn btn-danger" v-on:click="stop(2)">Parar</button></span>
               </span><br>
               
               Questão de Ordem: <span id='discurso' style="margin-right: 20px;">[[ cronometro_ordem ]]</span><span v-if="painel_aberto">
-              <span v-if='running != 3'><button class="btn btn-success" v-on:click="start (3)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
-              <span v-else><button class="btn btn-danger" v-on:click="stop(3)">Parar</button></span>
               </span><br>
               
               Considerações Finais: <span id='discurso' style="margin-right: 20px;">[[ cronometro_consideracoes ]]</span><span v-if="painel_aberto">
-              <span v-if='running != 4'><button class="btn btn-success" v-on:click="start (4)">Iniciar</button><button style="margin-left: 10px;" class="btn btn-success" v-on:click="reset">Reiniciar</button></span>
-              <span v-else><button class="btn btn-danger" v-on:click="stop(4)">Parar</button></span>
               </span>
             </div>
           </div>

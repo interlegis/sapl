@@ -241,7 +241,7 @@ const v = new Vue({ // eslint-disable-line
       }
     },
     start: function startStopWatch (temp_crono) {
-      if (this.running !== 0) return
+      if (this.running === temp_crono) return
 
       crono = temp_crono
       if (time === null) {
@@ -254,7 +254,6 @@ const v = new Vue({ // eslint-disable-line
         timeEnd.setMinutes(timeEnd.getMinutes() + time.getMinutes())
         timeEnd.setSeconds(timeEnd.getSeconds() + time.getSeconds())
         timeEnd.setMilliseconds(timeEnd.getMilliseconds() + time.getMilliseconds())
-        clearInterval(this.timeStopped)
       }
       this.running = crono
 
