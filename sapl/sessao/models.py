@@ -311,20 +311,18 @@ class SessaoPlenaria(models.Model):
             self.upload_ata = upload_ata
             self.upload_anexo = upload_anexo
 
-        sp = models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        models.Model.save(self, force_insert=force_insert,
+                          force_update=force_update,
+                          using=using,
+                          update_fields=update_fields)
 
-        sp.ordemdia_set.exclude(
+        self.ordemdia_set.exclude(
             data_ordem=F('sessao_plenaria__data_inicio')
-        ).update(data_ordem=sp.data_inicio)
+        ).update(data_ordem=self.data_inicio)
 
-        sp.expedientemateria_set.exclude(
+        self.expedientemateria_set.exclude(
             data_ordem=F('sessao_plenaria__data_inicio')
-        ).update(data_ordem=sp.data_inicio)
-
-        return sp
+        ).update(data_ordem=self.data_inicio)
 
 
 @reversion.register()
@@ -980,7 +978,7 @@ class RegistroLeitura(models.Model):
     def __str__(self):
         return _('Leitura - '
                  'Matéria: %(materia)s') % {
-                    'materia': self.materia}
+            'materia': self.materia}
 
     def clean(self):
         """Exatamente um dos campos ordem ou expediente deve estar preenchido.
