@@ -161,41 +161,32 @@ const v = new Vue({ // eslint-disable-line
       this.running[2] = 0
       this.running[3] = 0
 
-      // Pausar os cronometros
+      // Status cronometro
       if (this.status_cronometro_discurso === 'S') {
         this.stop(1)
+      } else if (this.status_cronometro_discurso === 'I') {
+        this.start(1)
       }
 
       if (this.status_cronometro_aparte === 'S') {
         this.stop(2)
+      } else if (this.status_cronometro_aparte === 'I') {
+        this.start(2)
       }
 
       if (this.status_cronometro_ordem === 'S') {
         this.stop(3)
+      } else if (this.status_cronometro_ordem === 'I') {
+        this.start(3)
       }
 
       if (this.status_cronometro_consideracoes === 'S') {
         this.stop(4)
-      }
-
-      // Iniciar os cronometros
-      if (this.status_cronometro_discurso === 'I') {
-        this.start(1)
-      }
-
-      if (this.status_cronometro_aparte === 'I') {
-        this.start(2)
-      }
-
-      if (this.status_cronometro_ordem === 'I') {
-        this.start(3)
-      }
-
-      if (this.status_cronometro_consideracoes === 'I') {
+      } else if (this.status_cronometro_consideracoes === 'I') {
         this.start(4)
       }
 
-      // Setar os timers no caso de nulo
+      // Setar os timers no caso de nulo ou resetado
       if (time_d === null || this.status_cronometro_discurso === 'R') {
         this.setTimer(1)
         this.stop(1)
@@ -327,6 +318,7 @@ const v = new Vue({ // eslint-disable-line
     clockRunning (crono) {
       switch (crono) {
         case 1:
+          if (this.status_cronometro_discurso !== 'I') return
           var now_d = new Date()
           time_d = new Date(timeEnd_d - now_d)
 
@@ -343,6 +335,7 @@ const v = new Vue({ // eslint-disable-line
           }
           break
         case 2:
+          if (this.status_cronometro_aparte !== 'I') return
           var now_a = new Date()
           time_a = new Date(timeEnd_a - now_a)
 
@@ -359,6 +352,7 @@ const v = new Vue({ // eslint-disable-line
           }
           break
         case 3:
+          if (this.status_cronometro_ordem !== 'I') return
           var now_o = new Date()
           time_o = new Date(timeEnd_o - now_o)
 
@@ -375,6 +369,7 @@ const v = new Vue({ // eslint-disable-line
           }
           break
         case 4:
+          if (this.status_cronometro_consideracoes !== 'I') return
           var now_c = new Date()
           time_c = new Date(timeEnd_c - now_c)
 
