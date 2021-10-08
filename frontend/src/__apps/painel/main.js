@@ -10,10 +10,12 @@ var time_d = null
 var time_o = null
 var time_a = null
 var time_c = null
+var time_p = null
 var timeEnd_o = null
 var timeEnd_d = null
 var timeEnd_a = null
 var timeEnd_c = null
+var timeEnd_p = null
 var audioAlertFinish = document.getElementById('audio')
 var cronometroStart = []
 var started = []
@@ -35,6 +37,7 @@ const v = new Vue({ // eslint-disable-line
       cronometro_aparte: '',
       cronometro_ordem: '',
       cronometro_consideracoes: '',
+      cronometro_personalizado: '',
       sessao_solene: false,
       sessao_solene_tema: '',
       presentes: [],
@@ -57,7 +60,8 @@ const v = new Vue({ // eslint-disable-line
       status_cronometro_discurso: '',
       status_cronometro_aparte: '',
       status_cronometro_ordem: '',
-      status_cronometro_consideracoes: ''
+      status_cronometro_consideracoes: '',
+      status_cronometro_personalizado: ''
     }
   },
   methods: {
@@ -127,6 +131,7 @@ const v = new Vue({ // eslint-disable-line
       this.status_cronometro_ordem = objeto.status_cronometro_ordem
       this.status_cronometro_aparte = objeto.status_cronometro_aparte
       this.status_cronometro_consideracoes = objeto.status_cronometro_consideracoes
+      this.status_cronometro_personalizado = objeto.status_cronometro_personalizado
 
       this.presentes = objeto.presentes
       this.presentes.forEach(parlamentar => {
@@ -155,11 +160,13 @@ const v = new Vue({ // eslint-disable-line
       cronometroStart[1] = objeto.cronometro_aparte
       cronometroStart[2] = objeto.cronometro_ordem
       cronometroStart[3] = objeto.cronometro_consideracoes
+      cronometroStart[4] = objeto.cronometro_personalizado
 
       this.running[0] = 0
       this.running[1] = 0
       this.running[2] = 0
       this.running[3] = 0
+      this.running[4] = 0
 
       // Status cronometro
       if (this.status_cronometro_discurso === 'S') {
@@ -186,6 +193,12 @@ const v = new Vue({ // eslint-disable-line
         this.start(4)
       }
 
+      if (this.status_cronometro_personalizado === 'S') {
+        this.stop(5)
+      } else if (this.status_cronometro_personalizado === 'I') {
+        this.start(5)
+      }
+
       // Setar os timers no caso de nulo ou resetado
       if (time_d === null || this.status_cronometro_discurso === 'R') {
         this.setTimer(1)
@@ -203,17 +216,22 @@ const v = new Vue({ // eslint-disable-line
         this.setTimer(4)
         this.stop(4)
       }
+      if (time_p === null || this.status_cronometro_personalizado === 'R') {
+        this.setTimer(5)
+        this.stop(5)
+      }
     },
     setTimer (temp_crono) {
       var temp
       var res
       var now
-      if (temp_crono === 5) {
+      if (temp_crono === 6) {
         // Pegar data atual
         this.cronometro_discurso = new Date()
         this.cronometro_aparte = this.cronometro_discurso
         this.cronometro_ordem = this.cronometro_discurso
         this.cronometro_consideracoes = this.cronometro_discurso
+        this.cronometro_personalizado = this.cronometro_discurso
 
         // Setar cada Cronometro
         temp = new Date()
@@ -239,6 +257,12 @@ const v = new Vue({ // eslint-disable-line
         res = new Date(temp - this.cronometro_consideracoes)
         res.setHours(temp.getHours() - this.cronometro_consideracoes.getHours())
         this.cronometro_consideracoes = this.formatTime(res)
+
+        temp = new Date()
+        temp.setSeconds(this.cronometro_personalizado.getSeconds() + cronometroStart[4])
+        res = new Date(temp - this.cronometro_personalizado)
+        res.setHours(temp.getHours() - this.cronometro_personalizado.getHours())
+        this.cronometro_personalizado = this.formatTime(res)
       } else {
         now = new Date()
         switch (temp_crono) {
@@ -273,6 +297,14 @@ const v = new Vue({ // eslint-disable-line
             res = new Date(temp - now)
             res.setHours(cronometroStart[3] / 3600)
             this.cronometro_consideracoes = this.formatTime(res)
+            break
+          case 5:
+            time_p = null
+            temp = new Date()
+            temp.setSeconds(now.getSeconds() + cronometroStart[4])
+            res = new Date(temp - now)
+            res.setHours(cronometroStart[4] / 3600)
+            this.cronometro_personalizado = this.formatTime(res)
         }
       }
     },
@@ -290,7 +322,7 @@ const v = new Vue({ // eslint-disable-line
       return tempo
     },
     stop: function stop (crono) {
-      if (crono === 5) {
+      if (crono === 6) {
         audioAlertFinish.play()
       } else {
         this.running[crono - 1] = 0
@@ -360,6 +392,23 @@ const v = new Vue({ // eslint-disable-line
 
           if (timeEnd_c > now_c) {
             this.cronometro_consideracoes = this.formatTime(time_c)
+          } else {
+            audioAlertFinish.play()
+            this.alert = setTimeout(() => {
+              this.reset()
+            }, 5000)
+          }
+          break
+        case 5:
+          if (this.status_cronometro_personalizado !== 'I') return
+          var now_p = new Date()
+          time_p = new Date(timeEnd_p - now_p)
+
+          // Definir propriamento o tempo
+          time_p.setHours((time_p.getTime() / 1000) / 3600)
+
+          if (timeEnd_p > now_p) {
+            this.cronometro_personalizado = this.formatTime(time_p)
           } else {
             audioAlertFinish.play()
             this.alert = setTimeout(() => {
@@ -438,6 +487,23 @@ const v = new Vue({ // eslint-disable-line
           this.running[3] = 1
 
           started[3] = setInterval(() => {
+            this.clockRunning(temp_crono)
+          }, 50)
+          break
+        case 5:
+          if (time_p === null) {
+            time_p = cronometroStart[4]
+            timeEnd_p = new Date()
+            timeEnd_p.setSeconds(timeEnd_p.getSeconds() + time_p)
+          } else {
+            timeEnd_p = new Date()
+            timeEnd_p.setHours(timeEnd_p.getHours() + time_p.getHours())
+            timeEnd_p.setMinutes(timeEnd_p.getMinutes() + time_p.getMinutes())
+            timeEnd_p.setSeconds(timeEnd_p.getSeconds() + time_p.getSeconds())
+          }
+          this.running[4] = 1
+
+          started[4] = setInterval(() => {
             this.clockRunning(temp_crono)
           }, 50)
           break

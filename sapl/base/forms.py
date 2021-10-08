@@ -1556,6 +1556,7 @@ class ConfiguracoesAppForm(ModelForm):
                   'cronometro_aparte',
                   'cronometro_ordem',
                   'cronometro_consideracoes',
+                  'cronometro_personalizado',
                   'mostrar_brasao_painel',
                   'receber_recibo_proposicao',
                   'assinatura_ata',
@@ -1573,6 +1574,7 @@ class ConfiguracoesAppForm(ModelForm):
         self.fields['cronometro_aparte'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_consideracoes'].widget.attrs['class'] = 'cronometro'
+        self.fields['cronometro_personalizado'].widget.attrs['class'] = 'cronometro'
 
     def clean(self):
         cleaned_data = super().clean()

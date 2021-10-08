@@ -168,6 +168,11 @@ class AppConfig(models.Model):
         blank=True,
         null=True)
 
+    cronometro_personalizado = models.DurationField(
+        verbose_name=_('Cronômetro Personalizado'),
+        blank=True,
+        null=True)
+
     mostrar_brasao_painel = models.BooleanField(
         default=False,
         verbose_name=_('Mostrar brasão da Casa no painel?'))

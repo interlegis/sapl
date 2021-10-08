@@ -372,6 +372,9 @@ def get_cronometro_status(request):
         elif tipo == 4:
             sessao.status_cronometro_consideracoes_finais = 'I'
 
+        elif tipo == 5:
+            sessao.status_cronometro_personalizado = 'I'
+
     elif ligado == 2:
         if tipo == 1:
             sessao.status_cronometro_discurso = 'S'
@@ -384,6 +387,9 @@ def get_cronometro_status(request):
 
         elif tipo == 4:
             sessao.status_cronometro_consideracoes_finais = 'S'
+        
+        elif tipo == 5:
+            sessao.status_cronometro_personalizado = 'S'
 
     elif ligado == 3:
         if tipo == 1:
@@ -397,6 +403,9 @@ def get_cronometro_status(request):
 
         elif tipo == 4:
             sessao.status_cronometro_consideracoes_finais = 'R'
+        
+        elif tipo == 5:
+            sessao.status_cronometro_personalizado = 'R'
     
     sessao.save()
     tasks.get_dados_painel_final(pk)
@@ -412,6 +421,8 @@ def get_cronometro_value(name):
         result = ConfiguracoesAplicacao.objects.first().cronometro_ordem
     if name == 'consideracoes':
         result = ConfiguracoesAplicacao.objects.first().cronometro_consideracoes
+    if name == 'personalizado':
+        result = ConfiguracoesAplicacao.objects.first().cronometro_personalizado
 
     return result.total_seconds()
 
@@ -628,10 +639,12 @@ def get_dados_painel(pk):
         'status_cronometro_aparte': sessao.status_cronometro_aparte,
         'status_cronometro_ordem': sessao.status_cronometro_ordem_do_dia,
         'status_cronometro_consideracoes': sessao.status_cronometro_consideracoes_finais,
+        'status_cronometro_personalizado': sessao.status_cronometro_personalizado,
         'cronometro_aparte': get_cronometro_value('aparte'),
         'cronometro_discurso': get_cronometro_value('discurso'),
         'cronometro_ordem': get_cronometro_value('ordem'),
         'cronometro_consideracoes': get_cronometro_value('consideracoes'),
+        'cronometro_personalizado': get_cronometro_value('personalizado'),
         'status_painel': sessao.painel_aberto,
         'brasao': brasao
     }

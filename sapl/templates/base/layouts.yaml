@@ -59,6 +59,7 @@ AppConfig:
   {% trans 'Módulo Painel' %}:
   - cronometro_discurso cronometro_aparte
   - cronometro_ordem cronometro_consideracoes
+  - cronometro_personalizado
   - mostrar_brasao_painel
 
   {% trans 'Segurança' %}:

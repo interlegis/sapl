@@ -1404,9 +1404,11 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         cronometro_ordem = AppsAppConfig.attr('cronometro_ordem')
         cronometro_consideracoes = AppsAppConfig.attr(
             'cronometro_consideracoes')
+        cronometro_personalizado = AppsAppConfig.attr(
+            'cronometro_personalizado')
 
         if (not cronometro_discurso or not cronometro_aparte
-                or not cronometro_ordem or not cronometro_consideracoes):
+                or not cronometro_ordem or not cronometro_consideracoes or not cronometro_personalizado):
 
             username = self.request.user.username
             self.logger.error('user=' + username + '. Você precisa primeiro configurar os cronômetros'
@@ -1421,6 +1423,7 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             cronometro_aparte = cronometro_aparte.seconds
             cronometro_ordem = cronometro_ordem.seconds
             cronometro_consideracoes = cronometro_consideracoes.seconds
+            cronometro_personalizado = cronometro_personalizado.seconds
 
         sessao_pk = kwargs['pk']
         sessao = SessaoPlenaria.objects.get(pk=sessao_pk)
@@ -1433,7 +1436,8 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             'cronometro_discurso': cronometro_discurso,
             'cronometro_aparte': cronometro_aparte,
             'cronometro_ordem': cronometro_ordem,
-            'cronometro_consideracoes': cronometro_consideracoes})
+            'cronometro_consideracoes': cronometro_consideracoes,
+            'cronometro_personalizado' : cronometro_personalizado})
 
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":
