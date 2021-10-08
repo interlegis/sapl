@@ -127,7 +127,7 @@ const v = new Vue({ // eslint-disable-line
       this.status_cronometro_ordem = objeto.status_cronometro_ordem
       this.status_cronometro_aparte = objeto.status_cronometro_aparte
       this.status_cronometro_consideracoes = objeto.status_cronometro_consideracoes
-      console.log(objeto)
+
       this.presentes = objeto.presentes
       this.presentes.forEach(parlamentar => {
         this.atribuiColor(parlamentar)
@@ -246,28 +246,28 @@ const v = new Vue({ // eslint-disable-line
             temp = new Date()
             temp.setSeconds(now.getSeconds() + cronometroStart[0])
             res = new Date(temp - now)
-            res.setHours(temp.getHours() - now.getHours())
+            res.setHours(cronometroStart[0] / 3600)
             this.cronometro_discurso = this.formatTime(res)
             break
           case 2:
             temp = new Date()
             temp.setSeconds(now.getSeconds() + cronometroStart[1])
             res = new Date(temp - now)
-            res.setHours(temp.getHours() - now.getHours())
+            res.setHours(cronometroStart[1] / 3600)
             this.cronometro_aparte = this.formatTime(res)
             break
           case 3:
             temp = new Date()
             temp.setSeconds(now.getSeconds() + cronometroStart[2])
             res = new Date(temp - now)
-            res.setHours(temp.getHours() - now.getHours())
+            res.setHours(cronometroStart[2] / 3600)
             this.cronometro_ordem = this.formatTime(res)
             break
           case 4:
             temp = new Date()
             temp.setSeconds(now.getSeconds() + cronometroStart[3])
             res = new Date(temp - now)
-            res.setHours(temp.getHours() - now.getHours())
+            res.setHours(cronometroStart[3] / 3600)
             this.cronometro_consideracoes = this.formatTime(res)
         }
       }
@@ -294,7 +294,6 @@ const v = new Vue({ // eslint-disable-line
       }
     },
     reset: function reset (crono) {
-      console.log('AQUI TAMBEM?')
       this.running[crono - 1] = 0
       clearInterval(started[crono - 1])
 
@@ -313,7 +312,7 @@ const v = new Vue({ // eslint-disable-line
           break
       }
 
-      this.setTimer()
+      this.setTimer(crono)
     },
     clockRunning (crono) {
       switch (crono) {
@@ -323,7 +322,7 @@ const v = new Vue({ // eslint-disable-line
           time_d = new Date(timeEnd_d - now_d)
 
           // Definir propriamento o tempo
-          time_d.setHours(timeEnd_d.getHours() - now_d.getHours())
+          time_d.setHours(cronometroStart[0] / 3600)
 
           if (timeEnd_d > now_d) {
             this.cronometro_discurso = this.formatTime(time_d)
@@ -340,7 +339,7 @@ const v = new Vue({ // eslint-disable-line
           time_a = new Date(timeEnd_a - now_a)
 
           // Definir propriamento o tempo
-          time_a.setHours(timeEnd_a.getHours() - now_a.getHours())
+          time_a.setHours(cronometroStart[1] / 3600)
 
           if (timeEnd_a > now_a) {
             this.cronometro_aparte = this.formatTime(time_a)
@@ -357,7 +356,7 @@ const v = new Vue({ // eslint-disable-line
           time_o = new Date(timeEnd_o - now_o)
 
           // Definir propriamento o tempo
-          time_o.setHours(timeEnd_o.getHours() - now_o.getHours())
+          time_o.setHours(cronometroStart[2] / 3600)
 
           if (timeEnd_o > now_o) {
             this.cronometro_ordem = this.formatTime(time_o)
@@ -374,7 +373,7 @@ const v = new Vue({ // eslint-disable-line
           time_c = new Date(timeEnd_c - now_c)
 
           // Definir propriamento o tempo
-          time_c.setHours(timeEnd_c.getHours() - now_c.getHours())
+          time_c.setHours(cronometroStart[3] / 3600)
 
           if (timeEnd_c > now_c) {
             this.cronometro_consideracoes = this.formatTime(time_c)
