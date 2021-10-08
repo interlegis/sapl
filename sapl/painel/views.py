@@ -22,7 +22,7 @@ from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
 from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 PresencaOrdemDia, RegistroVotacao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
-                                VotoParlamentar, RegistroLeitura)
+                                VotoParlamentar, RegistroLeitura, IntegranteMesa)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
 from .models import Cronometro
@@ -446,6 +446,9 @@ def get_presentes(pk, response, materia):
     oradores = OradorExpediente.objects.filter(
         sessao_plenaria_id=pk).order_by('numero_ordem')
 
+    presidente = IntegranteMesa.objects.filter(
+        sessao_plenaria=sessao).order_by('cargo_id').first()
+
     oradores_list = []
     for o in oradores:
 
@@ -462,6 +465,10 @@ def get_presentes(pk, response, materia):
         mandatos = p.parlamentar.mandato_set.filter(legislatura=legislatura)
 
         if p.parlamentar.ativo and mandatos:
+            if presidente.parlamentar_id == p.parlamentar.id:
+                presidenteCheck = True
+            else:
+                presidenteCheck = False
             filiacao = filiacao_data(p.parlamentar, data_sessao, data_sessao)
             if not filiacao:
                 partido = 'Sem Registro'
@@ -473,7 +480,8 @@ def get_presentes(pk, response, materia):
                  'parlamentar_id': p.parlamentar.id,
                  'nome': p.parlamentar.nome_parlamentar,
                  'partido': partido,
-                 'voto': ''
+                 'voto': '',
+                 'presidente': presidenteCheck
                  })
 
         elif not p.parlamentar.ativo or not mandatos:

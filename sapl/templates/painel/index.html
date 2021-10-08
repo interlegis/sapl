@@ -74,7 +74,7 @@
                     <tbody v-for="p in presentes">
                       <tr>
                         <td style="padding-right: 20px;" class="d-flex justify-content-start" v-bind:style="{ color: p.color }">
-                          [[p.nome]]
+                          [[p.nome]]<span v-if="p.presidente == true" style="color: lightgreen;"> - P </span>
                         </td>
                         <td style="padding-right: 20px;" v-bind:style="{ color: p.color }">
                           [[p.partido]]
