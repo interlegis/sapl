@@ -18,7 +18,6 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
-import sapl
 from sapl.base.models import AppConfig, Autor, TipoAutor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -44,6 +43,7 @@ from sapl.utils import (autor_label, autor_modal, timing,
                         SEPARADOR_HASH_PROPOSICAO,
                         validar_arquivo, YES_NO_CHOICES,
                         GoogleRecapthaMixin)
+import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, Numeracao,
@@ -348,8 +348,8 @@ class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
         if arquivo:
             validar_arquivo(arquivo, "Texto Integral")
         else:
-            ## TODO: definir arquivo no form e preservar o nome do campo
-            ## que gerou a mensagem de erro.
+            # TODO: definir arquivo no form e preservar o nome do campo
+            # que gerou a mensagem de erro.
             ## arquivo = forms.FileField(required=True, label="Texto Integral")
             nome_arquivo = self.fields['arquivo'].label
             raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
@@ -591,10 +591,11 @@ class TramitacaoForm(ModelForm):
                         ip=tramitacao.ip,
                         ultima_edicao=tramitacao.ultima_edicao
                     ))
-            ## TODO: BULK UPDATE não envia Signal para Tramitacao
+            # TODO: BULK UPDATE não envia Signal para Tramitacao
             Tramitacao.objects.bulk_create(lista_tramitacao)
             # Atualiza status 'em_tramitacao'
-            MateriaLegislativa.objects.bulk_update(materias_anexadas, ['em_tramitacao'])
+            MateriaLegislativa.objects.bulk_update(
+                materias_anexadas, ['em_tramitacao'])
         return tramitacao
 
 
@@ -724,7 +725,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
 
                     ma.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     ma.save()
-                    ## TODO: refatorar?
+                    # TODO: refatorar?
         return nova_tram_principal
 
 
@@ -1824,7 +1825,7 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 ip=tramitacao.ip,
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
-                ## TODO: BULK UPDATE não envia Signal para Tramitacao
+                # TODO: BULK UPDATE não envia Signal para Tramitacao
                 Tramitacao.objects.bulk_create(lista_tramitacao)
 
         return tramitacao

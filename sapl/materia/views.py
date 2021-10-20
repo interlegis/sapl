@@ -1,11 +1,11 @@
 
 from datetime import datetime
 from io import BytesIO
+from random import choice
+from string import ascii_letters, digits
 import logging
 import os
-from random import choice
 import shutil
-from string import ascii_letters, digits
 import time
 import zipfile
 
@@ -31,7 +31,6 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
 
-import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
 from sapl.comissoes.models import Participacao
@@ -54,6 +53,7 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_u
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, get_tempfile_dir,
                         google_recaptcha_configured)
+import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -104,10 +104,10 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-                not proposicao.autor.operadores.filter(
-                    id=request.user.id
-                ).exists()
-            ):
+                    not proposicao.autor.operadores.filter(
+                        id=request.user.id
+                    ).exists()
+                ):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
             messages.error(request, _(
@@ -1255,8 +1255,8 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
 
         if not user.is_superuser and grupo_autor.user_set.filter(
                 id=user.id).exists():
-           autores = Autor.objects.filter(user=user)
-           qs = qs.filter(proposicao__autor__in=autores)
+            autores = Autor.objects.filter(user=user)
+            qs = qs.filter(proposicao__autor__in=autores)
         return qs
 
     def get_context_data(self, **kwargs):
