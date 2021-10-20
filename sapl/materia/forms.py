@@ -1416,6 +1416,9 @@ class AnexadaEmLoteFilterSet(django_filters.FilterSet):
         self.filters['tipo'].label = 'Tipo de Matéria'
         self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
 
+        self.form.fields['tipo'].required = True
+        self.form.fields['data_apresentacao'].required = True
+
         row1 = to_row([('tipo', 12)])
         row2 = to_row([('data_apresentacao', 12)])
 

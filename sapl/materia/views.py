@@ -104,10 +104,10 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-                    not proposicao.autor.operadores.filter(
+            not proposicao.autor.operadores.filter(
                         id=request.user.id
                     ).exists()
-                ):
+            ):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
             messages.error(request, _(
@@ -2385,39 +2385,42 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             return context
 
         qr = self.request.GET.copy()
-        context['object_list'] = context['object_list'].order_by(
-            'numero', '-ano')
-        principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
-        not_list = [self.kwargs['pk']] + \
-            [m for m in principal.materia_principal_set.all(
-            ).values_list('materia_anexada_id', flat=True)]
-        context['object_list'] = context['object_list'].exclude(
-            pk__in=not_list)
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].order_by(
+                'numero', '-ano')
+            principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            not_list = [self.kwargs['pk']] + \
+                [m for m in principal.materia_principal_set.all(
+                ).values_list('materia_anexada_id', flat=True)]
+            context['object_list'] = context['object_list'].exclude(
+                pk__in=not_list)
 
-        context['temp_object_list'] = context['object_list']
-        context['object_list'] = []
-        for obj in context['temp_object_list']:
-            materia_anexada = obj
-            ciclico = False
-            anexadas_anexada = Anexada.objects.filter(
-                materia_principal=materia_anexada
-            )
+            context['temp_object_list'] = context['object_list']
+            context['object_list'] = []
+            for obj in context['temp_object_list']:
+                materia_anexada = obj
+                ciclico = False
+                anexadas_anexada = Anexada.objects.filter(
+                    materia_principal=materia_anexada
+                )
 
-            while anexadas_anexada and not ciclico:
-                anexadas = []
+                while anexadas_anexada and not ciclico:
+                    anexadas = []
 
-                for anexa in anexadas_anexada:
+                    for anexa in anexadas_anexada:
 
-                    if principal == anexa.materia_anexada:
-                        ciclico = True
-                    else:
-                        for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
-                            anexadas.append(a)
+                        if principal == anexa.materia_anexada:
+                            ciclico = True
+                        else:
+                            for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
+                                anexadas.append(a)
 
-                anexadas_anexada = anexadas
+                    anexadas_anexada = anexadas
 
-            if not ciclico:
-                context['object_list'].append(obj)
+                if not ciclico:
+                    context['object_list'].append(obj)
 
         context['numero_res'] = len(context['object_list'])
 
