@@ -50,6 +50,11 @@
     </tr>
     <tr>
       <td>Autor: <b>{{proposicao.autor}}</b></td>
+    {% if proposicao.user.first_name %}
+      <td>Enviada por: <b>{{proposicao.user.first_name}} {{proposicao.user.last_name}}</b></td>
+    {% else %}
+      <td>Enviada por: <b>{{proposicao.user.username}}</b></td>
+    {% endif %}
       <td>Data de Envio: <b>{{proposicao.data_envio|localtime|date:"d/m/Y H:i:s"}}</b></td>
     </tr>
     <tr>

@@ -108,6 +108,31 @@
         </div>
       </div>
     {% endif %}
+    {% if object.data_envio %}
+      {% if proposicao.user.first_name %}
+        <div class="row">
+          <div class="col-sm-12">
+            <div id="div_id_obseracao" class="form-group">
+              <p class="control-label">Enviada por</p>
+              <div class="controls">
+                <div class="form-control-static">{{proposicao.user.first_name}} {{proposicao.user.last_name}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="row">
+          <div class="col-sm-12">
+            <div id="div_id_obseracao" class="form-group">
+              <p class="control-label">Enviada por</p>
+              <div class="controls">
+                <div class="form-control-static">{{proposicao.user.username}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
     <div class="row">
       {% if object.conteudo_gerado_related %}
         <div class="col-sm-6">
