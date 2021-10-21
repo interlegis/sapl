@@ -2607,6 +2607,8 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         protocolo.ano = timezone.now().year
 
         protocolo.tipo_protocolo = '1'
+        protocolo.user = proposicao.user
+        protocolo.data_envio = proposicao.data_envio
 
         protocolo.interessado = str(proposicao.autor)[
             :200]  # tamanho máximo 200

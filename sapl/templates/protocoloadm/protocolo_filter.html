@@ -49,6 +49,16 @@
               {% elif p.tipo_processo == 1 %}
                 <strong>Autor:</strong> {{ p.autor.nome|default_if_none:"Não informado" }}</br>
               {% endif %}
+              {% if p.data_envio %}
+                {% if p.user.first_name %}
+                  <strong>Proposição enviada por:</strong> {{ p.user.first_name }} {{ p.user.last_name }}</br>
+                {% else %}
+                  <strong>Proposição enviada por:</strong> {{ p.user.username }}</br>
+                {% endif %}
+              {% endif %}
+              {% if p.user %}
+                <strong>Protocolado por:</strong> {{ p.user.username|default_if_none:"Não informado" }}</br>
+              {% endif %}
 
               <strong>Natureza do Processo:</strong>
               {% if p.tipo_processo == 0 %} Administrativo {% elif p.tipo_processo == 1 %} Matéria Legislativa {% endif %}</br>

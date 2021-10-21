@@ -599,6 +599,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     def get_initial(self):
         initial = super().get_initial()
 
+        initial['user'] = self.request.user.usernames
         initial['user_data_hora_manual'] = self.request.user.username
         initial['ip_data_hora_manual'] = get_client_ip(self.request)
         initial['data'] = timezone.localdate(timezone.now())
@@ -663,6 +664,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         protocolo.ano = timezone.now().year
         protocolo.assunto_ementa = self.request.POST['assunto']
+        protocolo.user = username
 
         if form.cleaned_data['data_hora_manual'] == 'True':
             protocolo.timestamp = None
@@ -811,6 +813,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     def get_initial(self):
         initial = super().get_initial()
 
+        initial['user'] = self.request.user.username
         initial['user_data_hora_manual'] = self.request.user.username
         initial['ip_data_hora_manual'] = get_client_ip(self.request)
         initial['data'] = timezone.localdate(timezone.now())
@@ -882,6 +885,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
         protocolo.numero_paginas = self.request.POST['numero_paginas']
         protocolo.observacao = self.request.POST['observacao']
         protocolo.assunto_ementa = self.request.POST['assunto_ementa']
+        protocolo.user = self.request.user
 
         if form.cleaned_data['data_hora_manual'] == 'True':
             protocolo.timestamp = None

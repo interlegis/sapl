@@ -18,8 +18,18 @@
 	{% if protocolo.tipo_processo == 0 %}
 		<strong>Interessado:</strong> {{ protocolo.interessado|default_if_none:"Não informado" }}</br>
 	{% elif protocolo.tipo_processo == 1 %}
-		<strong>Autor:</strong>{{ protocolo.autor.nome|default_if_none:"Não informado" }}</br>
+		<strong>Autor:</strong> {{ protocolo.autor.nome|default_if_none:"Não informado" }}</br>
 	{% endif %}	<!-- TODO: convert if-else to custom tag -->
+	{% if protocolo.data_envio %}
+		{% if protocolo.user.first_name %}
+			<strong>Proposição enviada por:</strong> {{ protocolo.user.first_name }} {{ protocolo.user.last_name }}</br>
+		{% else %}
+			<strong>Proposição enviada por:</strong> {{ protocolo.user.username }}</br>
+		{% endif %}
+	{% endif %}
+	{% if protocolo.user %}
+		<strong>Protocolado por:</strong> {{ protocolo.user.username|default_if_none:"Não informado" }}</br>
+	{% endif %}
 
 	<strong>Natureza do Processo: </strong>{% if protocolo.tipo_processo == 0 %} Administrativo {% elif protocolo.tipo_processo == 1 %} Legislativo {% endif %}</br>
 	<strong>Número de Páginas: </strong> {{ protocolo.numero_paginas|default_if_none:"Não informado" }}</br>

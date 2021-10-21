@@ -110,6 +110,17 @@
                     <td>{{ protocolo.interessado }}</td>
             </tr>
 		{% endif %}
+		{% if protocolo.data_envio %}
+			<tr>
+				{% if protocolo.user.first_name %}
+					<th>Proposição enviada por:</th>
+					<td>{{ protocolo.user.first_name }} {{ protocolo.user.last_name }}</td>
+				{% else %}
+					<th>Proposição enviada por:</th>
+					<td>{{ protocolo.user.username }}</td>
+				{% endif %}
+			</tr>
+			{% endif %}
 		<tr>
 			<th>Natureza</th>
 			<td>
