@@ -599,7 +599,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
     def get_initial(self):
         initial = super().get_initial()
 
-        initial['user'] = self.request.user.usernames
+        initial['user'] = self.request.user.username
         initial['user_data_hora_manual'] = self.request.user.username
         initial['ip_data_hora_manual'] = get_client_ip(self.request)
         initial['data'] = timezone.localdate(timezone.now())
@@ -664,7 +664,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
         protocolo.ano = timezone.now().year
         protocolo.assunto_ementa = self.request.POST['assunto']
-        protocolo.user = username
+        protocolo.user = self.request.user
 
         if form.cleaned_data['data_hora_manual'] == 'True':
             protocolo.timestamp = None
