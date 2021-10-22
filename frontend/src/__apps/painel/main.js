@@ -515,7 +515,13 @@ const v = new Vue({ // eslint-disable-line
       console.log('Connection established')
 
       // Pedir os dados uma vez
-      const id = window.location.href.slice(-3)
+      var id = window.location.href.slice(-3)
+      if (isNaN(id.charAt(0)) === true) {
+        id = window.location.href.slice(-2)
+        if (isNaN(id.charAt(0)) === true) {
+          id = window.location.href.slice(-1)
+        }
+      }
       socket.send(id)
     }
 
