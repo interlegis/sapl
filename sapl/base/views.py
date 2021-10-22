@@ -38,7 +38,7 @@ from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
                              NovaSenhaForm, UserAdminForm,
-                             OperadorAutorForm, LoginForm)
+                             OperadorAutorForm, LoginForm, SaplSearchForm)
 from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination, Crud,\
@@ -2163,8 +2163,20 @@ class AppConfigCrud(CrudAux):
 class SaplSearchView(SearchView):
     results_per_page = 10
 
+    def __init__(self, template=None, load_all=True, form_class=None, searchqueryset=None, results_per_page=None):
+        super().__init__(
+            template=template,
+            load_all=load_all,
+            form_class=SaplSearchForm,
+            searchqueryset=None,
+            results_per_page=results_per_page
+        )
+
     def get_context(self):
         context = super(SaplSearchView, self).get_context()
+
+        data = self.request.GET or self.request.POST
+        data = data.copy()
 
         if 'models' in self.request.GET:
             models = self.request.GET.getlist('models')
@@ -2172,6 +2184,19 @@ class SaplSearchView(SearchView):
             models = []
 
         context['models'] = ''
+        context['is_paginated'] = True  
+
+        page_obj = context['page']
+        context['page_obj'] = page_obj
+        paginator = context['paginator']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+
+        if 'page' in data:
+            del data['page']
+
+        context['filter_url'] = (
+            '&' + data.urlencode()) if len(data) > 0 else ''
 
         for m in models:
             context['models'] = context['models'] + '&models=' + m

@@ -41,7 +41,6 @@ services:
        NAME: "sapl"
     restart: always
     environment:
-      LOGGING_CONSOLE_VERBOSE: 'True'
       ADMIN_PASSWORD: interlegis
       ADMIN_EMAIL: email@dominio.net
       DEBUG: 'False'

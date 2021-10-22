@@ -2,6 +2,7 @@ import logging
 import os
 
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
+from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
 from django.conf import settings
@@ -16,6 +17,7 @@ from django.forms import Form, ModelForm
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from haystack.forms import ModelSearchForm
 import django_filters
 
 from sapl.audiencia.models import AudienciaPublica
@@ -1888,3 +1890,23 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
                      row3,
                      form_actions(label='Pesquisar'))
         )
+
+
+class SaplSearchForm(ModelSearchForm):
+
+    def search(self):
+        sqs = super().search()
+
+        return sqs.order_by('-last_update')
+
+    """def get_models(self):
+        Return a list of the selected models.
+        search_models = []
+
+        if self.is_valid():
+            for model in self.cleaned_data['models']:
+                search_models.append(haystack_get_model(*model.split('.')))
+
+        return search_models
+
+        return ModelSearchForm.get_models(self)"""

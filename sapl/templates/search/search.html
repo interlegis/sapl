@@ -81,7 +81,26 @@
                   <strong>Texto Articulado:</strong> <a href="{% url 'sapl.norma:norma_ta' result.object.pk %}"> Clique aqui </a></br>
                 {% endif %}
               </p>
+            {% elif result.object|search_get_model == 's' %}
+              <p>
+                <strong>Sessão Plenária: </strong><a href="{% url 'sapl.sessao:sessaoplenaria_detail' result.object.pk %}">{{ result.object }}</a></br>
+                <strong>Abertura:</strong> {{result.object.data_inicio}}</br>
+                <strong>Legislatura:</strong> {{result.object.legislatura}}</br>
+                <strong>Sessão Legislativa:</strong> {{result.object.sessao_legislativa}}</br>
+                <strong>Tipo:</strong> {{result.object.tipo}}</br>
+                {% if result.object.upload_ata %}
+                  <strong>Ata:</strong> <a href="{{result.object.upload_ata.url}}"> Clique aqui </a></br>
+                {% endif %}
+                {% if result.object.upload_pauta %}
+                  <strong>Pauta:</strong> <a href="{{result.object.upload_pauta.url}}"> Clique aqui </a></br>
+                {% endif %}
+                {% if result.object.upload_anexo %}
+                  <strong>Anexo:</strong> <a href="{{result.object.upload_anexo.url}}"> Clique aqui </a></br>
+                {% endif %}
+              </p>
             {% endif %}
+
+
           </td>
         </tr>
 
@@ -93,18 +112,11 @@
         </tr>
         {% endfor %}
       </table>
-
-      {% if page.has_previous or page.has_next %}
-        <div>
-          {% if page.has_previous %}
-            <a href="?q={{ query }}&amp;page={{ page.previous_page_number }}{{ models }}">
-          {% endif %}&laquo; Anterior{% if page.has_previous %}</a>{% endif %}
-          |
-          {% if page.has_next %}
-            <a href="?q={{ query }}&amp;page={{ page.next_page_number }}{{ models }}">
-          {% endif %}Próxima &raquo;{% if page.has_next %}</a>{% endif %}
-        </div>
+      {% if page.object_list  %}
+        {% include "paginacao.html" %}
       {% endif %}
+
+
     {% else %}
        {% if 'q=' in request.get_full_path %}
         <strong><h2>Favor informar um conjunto de caracteres na caixa 'Pesquisar' para realizar a busca</h2></strong>

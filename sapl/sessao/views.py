@@ -3,6 +3,7 @@ from collections import OrderedDict
 from re import sub
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -51,6 +52,7 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
                      ORDENACAO_RESUMO, RegistroLeitura)
+
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
@@ -1348,7 +1350,7 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                +request.POST.getlist('presenca_inativos')
+                + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1463,7 +1465,7 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                +request.POST.getlist('presenca_inativos')
+                + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -2537,7 +2539,8 @@ class ConsideracoesFinaisView(FormMixin, DetailView):
         return context
 
     def delete(self):
-        ConsideracoesFinais.objects.filter(sessao_plenaria=self.object).delete()
+        ConsideracoesFinais.objects.filter(
+            sessao_plenaria=self.object).delete()
 
         username = self.request.user.username
         self.logger.info('user=' + username + '. ConsideracoesFinais com SessaoPlenaria de id={} deletada.'
@@ -2549,7 +2552,8 @@ class ConsideracoesFinaisView(FormMixin, DetailView):
     def save(self, form):
         conteudo = form.cleaned_data['conteudo']
 
-        ConsideracoesFinais.objects.filter(sessao_plenaria=self.object).delete()
+        ConsideracoesFinais.objects.filter(
+            sessao_plenaria=self.object).delete()
 
         consideracao = ConsideracoesFinais()
         consideracao.sessao_plenaria_id = self.object.id
@@ -3829,6 +3833,9 @@ class PesquisarSessaoPlenariaView(FilterView):
 
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
+
+        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
+            settings, 'USE_SOLR') else False
 
         return context
 

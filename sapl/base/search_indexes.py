@@ -1,5 +1,5 @@
-import os.path
 import logging
+import os.path
 
 from django.db.models import F, Q, Value
 from django.db.models.fields import TextField
@@ -15,6 +15,7 @@ from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PUBLIC, Dispositivo)
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
+from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import SOLR_URL
 from sapl.utils import RemoveTag
 
@@ -166,5 +167,17 @@ class MateriaLegislativaIndex(DocumentoAcessorioIndex):
             ('ementa', 'string_extractor'),
             ('indexacao', 'string_extractor'),
             ('observacao', 'string_extractor'),
+        )
+    )
+
+
+class SessaoPlenariaIndex(DocumentoAcessorioIndex):
+    model = SessaoPlenaria
+    text = TextExtractField(
+        document=True, use_template=True,
+        model_attr=(
+            ('upload_ata', 'file_extractor'),
+            ('upload_anexo', 'file_extractor'),
+            ('upload_pauta', 'file_extractor'),
         )
     )

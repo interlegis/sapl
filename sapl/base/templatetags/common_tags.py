@@ -1,4 +1,3 @@
-from _functools import reduce
 import re
 
 from django import template
@@ -10,6 +9,7 @@ from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposicao
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
+from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
 
 register = template.Library()
@@ -311,6 +311,8 @@ def search_get_model(object):
         return 'd'
     elif type(object) == NormaJuridica:
         return 'n'
+    elif type(object) == SessaoPlenaria:
+        return 's'
 
     return None
 
