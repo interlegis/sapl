@@ -61,5 +61,15 @@
       $('tbody').sortable('disable');
       $("input[type=submit], input[type=button]").prop("disabled", "disabled");
     });
+
+    function mostra_autores(divAutor, divAutores) {
+      divAutor.style.display = 'none';
+      divAutores.style.display = 'block';
+    }
+
+    function autor_unico(divAutor, divAutores) {
+      divAutor.style.display = 'block';
+      divAutores.style.display = 'none';
+    }
   </script>
 {% endblock %}
