@@ -212,6 +212,10 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         numeracao = materia.numeracao_set.first() if materia.numeracao_set.first() else "-"
         autoria = materia.autoria_set.filter(primeiro_autor=True)
         autor = ', '.join([str(a.autor) for a in autoria]) if autoria else "-"
+
+        todos_autoria = materia.autoria_set.all()
+        todos_autores = ', '.join([str(a.autor) for a in todos_autoria]) if autoria else "-"
+
         num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
 
         data_inicio_sessao = SessaoPlenaria.objects.get(id=pk).data_inicio
@@ -232,12 +236,28 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                                    .select_related("materia", "tramitacao")\
                                                    .filter(materia=materia)\
                                                    .first()
+        #idUnica para cada materia                                          
+        idDiv = "mostra_autores"+str(i)
+        idAutor = "autor"+str(i)
+        idAutores = "autores"+str(i)
+        title_materia = f"""<div id='{idDiv}'>
+                                <a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
+                                <b>Processo:</b> {numeracao}</br>
+                                <span id='{idAutor}'><b>Autor:</b> {autor}</br></span>
+                                <span id='{idAutores}' style="display: none"><b>Autor:</b> {todos_autores}</br></span>
+                                <b>Protocolo:</b> {num_protocolo}</br>
+                                <b>Turno:</b> {turno}</br>
+                            </div>
 
-        title_materia = f"""<a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
-                           <b>Processo:</b> {numeracao}</br>
-                           <b>Autor:</b> {autor}</br>
-                           <b>Protocolo:</b> {num_protocolo}</br>
-                           <b>Turno:</b> {turno}</br>
+                            <script>
+                                document.getElementById("{idDiv}").onmouseover = function () {{
+                                    document.getElementById('{idAutor}').style.display='none'; 
+                                    document.getElementById('{idAutores}').style.display='block';}};
+
+                                document.getElementById("{idDiv}").onmouseleave = function () {{
+                                    document.getElementById('{idAutor}').style.display='block'; 
+                                    document.getElementById('{idAutores}').style.display='none';}};
+                            </script>
                         """
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
