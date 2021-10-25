@@ -237,10 +237,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                                    .filter(materia=materia)\
                                                    .first()
         #idUnica para cada materia                                          
-        idDiv = "mostra_autores"+str(i)
         idAutor = "autor"+str(i)
         idAutores = "autores"+str(i)
-        title_materia = f"""<div id='{idDiv}'>
+        title_materia = f"""<div onmouseover = "mostra_autores({idAutor}, {idAutores})" onmouseleave = "autor_unico({idAutor}, {idAutores})">
                                 <a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
                                 <b>Processo:</b> {numeracao}</br>
                                 <span id='{idAutor}'><b>Autor:</b> {autor}</br></span>
@@ -248,16 +247,6 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 <b>Protocolo:</b> {num_protocolo}</br>
                                 <b>Turno:</b> {turno}</br>
                             </div>
-
-                            <script>
-                                document.getElementById("{idDiv}").onmouseover = function () {{
-                                    document.getElementById('{idAutor}').style.display='none'; 
-                                    document.getElementById('{idAutores}').style.display='block';}};
-
-                                document.getElementById("{idDiv}").onmouseleave = function () {{
-                                    document.getElementById('{idAutor}').style.display='block'; 
-                                    document.getElementById('{idAutores}').style.display='none';}};
-                            </script>
                         """
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
