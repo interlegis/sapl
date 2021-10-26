@@ -210,10 +210,10 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         url_materia = reverse(
             'sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
         numeracao = materia.numeracao_set.first() if materia.numeracao_set.first() else "-"
-        autoria = materia.autoria_set.filter(primeiro_autor=True)
+        todos_autoria = materia.autoria_set.all()
+        autoria = todos_autoria.filter(primeiro_autor=True)
         autor = ', '.join([str(a.autor) for a in autoria]) if autoria else "-"
 
-        todos_autoria = materia.autoria_set.all()
         todos_autores = ', '.join([str(a.autor) for a in todos_autoria]) if autoria else "-"
 
         num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
