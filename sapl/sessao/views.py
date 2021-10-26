@@ -210,8 +210,12 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         url_materia = reverse(
             'sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
         numeracao = materia.numeracao_set.first() if materia.numeracao_set.first() else "-"
-        autoria = materia.autoria_set.filter(primeiro_autor=True)
+        todos_autoria = materia.autoria_set.all()
+        autoria = todos_autoria.filter(primeiro_autor=True)
         autor = ', '.join([str(a.autor) for a in autoria]) if autoria else "-"
+
+        todos_autores = ', '.join([str(a.autor) for a in todos_autoria]) if autoria else "-"
+
         num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
 
         data_inicio_sessao = SessaoPlenaria.objects.get(id=pk).data_inicio
@@ -232,12 +236,17 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                                    .select_related("materia", "tramitacao")\
                                                    .filter(materia=materia)\
                                                    .first()
-
-        title_materia = f"""<a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
-                           <b>Processo:</b> {numeracao}</br>
-                           <b>Autor:</b> {autor}</br>
-                           <b>Protocolo:</b> {num_protocolo}</br>
-                           <b>Turno:</b> {turno}</br>
+        #idUnica para cada materia                                          
+        idAutor = "autor"+str(i)
+        idAutores = "autores"+str(i)
+        title_materia = f"""<div onmouseover = "mostra_autores({idAutor}, {idAutores})" onmouseleave = "autor_unico({idAutor}, {idAutores})">
+                                <a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
+                                <b>Processo:</b> {numeracao}</br>
+                                <span id='{idAutor}'><b>Autor:</b> {autor}</br></span>
+                                <span id='{idAutores}' style="display: none"><b>Autor:</b> {todos_autores}</br></span>
+                                <b>Protocolo:</b> {num_protocolo}</br>
+                                <b>Turno:</b> {turno}</br>
+                            </div>
                         """
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
