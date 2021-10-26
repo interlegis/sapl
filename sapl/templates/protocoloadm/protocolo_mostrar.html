@@ -25,7 +25,7 @@
 		<strong>Proposição enviada por:</strong> {{ protocolo.user|format_user }}</br>
 	{% endif %}
 	{% if protocolo.user %}
-		<strong>Protocolado por:</strong> {{ protocolo.user.username|default_if_none:"Não informado" }}</br>
+		<strong>Protocolado por:</strong> {{ protocolo.user|format_user|default_if_none:"Não informado" }}</br>
 	{% endif %}
 
 	<strong>Natureza do Processo: </strong>{% if protocolo.tipo_processo == 0 %} Administrativo {% elif protocolo.tipo_processo == 1 %} Legislativo {% endif %}</br>

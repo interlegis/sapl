@@ -54,7 +54,7 @@
                 <strong>Proposição enviada por:</strong> {{ p.user|format_user }}</br>
               {% endif %}
               {% if p.user %}
-                <strong>Protocolado por:</strong> {{ p.user.username|default_if_none:"Não informado" }}</br>
+                <strong>Protocolado por:</strong> {{ p.user|format_user|default_if_none:"Não informado" }}</br>
               {% endif %}
 
               <strong>Natureza do Processo:</strong>
