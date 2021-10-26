@@ -90,11 +90,7 @@ class Protocolo(models.Model):
         null=True,
         blank=True
     )
-    data_envio = models.DateTimeField(
-        blank=False,
-        null=True,
-        verbose_name=_('Data de Envio')
-    )
+    de_proposicao = models.BooleanField(default=False)
     # Não foi utilizado auto_now_add=True em timestamp porque ele usa datetime.now que não é timezone aware.
     timestamp = models.DateTimeField(
         null=True,

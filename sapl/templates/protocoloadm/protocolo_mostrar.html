@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load tz %}
 {% load static %}
+{% load common_tags %}
 {% load webpack_static from webpack_loader %}
 
 {% block detail_content %}
@@ -20,12 +21,8 @@
 	{% elif protocolo.tipo_processo == 1 %}
 		<strong>Autor:</strong> {{ protocolo.autor.nome|default_if_none:"Não informado" }}</br>
 	{% endif %}	<!-- TODO: convert if-else to custom tag -->
-	{% if protocolo.data_envio %}
-		{% if protocolo.user.first_name %}
-			<strong>Proposição enviada por:</strong> {{ protocolo.user.first_name }} {{ protocolo.user.last_name }}</br>
-		{% else %}
-			<strong>Proposição enviada por:</strong> {{ protocolo.user.username }}</br>
-		{% endif %}
+	{% if protocolo.de_proposicao %}
+		<strong>Proposição enviada por:</strong> {{ protocolo.user|format_user }}</br>
 	{% endif %}
 	{% if protocolo.user %}
 		<strong>Protocolado por:</strong> {{ protocolo.user.username|default_if_none:"Não informado" }}</br>

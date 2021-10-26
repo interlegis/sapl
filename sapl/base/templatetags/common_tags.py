@@ -51,6 +51,12 @@ def model_verbose_name_plural(class_name):
     model = get_class(class_name)
     return model._meta.verbose_name_plural
 
+@register.filter
+def format_user(user):
+    if user.first_name:
+        return user.username + " - " + user.first_name + " " + user.last_name
+    else:
+        return user.username
 
 @register.filter
 def meta_model_value(instance, attr):
@@ -361,3 +367,4 @@ def dont_break_out(value):
     _safe = '<div class="dont-break-out">{}</div>'.format(value)
     _safe = mark_safe(_safe)
     return _safe
+

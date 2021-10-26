@@ -2,6 +2,7 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% load webpack_static from webpack_loader %}
+{% load common_tags %}
 {% block detail_content %}
 <style xmlns:max-width="http://www.w3.org/1999/xhtml">
 		table {
@@ -110,15 +111,10 @@
                     <td>{{ protocolo.interessado }}</td>
             </tr>
 		{% endif %}
-		{% if protocolo.data_envio %}
+		{% if protocolo.de_proposicao %}
 			<tr>
-				{% if protocolo.user.first_name %}
-					<th>Proposição enviada por:</th>
-					<td>{{ protocolo.user.first_name }} {{ protocolo.user.last_name }}</td>
-				{% else %}
-					<th>Proposição enviada por:</th>
-					<td>{{ protocolo.user.username }}</td>
-				{% endif %}
+				<th>Proposição enviada por:</th>
+				<td>{{ {{ proposicao.user|format_user }} }}</td>
 			</tr>
 			{% endif %}
 		<tr>

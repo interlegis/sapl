@@ -3,6 +3,7 @@
 {% load tz %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load common_tags %}
 {% load webpack_static from webpack_loader %}
 
 {% block action_newsearch %}
@@ -49,12 +50,8 @@
               {% elif p.tipo_processo == 1 %}
                 <strong>Autor:</strong> {{ p.autor.nome|default_if_none:"Não informado" }}</br>
               {% endif %}
-              {% if p.data_envio %}
-                {% if p.user.first_name %}
-                  <strong>Proposição enviada por:</strong> {{ p.user.first_name }} {{ p.user.last_name }}</br>
-                {% else %}
-                  <strong>Proposição enviada por:</strong> {{ p.user.username }}</br>
-                {% endif %}
+              {% if p.de_proposicao %}
+                <strong>Proposição enviada por:</strong> {{ p.user|format_user }}</br>
               {% endif %}
               {% if p.user %}
                 <strong>Protocolado por:</strong> {{ p.user.username|default_if_none:"Não informado" }}</br>
