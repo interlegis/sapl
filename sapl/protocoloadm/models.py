@@ -83,6 +83,14 @@ class Protocolo(models.Model):
         verbose_name=_('IP'),
         help_text=_('Endereço IP da estação de trabalho do usuário que está realizando Protocolo e '
                     'informando data e hora manualmente.'))
+    user = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário'),
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+    de_proposicao = models.BooleanField(default=False)
     # Não foi utilizado auto_now_add=True em timestamp porque ele usa datetime.now que não é timezone aware.
     timestamp = models.DateTimeField(
         null=True,
