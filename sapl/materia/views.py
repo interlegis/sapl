@@ -2263,8 +2263,13 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         qr = self.request.GET.copy()
         context['tipos_docs'] = TipoDocumento.objects.all()
-        context['object_list'] = context['object_list'].order_by(
-            'ano', 'numero')
+
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].order_by(
+                'ano', 'numero')
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
