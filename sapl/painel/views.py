@@ -465,7 +465,7 @@ def get_presentes(pk, response, materia):
         mandatos = p.parlamentar.mandato_set.filter(legislatura=legislatura)
 
         if p.parlamentar.ativo and mandatos:
-            if presidente.parlamentar_id == p.parlamentar.id:
+            if presidente and presidente.parlamentar_id == p.parlamentar.id:
                 presidenteCheck = True
             else:
                 presidenteCheck = False
