@@ -34,9 +34,16 @@
     </head>
     <body class="painel-principal" style="margin: 0;">
       <div id="app-painel"> <!-- app painel -->
-        <div style="color: white;" v-on:click="fontSize -= 1"><h3>-</h3></div>
-        <div style="color: white;"><h3>[[fontSize]]</h3></div>
-        <div style="color: white;" v-on:click="fontSize += 1"><h3>+</h3></div>
+        <button v-if="showFont == false" class="btn" @click="showFont = true" style="margin-top: 5px; margin-left: 5px;padding: 0; background-color: #4fa64d; color: white;">Aa</button>
+        <div v-else class="row" style="color: white;">
+          <div class="col-md-1">
+            <div class="row d-flex" style="margin-left: 5px; margin-top: 5px;">
+              <button class="col-md-3 btn btn-danger" style="padding: 0; margin-right: 5px;" @click="showFont = false">x</button>
+              <button class="col-md-3 btn btn-info" style="padding: 0; margin-right: 5px;" @click="fontSize -= 1">-</button>
+              <button class="col-md-3 btn btn-info" style="padding: 0;" @click="fontSize += 1">+</button>
+            </div>
+          </div>
+        </div>
         <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
         <div class="row justify-content-center">

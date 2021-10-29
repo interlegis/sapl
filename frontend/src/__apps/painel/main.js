@@ -63,7 +63,8 @@ const v = new Vue({ // eslint-disable-line
       status_cronometro_consideracoes: '',
       status_cronometro_personalizado: '',
       relogio: '',
-      fontSize: 20
+      fontSize: 20,
+      showFont: false
     }
   },
   methods: {
