@@ -60,14 +60,14 @@
         
         <div class="row">
           <div class="col-md-5 text-right"><span class="text-value data-hora" id="date"></span></div>
-          <div class="col-md-7 text-center" style="margin-top:10px"><span class="text-value data-hora" id="relogio"></span></div>
+          <div class="col-md-7 text-center" style="margin-top:10px"><span class="text-value data-hora">[[ relogio ]]</span></div>
         </div>
 
         <div style="margin-bottom: 50px;"> <!-- outer div -->
           <div class="d-flex justify-content-start">
-            <div class="col-md-2"></div>
+            <div class="col-md-1"></div>
             <div class="col-md-4 text-center"> <!-- Lista parlamentares -->
-              <div class="text center painel">
+              <div class="text-center painel">
                 <h2 class="text-subtitle">Parlamentares</h2>
                 <div v-if="painel_aberto"> <!-- v-if -->
                   <table>
@@ -142,8 +142,8 @@
                   </div>
                 </div>
                 <div v-else>
-                  <div v-if="painel_aberto">
-                      <div v-if="!sessao_finalizada" class="text-center painel" id="resultado_votacao_div" class="col-md-6">
+                  <div v-if="painel_aberto" class="row" style="margin-top: 50px;">
+                      <div v-if="!sessao_finalizada" class="col-md-6 text-center painel" id="resultado_votacao_div">
                           <h2 class="text-subtitle">Resultado</h2>
                           <div v-if="materia_legislativa_texto">
                               <span id="votacao" class="text-value">
@@ -160,8 +160,8 @@
                           </div>
                       </div>
                       <div v-if="painel_aberto" class="col-md-6">
-                          <div v-if="!sessao_finalizada" class="text-center painel" id="obs_materia_div">
-                              <h2 class="text-subtitle" id="mat_em_votacao">[[ mat_em_votacao ]]</h2>
+                          <div v-if="!sessao_finalizada" class="text-center painel" id="obs_materia_div"> 
+                              <h2 class="text-subtitle">[[ mat_em_votacao ]]</h2>
                               <div v-if="materia_legislativa_texto !== ''">
                               <span id="materia_legislativa_texto" class="text-value">[[ materia_legislativa_texto ]] </span>
                                 <br>

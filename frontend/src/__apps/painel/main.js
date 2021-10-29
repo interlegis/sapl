@@ -51,7 +51,7 @@ const v = new Vue({ // eslint-disable-line
       materia_legislativa_texto: '',
       materia_legislativa_ementa: '',
       observacao_materia: '',
-      mat_em_votacao: '',
+      mat_em_votacao: 'Matéria em Votação',
       resultado_votacao_css: '',
       tipo_resultado: '',
       tipo_votacao: '',
@@ -61,13 +61,14 @@ const v = new Vue({ // eslint-disable-line
       status_cronometro_aparte: '',
       status_cronometro_ordem: '',
       status_cronometro_consideracoes: '',
-      status_cronometro_personalizado: ''
+      status_cronometro_personalizado: '',
+      relogio: 'UAU'
     }
   },
   methods: {
     msgMateria () {
       if (this.tipo_resultado && this.painel_aberto) {
-        if (this.tipo_votacao !== 'Leitura' && !this.sessao_finalizada && !this.sessao_solene) {
+        if (this.tipo_votacao !== 'Leitura' && (!this.sessao_finalizada || this.sessao_finalizada !== undefined) && !this.sessao_solene) {
           this.resultado_votacao_css = 'color: #45919D'
           this.mat_em_votacao = 'Matéria em Votação'
         } else {
@@ -132,6 +133,9 @@ const v = new Vue({ // eslint-disable-line
       this.status_cronometro_aparte = objeto.status_cronometro_aparte
       this.status_cronometro_consideracoes = objeto.status_cronometro_consideracoes
       this.status_cronometro_personalizado = objeto.status_cronometro_personalizado
+      setInterval(() => {
+        this.atualizaRelogio()
+      }, 50)
 
       this.presentes = objeto.presentes
       this.presentes.forEach(parlamentar => {
@@ -153,7 +157,7 @@ const v = new Vue({ // eslint-disable-line
 
       this.tipo_resultado = objeto.tipo_resultado
       this.tipo_votacao = objeto.tipo_votacao
-      this.mat_em_votacao = this.msgMateria()
+      this.msgMateria()
 
       // Cronometros
       cronometroStart[0] = objeto.cronometro_discurso
@@ -508,6 +512,9 @@ const v = new Vue({ // eslint-disable-line
           }, 50)
           break
       }
+    },
+    atualizaRelogio: function atualizaRelogio () {
+      this.relogio = this.formatTime(new Date())
     }
   },
   created () {
