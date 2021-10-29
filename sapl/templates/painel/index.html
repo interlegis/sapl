@@ -66,7 +66,7 @@
         <div style="margin-bottom: 50px;"> <!-- outer div -->
           <div class="d-flex justify-content-start">
             <div class="col-md-2"></div>
-            <div class="col-md-3"> <!-- Lista parlamentares -->
+            <div class="col-md-4 text-center"> <!-- Lista parlamentares -->
               <div class="text center painel">
                 <h2 class="text-subtitle">Parlamentares</h2>
                 <div v-if="painel_aberto"> <!-- v-if -->
@@ -93,103 +93,104 @@
                 </div> <!-- v-if -->
               </div>
             </div> <!-- Lista parlamentares -->
-            <div class="d-flex col-md-7 painels justify-content-center">
-              <div v-if="oradores.length > 0" class="text-center painel" id="aparecer_oradores">
-                <h2 class="text-subtitle">Oradores</h2>
-                <div v-if="painel_aberto"> <!-- v-if Lista de oradores-->
-                  <table>
-                    <tbody v-for="o in oradores">
-                      <tr class="d-flex justify-content-center">
-                        <td style="padding-right: 20px; color: white; font-size: 20px;">
-                          [[ o.numero]]º &nbsp[[o.nome]]
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div> <!--v-if Lista de oradores-->
-                <div v-else>
-                  <span style="color:white">
-                      <center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>
-                  </span>
+            <div class="col-md-6 painels">
+              <div class="row">
+                <div class="col-md-6">
+                  <div v-if="oradores.length > 0" class="text-center painel" id="aparecer_oradores">
+                    <h2 class="text-subtitle">Oradores</h2>
+                    <div v-if="painel_aberto"> <!-- v-if Lista de oradores-->
+                      <table>
+                        <tbody v-for="o in oradores">
+                          <tr class="d-flex justify-content-center">
+                            <td style="padding-right: 20px; color: white; font-size: 20px;">
+                              [[ o.numero]]º &nbsp[[o.nome]]
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div> <!--v-if Lista de oradores-->
+                    <div v-else>
+                      <span style="color:white">
+                          <center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>
+                      </span>
+                    </div>
+                  </div>
                 </div>
+                <div class="col-md-6 text-center painel">
+                  <h2 class="text-subtitle">Cronômetros</h2>
+                  <div class="text-value">
+                    Discurso:<span id='discurso' style="margin-right: 20px;">[[ cronometro_discurso ]]</span><span v-if="painel_aberto">
+                    </span><br>
+      
+                    Aparte:<span id='discurso' style="margin-right: 20px;">[[ cronometro_aparte ]]</span><span v-if="painel_aberto">
+                    </span><br>
+                    
+                    Questão de Ordem: <span id='discurso' style="margin-right: 20px;">[[ cronometro_ordem ]]</span><span v-if="painel_aberto">
+                    </span><br>
+                    
+                    Considerações Finais: <span id='discurso' style="margin-right: 20px;">[[ cronometro_consideracoes ]]</span><span v-if="painel_aberto">
+                    </span><br>
+      
+                    Personalizado: <span id='personalizado' style="margin-right: 20px;">[[ cronometro_personalizado ]]</span><span v-if="painel_aberto">
+                    </span><br>
+                  </div>
+                </div>
+                <div v-if="sessao_solene">
+                  <div class="col-md-4 text-center painel" id="tema_solene_div">
+                      <h2 class="text-subtitle">Tema da Sessão Solene</h2>
+                      <span id="sessao_solene_tema" class="text-value">[[ sessao_solene_tema ]]</span>
+                  </div>
+                </div>
+                <div v-else>
+                  <div v-if="painel_aberto">
+                      <div v-if="!sessao_finalizada" class="text-center painel" id="resultado_votacao_div" class="col-md-6">
+                          <h2 class="text-subtitle">Resultado</h2>
+                          <div v-if="materia_legislativa_texto">
+                              <span id="votacao" class="text-value">
+                                  <li>Sim: [[ numero_votos_sim ]]</li>
+                                  <li>Não: [[ numero_votos_nao ]]</li>
+                                  <li>Abstenções: [[ numero_abstencoes ]]</li>
+                                  <li>Presentes: [[ num_presentes ]]</li>
+                                  <li>Total votos: [[ total_votos ]]</li>
+                              </span>
+                              <h2><span id="resultado_votacao" v-bind:style="resultado_votacao_css" lass="text-title">[[ tipo_resultado ]]</span></h2>
+                          </div>
+                          <div v-else>
+                              <center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>
+                          </div>
+                      </div>
+                      <div v-if="painel_aberto" class="col-md-6">
+                          <div v-if="!sessao_finalizada" class="text-center painel" id="obs_materia_div">
+                              <h2 class="text-subtitle" id="mat_em_votacao">[[ mat_em_votacao ]]</h2>
+                              <div v-if="materia_legislativa_texto !== ''">
+                              <span id="materia_legislativa_texto" class="text-value">[[ materia_legislativa_texto ]] </span>
+                                <br>
+                                <span id="materia_legislativa_ementa" class="text-value">[[ materia_legislativa_ementa ]]</span>
+                                <br>
+                                <span id="observacao_materia" class="text-value"> [[ observacao_materia ]]</span>
+                              </div>
+                              <div v-else>
+                                  <span class="text-value">Não há nenhuma matéria votada ou para votação.</span>
+                              </div>
+                          </div>
+                      </div>
+                      <div v-else>
+                          <span class="text-value">A Matéria em votação só aparecerá quando o painel estiver aberto</span>
+                      </div>
+                  </div>
+                  <div v-else>
+                      <div class="text-center painel">
+                          <h2 class="text-subtitle" style="margin-top: 50px;">Resultado</h2>
+                          <span style="color:white">
+                              <h1>A votação só aparecerá quando o painel estiver aberto</h1>
+                          </span>
+                          </div>
+                    </div>
+                  </div>
               </div>
             </div>
           </div>
         </div> <!-- outer div -->
-        <div class="row"> <!-- row -->
-          <div class="col-md-2"></div>
-          <div class="col-md-4 text-left painel">
-            <h2 class="text-subtitle">Cronômetros</h2>
-            <div class="text-value">
-              Discurso:<span id='discurso' style="margin-right: 20px;">[[ cronometro_discurso ]]</span><span v-if="painel_aberto">
-              </span><br>
-
-              Aparte:<span id='discurso' style="margin-right: 20px;">[[ cronometro_aparte ]]</span><span v-if="painel_aberto">
-              </span><br>
-              
-              Questão de Ordem: <span id='discurso' style="margin-right: 20px;">[[ cronometro_ordem ]]</span><span v-if="painel_aberto">
-              </span><br>
-              
-              Considerações Finais: <span id='discurso' style="margin-right: 20px;">[[ cronometro_consideracoes ]]</span><span v-if="painel_aberto">
-              </span><br>
-
-              Personalizado: <span id='personalizado' style="margin-right: 20px;">[[ cronometro_personalizado ]]</span><span v-if="painel_aberto">
-              </span><br>
-            </div>
-          </div>
-          <div v-if="sessao_solene">
-            <div class="col-md-4 text-center painel" id="tema_solene_div">
-                <h2 class="text-subtitle">Tema da Sessão Solene</h2>
-                <span id="sessao_solene_tema" class="text-value">[[ sessao_solene_tema ]]</span>
-            </div>
-          </div>
-          <div v-else class="col-md-5" style="margin-left: 51vw; position: absolute;">
-            <div v-if="painel_aberto" style="margin-top: -50vh;">
-                <div v-if="!sessao_finalizada" class="text-center painel" id="resultado_votacao_div">
-                    <h2 class="text-subtitle" style="margin-left: -50px; margin-top: 50px;">Resultado</h2>
-                    <div v-if="materia_legislativa_texto">
-                        <span id="votacao" class="text-value">
-                            <li>Sim: [[ numero_votos_sim ]]</li>
-                            <li>Não: [[ numero_votos_nao ]]</li>
-                            <li>Abstenções: [[ numero_abstencoes ]]</li>
-                            <li>Presentes: [[ num_presentes ]]</li>
-                            <li>Total votos: [[ total_votos ]]</li>
-                        </span>
-                        <h2><span id="resultado_votacao" v-bind:style="resultado_votacao_css" lass="text-title">[[ tipo_resultado ]]</span></h2>
-                    </div>
-                    <div v-else>
-                        <center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>
-                    </div>
-                </div>
-                <div v-if="painel_aberto">
-                    <div v-if="!sessao_finalizada" class="text-center painel" id="obs_materia_div">
-                        <h2 class="text-subtitle" id="mat_em_votacao">[[ mat_em_votacao ]]</h2>
-                        <div v-if="materia_legislativa_texto !== ''">
-                        <span id="materia_legislativa_texto" class="text-value">[[ materia_legislativa_texto ]] </span>
-                          <br>
-                          <span id="materia_legislativa_ementa" class="text-value">[[ materia_legislativa_ementa ]]</span>
-                          <br>
-                          <span id="observacao_materia" class="text-value"> [[ observacao_materia ]]</span>
-                        </div>
-                        <div v-else>
-                            <span class="text-value">Não há nenhuma matéria votada ou para votação.</span>
-                        </div>
-                    </div>
-                </div>
-                <div v-else>
-                    <span class="text-value">A Matéria em votação só aparecerá quando o painel estiver aberto</span>
-                </div>
-            </div>
-            <div v-else>
-                <div class="text-center painel">
-                    <h2 class="text-subtitle" style="margin-top: 50px;">Resultado</h2>
-                    <span style="color:white">
-                        <h1>A votação só aparecerá quando o painel estiver aberto</h1>
-                    </span>
-                    </div>
-              </div>
-        </div>
-        </div> <!-- row -->
       </div> <!-- app painel -->
     </body>
 
