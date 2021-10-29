@@ -62,7 +62,8 @@ const v = new Vue({ // eslint-disable-line
       status_cronometro_ordem: '',
       status_cronometro_consideracoes: '',
       status_cronometro_personalizado: '',
-      relogio: 'UAU'
+      relogio: '',
+      fontSize: 20
     }
   },
   methods: {

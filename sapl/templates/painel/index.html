@@ -34,6 +34,9 @@
     </head>
     <body class="painel-principal" style="margin: 0;">
       <div id="app-painel"> <!-- app painel -->
+        <div style="color: white;" v-on:click="fontSize -= 1"><h3>-</h3></div>
+        <div style="color: white;"><h3>[[fontSize]]</h3></div>
+        <div style="color: white;" v-on:click="fontSize += 1"><h3>+</h3></div>
         <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
         <div class="row justify-content-center">
@@ -70,7 +73,7 @@
               <div class="text-center painel">
                 <h2 class="text-subtitle">Parlamentares</h2>
                 <div v-if="painel_aberto"> <!-- v-if -->
-                  <table>
+                  <table v-bind:style="{fontSize: fontSize +5+'px'}">
                     <tbody v-for="p in presentes">
                       <tr>
                         <td style="padding-right: 20px;" class="d-flex justify-content-start" v-bind:style="{ color: p.color }">
@@ -99,10 +102,10 @@
                   <div v-if="oradores.length > 0" class="text-center painel" id="aparecer_oradores">
                     <h2 class="text-subtitle">Oradores</h2>
                     <div v-if="painel_aberto"> <!-- v-if Lista de oradores-->
-                      <table>
+                      <table v-bind:style="{fontSize: fontSize +'px'}">
                         <tbody v-for="o in oradores">
                           <tr class="d-flex justify-content-center">
-                            <td style="padding-right: 20px; color: white; font-size: 20px;">
+                            <td style="padding-right: 20px; color: white;">
                               [[ o.numero]]º &nbsp[[o.nome]]
                             </td>
                           </tr>
@@ -118,7 +121,7 @@
                 </div>
                 <div class="col-md-6 text-center painel">
                   <h2 class="text-subtitle">Cronômetros</h2>
-                  <div class="text-value">
+                  <div class="text-value" v-bind:style="{fontSize: fontSize +'px'}">
                     Discurso:<span id='discurso' style="margin-right: 20px;">[[ cronometro_discurso ]]</span><span v-if="painel_aberto">
                     </span><br>
       
@@ -138,14 +141,14 @@
                 <div v-if="sessao_solene">
                   <div class="col-md-4 text-center painel" id="tema_solene_div">
                       <h2 class="text-subtitle">Tema da Sessão Solene</h2>
-                      <span id="sessao_solene_tema" class="text-value">[[ sessao_solene_tema ]]</span>
+                      <span id="sessao_solene_tema" class="text-value" v-bind:style="{fontSize: fontSize +'px'}">[[ sessao_solene_tema ]]</span>
                   </div>
                 </div>
                 <div v-else>
                   <div v-if="painel_aberto" class="row" style="margin-top: 50px;">
                       <div v-if="!sessao_finalizada" class="col-md-6 text-center painel" id="resultado_votacao_div">
                           <h2 class="text-subtitle">Resultado</h2>
-                          <div v-if="materia_legislativa_texto">
+                          <div v-if="materia_legislativa_texto" v-bind:style="{fontSize: fontSize +'px'}">
                               <span id="votacao" class="text-value">
                                   <li>Sim: [[ numero_votos_sim ]]</li>
                                   <li>Não: [[ numero_votos_nao ]]</li>
@@ -162,7 +165,7 @@
                       <div v-if="painel_aberto" class="col-md-6">
                           <div v-if="!sessao_finalizada" class="text-center painel" id="obs_materia_div"> 
                               <h2 class="text-subtitle">[[ mat_em_votacao ]]</h2>
-                              <div v-if="materia_legislativa_texto !== ''">
+                              <div v-if="materia_legislativa_texto !== ''" v-bind:style="{fontSize: fontSize +'px'}">
                               <span id="materia_legislativa_texto" class="text-value">[[ materia_legislativa_texto ]] </span>
                                 <br>
                                 <span id="materia_legislativa_ementa" class="text-value">[[ materia_legislativa_ementa ]]</span>
@@ -175,13 +178,13 @@
                           </div>
                       </div>
                       <div v-else>
-                          <span class="text-value">A Matéria em votação só aparecerá quando o painel estiver aberto</span>
+                          <span class="text-value" v-bind:style="{fontSize: fontSize +'px'}">A Matéria em votação só aparecerá quando o painel estiver aberto</span>
                       </div>
                   </div>
                   <div v-else>
                       <div class="text-center painel">
                           <h2 class="text-subtitle" style="margin-top: 50px;">Resultado</h2>
-                          <span style="color:white">
+                          <span style="color:white" v-bind:style="{fontSize: fontSize +'px'}">
                               <h1>A votação só aparecerá quando o painel estiver aberto</h1>
                           </span>
                           </div>
