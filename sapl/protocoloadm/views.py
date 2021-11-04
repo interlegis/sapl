@@ -1122,38 +1122,40 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
             return context
 
         qr = self.request.GET.copy()
-        context['temp_object_list'] = context['object_list'].order_by(
-            'numero', '-ano'
-        )
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['temp_object_list'] = context['object_list'].order_by(
+            'numero', '-ano')
+            context['object_list'] = []
+            for obj in context['temp_object_list']:
+                if not obj.pk == int(context['root_pk']):
+                    documento_principal = DocumentoAdministrativo.objects.get(
+                        id=context['root_pk'])
+                    documento_anexado = obj
+                    is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
+                                                        documento_anexado=documento_anexado).exists()
+                    if not is_anexado:
+                        ciclico = False
+                        anexados_anexado = Anexado.objects.filter(
+                            documento_principal=documento_anexado)
 
-        context['object_list'] = []
-        for obj in context['temp_object_list']:
-            if not obj.pk == int(context['root_pk']):
-                documento_principal = DocumentoAdministrativo.objects.get(
-                    id=context['root_pk'])
-                documento_anexado = obj
-                is_anexado = Anexado.objects.filter(documento_principal=documento_principal,
-                                                    documento_anexado=documento_anexado).exists()
-                if not is_anexado:
-                    ciclico = False
-                    anexados_anexado = Anexado.objects.filter(
-                        documento_principal=documento_anexado)
+                        while anexados_anexado and not ciclico:
+                            anexados = []
 
-                    while anexados_anexado and not ciclico:
-                        anexados = []
+                            for anexo in anexados_anexado:
 
-                        for anexo in anexados_anexado:
+                                if documento_principal == anexo.documento_anexado:
+                                    ciclico = True
+                                else:
+                                    for a in Anexado.objects.filter(documento_principal=anexo.documento_anexado):
+                                        anexados.append(a)
 
-                            if documento_principal == anexo.documento_anexado:
-                                ciclico = True
-                            else:
-                                for a in Anexado.objects.filter(documento_principal=anexo.documento_anexado):
-                                    anexados.append(a)
+                            anexados_anexado = anexados
 
-                        anexados_anexado = anexados
-
-                    if not ciclico:
-                        context['object_list'].append(obj)
+                        if not ciclico:
+                            context['object_list'].append(obj)
+        
 
         context['numero_res'] = len(context['object_list'])
 

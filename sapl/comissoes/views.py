@@ -351,15 +351,17 @@ class AdicionaPautaView(PermissionRequiredMixin, FilterView):
         context['root_pk'] = context['object'].comissao.pk
 
         qr = self.request.GET.copy()
-
         materias_pauta = PautaReuniao.objects.filter(reuniao=context['object'])
         nao_listar = [mp.materia.pk for mp in materias_pauta]
 
-        context['object_list'] = context['object_list'].filter(
-            tramitacao__unidade_tramitacao_destino__comissao=context['root_pk']
-        ).exclude(materia__pk__in=nao_listar).order_by(
-            "materia__tipo", "-materia__ano", "materia__numero"
-        )
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].filter(
+                tramitacao__unidade_tramitacao_destino__comissao=context['root_pk']
+            ).exclude(materia__pk__in=nao_listar).order_by(
+                "materia__tipo", "-materia__ano", "materia__numero"
+            )
 
         context['numero_resultados'] = len(context['object_list'])
         context['show_results'] = show_results_filter_set(qr)
