@@ -3,13 +3,12 @@ from collections import OrderedDict
 from re import sub
 import logging
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Q
-from django.http import JsonResponse
+from django.http import JsonResponse, request
 from django.http.response import Http404, HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
@@ -52,7 +51,6 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
                      ORDENACAO_RESUMO, RegistroLeitura)
-
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
@@ -210,12 +208,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         url_materia = reverse(
             'sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
         numeracao = materia.numeracao_set.first() if materia.numeracao_set.first() else "-"
-        todos_autoria = materia.autoria_set.all()
-        autoria = todos_autoria.filter(primeiro_autor=True)
+        autoria = materia.autoria_set.filter(primeiro_autor=True)
         autor = ', '.join([str(a.autor) for a in autoria]) if autoria else "-"
-
-        todos_autores = ', '.join([str(a.autor) for a in todos_autoria]) if autoria else "-"
-
         num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
 
         data_inicio_sessao = SessaoPlenaria.objects.get(id=pk).data_inicio
@@ -236,17 +230,12 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                                    .select_related("materia", "tramitacao")\
                                                    .filter(materia=materia)\
                                                    .first()
-        #idUnica para cada materia                                          
-        idAutor = "autor"+str(i)
-        idAutores = "autores"+str(i)
-        title_materia = f"""<div onmouseover = "mostra_autores({idAutor}, {idAutores})" onmouseleave = "autor_unico({idAutor}, {idAutores})">
-                                <a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
-                                <b>Processo:</b> {numeracao}</br>
-                                <span id='{idAutor}'><b>Autor:</b> {autor}</br></span>
-                                <span id='{idAutores}' style="display: none"><b>Autor:</b> {todos_autores}</br></span>
-                                <b>Protocolo:</b> {num_protocolo}</br>
-                                <b>Turno:</b> {turno}</br>
-                            </div>
+
+        title_materia = f"""<a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
+                           <b>Processo:</b> {numeracao}</br>
+                           <b>Autor:</b> {autor}</br>
+                           <b>Protocolo:</b> {num_protocolo}</br>
+                           <b>Turno:</b> {turno}</br>
                         """
         # Na linha abaixo, o segundo argumento é None para não colocar
         # url em toda a string de title_materia
@@ -772,7 +761,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': self.kwargs['pk']})
+                        kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = OrdemDiaForm
@@ -1359,7 +1348,7 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+                +request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1474,7 +1463,7 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+                +request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -2548,8 +2537,7 @@ class ConsideracoesFinaisView(FormMixin, DetailView):
         return context
 
     def delete(self):
-        ConsideracoesFinais.objects.filter(
-            sessao_plenaria=self.object).delete()
+        ConsideracoesFinais.objects.filter(sessao_plenaria=self.object).delete()
 
         username = self.request.user.username
         self.logger.info('user=' + username + '. ConsideracoesFinais com SessaoPlenaria de id={} deletada.'
@@ -2561,8 +2549,7 @@ class ConsideracoesFinaisView(FormMixin, DetailView):
     def save(self, form):
         conteudo = form.cleaned_data['conteudo']
 
-        ConsideracoesFinais.objects.filter(
-            sessao_plenaria=self.object).delete()
+        ConsideracoesFinais.objects.filter(sessao_plenaria=self.object).delete()
 
         consideracao = ConsideracoesFinais()
         consideracao.sessao_plenaria_id = self.object.id
@@ -3843,9 +3830,6 @@ class PesquisarSessaoPlenariaView(FilterView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
 
-        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
-            settings, 'USE_SOLR') else False
-
         return context
 
     def get(self, request, *args, **kwargs):
@@ -3909,12 +3893,18 @@ def verifica_materia_sessao_plenaria_ajax(request):
         is_materia_presente = ExpedienteMateria.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
+        is_materia_presente_any_sessao = ExpedienteMateria.objects.filter(
+             materia=id_materia_selecionada
+        ).exists()
     elif tipo_materia_sessao == MATERIAS_ORDEMDIA:
         is_materia_presente = OrdemDia.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
+        is_materia_presente_any_sessao = OrdemDia.objects.filter(
+             materia=id_materia_selecionada
+        ).exists()
 
-    return JsonResponse({'is_materia_presente': is_materia_presente})
+    return JsonResponse({'is_materia_presente': is_materia_presente, 'is_materia_presente_any_sessao': is_materia_presente_any_sessao})
 
 
 class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
