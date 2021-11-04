@@ -1119,7 +1119,6 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
         qr = self.request.GET.copy()
         if not len(qr):
-            context['temp_object_list'] = []
             context['object_list'] = []
         else:
             context['temp_object_list'] = context['object_list'].order_by(
