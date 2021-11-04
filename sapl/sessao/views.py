@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Q
-from django.http import JsonResponse
+from django.http import JsonResponse, request
 from django.http.response import Http404, HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
@@ -761,7 +761,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
         def get_success_url(self):
             return reverse('sapl.sessao:ordemdia_list',
-                           kwargs={'pk': self.kwargs['pk']})
+                        kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = OrdemDiaForm
@@ -3893,12 +3893,18 @@ def verifica_materia_sessao_plenaria_ajax(request):
         is_materia_presente = ExpedienteMateria.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
+        is_materia_presente_any_sessao = ExpedienteMateria.objects.filter(
+             materia=id_materia_selecionada
+        ).exists()
     elif tipo_materia_sessao == MATERIAS_ORDEMDIA:
         is_materia_presente = OrdemDia.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
+        is_materia_presente_any_sessao = OrdemDia.objects.filter(
+             materia=id_materia_selecionada
+        ).exists()
 
-    return JsonResponse({'is_materia_presente': is_materia_presente})
+    return JsonResponse({'is_materia_presente': is_materia_presente, 'is_materia_presente_any_sessao': is_materia_presente_any_sessao})
 
 
 class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,

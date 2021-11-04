@@ -40,8 +40,12 @@
                   { id_materia_selecionada: id_materia, tipo_materia_sessao: tipo_materia_sessao, pk_sessao_plenaria: pk_sessao_plenaria },
                   function(data) {
                     let is_materia_presente = data['is_materia_presente']
+                    let is_materia_presente_any_sessao = data['is_materia_presente_any_sessao']
                     if (is_materia_presente){
                       $('#fundo_modal').fadeIn()
+                    }
+                    else if(is_materia_presente_any_sessao){
+                      $('#fundo_modal2').fadeIn()
                     }
                 });
               }
@@ -72,8 +76,17 @@
       +'</div>'
     +'</div>';
 
+    var modal2 = '<div id="fundo_modal2" style="'+fundo_modal_estilos+'">'
+      +'<div id="modal2" style="'+modal_estilos+'">'
+        +'<h2>Atenção!</h2><br/>'
+        +'<h3>A matéria em questão já foi adicionada em uma outra sessão. Deseja continuar mesmo assim?</h3><br/>'
+        +'<button id="close_model2_btn" type="button" class="btn btn-warning  mb-2" data-dimiss="model">Compreendo e quero continuar</button>'
+      +'</div>'
+    +'</div>';
+
     $(document).ready( function() {
       $("body").append(modal)
+      $("body").append(modal2)
 
       $("select[name='tipo_votacao']").children("option[value='4']").remove();
       $('#id_apenas_leitura').change( function(event) {
@@ -89,6 +102,9 @@
 
       $("#fundo_modal, #close_model_btn").click( function() { $("#fundo_modal").hide() });
       $("#modal").click( function(e) { e.stopPropagation() });
+
+      $("#fundo_modal2, #close_model2_btn").click( function() { $("#fundo_modal2").hide() });
+      $("#modal2").click( function(e) { e.stopPropagation() });
     });
   </script>
 {% endblock %}
