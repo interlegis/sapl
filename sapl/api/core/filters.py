@@ -51,7 +51,9 @@ class SaplFilterSetMixin(FilterSet):
             if f_str not in fields:
 
                 f = model._meta.get_field(f_str)
+
                 if f.many_to_many:
+                    fields[f_str] = ['exact']
                     continue
 
                 fields[f_str] = ['exact']
