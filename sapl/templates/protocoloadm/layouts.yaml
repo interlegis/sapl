@@ -5,7 +5,7 @@ TipoDocumentoAdministrativo:
 
 DocumentoAdministrativo:
   {% trans 'Identificação Básica' %}:
-  - tipo 
+  - tipo autor
   - numero complemento ano
   - data  protocolo 
   - assunto
