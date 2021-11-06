@@ -13,8 +13,10 @@ ENV BUILD_PACKAGES apt-utils apt-file libpq-dev graphviz-dev build-essential git
                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev \
                    libcairo2-dev software-properties-common python3-setuptools python3-pip
 
+## NAO EH PRA TIRAR O vim DA LISTA DE COMANDOS INSTALADOS!!!
+## PRECISO DELES PARA VISUALIZAR/BUSCAR BUGS E DIFERENCAS DENTRO DOS CONTAINERS!
 ENV RUN_PACKAGES graphviz python3-lxml python3-magic postgresql-client python3-psycopg2 \
-                 poppler-utils curl jq bash python3-venv tzdata nodejs \
+                 poppler-utils curl jq bash vim python3-venv tzdata nodejs \
                  fontconfig ttf-dejavu python nginx
  
 RUN mkdir -p /var/interlegis/sapl
