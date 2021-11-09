@@ -21,6 +21,6 @@ class Migration(migrations.Migration):
             field=models.DateTimeField(
                 auto_now=True, null=True, verbose_name='Data'),
         ),
-        migrations.RunPython(update_solr),
+        #migrations.RunPython(update_solr),
 
     ]
