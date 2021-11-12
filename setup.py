@@ -42,7 +42,7 @@ install_requires = [
 ]
 setup(
     name='interlegis-sapl',
-    version='3.1.162-RC17',
+    version='3.1.162-RC18',
     packages=find_packages(),
     include_package_data=True,
     license='GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007',
