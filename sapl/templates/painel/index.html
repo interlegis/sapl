@@ -73,41 +73,40 @@
               <span id="parlamentares" class="text-value text-center"></span>
             </div>
           </div>
-          <div class="col-md-8 painels">
-            <div class="row">
-              <div class="col-md-4 text-center painel" id="aparecer_oradores">  
-                <h2 class="text-subtitle">Oradores</h2>  
-                <span id="orador"></span>     
-              </div>
+          <div class="d-flex col-md-8 painels">
+            <div class="col-md-6 text-center painel" id="aparecer_oradores">  
+              <h2 class="text-subtitle">Oradores</h2>  
+              <span id="orador"></span>     
+            </div>
 
-              <div class="col-md-7 text-center painel">  
-                <h2 class="text-subtitle">Cronômetros</h2>
-                  <div class="text-value">
-                  Discurso: <span id="cronometro_discurso"></span><br>
-                  Aparte: <span id="cronometro_aparte"></span><br>
-                  Questão de Ordem: <span id="cronometro_ordem"></span><br>
-                  Considerações Finais: <span id="cronometro_consideracoes"></span>
-                </div>
+            <div class="col-md-6 text-center painel">  
+              <h2 class="text-subtitle">Cronômetros</h2>
+                <div class="text-value">
+                Discurso: <span id="cronometro_discurso"></span><br>
+                Aparte: <span id="cronometro_aparte"></span><br>
+                Questão de Ordem: <span id="cronometro_ordem"></span><br>
+                Considerações Finais: <span id="cronometro_consideracoes"></span>
               </div>
-              <div class="col-md-4 text-center painel" id="resultado_votacao_div">      
-                <h2 class="text-subtitle">Resultado</h2>   
-                <span id="votacao" class="text-value"></span> 
-                <h2><span id="resultado_votacao" lass="text-title"></span>
-              </div>
+            </div>
+            
+            <div class="col-md-6 text-center painel" id="resultado_votacao_div">      
+              <h2 class="text-subtitle">Resultado</h2>   
+              <span id="votacao" class="text-value"></span> 
+              <h2><span id="resultado_votacao" lass="text-title"></span>
+            </div>
 
-              <div class="col-md-7 text-center painel" id="obs_materia_div">      
-                <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
-                <span id="materia_legislativa_texto" class="text-value"></span>
-                <br>
-                <span id="materia_legislativa_ementa" class="text-value"></span>
-                <br>
-                <span id="observacao_materia" class="text-value"></span>
-              </div>
+            <div class="col-md-6 text-center painel" id="obs_materia_div">      
+              <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
+              <span id="materia_legislativa_texto" class="text-value"></span>
+              <br>
+              <span id="materia_legislativa_ementa" class="text-value"></span>
+              <br>
+              <span id="observacao_materia" class="text-value"></span>
+            </div>
 
-              <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
-                <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
-                  <span id="sessao_solene_tema" class="text-value"></span>
-              </div>
+            <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
+              <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
+                <span id="sessao_solene_tema" class="text-value"></span>
             </div>
           </div>
         </div>
@@ -309,9 +308,6 @@
                           orador.nome +'</td></tr>')
                     });
                     oradores.append('</table>');
-
-                    document.getElementById('resultado_votacao_div').style.marginTop = (((-45 * data["presentes"].length) / 2) + (60 * data["oradores"].length) + 50)+ "px";
-                    document.getElementById('obs_materia_div').style.marginTop = ((((-45 * data["presentes"].length)-1)/ 2) + 250)+ "px";
                   }
                   else {
                     $('#aparecer_oradores').hide();
@@ -496,4 +492,3 @@
      
   </script>
 </html>
-
