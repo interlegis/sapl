@@ -80,6 +80,7 @@ class TipoSessaoPlenaria(models.Model):
     TIPO_NUMERACAO_CHOICES = Choices(
         (1, 'quizenal', 'Quinzenal'),
         (2, 'mensal', 'Mensal'),
+        (5, 'semestral', 'Semestral'),
         (10, 'anual', 'Anual'),
         (11, 'sessao_legislativa', 'Sessão Legislativa'),
         (12, 'legislatura', 'Legislatura'),
@@ -115,6 +116,13 @@ class TipoSessaoPlenaria(models.Model):
             qs &= Q(sessao_legislativa=sessao_legislativa)
         elif self.tipo_numeracao == tnc.anual:
             qs &= Q(data_inicio__year=data.year)
+        elif self.tipo_numeracao == tnc.semestral:
+            m = data.month
+            p = {
+                'data_inicio__year': data.year,
+                f'data_inicio__month__{"gt" if m > 6 else "lte"}': 6
+            }
+            qs &= Q(**p)
         elif self.tipo_numeracao in (tnc.mensal, tnc.quizenal):
             qs &= Q(data_inicio__year=data.year, data_inicio__month=data.month)
 
@@ -251,6 +259,9 @@ class SessaoPlenaria(models.Model):
             base += ' do mês de {}'.format(
                 formats.date_format(self.data_inicio, 'F')
             )
+
+        if self.tipo.tipo_numeracao == tnc.semestral:
+            base += f' do {1 if self.data_inicio.month <= 6 else 2}º Semestre'
 
         if self.tipo.tipo_numeracao <= tnc.anual:
             base += ' de {}'.format(self.data_inicio.year)
