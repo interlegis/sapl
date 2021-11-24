@@ -938,14 +938,15 @@ class MesaDiretoraView(FormView):
         mesa_diretora = sessao_atual.mesadiretora_set.order_by(
             '-data_inicio').first() if sessao_atual else None
 
-        composicao = mesa_diretora.composicaomesa_set.all() if mesa_diretora else []
+        composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
+            mesa_diretora=mesa_diretora).order_by('cargo_id')
 
-        cargos_ocupados = [m.cargo for m in composicao]
+        cargos_ocupados = [m.cargo for m in composicao_mesa]
         cargos = CargoMesa.objects.all()
         cargos_vagos = list(set(cargos) - set(cargos_ocupados))
 
         parlamentares = legislatura.mandato_set.all()
-        parlamentares_ocupados = [m.parlamentar for m in composicao]
+        parlamentares_ocupados = [m.parlamentar for m in composicao_mesa]
         parlamentares_vagos = list(
             set(
                 [p.parlamentar for p in parlamentares if p.parlamentar.ativo]) - set(
@@ -962,7 +963,7 @@ class MesaDiretoraView(FormView):
              'legislatura_selecionada': legislatura,
              'sessoes': sessoes,
              'sessao_selecionada': sessao_atual,
-             'composicao_mesa': composicao,
+             'composicao_mesa': composicao_mesa,
              'parlamentares': parlamentares_vagos,
              'cargos_vagos': cargos_vagos
              })
