@@ -79,6 +79,7 @@ if [ "${USE_SOLR-False}" == "True" ] || [ "${USE_SOLR-False}" == "true" ]; then
         echo "Connecting to solr..."
         python3 solr_api.py -u $SOLR_URL -c $SOLR_COLLECTION -s $NUM_SHARDS -rf $RF -ms $MAX_SHARDS_PER_NODE &
         # python3 manage.py rebuild_index --noinput &
+        nohup python-indexer.py &
     else
         echo "Solr is offline, not possible to connect."
     fi

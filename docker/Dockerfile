@@ -48,6 +48,8 @@ COPY docker/config/nginx/sapl.conf /etc/nginx/conf.d
 COPY docker/config/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
+COPY sapl-logs/python-indexer.py $HOME
+
 RUN python3 manage.py collectstatic --noinput --clear
 
 # Remove .env(fake) e sapl.db da imagem
