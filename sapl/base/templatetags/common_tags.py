@@ -112,9 +112,9 @@ def paginacao_limite_superior(pagina):
 
 @register.filter
 def resultado_votacao(materia):
-    ra = materia.registrovotacao_set.first()
-    rb = materia.retiradapauta_set.first()
-    rl = materia.registroleitura_set.first()
+    ra = materia.registrovotacao_set.last()
+    rb = materia.retiradapauta_set.last()
+    rl = materia.registroleitura_set.last()
 
     if ra:
         resultado = ra.tipo_resultado_votacao.nome
@@ -122,8 +122,6 @@ def resultado_votacao(materia):
         resultado = rb.tipo_de_retirada.descricao
     elif rl:
         resultado = "Matéria lida"
-    elif materia.ordemdia_set.exists() or materia.expedientemateria_set.exists():
-        resultado = "Matéria não apreciada"
     else:
         resultado = ""
     return resultado
