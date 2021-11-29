@@ -556,7 +556,7 @@ class DocumentoAcessorio(models.Model):
     autor = models.CharField(
         max_length=200, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
-    indexacao = models.TextField(blank=True)
+    indexacao = models.TextField(blank=True, verbose_name=_('Indexação'))
     arquivo = models.FileField(
         blank=True,
         null=True,
