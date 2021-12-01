@@ -175,7 +175,7 @@ class DocumentoAdministrativo(models.Model):
     interessado = models.CharField(
         max_length=50, blank=True, verbose_name=_('Interessado'))
     autor = models.ForeignKey(Autor, blank=True, null=True,
-                              on_delete=models.PROTECT, verbose_name=_('Autoria do Documento'))
+                              on_delete=models.PROTECT, verbose_name=_('Autoria'))
     dias_prazo = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Dias Prazo'))
     data_fim_prazo = models.DateField(
