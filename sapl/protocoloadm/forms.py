@@ -1089,7 +1089,8 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                   'restrito',
                   'user',
                   'ip',
-                  'ultima_edicao'
+                  'ultima_edicao',
+                  'autor'
                   ]
 
         widgets = {'protocolo': forms.HiddenInput(),
@@ -1210,7 +1211,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
             [('tipo', 3), ('numero', 3), ('complemento', 3), ('ano', 3)])
 
         row2 = to_row(
-            [('data', 4), ('numero_protocolo', 4), ('ano_protocolo', 4)])
+            [('data', 3), ('numero_protocolo', 3), ('ano_protocolo', 3), ('autor', 3)])
 
         row3 = to_row(
             [('assunto', 12)])
