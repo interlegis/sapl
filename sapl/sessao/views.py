@@ -214,7 +214,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         autoria = todos_autoria.filter(primeiro_autor=True)
         autor = ', '.join([str(a.autor) for a in autoria]) if autoria else "-"
 
-        todos_autores = ', '.join([str(a.autor) for a in todos_autoria]) if autoria else "-"
+        todos_autores = ', '.join([str(a.autor)
+                                   for a in todos_autoria]) if autoria else "-"
 
         num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
 
@@ -236,9 +237,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                                    .select_related("materia", "tramitacao")\
                                                    .filter(materia=materia)\
                                                    .first()
-        #idUnica para cada materia                                          
-        idAutor = "autor"+str(i)
-        idAutores = "autores"+str(i)
+        # idUnica para cada materia
+        idAutor = "autor" + str(i)
+        idAutores = "autores" + str(i)
         title_materia = f"""<div onmouseover = "mostra_autores({idAutor}, {idAutores})" onmouseleave = "autor_unico({idAutor}, {idAutores})">
                                 <a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
                                 <b>Processo:</b> {numeracao}</br>
@@ -2576,7 +2577,7 @@ class ConsideracoesFinaisView(FormMixin, DetailView):
         self.logger.info(
             'user=' + username + '. consideracoesFinais de sessao_plenaria_id={} atualizada com sucesso.'.format(self.object.id))
 
-    @method_decorator(permission_required('sessao.add_consideraoesfinais'))
+    @method_decorator(permission_required('sessao.add_consideracoesfinais'))
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = OcorrenciaSessaoForm(request.POST)
