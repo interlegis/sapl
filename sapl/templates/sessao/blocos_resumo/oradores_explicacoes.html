@@ -11,7 +11,7 @@
     <div class="row">
       {% for o in oradores_explicacoes %}
         <div class="col-md-4"><b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {% if o.parlamentar|filiacao_data_filter:object.data_inicio %} {{ o.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</div>
-        <div class="col-md-4">{{o.url_discurso}}</div>
+        <div class="col-md-4"><a href={{o.url_discurso}}>{{o.url_discurso}}</a></div>
         <div class="col-md-4">{{o.observacao}}</div>
         </br>
     {% endfor %}
