@@ -18,7 +18,7 @@ services:
     networks:
       - sapl-net
   saplsolr:
-    image: solr:8.3
+    image: solr:8.9
     restart: always
     command: bin/solr start -c -f
     container_name: solr
