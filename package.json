@@ -47,7 +47,7 @@
     "eslint-plugin-standard": "^4.0.1",
     "eslint-plugin-vue": "^6.2.2",
     "glob-parent": "^5.1.2",
-    "node-sass": "^6.0.1",
+    "node-sass": "^7.0.0",
     "sass-loader": "^10.2.0",
     "shelljs": "^0.8.4",
     "vue-template-compiler": "^2.6.11",
