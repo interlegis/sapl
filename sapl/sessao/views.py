@@ -3910,12 +3910,18 @@ def verifica_materia_sessao_plenaria_ajax(request):
         is_materia_presente = ExpedienteMateria.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
+        is_materia_presente_any_sessao = ExpedienteMateria.objects.filter(
+             materia=id_materia_selecionada
+        ).exists()
     elif tipo_materia_sessao == MATERIAS_ORDEMDIA:
         is_materia_presente = OrdemDia.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
+        is_materia_presente_any_sessao = OrdemDia.objects.filter(
+             materia=id_materia_selecionada
+        ).exists()
 
-    return JsonResponse({'is_materia_presente': is_materia_presente})
+    return JsonResponse({'is_materia_presente': is_materia_presente, 'is_materia_presente_any_sessao': is_materia_presente_any_sessao})
 
 
 class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
