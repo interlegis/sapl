@@ -2079,9 +2079,8 @@ def get_assinaturas(sessao_plenaria):
 def get_assinaturas_presidente(sessao_plenaria):
     mesa_dia = get_mesa_diretora(sessao_plenaria)['mesa']
 
-    presidente_dia = [next(iter(
-        [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']),
-        '')]
+    presidente_dia =  [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']
+    presidente_dia = presidente_dia[0] if presidente_dia  else '' 
 
     context = {}
     assinatura_presidente = [
