@@ -2084,7 +2084,7 @@ def get_assinaturas_presidente(sessao_plenaria):
 
     context = {}
     assinatura_presidente = [
-            {'parlamentar': presidente_dia[0], 'cargo': "Presidente"}]
+            {'parlamentar': presidente_dia, 'cargo': "Presidente"}]
     context.update({'assinatura_mesa': assinatura_presidente})
 
     return context
