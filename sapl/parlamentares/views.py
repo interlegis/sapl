@@ -183,7 +183,7 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
 class PesquisarParlamentarView(FilterView):
     model = Parlamentar
     filterset_class = ParlamentarFilterSet
-    paginate_by = 10
+    paginate_by = 20
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarParlamentarView,
@@ -222,13 +222,17 @@ class PesquisarParlamentarView(FilterView):
         if data:
             url = "&" + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
-                ponto_comeco = url.find('nome_parlamentar=') - 1
-                url = url[ponto_comeco:]
+                url = ''
+
+        if 'nome_parlamentar' in self.request.META['QUERY_STRING'] or\
+         'page' in self.request.META['QUERY_STRING']: resultados = self.object_list
+        else:
+            resultados = []
 
         context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
+                                        object_list=resultados,
                                         filter_url=url,
-                                        numero_res=len(self.object_list)
+                                        numero_res=len(resultados)
                                         )
 
         context['show_results'] = show_results_filter_set(
@@ -240,7 +244,7 @@ class PesquisarParlamentarView(FilterView):
 class PesquisarColigacaoView(FilterView):
     model = Coligacao
     filterset_class = ColigacaoFilterSet
-    paginate_by = 10
+    paginate_by = 20
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarColigacaoView, self).get_filterset_kwargs(filterset_class)
@@ -273,13 +277,18 @@ class PesquisarColigacaoView(FilterView):
         if data:
             url = "&" + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
-                ponto_comeco = url.find('nome=') - 1
-                url = url[ponto_comeco:]
+                url = ''
+
+        if 'nome' in self.request.META['QUERY_STRING'] or\
+         'page' in self.request.META['QUERY_STRING']: resultados = self.object_list
+        else:
+            resultados = []
 
         context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
+                                        object_list=resultados,
                                         filter_url=url,
-                                        numero_res=len(self.object_list))
+                                        numero_res=len(resultados)
+                                        )
 
         context['show_results'] = show_results_filter_set(
             self.request.GET.copy())
@@ -290,7 +299,7 @@ class PesquisarColigacaoView(FilterView):
 class PesquisarPartidoView(FilterView):
     model = Partido
     filterset_class = PartidoFilterSet
-    paginate_by = 10
+    paginate_by = 20
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarPartidoView, self).get_filterset_kwargs(filterset_class)
@@ -322,17 +331,24 @@ class PesquisarPartidoView(FilterView):
         if data:
             url = "&" + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
-                ponto_comeco = url.find('nome=') - 1
-                url = url[ponto_comeco:]
+                url = ''
+
+        if 'nome' in self.request.META['QUERY_STRING'] or\
+         'page' in self.request.META['QUERY_STRING']: resultados = self.object_list
+        else:
+            resultados = []
 
         context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
+                                        object_list=resultados,
                                         filter_url=url,
-                                        numero_res=len(self.object_list))
+                                        numero_res=len(resultados)
+                                        )
+
         context['show_results'] = show_results_filter_set(
             self.request.GET.copy())
 
         return self.render_to_response(context)
+
 
 
 class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
