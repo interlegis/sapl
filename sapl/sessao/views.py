@@ -218,12 +218,11 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                    for a in todos_autoria]) if autoria else "-"
 
         num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
-
-        data_inicio_sessao = SessaoPlenaria.objects.get(id=pk).data_inicio
-
+        sessao_plenaria = SessaoPlenaria.objects.get(id=pk)
+        data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
         tramitacao = Tramitacao.objects\
                                .select_related('materia', 'status', 'materia__tipo')\
-                               .filter(materia=materia, turno__isnull=False, data_tramitacao__lte=data_inicio_sessao)\
+                               .filter(materia=materia, turno__isnull=False, data_tramitacao__lte=data_sessao)\
                                .exclude(turno__exact='')\
                                .order_by('-data_tramitacao', '-id')\
                                .first()
@@ -1951,7 +1950,8 @@ def get_materias_expediente(sessao_plenaria):
     materias_expediente = []
     for m in ExpedienteMateria.objects.select_related("materia").filter(sessao_plenaria_id=sessao_plenaria.id):
         tramitacao = ''
-        for aux_tramitacao in Tramitacao.objects.filter(materia=m.materia).order_by('-data_tramitacao', '-id'):
+        data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
+        for aux_tramitacao in Tramitacao.objects.filter(materia=m.materia, data_tramitacao__lte=data_sessao).order_by('-data_tramitacao', '-id'):
             if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
@@ -2094,7 +2094,8 @@ def get_materias_ordem_do_dia(sessao_plenaria):
     materias_ordem = []
     for o in OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id):
         tramitacao = ''
-        for aux_tramitacao in Tramitacao.objects.filter(materia=o.materia).order_by('-data_tramitacao', '-id'):
+        data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
+        for aux_tramitacao in Tramitacao.objects.filter(materia=o.materia, data_tramitacao__lte=data_sessao).order_by('-data_tramitacao', '-id'):
             if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
