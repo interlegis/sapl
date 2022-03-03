@@ -66,4 +66,22 @@
     {% else %}
     	<b>Não existem Matérias de Ordem do Dia para essa Sessão Plenária</b>
     {% endif %}
+	<fieldset>
+		{% for n in assinatura_mesa %}
+			{% if n.parlamentar %}
+			<div class="row">
+				</br></br>
+				{% for p in assinatura_mesa %}
+				</br></br></br>
+					<center>
+					<div class="col-md-6">___________________________________________ </br>
+							<b>{{p.parlamentar.nome_completo}}</b> </br>{{p.cargo}}
+							</br></br></br>
+					</div>
+					</center>
+			  {% endfor %}
+			{% endif %}
+		{% endfor %}
+			</div>
+	</fieldset>
 {% endblock content %}

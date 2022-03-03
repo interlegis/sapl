@@ -2076,6 +2076,19 @@ def get_assinaturas(sessao_plenaria):
 
     return context
 
+def get_assinaturas_presidente(sessao_plenaria):
+    mesa_dia = get_mesa_diretora(sessao_plenaria)['mesa']
+
+    presidente_dia =  [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']
+    presidente_dia = presidente_dia[0] if presidente_dia  else '' 
+
+    context = {}
+    assinatura_presidente = [
+            {'parlamentar': presidente_dia, 'cargo': "Presidente"}]
+    context.update({'assinatura_mesa': assinatura_presidente})
+
+    return context
+
 
 def get_materias_ordem_do_dia(sessao_plenaria):
     materias_ordem = []
@@ -3718,6 +3731,7 @@ class PautaSessaoDetailView(DetailView):
                 _(f'Encerramento: {encerramento} - {hora_fim}')
             ]
         })
+        context.update(get_assinaturas_presidente(self.object))
         # =====================================================================
         # Matérias Expediente
         materias_expediente = []

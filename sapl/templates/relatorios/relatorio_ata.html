@@ -30,14 +30,14 @@
                     {% if forloop.counter0|divisibleby:2 %}
         	            <tr style="margin-top:20px">
                             <td>
-                                <div style="float: left; position: relative; top: -50px; left: 8px; width: 120px">____________________ </br>
+                                <div style="float: left; position: relative; top: 0px; left: 8px; width: 120px">____________________ </br>
         	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {% if p.parlamentar|filiacao_data_filter:object.data_inicio %} {{ p.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</p>
-        	        	        	    </br></br></br>
+        	        	        	    </br></br>
         	          	        </div>
                     {% else %}
-                                <div style="float: left; position: relative; top: -50px; left: 142px; width: 120px; margin-right:-220px;">____________________ </br>
+                                <div style="float: left; position: relative; top: 0px; left: 142px; width: 120px; margin-right:-220px;">____________________ </br>
         	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {% if p.parlamentar|filiacao_data_filter:object.data_inicio %} {{ p.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</p>
-        	        	        	    </br></br></br>
+        	        	        	    </br></br>
         	          	        </div>
                             </td>
                         </tr>
@@ -48,15 +48,15 @@
                     {% if forloop.counter0|divisibleby:2 %}
         	            <tr style="margin-top:20px">
                             <td>
-                                <div style="float: left; position: relative;top: -50px; left: 8px; width: 120px;">_____________________</br>
+                                <div style="float: left; position: relative;top: 0px; left: 8px; width: 120px;">_____________________</br>
         	        	            <p style="font-size:8pt">
                                         {{p.nome_completo}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</p>
-                                        </br></br></br>
+                                        </br></br>
         	          	        </div>
                     {% else %}
-                                <div style="float: left; position: relative; top: -50px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
+                                <div style="float: left; position: relative; top: 0px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
         	        	            <p style="font-size:8pt">{{p.nome_completo}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</p>
-        	        	        	    </br></br></br>
+        	        	        	    </br></br>
         	          	        </div>
                             </td>
                         </tr>
