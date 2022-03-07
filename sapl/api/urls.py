@@ -2,6 +2,7 @@
 from django.conf.urls import include, url
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, \
     SpectacularRedocView
+from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
 from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet, \
@@ -11,6 +12,7 @@ from sapl.api.views import AppVersionView, recria_token
 from sapl.api.viewset import SaplApiViewSetConstrutor
 
 from .apps import AppConfig
+
 
 app_name = AppConfig.name
 
@@ -52,6 +54,8 @@ urlpatterns = [
     url(r'^api/', include(urlpatterns_router)),
     url(r'^api/version', AppVersionView.as_view()),
     url(r'^api/recriar-token/(?P<pk>\d*)$', recria_token, name="recria_token"),
+
+    url(r'^api/auth/token$', obtain_auth_token),
 
     # implementar caminho para autenticação
     # https://www.django-rest-framework.org/tutorial/4-authentication-and-permissions/
