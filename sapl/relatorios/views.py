@@ -64,7 +64,7 @@ def get_cabecalho(casa):
     cabecalho["nom_casa"] = casa.nome
     uf_dict = dict(LISTA_DE_UFS)
     # FIXME i18n
-    cabecalho["nom_estado"] = "Estado de " + uf_dict[casa.uf.upper()]
+    cabecalho["nom_estado"] = _('Estado de ') + uf_dict[casa.uf.upper()]
     return cabecalho
 
 
@@ -78,7 +78,7 @@ def get_rodape(casa):
     if len(casa.cep) == 8:
         cep = casa.cep[:4] + "-" + casa.cep[5:]
     else:
-        cep = ""
+        cep = _('')
 
     linha1 = casa.endereco
 
@@ -97,7 +97,7 @@ def get_rodape(casa):
     if casa.endereco_web:
         linha2 = casa.endereco_web
     else:
-        linha2 = ""
+        linha2 = _('')
 
     if casa.email:
         if casa.endereco_web:
@@ -123,7 +123,7 @@ def get_materias(mats):
         des_status = ''
         txt_tramitacao = ''
 
-        dic['localizacao_atual'] = " "
+        dic['localizacao_atual'] = _(' ')
 
         tramitacoes = Tramitacao.objects.filter(
             unidade_tramitacao_destino__isnull=True).order_by(
@@ -154,7 +154,7 @@ def get_materias(mats):
         dic['des_situacao'] = des_status
         dic['ultima_acao'] = txt_tramitacao
 
-        dic['norma_vinculada'] = " "
+        dic['norma_vinculada'] = _(' ')
         # for norma_vinculada in context.zsql
         #     .materia_buscar_norma_juridica_zsql(cod_materia=materia.cod_materia):
         #     dic['norma_vinculada']=
@@ -212,8 +212,8 @@ def get_capa_processo(prot):
         dic['data'] = str(p.data) + ' - ' + str(p.hora)
         dic['txt_assunto'] = p.assunto_ementa
         dic['txt_interessado'] = p.interessado
-        dic['nom_autor'] = " "
-        dic['titulo'] = " "
+        dic['nom_autor'] = _(' ')
+        dic['titulo'] = _(' ')
 
         if p.autor:
             dic['nom_autor'] = str(p.autor or ' ')
@@ -442,7 +442,7 @@ def get_espelho(mats):
         txt_tramitacao = ''
         data_ultima_acao = ''
 
-        dic['localizacao_atual'] = " "
+        dic['localizacao_atual'] = _(' ')
         for tramitacao in Tramitacao.objects.filter(materia=m):
             if tramitacao.unidade_tramitacao_destino:
                 cod_unid_tram = tramitacao.unidade_tramitacao_destino
@@ -998,7 +998,7 @@ def get_protocolos(prots):
 
         dic['txt_interessado'] = protocolo.interessado
 
-        dic['nom_autor'] = " "
+        dic['nom_autor'] = _(' ')
 
         if protocolo.autor:
             if protocolo.autor.parlamentar:
@@ -1591,9 +1591,9 @@ def relatorio_sessao_plenaria_pdf(request, pk):
     html_template = render_to_string(
         'relatorios/relatorio_sessao_plenaria.html', context)
 
-    info = "Resumo da {}ª Reunião {} \
+    info = _('Resumo da {}ª Reunião {} \
                 da {}ª Sessão Legislativa da {} \
-                Legislatura".format(inf_basicas_dic['num_sessao_plen'],
+                Legislatura').format(inf_basicas_dic['num_sessao_plen'],
                                     inf_basicas_dic['nom_sessao'],
                                     inf_basicas_dic['num_sessao_leg'],
                                     inf_basicas_dic['num_legislatura']

@@ -179,7 +179,7 @@ def abrir_votacao(request, pk, spk):
     if not model:
         raise Http404()
 
-    query_params = "?"
+    query_params = _('?')
 
     materia_votacao = model.objects.get(id=pk)
     is_leitura = materia_votacao.tipo_votacao == 4
@@ -237,9 +237,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                                    .filter(materia=materia)\
                                                    .first()
         # idUnica para cada materia
-        idAutor = "autor" + str(i)
-        idAutores = "autores" + str(i)
-        title_materia = f"""<div onmouseover = "mostra_autores({idAutor}, {idAutores})" onmouseleave = "autor_unico({idAutor}, {idAutores})">
+        idAutor= _('autor') + str(i)
+        idAutores= _('autores') + str(i)
+        title_materia = f"""<div onmouseover= _('mostra_autores({idAutor}, {idAutores})" onmouseleave= _('autor_unico({idAutor}, {idAutores})">
                                 <a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
                                 <b>Processo:</b> {numeracao}</br>
                                 <span id='{idAutor}'><b>Autor:</b> {autor}</br></span>
@@ -315,10 +315,10 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'oid': obj.pk,
                                           'mid': obj.materia_id})
 
-                page_number = ""
+                page_number= _('')
                 if 'page' in context:
                     # url += "?page={}".format(context['page'])
-                    page_number = "<input type='hidden' name='page' value='%s' />" % context['page']
+                    page_number= "<input type='hidden' name='page' value='%s' />" % context['page']
 
                 if has_permission:
                     if obj.tipo_votacao != LEITURA:
@@ -394,7 +394,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
             if obj.tipo_votacao == LEITURA:
                 resultado = obj.registroleitura_set.filter(
                     materia_id=obj.materia_id).last()
-                resultado_descricao = "Matéria lida"
+                resultado_descricao= _('Matéria lida')
                 resultado_observacao = resultado.observacao
             else:
                 resultado = obj.registrovotacao_set.filter(
@@ -705,7 +705,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
 class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
     expediente = True
     ordem = False
-    title = "Copiar Matérias do Expediente"
+    title= _('Copiar Matérias do Expediente')
     categoria_materia = MATERIAS_EXPEDIENTE
     listagem_url = 'sapl.sessao:expedientemateria_list'
 
@@ -716,7 +716,7 @@ class TransferenciaMateriasExpediente(TransferenciaMateriasSessaoAbstract):
 class TransferenciaMateriasOrdemDia(TransferenciaMateriasSessaoAbstract):
     expediente = False
     ordem = True
-    title = "Copiar Matérias da Ordem do Dia"
+    title= _('Copiar Matérias da Ordem do Dia')
     categoria_materia = MATERIAS_ORDEMDIA
     listagem_url = 'sapl.sessao:ordemdia_list'
 
@@ -1985,9 +1985,9 @@ def get_materias_expediente(sessao_plenaria):
             voto_nao = voto.numero_votos_nao
             voto_abstencoes = voto.numero_abstencoes
         else:
-            voto_sim = " Não Informado"
-            voto_nao = " Não Informado"
-            voto_abstencoes = " Não Informado"
+            voto_sim= _(' Não Informado')
+            voto_nao= _(' Não Informado')
+            voto_abstencoes= _(' Não Informado')
 
         materia_em_tramitacao = m.materia.materiaemtramitacao_set.first()
         materias_expediente.append({
@@ -2130,9 +2130,9 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             voto_nao = voto.numero_votos_nao
             voto_abstencoes = voto.numero_abstencoes
         else:
-            voto_sim = " Não Informado"
-            voto_nao = " Não Informado"
-            voto_abstencoes = " Não Informado"
+            voto_sim= _(' Não Informado')
+            voto_nao= _(' Não Informado')
+            voto_abstencoes= _(' Não Informado')
 
         materia_em_tramitacao = o.materia.materiaemtramitacao_set.first()
         materias_ordem.append({
@@ -3675,7 +3675,7 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
 
 
 class SessaoListView(ListView):
-    template_name = "sessao/sessao_list.html"
+    template_name= _('sessao/sessao_list.html')
     paginate_by = 10
     model = SessaoPlenaria
 
@@ -3695,7 +3695,7 @@ class SessaoListView(ListView):
 
 class PautaSessaoView(TemplateView):
     model = SessaoPlenaria
-    template_name = "sessao/pauta_inexistente.html"
+    template_name= _('sessao/pauta_inexistente.html')
 
     def get(self, request, *args, **kwargs):
         sessao = SessaoPlenaria.objects.order_by("-data_inicio").first()
@@ -3708,7 +3708,7 @@ class PautaSessaoView(TemplateView):
 
 
 class PautaSessaoDetailView(DetailView):
-    template_name = "sessao/pauta_sessao_detail.html"
+    template_name= _('sessao/pauta_sessao_detail.html')
     model = SessaoPlenaria
 
     def get(self, request, *args, **kwargs):
@@ -3875,7 +3875,7 @@ class PesquisarSessaoPlenariaView(FilterView):
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('data_inicio__year') is not None:
-            url = "&" + str(self.request.META['QUERY_STRING'])
+            url= _('&') + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('data_inicio__year=') - 1
                 url = url[ponto_comeco:]
@@ -4863,7 +4863,7 @@ class AbstractLeituraView(FormView):
         else:
             model = OrdemDia
         ordem_expediente = model.objects.get(id=self.kwargs['oid'])
-        ordem_expediente.resultado = "Matéria lida"
+        ordem_expediente.resultado= _('Matéria lida')
         ordem_expediente.votacao_aberta = False
         ordem_expediente.save()
         form.save()
@@ -4925,7 +4925,7 @@ def retirar_leitura(request, pk, iso, oid):
             materia=ordem_expediente.materia, ordem=ordem_expediente).delete()
         succ_url = reverse('sapl.sessao:ordemdia_list',
                            kwargs={'pk': pk}) + page
-    ordem_expediente.resultado = ""
+    ordem_expediente.resultado= _('')
     ordem_expediente.votacao_aberta = False
     ordem_expediente.save()
     return HttpResponseRedirect(succ_url)

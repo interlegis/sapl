@@ -177,7 +177,7 @@ class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
 
 
 class CriarProtocoloMateriaView(CreateView):
-    template_name = "crud/form.html"
+    template_name = _('crud/form.html')
     form_class = MateriaSimplificadaForm
     form_valid_message = _('Matéria cadastrada com sucesso!')
     logger = logging.getLogger(__name__)
@@ -597,7 +597,7 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
 
 class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
     app_label = sapl.protocoloadm.apps.AppConfig.label
-    template_name = "crud/form.html"
+    template_name = _('crud/form.html')
     form_class = ReceberProposicaoForm
 
     def post(self, request, *args, **kwargs):
@@ -649,7 +649,7 @@ class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
 
 class RetornarProposicao(UpdateView):
     app_label = sapl.protocoloadm.apps.AppConfig.label
-    template_name = "materia/proposicao_confirm_return.html"
+    template_name = _('materia/proposicao_confirm_return.html')
     model = Proposicao
     fields = ['data_envio', 'descricao']
     permission_required = ('materia.detail_proposicao_enviada', )
@@ -681,7 +681,7 @@ class RetornarProposicao(UpdateView):
 
 class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
     app_label = sapl.protocoloadm.apps.AppConfig.label
-    template_name = "materia/confirmar_proposicao.html"
+    template_name = _('materia/confirmar_proposicao.html')
     model = Proposicao
     form_class = ConfirmarProposicaoForm, DevolverProposicaoForm
     logger = logging.getLogger(__name__)
@@ -1184,7 +1184,7 @@ class ProposicaoCrud(Crud):
 
 class ReciboProposicaoView(TemplateView):
     logger = logging.getLogger(__name__)
-    template_name = "materia/recibo_proposicao.html"
+    template_name = _('materia/recibo_proposicao.html')
     permission_required = ('materia.detail_proposicao', )
 
     def has_permission(self):
@@ -1242,7 +1242,7 @@ class ReciboProposicaoView(TemplateView):
 
 class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
     logger = logging.getLogger(__name__)
-    template_name = "materia/historico_proposicao.html"
+    template_name = _('materia/historico_proposicao.html')
     ordering = ['-data_hora']
     paginate_by = 10
     model = HistoricoProposicao
@@ -1304,10 +1304,10 @@ class RelatoriaCrud(MasterDetailCrud):
                     localizacao = 0
                     if loc_atual.unidade_tramitacao_destino.orgao:
                         # 0 = Orgão
-                        tipo_unidade_tramitacao_destino = "Orgão"
+                        tipo_unidade_tramitacao_destino = _('Orgão')
                     elif loc_atual.unidade_tramitacao_destino.parlamentar:
                         # 1 = Parlamentar
-                        tipo_unidade_tramitacao_destino = "Parlamentar"
+                        tipo_unidade_tramitacao_destino = _('Parlamentar')
 
                     unidade_tramitacao_destino = loc_atual.unidade_tramitacao_destino
                     return {
@@ -1472,7 +1472,7 @@ class TramitacaoCrud(MasterDetailCrud):
                     '-data_tramitacao', '-id').exclude(
                     id=ultima_tramitacao.id).first()
                 if not penultima_tramitacao or \
-                        penultima_tramitacao.status.indicador == "F":
+                        penultima_tramitacao.status.indicador == _('F'):
                     materia.em_tramitacao = False
                 else:
                     materia.em_tramitacao = True
@@ -1495,7 +1495,7 @@ class TramitacaoCrud(MasterDetailCrud):
                                 '-data_tramitacao', '-id').exclude(
                                 id=ultima_tramitacao.id).first()
                             if not penultima_tramitacao or \
-                                    penultima_tramitacao.status.indicador == "F":
+                                    penultima_tramitacao.status.indicador == _('F'):
                                 materia.em_tramitacao = False
                             else:
                                 materia.em_tramitacao = True
@@ -1508,7 +1508,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
     class DetailView(MasterDetailCrud.DetailView):
 
-        template_name = "materia/tramitacao_detail.html"
+        template_name = _('materia/tramitacao_detail.html')
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -1886,7 +1886,7 @@ class MateriaLegislativaCrud(Crud):
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
-        template_name = "materia/materialegislativa_detail.html"
+        template_name = _('materia/materialegislativa_detail.html')
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -1907,7 +1907,7 @@ class MateriaLegislativaCrud(Crud):
 
 # FIXME - qual a finalidade dessa classe??
 class DocumentoAcessorioView(PermissionRequiredMixin, CreateView):
-    template_name = "materia/documento_acessorio.html"
+    template_name = _('materia/documento_acessorio.html')
     form_class = DocumentoAcessorioForm
     permission_required = ('materia.add_documentoacessorio', )
 
@@ -2114,7 +2114,7 @@ class MateriaLegislativaPesquisaView(FilterView):
 
 class AcompanhamentoMateriaView(CreateView):
     logger = logging.getLogger(__name__)
-    template_name = "materia/acompanhamento_materia.html"
+    template_name = _('materia/acompanhamento_materia.html')
 
     def get_random_chars(self):
         s = ascii_letters + digits
@@ -2820,7 +2820,7 @@ class TipoMateriaCrud(CrudAux):
     class ListView(CrudAux.ListView):
         paginate_by = None
         layout_key = 'TipoMateriaLegislativaDetail'
-        template_name = "materia/tipomaterialegislativa_list.html"
+        template_name = _('materia/tipomaterialegislativa_list.html')
 
         def hook_sigla(self, obj, default, url):
             return '<a href="{}" pk="{}">{}</a>'.format(
@@ -2877,7 +2877,7 @@ def create_zip_docacessorios(materia):
         logger.error(e)
         raise e
 
-    external_name = "mat_{}_{}_docacessorios.zip".format(
+    external_name = _('mat_{}_{}_docacessorios.zip').format(
         materia.numero, materia.ano)
     return external_name, _zipfile.getvalue()
 
@@ -2949,7 +2949,7 @@ def create_pdf_docacessorios(materia):
     merger.write(data)
     merger.close()
 
-    external_name = "mat_{}_{}_docacessorios.pdf".format(
+    external_name = _('mat_{}_{}_docacessorios.pdf').format(
         materia.numero, materia.ano)
     return external_name, data.getvalue()
 
@@ -2990,7 +2990,7 @@ def get_pdf_docacessorios(request, pk):
 
 def configEtiquetaMateriaLegislativaCrud(request):
     config = ConfigEtiquetaMateriaLegislativa.objects.last()
-    if request.method == "POST":
+    if request.method == _('POST'):
         form = ConfigEtiquetaMateriaLegislativaForms(
             request.POST, instance=config)
         if form.is_valid():

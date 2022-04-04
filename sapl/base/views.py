@@ -98,7 +98,7 @@ class LoginSapl(views.LoginView):
 
 
 class ConfirmarEmailView(TemplateView):
-    template_name = "email/confirma.html"
+    template_name = _('email/confirma.html')
 
     def get(self, request, *args, **kwargs):
         uid = urlsafe_base64_decode(self.kwargs['uidb64'])
@@ -163,11 +163,11 @@ class TipoAutorCrud(CrudAux):
         @property
         def verbose_name(self):
             vn = super().verbose_name
-            vn = "{} {}".format(vn, _('Externo ao SAPL'))
+            vn = _('{} {}').format(vn, _('Externo ao SAPL'))
             return vn
 
     class ListView(CrudAux.ListView):
-        template_name = "base/tipoautor_list.html"
+        template_name = _('base/tipoautor_list.html')
 
         def get_queryset(self):
             qs = CrudAux.ListView.get_queryset(self)
@@ -232,7 +232,7 @@ class AutorCrud(CrudAux):
                     kwargs['token'] = default_token_generator.make_token(user)
                     kwargs['uidb64'] = urlsafe_base64_encode(
                         force_bytes(user.pk))
-                    assunto = "SAPL - Confirmação de Conta"
+                    assunto = _('SAPL - Confirmação de Conta')
                     full_url = self.request.get_raw_uri()
                     url_base = full_url[:full_url.find('sistema') - 1]
 
@@ -387,14 +387,14 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
                 TipoMateriaLegislativa.objects.get(pk=tipo_materia)
             )
         else:
-            context['tipo_materia'] = "Não selecionado"
+            context['tipo_materia'] = _('Não selecionado')
 
         data_inicial = self.request.GET['data_0']
         data_final = self.request.GET['data_1']
         if not data_inicial:
-            data_inicial = "Data Inicial não definida"
+            data_inicial = _('Data Inicial não definida')
         if not data_final:
-            data_final = "Data Final não definida"
+            data_final = _('Data Final não definida')
         context['periodo'] = (
             data_inicial + ' - ' + data_final
         )
@@ -1819,7 +1819,7 @@ def protocolos_com_materias():
 
     for m in MateriaLegislativa.objects.filter(numero_protocolo__isnull=False).order_by('-ano', 'numero_protocolo'):
         if Protocolo.objects.filter(numero=m.numero_protocolo, ano=m.ano).exists():
-            key = "{}/{}".format(m.numero_protocolo, m.ano)
+            key = _('{}/{}').format(m.numero_protocolo, m.ano)
             val = protocolos.get(key, list())
             val.append(m)
             protocolos[key] = val

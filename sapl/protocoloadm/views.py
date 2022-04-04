@@ -185,7 +185,7 @@ class AcompanhamentoExcluirView(TemplateView):
 
 
 class AcompanhamentoDocumentoView(CreateView):
-    template_name = "protocoloadm/acompanhamento_documento.html"
+    template_name = _('protocoloadm/acompanhamento_documento.html]')
 
     logger = logging.getLogger(__name__)
 
@@ -508,7 +508,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('numero') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
+            url = _('&') + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('numero=') - 1
                 url = url[ponto_comeco:]
@@ -587,7 +587,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
     logger = logging.getLogger(__name__)
 
-    template_name = "protocoloadm/protocolar_documento.html"
+    template_name = _('protocoloadm/protocolar_documento.html')
     form_class = ProtocoloDocumentoForm
     form_valid_message = _('Protocolo cadastrado com sucesso!')
     permission_required = ('protocoloadm.add_protocolo', )
@@ -682,7 +682,7 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
 
 
 class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
-    template_name = "protocoloadm/criar_documento.html"
+    template_name = _('protocoloadm/criar_documento.html')
     form_class = DocumentoAdministrativoForm
     permission_required = ('protocoloadm.add_documentoadministrativo',)
 
@@ -723,7 +723,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
 class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
     logger = logging.getLogger(__name__)
 
-    template_name = "protocoloadm/protocolo_mostrar.html"
+    template_name = _('protocoloadm/protocolo_mostrar.html')
     permission_required = ('protocoloadm.detail_protocolo', )
 
     def get_context_data(self, **kwargs):
@@ -761,7 +761,7 @@ class ProtocoloMostrarView(PermissionRequiredMixin, TemplateView):
 
 class ComprovanteProtocoloView(PermissionRequiredMixin, TemplateView):
 
-    template_name = "protocoloadm/comprovante.html"
+    template_name = _('protocoloadm/comprovante.html')
     permission_required = ('protocoloadm.detail_protocolo', )
 
     def get_context_data(self, **kwargs):
@@ -801,7 +801,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
     logger = logging.getLogger(__name__)
 
-    template_name = "protocoloadm/protocolar_materia.html"
+    template_name = _('protocoloadm/protocolar_materia.html')
     form_class = ProtocoloMateriaForm
     form_valid_message = _('Matéria cadastrada com sucesso!')
     permission_required = ('protocoloadm.add_protocolo',)
@@ -950,7 +950,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
 
 class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
 
-    template_name = "protocoloadm/MateriaTemplate.html"
+    template_name = _('protocoloadm/MateriaTemplate.html')
     permission_required = ('protocoloadm.detail_protocolo', )
 
     def get_context_data(self, **kwargs):
@@ -1030,7 +1030,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('tipo') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
+            url = _('&') + str(self.request.environ['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('tipo=') - 1
                 url = url[ponto_comeco:]
@@ -1733,7 +1733,7 @@ def apaga_protocolos(request, ano, numero_protocolo=None):
 
 @staff_member_required
 def apaga_protocolos_view(request):
-    if request.method == "GET":
+    if request.method == _('GET'):
         if Protocolo.objects.exists():
             intervalo_data = Protocolo.objects.all().distinct(
                 'ano').values_list('ano', flat=True).order_by('-ano')
@@ -1741,7 +1741,7 @@ def apaga_protocolos_view(request):
             intervalo_data = None
         return render(request, "protocoloadm/deleta_todos_protocolos.html", {'intervalo_data': intervalo_data})
 
-    elif request.method == "POST":
+    elif request.method == _('POST'):
         password = request.POST.get('senha')
         valid = request.user.check_password(password)
         if valid:

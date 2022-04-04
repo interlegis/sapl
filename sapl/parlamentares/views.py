@@ -220,7 +220,7 @@ class PesquisarParlamentarView(FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
+            url = _('&') + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 url = ''
 
@@ -275,7 +275,7 @@ class PesquisarColigacaoView(FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
+            url = _('&') + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 url = ''
 
@@ -329,7 +329,7 @@ class PesquisarPartidoView(FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
+            url = _('&') + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 url = ''
 
@@ -759,7 +759,7 @@ class ParlamentarCrud(Crud):
             return super(Crud.CreateView, self).form_valid(form)
 
     class ListView(Crud.ListView):
-        template_name = "parlamentares/parlamentares_list.html"
+        template_name = _('parlamentares/parlamentares_list.html')
         paginate_by = None
         logger = logging.getLogger(__name__)
 
@@ -817,7 +817,7 @@ class ParlamentarCrud(Crud):
 
 
 class ParlamentarMateriasView(FormView):
-    template_name = "parlamentares/materias.html"
+    template_name = _('parlamentares/materias.html')
     success_url = reverse_lazy('sapl.parlamentares:parlamentar_materia')
     logger = logging.getLogger(__name__)
 
