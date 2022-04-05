@@ -240,6 +240,12 @@ class SessaoPlenaria(models.Model):
     data_ultima_atualizacao = models.DateTimeField(
         blank=True, null=True, auto_now=True, verbose_name=_('Data'))
 
+    publicar_pauta = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name=_('Publicar Pauta?'))
+
     class Meta:
         verbose_name = _('Sessão Plenária')
         verbose_name_plural = _('Sessões Plenárias')
