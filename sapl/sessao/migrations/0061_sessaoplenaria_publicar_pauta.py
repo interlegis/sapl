@@ -2,6 +2,8 @@
 
 from django.db import migrations, models
 
+from sapl.utils import YES_NO_CHOICES
+
 
 class Migration(migrations.Migration):
 
@@ -13,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sessaoplenaria',
             name='publicar_pauta',
-            field=models.BooleanField(blank=True, default=False, null=True, verbose_name='Publicar Pauta?'),
+            field=models.BooleanField(blank=True, default=False, null=True, choices=YES_NO_CHOICES, verbose_name='Publicar Pauta?'),
         ),
     ]

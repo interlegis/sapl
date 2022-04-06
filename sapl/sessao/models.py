@@ -244,6 +244,7 @@ class SessaoPlenaria(models.Model):
         null=True,
         blank=True,
         default=False,
+        choices=YES_NO_CHOICES,
         verbose_name=_('Publicar Pauta?'))
 
     class Meta:

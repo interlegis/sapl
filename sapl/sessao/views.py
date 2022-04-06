@@ -3698,7 +3698,7 @@ class PautaSessaoView(TemplateView):
     template_name = "sessao/pauta_inexistente.html"
 
     def get(self, request, *args, **kwargs):
-        sessao = SessaoPlenaria.objects.order_by("-data_inicio").first()
+        sessao = SessaoPlenaria.objects.filter(publicar_pauta = True).order_by("-data_inicio").first()
 
         if not sessao:
             return self.render_to_response({})
@@ -3902,6 +3902,13 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     template_name = 'sessao/pauta_sessao_filter.html'
 
     logger = logging.getLogger(__name__)
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        qs = kwargs.get('queryset')
+        qs = qs.filter(publicar_pauta = True)
+        kwargs['queryset'] = qs
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
