@@ -116,11 +116,12 @@ $(function() {
 	}
 
 	startTime();
-    var audioAlertFinish = document.getElementById("audio");
+  var audioAlertFinish = document.getElementById("audio");
 	$('#discurso').prop('disabled', false);
 	$('#aparte').prop('disabled', false);
 	$('#ordem').prop('disabled', false);
-    $('#consideracoes').prop('disabled', false);
+  $('#consideracoes').prop('disabled', false);
+  var intervaloDiscurso;
 
     $('#discurso').runner({
         autostart: false,
@@ -143,6 +144,9 @@ $(function() {
         $('#discursoReset').show();
         $('#discurso').runner('stop');
         $('#discursoStart').text('Iniciar');
+        clearInterval(intervaloDiscurso);
+
+
 
     });
 
@@ -155,6 +159,13 @@ $(function() {
 			$('#discursoReset').hide();
 			$('#discurso').runner('start');
 			$('#discursoStart').text('Parar');
+      intervaloDiscurso = setInterval(function () {
+        if($('#cronometro_discurso').runner('info').formattedTime == "00:00:02") {
+          audioAlertFinish.play();
+        }
+      }, 1000);
+
+
 
 		} else {
 
