@@ -21,7 +21,7 @@
     "jquery-mask-plugin": "^1.14.16",
     "jquery-ui-themes": "^1.12.0",
     "lodash": "^4.17.21",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "moment-locales-webpack-plugin": "^1.1.2",
     "popper.js": "^1.16.1",
     "terser": "^4.6.11",
