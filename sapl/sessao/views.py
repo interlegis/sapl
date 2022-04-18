@@ -3748,7 +3748,10 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            ultima_tramitacao = m.materia.tramitacao_set.order_by(
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
+            data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
+            timestamp_sessao = data_sessao + sessao_plenaria.hora_inicio
+            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lte = timestamp_sessao).order_by(
                 '-data_tramitacao', '-id').first()
             numeracao = m.materia.numeracao_set.first()
 
@@ -3799,7 +3802,10 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            ultima_tramitacao = o.materia.tramitacao_set.order_by(
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
+            data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
+            timestamp_sessao = data_sessao + sessao_plenaria.hora_inicio
+            ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lte = timestamp_sessao).order_by(
                 '-data_tramitacao', '-id').first()
             numeracao = o.materia.numeracao_set.first()
 
