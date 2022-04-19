@@ -880,6 +880,11 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
                                       label='Ano da Norma',
                                       choices=choice_anos_com_normas,
                                       initial=ultimo_ano_com_norma)
+    
+    tipo = django_filters.ChoiceFilter(required=False,
+                                      label='Tipo Norma',
+                                      choices=choice_tipos_normas,
+                                      initial=0)
 
     class Meta:
         model = NormaJuridica
@@ -892,7 +897,7 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
         self.filters['ano'].label = 'Ano'
         self.form.fields['ano'].required = True
 
-        row1 = to_row([('ano', 12)])
+        row1 = to_row([('ano', 6), ('tipo', 6)])
 
         buttons = FormActions(
             *[
