@@ -39,7 +39,7 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         choice_anos_com_normas, choice_anos_com_materias,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
                         ImageThumbnailFileInput, qs_override_django_filter,
-                        RANGE_ANOS, YES_NO_CHOICES,
+                        RANGE_ANOS, YES_NO_CHOICES, choice_tipos_normas,
                         GoogleRecapthaMixin, parlamentares_ativos)
 
 from .models import AppConfig, CasaLegislativa
@@ -971,6 +971,11 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
                                       choices=choice_anos_com_normas,
                                       initial=ultimo_ano_com_norma)
 
+    tipo = django_filters.ChoiceFilter(required=False,
+                                      label='Tipo Norma',
+                                      choices=choice_tipos_normas,
+                                      initial=0)
+
     vigencia = forms.ChoiceField(
         label=_('Vigência'),
         choices=[(True, "Vigente"), (False, "Não vigente")],
@@ -986,7 +991,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         self.form.fields['ano'].required = True
         self.form.fields['vigencia'] = self.vigencia
 
-        row1 = to_row([('ano', 12)])
+        row1 = to_row([('ano', 6), ('tipo', 6)])
         row2 = to_row([('vigencia', 12)])
 
         buttons = FormActions(
