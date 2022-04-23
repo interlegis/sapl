@@ -30,6 +30,7 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             CrudBaseForListAndDetailExternalAppView,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Autoria, Proposicao, Relatoria
+from sapl.norma.models import AutoriaNorma, NormaJuridica
 from sapl.parlamentares.apps import AppConfig
 from sapl.rules import SAPL_GROUP_VOTANTE
 from sapl.utils import (parlamentares_ativos, show_results_filter_set)
@@ -875,6 +876,80 @@ class ParlamentarMateriasView(FormView):
             'materia__tipo__descricao').annotate(
             total=Count('materia__tipo__pk')).order_by(
             '-materia__ano', 'materia__tipo')
+
+        autor_list = self.get_autoria(autoria)
+        coautor_list = self.get_autoria(coautoria)
+
+        parlamentar_pk = autor.autor_related.pk
+        nome_parlamentar = autor.autor_related.nome_parlamentar
+
+        return self.render_to_response({'autor_pk': autor.pk,
+                                        'root_pk': parlamentar_pk,
+                                        'autoria': autor_list,
+                                        'coautoria': coautor_list,
+                                        'nome_parlamentar': nome_parlamentar
+                                        })
+
+
+class ParlamentarNormasView(FormView):
+    template_name = "norma/normas.html"
+    success_url = reverse_lazy('sapl.parlamentares:parlamentar_normas')
+    logger = logging.getLogger(__name__)
+
+    def get_autoria(self, resultset):
+        autoria = {}
+        total_autoria = 0
+
+        for i in resultset:
+            row = autoria.get(i['norma__ano'], [])
+            columns = (i['norma__tipo__pk'],
+                       i['norma__tipo__sigla'],
+                       i['norma__tipo__descricao'],
+                       int(i['total']))
+            row.append(columns)
+            autoria[i['norma__ano']] = row
+            total_autoria += columns[3]
+        autoria = sorted(autoria.items(), reverse=True)
+        return autoria, total_autoria
+
+    @xframe_options_exempt
+    def get(self, request, *args, **kwargs):
+        parlamentar_pk = kwargs['pk']
+        username = request.user.username
+        try:
+            self.logger.debug(
+                "user=" + username + ". Tentando obter Autor (object_id={}).".format(parlamentar_pk))
+            autor = Autor.objects.get(
+                content_type=ContentType.objects.get_for_model(Parlamentar),
+                object_id=parlamentar_pk)
+        except ObjectDoesNotExist:
+            mensagem = _(
+                'Este Parlamentar não está associado como autor de matéria.'.format(parlamentar_pk))
+            self.logger.error(
+                "user=" + username + ". Este Parlamentar (pk={}) não é Autor de matéria.".format(parlamentar_pk))
+            messages.add_message(request, messages.ERROR, mensagem)
+            return HttpResponseRedirect(
+                reverse(
+                    'sapl.parlamentares:parlamentar_detail',
+                    kwargs={'pk': parlamentar_pk}))
+
+        autoria = AutoriaNorma.objects.filter(
+            autor=autor, primeiro_autor=True).values(
+            'norma__ano',
+            'norma__tipo__pk',
+            'norma__tipo__sigla',
+            'norma__tipo__descricao').annotate(
+            total=Count('norma__tipo__pk')).order_by(
+            '-norma__ano', 'norma__tipo')
+
+        coautoria = AutoriaNorma.objects.filter(
+            autor=autor, primeiro_autor=False).values(
+            'norma__ano',
+            'norma__tipo__pk',
+            'norma__tipo__sigla',
+            'norma__tipo__descricao').annotate(
+            total=Count('norma__tipo__pk')).order_by(
+            '-norma__ano', 'norma__tipo')
 
         autor_list = self.get_autoria(autoria)
         coautor_list = self.get_autoria(coautoria)

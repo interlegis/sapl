@@ -80,12 +80,16 @@ class NormaFilterSet(django_filters.FilterSet):
     assuntos = django_filters.ModelChoiceFilter(
         queryset=AssuntoNorma.objects.all())
 
+    autorianorma__autor = django_filters.CharFilter(method='filter_autoria')
+    autorianorma__primeiro_autor = django_filters.CharFilter(method='filter_autoria')
+
     o = NormaPesquisaOrderingFilter(help_text='')
 
     class Meta(FilterOverridesMetaMixin):
         model = NormaJuridica
-        fields = ['orgao', 'tipo', 'numero', 'ano', 'data', 'data_vigencia',
-                  'data_publicacao', 'ementa', 'assuntos']
+        fields = ['orgao', 'tipo', 'numero', 'ano', 'data',
+                  'data_vigencia', 'data_publicacao', 'ementa', 'assuntos',
+                  'autorianorma__autor', 'autorianorma__primeiro_autor']
 
     def __init__(self, *args, **kwargs):
         super(NormaFilterSet, self).__init__(*args, **kwargs)
@@ -111,6 +115,11 @@ class NormaFilterSet(django_filters.FilterSet):
             q &= Q(ementa__icontains=t)
 
         return queryset.filter(q)
+
+    def filter_autoria(self, queryset, name, value):
+        return queryset.filter(**{
+            name: value,
+        })
 
 
 class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
