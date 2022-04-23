@@ -494,6 +494,12 @@ def choice_anos_com_normas():
     return choice_anos(NormaJuridica)
 
 
+def choice_tipos_normas():
+    from sapl.norma.models import TipoNormaJuridica
+    return [(id, descricao) for (id, descricao) in
+            TipoNormaJuridica.objects.all().values_list('id', 'descricao')]
+
+
 def choice_anos_com_protocolo():
     from sapl.protocoloadm.models import Protocolo
     return choice_anos(Protocolo)
