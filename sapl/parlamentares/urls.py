@@ -6,7 +6,7 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
                                       LegislaturaCrud, MandatoCrud,
                                       MesaDiretoraView, NivelInstrucaoCrud,
-                                      ParlamentarCrud, ParlamentarMateriasView,
+                                      ParlamentarCrud, ParlamentarMateriasView, ParlamentarNormasView,
                                       ParticipacaoParlamentarCrud, PartidoCrud,
                                       ProposicaoParlamentarCrud,
                                       RelatoriaParlamentarCrud,
@@ -44,6 +44,9 @@ urlpatterns = [
 
     url(r'^parlamentar/(?P<pk>\d+)/materias$',
         ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
+
+    url(r'^parlamentar/(?P<pk>\d+)/normas$',
+        ParlamentarNormasView.as_view(), name='parlamentar_normas'),
 
     url(r'^parlamentar/(?P<pk>\d+)/frentes/$', get_parlamentar_frentes, name='parlamentar_frentes'),
 
