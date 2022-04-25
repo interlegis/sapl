@@ -5,15 +5,15 @@ TipoSessaoPlenaria:
 
 SessaoPlenaria:
   {% trans 'Dados Básicos' %}:
-  - legislatura  sessao_legislativa tipo numero:2
+  - legislatura  sessao_legislativa tipo numero:1 publicar_pauta:2
   - data_inicio:5  hora_inicio:5  iniciada
   - data_fim:5  hora_fim:5  finalizada
-  - upload_pauta  upload_ata  upload_anexo
+  - upload_pauta   upload_ata  upload_anexo
   - url_audio  url_video
 
 SessaoSolene:
   {% trans 'Dados Básicos' %}:
-  - legislatura  sessao_legislativa tipo:3  numero:1
+  - legislatura  sessao_legislativa tipo:3  numero:1 publicar_pauta:2
   - data_inicio:5  hora_inicio:5  iniciada
   - data_fim:5  hora_fim:5  finalizada
   - tema_solene

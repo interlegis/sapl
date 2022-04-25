@@ -1,5 +1,6 @@
 
 from collections import OrderedDict
+from datetime import datetime
 from re import sub
 import logging
 
@@ -3698,7 +3699,7 @@ class PautaSessaoView(TemplateView):
     template_name = "sessao/pauta_inexistente.html"
 
     def get(self, request, *args, **kwargs):
-        sessao = SessaoPlenaria.objects.order_by("-data_inicio").first()
+        sessao = SessaoPlenaria.objects.filter(publicar_pauta = True).order_by("-data_inicio").first()
 
         if not sessao:
             return self.render_to_response({})
@@ -3748,7 +3749,10 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            ultima_tramitacao = m.materia.tramitacao_set.order_by(
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
+            data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
+            data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
+            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt = data_hora_sessao).order_by(
                 '-data_tramitacao', '-id').first()
             numeracao = m.materia.numeracao_set.first()
 
@@ -3799,7 +3803,10 @@ class PautaSessaoDetailView(DetailView):
                 resultado = _('Matéria não votada')
                 resultado_observacao = _(' ')
 
-            ultima_tramitacao = o.materia.tramitacao_set.order_by(
+            sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
+            data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
+            data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
+            ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lt = data_hora_sessao).order_by(
                 '-data_tramitacao', '-id').first()
             numeracao = o.materia.numeracao_set.first()
 
@@ -3902,6 +3909,13 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     template_name = 'sessao/pauta_sessao_filter.html'
 
     logger = logging.getLogger(__name__)
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        qs = kwargs.get('queryset')
+        qs = qs.filter(publicar_pauta = True)
+        kwargs['queryset'] = qs
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
