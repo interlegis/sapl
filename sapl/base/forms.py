@@ -1162,6 +1162,10 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
 
+    ano = django_filters.ChoiceFilter(required=False,
+                                               label='Ano da Matéria',
+                                               choices=choice_anos_com_materias)
+
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
@@ -1183,10 +1187,11 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         self.filters['tramitacao__unidade_tramitacao_destino'].label = 'Unidade Destino'
         self.filters['tramitacao__status'].label = 'Status de tramitação'
 
-        row1 = to_row([('tramitacao__data_fim_prazo', 12)])
-        row2 = to_row([('tramitacao__unidade_tramitacao_local', 6),
+        row1 = to_row([('ano', 12)])
+        row2 = to_row([('tramitacao__data_fim_prazo', 12)])
+        row3 = to_row([('tramitacao__unidade_tramitacao_local', 6),
                        ('tramitacao__unidade_tramitacao_destino', 6)])
-        row3 = to_row(
+        row4 = to_row(
             [('tipo', 6),
              ('tramitacao__status', 6)])
 
@@ -1208,7 +1213,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações'),
-                     row1, row2, row3,
+                     row1, row2, row3, row4,
                      buttons, )
         )
 
