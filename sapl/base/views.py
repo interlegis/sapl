@@ -712,10 +712,7 @@ class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
                                       self.request.GET['tramitacao__data_fim_prazo_1'])
 
         if self.request.GET['ano']:
-            ano_materia = self.request.GET['ano']
-            for materia in MateriaLegislativa.objects.filter(ano=ano_materia):
-                context['ano'] = (
-                    materia.ano)
+            context['ano'] = self.request.GET['ano']
         else:
             context['ano'] = ''
         
