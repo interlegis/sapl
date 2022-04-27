@@ -1,6 +1,6 @@
 import logging
 
-from crispy_forms.layout import Fieldset, Layout, HTML
+from crispy_forms.layout import (Button, Fieldset, HTML, Layout)
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -15,7 +15,8 @@ from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
 from sapl.materia.forms import choice_anos_com_materias
 from sapl.materia.models import (MateriaLegislativa,
                                  TipoMateriaLegislativa, Orgao)
-from sapl.utils import (ANO_CHOICES,  choice_anos_com_normas,
+from sapl.parlamentares.models import Partido
+from sapl.utils import (autor_label, autor_modal, ANO_CHOICES,  choice_anos_com_normas,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
                         NormaPesquisaOrderingFilter, RangeWidgetOverride,
                         validar_arquivo)
@@ -80,8 +81,13 @@ class NormaFilterSet(django_filters.FilterSet):
     assuntos = django_filters.ModelChoiceFilter(
         queryset=AssuntoNorma.objects.all())
 
-    autorianorma__autor = django_filters.CharFilter(method='filter_autoria')
-    autorianorma__primeiro_autor = django_filters.CharFilter(method='filter_autoria')
+    autorianorma__autor = django_filters.CharFilter(widget=forms.HiddenInput())
+    autorianorma__primeiro_autor = django_filters.BooleanFilter(
+        required=False,
+        label=_('Primeiro Autor'))
+    autorianorma__autor__parlamentar_set__filiacao__partido = django_filters.ModelChoiceFilter(
+        queryset=Partido.objects.all(),
+        label=_('Normas por Partido'))
 
     o = NormaPesquisaOrderingFilter(help_text='')
 
@@ -89,22 +95,39 @@ class NormaFilterSet(django_filters.FilterSet):
         model = NormaJuridica
         fields = ['orgao', 'tipo', 'numero', 'ano', 'data',
                   'data_vigencia', 'data_publicacao', 'ementa', 'assuntos',
-                  'autorianorma__autor', 'autorianorma__primeiro_autor']
+                  'autorianorma__autor', 'autorianorma__primeiro_autor', 'autorianorma__autor__tipo']
 
     def __init__(self, *args, **kwargs):
         super(NormaFilterSet, self).__init__(*args, **kwargs)
+        self.filters['autorianorma__autor__tipo'].label = _('Tipo de Autor')
 
         row1 = to_row([('tipo', 4), ('numero', 4), ('ano', 4)])
         row2 = to_row([('data', 6), ('data_publicacao', 6)])
         row3 = to_row([('ementa', 6), ('assuntos', 6)])
         row4 = to_row([('data_vigencia', 6), ('orgao', 6), ])
         row5 = to_row([('o', 6), ('indexacao', 6)])
+        row6 = to_row([
+            ('autorianorma__autor', 0),
+            (Button('pesquisar',
+                    'Pesquisar Autor',
+                    css_class='btn btn-primary btn-sm'), 2),
+            (Button('limpar',
+                    'Limpar Autor',
+                    css_class='btn btn-primary btn-sm'), 2),
+            ('autorianorma__primeiro_autor', 2),
+            ('autorianorma__autor__tipo', 3),
+            ('autorianorma__autor__parlamentar_set__filiacao__partido', 3)
+        ])
 
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Norma'),
                      row1, row2, row3, row4, row5,
+            Fieldset(_('Pesquisa Avançada'),
+                     row6,
+                     HTML(autor_label),
+                     HTML(autor_modal)),
                      form_actions(label='Pesquisar'))
         )
 
