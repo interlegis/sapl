@@ -4304,6 +4304,54 @@ class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
                                        retiradapauta=None)
 
 
+class LeituraEmBloco(PermissionRequiredForAppCrudMixin, TemplateView):
+    app_label = AppConfig.label
+    logger = logging.getLogger(__name__)
+
+    def post(self, request, *args, **kwargs):
+        
+        origem = self.request.POST['origem']
+    
+        if origem == 'ordem':
+            model = OrdemDia
+            presenca_model = PresencaOrdemDia
+        elif origem == 'expediente':
+            model = ExpedienteMateria
+            presenca_model = SessaoPlenariaPresenca
+        
+        spk = SessaoPlenaria.objects.get(pk=kwargs['pk'])
+        if not verifica_presenca(request, presenca_model, spk, True):
+            return HttpResponseRedirect(self.get_success_url())
+
+        leituras = model.objects.filter(
+            id__in=request.POST.getlist('marcadas_4'))
+        
+        lista_registro_leitura = []
+        for ordem in leituras:
+            ordem.resultado = "Matéria lida em Bloco"
+            ordem.votacao_aberta = False
+            ordem.registro_aberto = False
+            if origem == 'ordem':
+                rl = RegistroLeitura(materia=ordem.materia,ordem=ordem,user=request.user,ip=get_client_ip(request))
+            elif origem == 'expediente':
+                rl = RegistroLeitura(materia=ordem.materia,expediente=ordem,user=request.user,ip=get_client_ip(request))
+            rl.observacao = self.request.POST.get('observacao',"")
+            lista_registro_leitura.append(rl)
+        
+        RegistroLeitura.objects.bulk_create(lista_registro_leitura)
+        model.objects.bulk_update(leituras, ['resultado','votacao_aberta','registro_aberto'])
+        
+
+        return HttpResponseRedirect(self.get_success_url())
+    
+    def get_success_url(self):
+        if self.request.POST['origem'] == 'ordem':
+            return reverse('sapl.sessao:ordemdia_list',
+                           kwargs={'pk': self.kwargs['pk']})
+        else:
+            return reverse('sapl.sessao:expedientemateria_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
 class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateView):
 
     """

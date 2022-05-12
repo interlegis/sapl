@@ -36,7 +36,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                OrdemDiaLeituraView,
                                retirar_leitura,
                                TransferenciaMateriasExpediente, TransferenciaMateriasOrdemDia,
-                               filtra_materias_copia_sessao_ajax, verifica_materia_sessao_plenaria_ajax)
+                               filtra_materias_copia_sessao_ajax, verifica_materia_sessao_plenaria_ajax,
+                               LeituraEmBloco)
 
 
 from .apps import AppConfig
@@ -147,6 +148,9 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco_expediente$',
         VotacaoEmBlocoExpediente.as_view(),
         name='votacao_bloco_expediente'),
+    url(r'^sessao/(?P<pk>\d+)/leitura_em_bloco$',
+        LeituraEmBloco.as_view(),
+        name='leitura_em_bloco'),
     url(r'^sessao/(?P<pk>\d+)/resumo$',
         ResumoView.as_view(), name='resumo'),
     url(r'^sessao/(?P<pk>\d+)/resumo_ata$',

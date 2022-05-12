@@ -20,6 +20,7 @@
                 </br>
                 <input type="radio" name="tipo_votacao" id="tipo_votacao_2" value="2" onchange="alteraTipoVotacao()" > <label for="tipo">Nominal</label>
                 </br>
+                <input type="radio" name="tipo_votacao" id="tipo_votacao_4" value="4" onchange="alteraTipoVotacao()" > <label for="tipo">Leitura</label><!--value=3 é pra votação secreta que não pode ser feita em bloco-->
                 </fieldset>
             </td>
             </tr>
@@ -43,8 +44,8 @@
             </div>
 
             {% for o in object_list %}
-            {% if o.tipo_votacao == 1 or o.tipo_votacao == 2 %}
-                <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% else %}Nominal{% endif %}"  {% if o.tipo_votacao == 2 %} style="display:none;" {% endif %}>
+            {% if o.tipo_votacao == 1 or o.tipo_votacao == 2 or o.tipo_votacao == 4 %}
+                <tr class="{% if o.tipo_votacao == 1 %}Simbolica{% elif o.tipo_votacao == 2 %}Nominal{% else %}Leitura{% endif %}"  {% if o.tipo_votacao == 2   %} style="display:none;" {% endif %} {% if o.tipo_votacao == 4   %} style="display:none;" {% endif %}>
                 <td>
                     <input type="checkbox" name="marcadas_{{o.tipo_votacao}}" id="{{o.id}}" value="{{o.id}}" {% if check %} checked {% endif %}>
                     <strong><a href="{% url 'sapl.materia:materialegislativa_detail' o.materia.id %}">{{o.materia.tipo.sigla}} {{o.materia.numero}}/{{o.materia.ano}} - {{o.materia.tipo}}</strong></a></br>
@@ -98,7 +99,30 @@
             <a href="{% url 'sapl.sessao:ordemdia_list' pk %}" class="btn btn-warning mb-3" id="but_cancel">Voltar</a>
             <input type="hidden" id="origem" name="origem" value="ordem">
         {% endif %}
-        <input type="submit" value="Registrar votação" class="btn btn-primary mb-3 float-right" id="but_reg">
+        <a onclick="submit_button()" class="btn btn-primary mb-3 float-right" id="but_reg">Registrar votação</a>
+
+        <div class="modal fade" id="leituraModal" tabindex="-1" role="dialog" aria-labelledby="leituraModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="leituraModalLabel">Observação da Leitura</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                 <div class="form-group">
+                    <label for="message-text" class="col-form-label">Observação:</label>
+                    <textarea class="form-control" id="observacao" name="observacao"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <a type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</a>
+                <input type="submit" class="btn btn-primary mb-3 float-right" value="Salvar">
+              </div>
+            </div>
+          </div>
+        </div>
     </form>
     {% endif %}
 
@@ -118,22 +142,20 @@
 
     <script language="JavaScript">
         function checkAll(elem) {
-            let checkboxes = document.getElementsByName('marcadas_1');
-            for (let i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].type == 'checkbox') 
-                    checkboxes[i].checked = elem.checked;
-            }
-        
-            checkboxes = document.getElementsByName('marcadas_2');
-            for (let i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].type == 'checkbox') 
-                    checkboxes[i].checked = elem.checked;
+           let checkbox_types = ['marcadas_1', 'marcadas_2', 'marcadas_4']
+            for (t in checkbox_types){
+                let checkboxes = document.getElementsByName(checkbox_types[t]);
+                for (let i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].type == 'checkbox') 
+                        checkboxes[i].checked = elem.checked;
+                }
             }
         }
     
         function alteraTipoVotacao() {
             $(".Simbolica").toggle();
             $(".Nominal").toggle();
+            $(".Leitura").toggle();
 
             checa_tipo_votacao();
         }
@@ -156,12 +178,34 @@
                 document.getElementById('but_reg').style.display = '';
                 document.getElementById('nenhuma_mat').style.display = 'none';
             }
-
+            
+            $("#but_reg").text("Registrar Votação")
             if(tipo_votacao == "1"){
                 $('#form').attr("action", "{% url 'sapl.sessao:votacaoblocosimb' pk %}")
+                //document.querySelectorAll('tr[class="Leitura"]').map((obj) -> {obj.style.display='none'});
+                Array.from(document.querySelectorAll('tr[class="Leitura"]')).map(function(obj){obj.style.display='none'}); 
+                Array.from(document.querySelectorAll('tr[class="Nominal"]')).map(function(obj){obj.style.display='none'}); 
+            }
+            else if(tipo_votacao == "2"){
+                $('#form').attr("action", "{% url 'sapl.sessao:votacaobloconom' pk %}")
+                Array.from(document.querySelectorAll('tr[class="Simbolica"]')).map(function(obj){obj.style.display='none'}); 
+                Array.from(document.querySelectorAll('tr[class="Leitura"]')).map(function(obj){obj.style.display='none'}); 
             }
             else{
-                $('#form').attr("action", "{% url 'sapl.sessao:votacaobloconom' pk %}")
+                $("#but_reg").text("Registrar Leitura")
+                $('#form').attr("action", "{% url 'sapl.sessao:leitura_em_bloco' pk %}")
+                Array.from(document.querySelectorAll('tr[class="Simbolica"]')).map(function(obj){obj.style.display='none'}); 
+                Array.from(document.querySelectorAll('tr[class="Nominal"]')).map(function(obj){obj.style.display='none'}); 
+            }
+        }
+
+        function submit_button(){
+            var radioValue = $("input[name='tipo_votacao']:checked").val();
+            if (radioValue == 4){
+                $('#leituraModal').modal('show')
+            }
+            else{
+                $("#form").submit()
             }
         }
 	</script>
