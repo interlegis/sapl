@@ -432,7 +432,11 @@
               if (data['tipo_resultado'] && data['status_painel'] == true){
                 if(data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]){
                   $("#resultado_votacao").css("color", "#45919D");
-                  $("#mat_em_votacao").text("Matéria em Votação");
+                  if (!data['discutir']){
+                    $("#mat_em_votacao").text("Matéria em Votação");
+                  }else{
+                    $("#mat_em_votacao").text("Matéria em Discussão");
+                  }
                   $("#resultado_votacao_div").show();
                 }
                 else{
