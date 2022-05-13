@@ -30,11 +30,11 @@ FINAL_VERSION=
 
 function change_files {
 
-    OLD_VERSION=$(grep -E 'interlegis/sapl:'$VERSION_PATTERN docker/docker-compose.yml | cut -d':' -f3)
+    OLD_VERSION=$(grep -E 'interlegis/sapl:'$VERSION_PATTERN dist/docker-compose.yml | cut -d':' -f3)
 
     echo "Atualizando de "$OLD_VERSION" para "$FINAL_VERSION
 
-    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" docker/docker-compose.yml
+    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" dist/docker-compose.yml
 
     sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
 
@@ -65,7 +65,7 @@ function set_rc_version {
 
 function commit_and_push {
    echo "committing..."
-   git add docker/docker-compose.yml setup.py sapl/settings.py sapl/templates/base.html
+   git add dist/docker-compose.yml setup.py sapl/settings.py sapl/templates/base.html
    git commit -m "Release: $FINAL_VERSION"
    git tag $FINAL_VERSION
 

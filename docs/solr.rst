@@ -7,7 +7,7 @@ Instruções para instalar o Solr
 Solr é uma plataforma open source de indexação e busca textual utilizada pelo SAPL 3.1 para indexar documentos (normas jurídicas, matérias legislativas e documentos acessórios). 
 
 Observação: Se a execução do SAPL for mediante containers Docker então use o arquivo *docker-compose.yml* disponível em
-*https://github.com/interlegis/sapl/blob/3.1.x/solr/docker-compose.yml* (verifique os mapeamentos de volume estão corretos, a verso do SAPL referenciada no arquivo docker-compose.yml, e realize o backup de seu BD **antes** de qualquer tentativa de substituição do arquivo *docker-compose.yml* em uso corrente);
+*https://github.com/interlegis/sapl/blob/3.1.x/dist/docker-compose.yml* (verifique os mapeamentos de volume estão corretos, a verso do SAPL referenciada no arquivo docker-compose.yml, e realize o backup de seu BD **antes** de qualquer tentativa de substituição do arquivo *docker-compose.yml* em uso corrente);
 
 1) Faça o download da distribuição *binária* do Apache Solr do site oficial do projeto **http://lucene.apache.org/solr**
 
