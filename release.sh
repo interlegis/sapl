@@ -34,13 +34,13 @@ function change_files {
 
     echo "Atualizando de "$OLD_VERSION" para "$FINAL_VERSION
 
-    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" dist/docker-compose.yml
+    sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" dist/docker-compose.yml
 
-    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
+    sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
 
-    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
+    sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
 
-    sed -E -i "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
+    sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
 }
 
 function set_major_version {
