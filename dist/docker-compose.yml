@@ -17,20 +17,30 @@ services:
       - "5433:5432"
     networks:
       - sapl-net
-  saplsolr:
-    image: solr:8.9
-    restart: always
-    command: bin/solr start -c -f
+  solr1:
+    image: solr:8.11
+    restart: unless-stopped
+    command: bash -c "docker-entrypoint.sh solr zk cp file:/var/security.json zk:security.json && exec solr-foreground"
     container_name: solr
     labels:
         NAME: "solr"
-    volumes:
-      - solr_data:/opt/solr/server/solr
-      - solr_configsets:/opt/solr/server/solr/configsets
     ports:
       - "8983:8983"
+    environment:
+      - ZK_HOST=zoo1:2181
+      - SOLR_HEAP=1g
+      - SOLR_OPTS=-Djute.maxbuffer=50000000
     networks:
       - sapl-net
+    depends_on:
+      - zoo1
+    volumes:
+      - type: bind
+        source: ./solr_cloud/security.json
+        target: /var/security.json
+      - solr_data:/opt/solr/server/solr
+      - solr_configsets:/opt/solr/server/solr/configsets
+    
   sapl:
     image: interlegis/sapl:3.1.162
 #    build:
@@ -52,18 +62,40 @@ services:
       EMAIL_HOST_PASSWORD: senhasmtp
       USE_SOLR: 'True'
       SOLR_COLLECTION: sapl
-      SOLR_URL: http://saplsolr:8983
+      SOLR_URL: http://solr:SolrRocks@solr1:8983
       TZ: America/Sao_Paulo
     volumes:
       - sapl_data:/var/interlegis/sapl/data
       - sapl_media:/var/interlegis/sapl/media
     depends_on:
       - sapldb
-      - saplsolr
+      - solr1
     ports:
       - "80:80"
     networks:
       - sapl-net
+  zoo1:
+    image: zookeeper:3.8
+    container_name: zoo1
+    hostname: zoo1
+    restart: unless-stopped
+    ports:
+      - 2181:2181
+      - 7001:7000
+    environment:
+      ZOO_MY_ID: 1
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_CLIENT_PORT: 2181
+      JVMFLAGS: "-Xmx1024m -Djute.maxbuffer=50000000"
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181
+      ZOO_LOG4J_PROP: "INFO,ROLLINGFILE"
+      ZOO_4LW_COMMANDS_WHITELIST: mntr, conf, ruok
+      ZOO_CFG_EXTRA: "metricsProvider.className=org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider metricsProvider.httpPort=7000 metricsProvider.exportJvmInfo=true"
+    volumes:
+      - zoo_data:/data
+      - zoo_log:/datalog
+    networks:
+      - sapl-net    
 networks:
   sapl-net:
     name: sapl-net
@@ -73,4 +105,7 @@ volumes:
   sapl_data:
   sapl_media:
   solr_data:
+  solr_home:
   solr_configsets:
+  zoo_data:
+  zoo_log:
