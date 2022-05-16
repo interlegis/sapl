@@ -103,7 +103,7 @@ class TipoSessaoPlenaria(models.Model):
     def __str__(self):
         return self.nome
 
-    def queryset_tipo_numeracao(self, legislatura, sessao_legislativa, data):
+    def build_predicados_queryset(self, legislatura, sessao_legislativa, data):
 
         qs = Q(tipo=self)
         tnc = self.TIPO_NUMERACAO_CHOICES

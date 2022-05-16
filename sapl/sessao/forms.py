@@ -66,7 +66,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             "para a Legislatura, Sessão Legislativa e Tipo informados. "
             "Favor escolher um número distinto.")
 
-        qs = tipo.queryset_tipo_numeracao(leg, sl, abertura)
+        qs = tipo.build_predicados_queryset(leg, sl, abertura)
         qs &= Q(numero=num)
 
         if SessaoPlenaria.objects.filter(qs).exclude(pk=instance.pk).exists():

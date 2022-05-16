@@ -1143,9 +1143,9 @@ class BancadaCrud(CrudAux):
 
 def recuperar_numero_sessao_view(request):
     try:
-        tipo = TipoSessaoPlenaria.objects.get(pk=request.GET.get('tipo', '0'))
-        sl = request.GET.get('sessao_legislativa', '0')
-        l = request.GET.get('legislatura', '0')
+        tipo = TipoSessaoPlenaria.objects.get(pk=request.GET.get('tipo'))
+        sl = request.GET.get('sessao_legislativa')
+        l = request.GET.get('legislatura')
         data = request.GET.get('data_inicio', timezone.now())
 
         if isinstance(data, str):
@@ -1155,7 +1155,7 @@ def recuperar_numero_sessao_view(request):
                 data = timezone.now().date()
 
         sessao = SessaoPlenaria.objects.filter(
-            tipo.queryset_tipo_numeracao(
+            tipo.build_predicados_queryset(
                 l, sl, data
             )).last()
 
