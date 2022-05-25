@@ -9,7 +9,7 @@ SAPL - Sistema de Apoio ao Processo Legislativo
 **UPDATE! [16/05/2022]: Devido a refatorações recentes no Solr, foi necessårio
 adaptar o uso deste pelo SAPL. Para isso foram feitas mudanças no docker-compose.yml
 como a adição de um container para o ZooKeeper e upload de arquivo de segurança.
-Recomendamos fortemente que para a versão 3.1.62 e superior do SAPL seja feito o backup do
+Recomendamos fortemente que para a versão 3.1.162 e superior do SAPL seja feito o backup do
 Banco de Dados, limpeza dos containers no host (`sudo docker system prune -a -f --volumes`),
 e consequente instalação dos novos containers a partir da execução do docker-compose. É
 importante frisar que o comando `docker system prune` irá apagar TODOS os containers E
