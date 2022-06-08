@@ -2,6 +2,10 @@
 from collections import OrderedDict
 from datetime import datetime
 from re import sub
+
+import pytz
+
+from sapl.settings import TIME_ZONE
 import logging
 
 from django.conf import settings
@@ -3752,7 +3756,8 @@ class PautaSessaoDetailView(DetailView):
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
             data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
-            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt = data_hora_sessao).order_by(
+            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(data_hora_sessao).astimezone(pytz.utc)
+            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt = data_hora_sessao_utc).order_by(
                 '-data_tramitacao', '-id').first()
             numeracao = m.materia.numeracao_set.first()
 
@@ -3806,7 +3811,8 @@ class PautaSessaoDetailView(DetailView):
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
             data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
-            ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lt = data_hora_sessao).order_by(
+            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(data_hora_sessao).astimezone(pytz.utc)
+            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
                 '-data_tramitacao', '-id').first()
             numeracao = o.materia.numeracao_set.first()
 
