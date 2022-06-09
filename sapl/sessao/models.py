@@ -381,6 +381,13 @@ class AbstractOrdemDia(models.Model):
         choices=YES_NO_CHOICES,
         verbose_name=_('Registro de Votação Iniciado?')
     )
+    discussao_aberta = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Discurssão iniciada?')
+    )
 
     class Meta:
         abstract = True

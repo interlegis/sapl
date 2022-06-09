@@ -408,13 +408,17 @@
                 if (data["status_painel"] == true){
                   $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
                   $("#materia_legislativa_ementa").text(data["materia_legislativa_ementa"]);
+                  $("#materia_legislativa_ementa").show();
                 }
                 else{
                   $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
+                  $("#materia_legislativa_ementa").hide();
+                  
                 }
               }
               else{
                 $("#materia_legislativa_texto").text('Não há nenhuma matéria votada ou para votação.');
+                $("#materia_legislativa_ementa").hide();
               }
 
               if (data['observacao_materia'] && data["status_painel"] == true){
@@ -432,7 +436,11 @@
               if (data['tipo_resultado'] && data['status_painel'] == true){
                 if(data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]){
                   $("#resultado_votacao").css("color", "#45919D");
-                  $("#mat_em_votacao").text("Matéria em Votação");
+                  if (!data['discutir']){
+                    $("#mat_em_votacao").text("Matéria em Votação");
+                  }else{
+                    $("#mat_em_votacao").text("Matéria em Discussão");
+                  }
                   $("#resultado_votacao_div").show();
                 }
                 else{
