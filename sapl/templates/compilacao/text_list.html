@@ -3,16 +3,40 @@
 {% load compilacao_filters %}
 {% load common_tags %}
 
+
+
 {% block base_content %}
 
   {% block actions %}
     {{block.super}}
   {% endblock %}
 
+
   {% block detail_content %}
-    {{block.super}}
+  {{block.super}}
   {% endblock %}
-  
+
+
+  {% if object_list %}
+      {% if 'print' not in request.GET %}
+        <div class="actions btn-group" role="group">
+            {% if sapl_as_sapn %}
+              <a href="{% url 'sapl.norma:norma_pesquisa' %}" class="btn btn-outline-primary" >{% trans 'Fazer nova pesquisa' %}</a>
+            {% endif %}
+            <a href="{% if 'compilacao' not in request.resolver_match.namespace %}{% url 'sapl.compilacao:ta_text' object_list.0.ta_id %}{% else %}{{request.path}}{% endif %}?print" class="btn btn-outline-primary" id="btn_impressao">{% trans 'Preparar para impressão' %}</a>
+        </div>
+      {% endif %}
+
+      <div class="actions btn-group float-right" role="group">
+        <a class="btn btn-outline-primary" id="btn_font_menos" title="Diminuir tamanho da letra">a</a>
+        <a class="btn btn-outline-primary" id="btn_font_mais"  title="Aumentar tamanho da Letra">A</a>
+      </div>
+  {% endif %}
+
+  {% with object.content_object as n %}
+    {% include 'compilacao/normajuridica_widget_top.html' %}
+  {% endwith %}
+
   {% include 'compilacao/text_list__embedded.html'%}
 
   {{object.tipo_ta.rodape_global|dont_break_out}}

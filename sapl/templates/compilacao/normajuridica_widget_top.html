@@ -1,0 +1,45 @@
+{% load i18n %}
+{% load compilacao_filters %}
+{% load common_tags%}
+
+<div class="row py-4">
+  {% if n.get_normas_relacionadas.1|length > 0 %}
+    {% for r in n.get_normas_relacionadas.1 %}
+      {% if r.tipo_vinculo.revoga_integralmente %}
+        <div class="col-12">
+          <div class="text-danger">
+            <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
+            <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
+              {{ r.norma_principal.epigrafe }}
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {% if n.get_normas_relacionadas.1|length > 0 %}
+    {% for r in n.get_normas_relacionadas.1 %}
+      {% if not r.tipo_vinculo.revoga_integralmente %}
+        <div class="text-info col-{% if n.get_normas_relacionadas.1|length > 6 %}6{%else%}12{%endif%} small">
+          <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
+          <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
+            {{ r.norma_principal.epigrafe }}
+          </a>
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {% if n.get_normas_relacionadas.0|length > 0 %}
+    {% for p in n.get_normas_relacionadas.0 %}
+        <div class="text-info col-{% if n.get_normas_relacionadas.0|length > 6 %}6{%else%}12{%endif%} small">
+          <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
+          <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
+            {{ p.norma_relacionada.epigrafe }}
+          </a>
+        </div>
+    {% endfor %}
+  {% endif %}
+
+</div>
