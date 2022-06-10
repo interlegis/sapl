@@ -3812,7 +3812,7 @@ class PautaSessaoDetailView(DetailView):
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
             data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
             data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(data_hora_sessao).astimezone(pytz.utc)
-            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
+            ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
                 '-data_tramitacao', '-id').first()
             numeracao = o.materia.numeracao_set.first()
 
