@@ -1,3 +1,4 @@
+import re
 import django_filters
 
 from crispy_forms.layout import Button, Fieldset, HTML, Layout
@@ -41,6 +42,8 @@ DIA_CHOICES = RANGE_DIAS_MES
 
 
 class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
+
+    TIME_PATTERN = '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
 
     class Meta:
         model = SessaoPlenaria
@@ -117,6 +120,16 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
         if upload_anexo:
             validar_arquivo(upload_anexo, "Anexo da Sessão")
+
+        hora_inicio = self.cleaned_data['hora_inicio']
+        if not re.match(self.TIME_PATTERN, hora_inicio):
+            raise ValidationError(f'Formato ou valores de horário de '
+                                  f'abertura errados: {hora_inicio}')
+
+        hora_fim = self.cleaned_data['hora_fim']
+        if hora_fim and not re.match(self.TIME_PATTERN, hora_fim):
+            raise ValidationError(f'Formato ou valores de horário de '
+                                  f'encerramento errados: {hora_fim}.')
 
         return self.cleaned_data
 
