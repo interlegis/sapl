@@ -6,6 +6,7 @@ from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _
 import yaml
 
@@ -38,7 +39,7 @@ def form_actions(more=[Div(css_class='clearfix')],
                  label=_('Salvar'), name='salvar',
                  css_class='float-right', disabled=True):
 
-    if disabled:
+    if disabled and force_text(label) != 'Pesquisar':
         doubleclick = 'this.form.submit();this.disabled=true;'
     else:
         doubleclick = 'return true;'
