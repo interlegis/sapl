@@ -16,7 +16,7 @@ models = [ComposicaoMesa, Dependente, Filiacao, IntegranteMesa, JustificativaAus
 
 # Tratar FRENTE pois ela é 1-to-many (campo parlamentares) com Parlamentar
 
-models_autor = [AutoriaNorma, Autoria, Proposicao, Protocolo, DocumentoAdministrativo]
+models_autor = [AutoriaNorma, Autoria, Frente, Proposicao, Protocolo, DocumentoAdministrativo]
 
 ## Verificar se TipoAutor é sempre 1 para parlamentar e ContentType é sempre 26 para parlamentar.
 TIPO_PARLAMENTAR = 1
@@ -45,32 +45,36 @@ def deduplica_parlamentares(parlamentares):
                                                    object_id=parlamentar_principal.id)
 
             for a in Autor.objects.filter(tipo_id=TIPO_PARLAMENTAR, content_type_id=CONTENT_TYPE_PARLAMENTAR, object_id=clone.id):
-                print(a)
                 if not autor_principal:
                     print('Ajustando autor de %s' % parlamentar)
                     a.object_id = parlamentar_principal.id
-                    a.save()
+                    try:
+                        a.save()
+                    except Exception as e:
+                        print(f"Erro ao mover referencia de autor do model {ma} para {autor_principal[0]}")
+                        print(e)
                 else:
                     print('Movendo referencias de autor')
                     for ma in models_autor:
                         for ra in ma.objects.filter(autor=a):
                             ra.autor = autor_principal[0]
-                            ra.save()
+                            try:
+                                ra.save()
+                            except Exception as e:
+                                print(f"Erro ao mover referencia de autor do model {ma} para {autor_principal[0]}")
+                                print(e)
                     a.delete()
 
             # Muda apontamento de models que referenciam parlamentar
             for model in models:
+                print(f"Mudando apontamento de model {model}...")
                 for obj in model.objects.filter(parlamentar_id=clone.id):
                     obj.parlamentar = parlamentar_principal
-                    obj.save()
-
-            frentes = Frente.objects.filter(parlamentares=parlamentar_principal)
-            for frente in Frente.objects.select_related.filter(parlamentares=clone):
-                if frente not in frentes:
-                    frente.parlamentares.add(parlamentar_principal)
-
-                frente.parlamentares.remove(clone)
-
+                    try:
+                        obj.save()
+                    except Exception as e:
+                        print(f"Erro ao alterar parlamentar do model {model} para a instancia {obj}")
+                        print(e)
             clone.delete()
 
 
