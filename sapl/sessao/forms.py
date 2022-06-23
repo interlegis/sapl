@@ -26,7 +26,7 @@ from sapl.utils import (autor_label, autor_modal,
                         FilterOverridesMetaMixin,
                         MateriaPesquisaOrderingFilter,
                         RANGE_DIAS_MES, RANGE_MESES,
-                        timezone, validar_arquivo)
+                        TIME_PATTERN, timezone, validar_arquivo)
 
 from .models import (Bancada, ExpedienteMateria,
                      JustificativaAusencia, OcorrenciaSessao, Orador,
@@ -42,8 +42,6 @@ DIA_CHOICES = RANGE_DIAS_MES
 
 
 class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
-
-    TIME_PATTERN = '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
 
     class Meta:
         model = SessaoPlenaria

@@ -49,6 +49,8 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 # a '/' por '&' ou ';'
 SEPARADOR_HASH_PROPOSICAO = 'K'
 
+TIME_PATTERN = '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+
 
 def groups_remove_user(user, groups_name):
     from django.contrib.auth.models import Group

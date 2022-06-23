@@ -344,9 +344,9 @@ class MateriaLegislativa(models.Model):
                 numero=self.numero_protocolo).first()
             if protocolo:
                 if protocolo.timestamp:
-                    return protocolo.timestamp.date()
+                    return protocolo.timestamp
                 elif protocolo.timestamp_data_hora_manual:
-                    return protocolo.timestamp_data_hora_manual.date()
+                    return protocolo.timestamp_data_hora_manual
                 elif protocolo.data:
                     return protocolo.data
 

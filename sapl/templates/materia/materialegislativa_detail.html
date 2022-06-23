@@ -1,5 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load tz %}
 
 {% block sub_actions %}
     {{ block.super }}
@@ -19,7 +20,11 @@
 {% block detail_content %}
     {{ block.super }}
     {% if object.numero_protocolo %}
-      <strong>Protocolo:</strong> {{ object.numero_protocolo }}/{{ object.ano }}, {{ object.data_entrada_protocolo }}</br>
+      <strong>Protocolo:</strong> {{ object.numero_protocolo }}/{{ object.ano }},
+      <strong>Data Protocolo:</strong>
+        {{ object.data_entrada_protocolo|localtime|date:"d/m/Y"|default_if_none:"Não informado" }} -
+      <strong>Horário:</strong> {{ object.data_entrada_protocolo|localtime|date:"G:i:s" }}
+    </br>
     {% endif %}
     {% if object.registrovotacao_set.exists %}
         <strong>Data Votação:</strong>

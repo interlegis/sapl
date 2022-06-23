@@ -1,5 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load tz %}
 {% load crispy_forms_tags common_tags%}
 {% load webpack_static from webpack_loader %}
 
@@ -65,8 +66,10 @@
                    </br>
                 {% endif %}
                 {% if m.numero_protocolo %}
-                    <strong>Protocolo: </strong>{{m.numero_protocolo}}/{{m.ano}} &nbsp;&nbsp; <strong>Data Entrada:</strong> {{m.data_entrada_protocolo|default_if_none:"" }} </br>
-
+                    <strong>Protocolo: </strong>{{m.numero_protocolo}}/{{m.ano}}, <strong>Data Protocolo: </strong>
+                    {{ m.data_entrada_protocolo|localtime|date:"d/m/Y"|default_if_none:"Não informado" }} -
+                    <strong>Horário:</strong> {{ m.data_entrada_protocolo|localtime|date:"G:i:s" }}
+                   </br>
                 {% endif %}
                 {% if m.autoria_set.all %}
                   <strong>Autor:</strong>
