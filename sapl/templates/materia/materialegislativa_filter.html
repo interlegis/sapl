@@ -121,8 +121,7 @@
                     </a>
                     <strong>Data Anexação:</strong> {{a.data_anexacao}}
                     {% if a.materia_principal.autoria_set.all %}
-                    <strong>Autor:</strong>
-                        <small>
+                    <strong>Autor(es):</strong>
                             {% for ab in a.materia_principal.autoria_set.all %}
                                 {% if not forloop.first %}
                                     ,&nbsp;{{ab.autor}}
@@ -130,7 +129,6 @@
                                      &nbsp;{{ab.autor}}
                                 {% endif %}
                             {% endfor %}
-                        </small>
                         {% endif %}
                     </br>
                     {% endfor %}
@@ -143,8 +141,7 @@
                     </a>
                     <strong>Data Anexação:</strong> {{anexada.data_anexacao}}
                     {% if anexada.materia_anexada.autoria_set.all %}
-                    <strong>Autor:</strong>
-                        <small>
+                    <strong>Autor(es):</strong>
                             {% for a in anexada.materia_anexada.autoria_set.all %}
                                 {% if not forloop.first %}
                                     ,&nbsp;{{a.autor}}
@@ -152,7 +149,6 @@
                                      &nbsp;{{a.autor}}
                                 {% endif %}
                             {% endfor %}
-                        </small>
                     {% endif %}
                     </br>
                     {% endfor %}
