@@ -140,7 +140,7 @@
                         {{ anexada.materia_anexada }}&nbsp;
                     </a>
                     <strong>Data Anexação:</strong> {{anexada.data_anexacao}}
-                    {% if anexada.materia_anexada.autoria_set.all %}
+                    {% if anexada.materia_anexada.autoria_set.exists %}
                     <strong>Autor(es):</strong>
                             {% for a in anexada.materia_anexada.autoria_set.all %}
                                 {% if not forloop.first %}
