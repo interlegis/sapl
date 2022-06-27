@@ -185,6 +185,11 @@ class AppConfig(models.Model):
             'Indicar número da matéria a ser gerada na proposição?'),
         choices=YES_NO_CHOICES, default=False)
 
+    tramitacao_origem_fixa = models.BooleanField(
+        verbose_name=_(
+            'Fixar Origem das tramitações como sendo a tramitação de destino da última tramitação?'),
+        choices=YES_NO_CHOICES, default=False)
+
     tramitacao_materia = models.BooleanField(
         verbose_name=_(
             'Tramitar matérias anexadas junto com as matérias principais?'),
