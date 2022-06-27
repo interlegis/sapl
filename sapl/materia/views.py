@@ -1,11 +1,11 @@
 
 from datetime import datetime
 from io import BytesIO
-from random import choice
-from string import ascii_letters, digits
 import logging
 import os
+from random import choice
 import shutil
+from string import ascii_letters, digits
 import time
 import zipfile
 
@@ -31,6 +31,7 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
 
+import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
 from sapl.comissoes.models import Participacao
@@ -53,7 +54,6 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_u
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, get_tempfile_dir,
                         google_recaptcha_configured)
-import sapl
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -437,7 +437,8 @@ class PesquisarStatusTramitacaoView(FilterView):
                 url = ''
 
         if 'descricao' in self.request.META['QUERY_STRING'] or\
-         'page' in self.request.META['QUERY_STRING']: resultados = self.object_list
+                'page' in self.request.META['QUERY_STRING']:
+            resultados = self.object_list
         else:
             resultados = []
 
@@ -1395,10 +1396,11 @@ class TramitacaoCrud(MasterDetailCrud):
             # necessária?
             if ultima_tramitacao:
                 if ultima_tramitacao.unidade_tramitacao_destino:
-                    context['form'].fields[
-                        'unidade_tramitacao_local'].choices = [
-                        (ultima_tramitacao.unidade_tramitacao_destino.pk,
-                         ultima_tramitacao.unidade_tramitacao_destino)]
+                    if BaseAppConfig.attr('tramitacao_origem_fixa'):
+                        context['form'].fields[
+                            'unidade_tramitacao_local'].choices = [
+                            (ultima_tramitacao.unidade_tramitacao_destino.pk,
+                             ultima_tramitacao.unidade_tramitacao_destino)]
                 else:
                     self.logger.error('user=' + username + '. Unidade de tramitação destino '
                                       'da última tramitação não pode ser vazia!')
@@ -1411,7 +1413,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
             # Se não for a primeira tramitação daquela matéria, o campo
             # não pode ser modificado
-            if not primeira_tramitacao:
+            if not primeira_tramitacao and BaseAppConfig.attr('tramitacao_origem_fixa'):
                 context['form'].fields[
                     'unidade_tramitacao_local'].widget.attrs['readonly'] = True
 
