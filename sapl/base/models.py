@@ -187,8 +187,8 @@ class AppConfig(models.Model):
 
     tramitacao_origem_fixa = models.BooleanField(
         verbose_name=_(
-            'Fixar Origem das tramitações como sendo a tramitação de destino da última tramitação?'),
-        choices=YES_NO_CHOICES, default=False)
+            'Fixar origem de novas tramitações como sendo a tramitação de destino da última tramitação?'),
+        choices=YES_NO_CHOICES, default=True)
 
     tramitacao_materia = models.BooleanField(
         verbose_name=_(

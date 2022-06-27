@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='appconfig',
             name='tramitacao_origem_fixa',
-            field=models.BooleanField(choices=[(True, 'Sim'), (False, 'Não')], default=False, verbose_name='Fixar Origem das tramitações como sendo a tramitação de destino da última tramitação?'),
+            field=models.BooleanField(choices=[(True, 'Sim'), (False, 'Não')], default=True,
+                                      verbose_name='Fixar Origem das tramitações como sendo a tramitação de destino da última tramitação?'),
         ),
     ]
