@@ -117,12 +117,12 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             validar_arquivo(upload_anexo, "Anexo da Sessão")
 
         hora_inicio = self.cleaned_data['hora_inicio']
-        if not re.match(self.TIME_PATTERN, hora_inicio):
+        if not re.match(TIME_PATTERN, hora_inicio):
             raise ValidationError(f'Formato ou valores de horário de '
                                   f'abertura errados: {hora_inicio}')
 
         hora_fim = self.cleaned_data['hora_fim']
-        if hora_fim and not re.match(self.TIME_PATTERN, hora_fim):
+        if hora_fim and not re.match(TIME_PATTERN, hora_fim):
             raise ValidationError(f'Formato ou valores de horário de '
                                   f'encerramento errados: {hora_fim}.')
 
