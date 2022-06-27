@@ -17,8 +17,8 @@ from django.forms import Form, ModelForm
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from haystack.forms import ModelSearchForm
 import django_filters
+from haystack.forms import ModelSearchForm
 
 from sapl.audiencia.models import AudienciaPublica
 from sapl.base.models import Autor, TipoAutor, OperadorAutor
@@ -880,11 +880,11 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
                                       label='Ano da Norma',
                                       choices=choice_anos_com_normas,
                                       initial=ultimo_ano_com_norma)
-    
+
     tipo = django_filters.ChoiceFilter(required=False,
-                                      label='Tipo Norma',
-                                      choices=choice_tipos_normas,
-                                      initial=0)
+                                       label='Tipo Norma',
+                                       choices=choice_tipos_normas,
+                                       initial=0)
 
     class Meta:
         model = NormaJuridica
@@ -977,9 +977,9 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
                                       initial=ultimo_ano_com_norma)
 
     tipo = django_filters.ChoiceFilter(required=False,
-                                      label='Tipo Norma',
-                                      choices=choice_tipos_normas,
-                                      initial=0)
+                                       label='Tipo Norma',
+                                       choices=choice_tipos_normas,
+                                       initial=0)
 
     vigencia = forms.ChoiceField(
         label=_('Vigência'),
@@ -1163,8 +1163,8 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
 
     ano = django_filters.ChoiceFilter(required=False,
-                                               label='Ano da Matéria',
-                                               choices=choice_anos_com_materias)
+                                      label='Ano da Matéria',
+                                      choices=choice_anos_com_materias)
 
     @property
     def qs(self):
@@ -1578,6 +1578,7 @@ class ConfiguracoesAppForm(ModelForm):
                   'assinatura_ata',
                   'estatisticas_acesso_normas',
                   'escolher_numero_materia_proposicao',
+                  'tramitacao_origem_fixa',
                   'tramitacao_materia',
                   'tramitacao_documento',
                   'google_recaptcha_site_key',

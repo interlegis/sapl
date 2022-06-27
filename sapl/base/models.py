@@ -185,6 +185,19 @@ class AppConfig(models.Model):
             'Indicar número da matéria a ser gerada na proposição?'),
         choices=YES_NO_CHOICES, default=False)
 
+    tramitacao_origem_fixa = models.BooleanField(
+        verbose_name=_(
+            'Fixar origem de novas tramitações como sendo a tramitação de destino da última tramitação?'),
+        choices=YES_NO_CHOICES,
+        default=True,
+        help_text=_('Ao utilizar a opção NÂO, você compreende que os controles '
+                    'de origem e destino das tramitações são anulados, '
+                    'podendo seu operador registrar quaisquer origem e '
+                    'destino para as tramitações. Se você colocar Não, '
+                    'fizer tramitações aleatórias e voltar para SIM, '
+                    'o destino da tramitação mais recente será utilizado '
+                    'para a origem de uma nova inserção!'))
+
     tramitacao_materia = models.BooleanField(
         verbose_name=_(
             'Tramitar matérias anexadas junto com as matérias principais?'),

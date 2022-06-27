@@ -38,7 +38,7 @@ AppConfig:
   - proposicao_incorporacao_obrigatoria escolher_numero_materia_proposicao
 
   {% trans 'Módulo Matéria Legislativa' %}:
-  - tramitacao_materia tramitacao_documento
+  - tramitacao_origem_fixa tramitacao_materia tramitacao_documento
 
   {% trans 'Módulo Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma

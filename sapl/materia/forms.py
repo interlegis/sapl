@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
-from sapl.base.models import AppConfig, Autor, TipoAutor
+from sapl.base.models import AppConfig as BaseAppConfig, Autor, TipoAutor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_PRIVATE)
@@ -43,7 +43,6 @@ from sapl.utils import (autor_label, autor_modal, timing,
                         SEPARADOR_HASH_PROPOSICAO,
                         validar_arquivo, YES_NO_CHOICES,
                         GoogleRecapthaMixin)
-import sapl
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, Numeracao,
@@ -509,7 +508,7 @@ class TramitacaoForm(ModelForm):
 
         if not self.instance.data_tramitacao:
 
-            if ultima_tramitacao:
+            if ultima_tramitacao and BaseAppConfig.attr('tramitacao_origem_fixa'):
                 destino = ultima_tramitacao.unidade_tramitacao_destino
                 if (destino != self.cleaned_data['unidade_tramitacao_local']):
                     self.logger.error("A origem da nova tramitação ({}) não é igual ao "
@@ -562,7 +561,7 @@ class TramitacaoForm(ModelForm):
         materia.em_tramitacao = False if tramitacao.status.indicador == "F" else True
         materia.save()
 
-        tramitar_anexadas = sapl.base.models.AppConfig.attr(
+        tramitar_anexadas = BaseAppConfig.attr(
             'tramitacao_materia')
         if tramitar_anexadas:
             lista_tramitacao = []
@@ -664,7 +663,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
         # ela não pode ter seu destino alterado.
         if ultima_tramitacao != obj:
             if cd['unidade_tramitacao_destino'] != \
-                    obj.unidade_tramitacao_destino:
+                    obj.unidade_tramitacao_destino and BaseAppConfig.attr('tramitacao_origem_fixa'):
                 self.logger.error("Você não pode mudar a Unidade de Destino desta "
                                   "tramitação para {}, pois irá conflitar com a Unidade "
                                   "Local da tramitação seguinte ({})."
@@ -701,7 +700,7 @@ class TramitacaoUpdateForm(TramitacaoForm):
         materia.em_tramitacao = False if nova_tram_principal.status.indicador == "F" else True
         materia.save()
 
-        tramitar_anexadas = sapl.base.models.AppConfig.attr(
+        tramitar_anexadas = BaseAppConfig.attr(
             'tramitacao_materia')
         if tramitar_anexadas:
             anexadas_list = lista_anexados(materia)
@@ -1783,7 +1782,7 @@ class TramitacaoEmLoteForm(ModelForm):
         ip = self.initial['ip'] if 'ip' in self.initial else ''
         ultima_edicao = self.initial['ultima_edicao'] if 'ultima_edicao' in self.initial else ''
 
-        tramitar_anexadas = AppConfig.attr('tramitacao_materia')
+        tramitar_anexadas = BaseAppConfig.attr('tramitacao_materia')
         for mat_id in materias:
             mat = MateriaLegislativa.objects.get(id=mat_id)
             tramitacao = Tramitacao.objects.create(
@@ -1902,10 +1901,10 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        self.texto_articulado_proposicao = AppConfig.attr(
+        self.texto_articulado_proposicao = BaseAppConfig.attr(
             'texto_articulado_proposicao')
 
-        self.receber_recibo = AppConfig.attr(
+        self.receber_recibo = BaseAppConfig.attr(
             'receber_recibo_proposicao')
 
         if not self.texto_articulado_proposicao:
@@ -1927,7 +1926,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
 
         ]
 
-        if AppConfig.objects.last().escolher_numero_materia_proposicao:
+        if BaseAppConfig.objects.last().escolher_numero_materia_proposicao:
             fields.append(to_column(('numero_materia_futuro', 12)),)
         else:
             if 'numero_materia_futuro' in self._meta.fields:
@@ -2043,7 +2042,7 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
     def save(self, commit=True):
         cd = self.cleaned_data
         inst = self.instance
-        receber_recibo = AppConfig.objects.last().receber_recibo_proposicao
+        receber_recibo = BaseAppConfig.objects.last().receber_recibo_proposicao
 
         if inst.pk:
             if 'tipo_texto' in cd:
@@ -2063,7 +2062,8 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
             return super().save(commit)
 
         inst.ano = timezone.now().year
-        sequencia_numeracao = AppConfig.attr('sequencia_numeracao_proposicao')
+        sequencia_numeracao = BaseAppConfig.attr(
+            'sequencia_numeracao_proposicao')
         if sequencia_numeracao == 'A':
             numero__max = Proposicao.objects.filter(
                 autor=inst.autor,
@@ -2220,7 +2220,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
     def __init__(self, *args, **kwargs):
 
         self.proposicao_incorporacao_obrigatoria = \
-            AppConfig.attr('proposicao_incorporacao_obrigatoria')
+            BaseAppConfig.attr('proposicao_incorporacao_obrigatoria')
 
         if self.proposicao_incorporacao_obrigatoria != 'C':
             if 'gerar_protocolo' in self._meta.fields:
@@ -2272,7 +2272,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             )
         ]
 
-        if not AppConfig.objects.last().escolher_numero_materia_proposicao or \
+        if not BaseAppConfig.objects.last().escolher_numero_materia_proposicao or \
            not self.instance.numero_materia_futuro:
             if 'numero_materia_futuro' in self._meta.fields:
                 del fields[0][0][3]
@@ -2352,7 +2352,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if not self.is_valid():
             return self.cleaned_data
 
-        numeracao = AppConfig.attr('sequencia_numeracao_proposicao')
+        numeracao = BaseAppConfig.attr('sequencia_numeracao_proposicao')
 
         if not numeracao:
             self.logger.error("A sequência de numeração (por ano ou geral)"
@@ -2435,7 +2435,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             try:
                 self.logger.debug(
                     "Tentando obter modelo de sequência de numeração.")
-                numeracao = AppConfig.objects.last(
+                numeracao = BaseAppConfig.objects.last(
                 ).sequencia_numeracao_protocolo
             except AttributeError as e:
                 self.logger.error("Erro ao obter modelo. " + str(e))
@@ -2587,7 +2587,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         GenericForeignKey
         """
 
-        numeracao = AppConfig.attr('sequencia_numeracao_protocolo')
+        numeracao = BaseAppConfig.attr('sequencia_numeracao_protocolo')
         if numeracao == 'A':
             nm = Protocolo.objects.filter(
                 ano=timezone.now().year).aggregate(Max('numero'))
