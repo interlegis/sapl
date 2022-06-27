@@ -1,9 +1,7 @@
+from datetime import datetime
 import re
-import django_filters
 
 from crispy_forms.layout import Button, Fieldset, HTML, Layout
-from datetime import datetime
-
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -12,9 +10,10 @@ from django.db.models import Q
 from django.forms import ModelForm
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import (form_actions, to_row, 
+from sapl.crispy_layout_mixin import (form_actions, to_row,
                                       SaplFormHelper, SaplFormLayout)
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
@@ -87,8 +86,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             encerramento_entre_leg = True
             encerramento_entre_sl = True
 
-
-        ## Sessões Extraordinárias podem estar fora da sessão legislativa
+        # Sessões Extraordinárias podem estar fora da sessão legislativa
         descricao_tipo = tipo.nome.lower()
         if "extraordinária" in descricao_tipo or "especial" in descricao_tipo:
             # Ignora checagem de limites para Sessão Legislativa
@@ -104,7 +102,6 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             raise ValidationError("A data de abertura e encerramento da Sessão "
                                   "Plenária deve estar compreendida entre a "
                                   "data de abertura e encerramento da Sessão Legislativa")
-        
 
         upload_pauta = self.cleaned_data.get('upload_pauta', False)
         upload_ata = self.cleaned_data.get('upload_ata', False)
@@ -112,7 +109,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
         if upload_pauta:
             validar_arquivo(upload_pauta, "Pauta da Sessão")
-        
+
         if upload_ata:
             validar_arquivo(upload_ata, "Ata da Sessão")
 
@@ -617,7 +614,8 @@ class OradorForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['parlamentar'].queryset = \
-            Parlamentar.objects.filter(mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(
+                mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorForm, self).clean()
@@ -655,7 +653,8 @@ class OradorExpedienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['parlamentar'].queryset = \
-            Parlamentar.objects.filter(mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(
+                mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()
@@ -691,7 +690,8 @@ class OradorOrdemDiaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['parlamentar'].queryset = \
-            Parlamentar.objects.filter(mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(
+                mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorOrdemDiaForm, self).clean()
@@ -987,7 +987,8 @@ class JustificativaAusenciaForm(ModelForm):
 
 class OrdemExpedienteLeituraForm(forms.ModelForm):
 
-    observacao = forms.CharField(required=False, label='Observação', widget=forms.Textarea,)
+    observacao = forms.CharField(
+        required=False, label='Observação', widget=forms.Textarea,)
 
     class Meta:
         model = RegistroLeitura
@@ -995,7 +996,7 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
                   'ordem',
                   'expediente',
                   'observacao',
-                  'user', 
+                  'user',
                   'ip']
         widgets = {'materia': forms.HiddenInput(),
                    'ordem': forms.HiddenInput(),
@@ -1007,14 +1008,14 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
-        
+
         instance = self.initial['instance']
         if instance:
             self.instance = instance.first()
             self.fields['observacao'].initial = self.instance.observacao
 
         row1 = to_row(
-            [('observacao', 12)])   
+            [('observacao', 12)])
 
         actions = [HTML('<a href="{{ view.cancel_url }}"'
                         ' class="btn btn-warning">Cancelar Leitura</a>')]
@@ -1023,11 +1024,11 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(
             Fieldset(_('Leitura de Matéria'),
-                    HTML('''
+                     HTML('''
                         <b>Matéria:</b> {{materia}}<br>
                         <b>Ementa:</b> {{materia.ementa}} <br>
                     '''),
                      row1,
                      form_actions(more=actions),
-                    )
+                     )
         )
