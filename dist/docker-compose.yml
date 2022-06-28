@@ -42,7 +42,7 @@ services:
       - solr_configsets:/opt/solr/server/solr/configsets
     
   sapl:
-    image: interlegis/sapl:3.1.163-RC1
+    image: interlegis/sapl:3.1.163-RC2
 #    build:
 #      context: ../
 #      dockerfile: ./docker/Dockerfile
