@@ -894,7 +894,7 @@ class Publicacao(TimestampedMixin):
     ta = models.ForeignKey(
         TextoArticulado,
         verbose_name=_('Texto Articulado'),
-        on_delete=models.PROTECT
+        on_delete=models.CASCADE
     )
 
     veiculo_publicacao = models.ForeignKey(
@@ -1104,7 +1104,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         null=True,
         default=None,
         verbose_name=_('Publicação'),
-        on_delete=models.PROTECT
+        on_delete=models.SET_NULL,
     )
 
     ta = models.ForeignKey(
@@ -1116,7 +1116,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     ta_publicado = models.ForeignKey(
         TextoArticulado,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
         default=None,
@@ -1151,7 +1151,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=None,
         related_name='dispositivos_filhos_set',
         verbose_name=_('Dispositivo Pai'),
-        on_delete=models.PROTECT
+        on_delete=models.CASCADE,
     )
 
     dispositivo_raiz = models.ForeignKey(
@@ -1161,7 +1161,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=None,
         related_name='nodes',
         verbose_name=_('Dispositivo Raiz'),
-        on_delete=models.PROTECT
+        on_delete=models.CASCADE,
     )
 
     dispositivo_vigencia = models.ForeignKey(
@@ -1181,7 +1181,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=None,
         related_name='dispositivos_alterados_set',
         verbose_name=_('Dispositivo Atualizador'),
-        on_delete=models.PROTECT
+        on_delete=models.SET_NULL,
     )
 
     contagem_continua = models.BooleanField(

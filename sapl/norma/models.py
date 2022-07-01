@@ -120,6 +120,7 @@ class NormaJuridicaManager(models.Manager):
             if not count:
                 ta.dispositivos_set.filter(
                     dispositivo_pai__isnull=False).delete()
+                ta.publicacao_set.all().delete()
                 ta.delete()
 
         return qs
