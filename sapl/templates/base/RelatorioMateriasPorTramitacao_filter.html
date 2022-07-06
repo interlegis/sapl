@@ -37,50 +37,36 @@
     </table>
 
     <table class="table table-bordered table-hover">
-      <col>
-      <col>
-      <colgroup span="4"></colgroup>
       <thead class="thead-default" >
         <tr>
           <th scope="col">Matéria</th>
-          <th scope="col">&nbsp;</th>
-          <th colspan="3" scope="colgroup">&nbsp;</th>
         </tr>
       </thead>
       {% for materia_em_tramitacao in object_list %}
       <tbody>
         <tr>
-          <th rowspan="4" scope="rowgroup">
-              <a href="{% url 'sapl.materia:materialegislativa_detail' materia_em_tramitacao.materia.pk %}">
-                  {{ materia_em_tramitacao.materia.tipo.descricao }} {{ materia_em_tramitacao.materia.numero }}/{{ materia_em_tramitacao.materia.ano }}
-              </a>
-          </th>
-          <th scope="row">Ementa</th>
-          <td colspan="3">{{ materia_em_tramitacao.materia.ementa }}</td>
-        </tr>
-        <tr>
-          <th scope="row">Autores</th>
-          <td colspan="3">
-              <p>
-                  {% for autor in materia_em_tramitacao.materia.autores.all %}
-                      {% if not forloop.last %}
-                        {{autor}},&nbsp;
-                      {% else %}
-                        {{autor}}
-                      {% endif%}
-                  {% endfor %}
-              </p>
+          <td>
+            <a href="{% url 'sapl.materia:materialegislativa_detail' materia_em_tramitacao.materia.pk %}">
+                {{ materia_em_tramitacao.materia.tipo.descricao }} {{ materia_em_tramitacao.materia.numero }}/{{ materia_em_tramitacao.materia.ano }}
+            </a>
+            <br/>
+            <strong>Ementa: </strong>{{ materia_em_tramitacao.materia.ementa }}
+            <br/>
+            <strong>Local Atual: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.unidade_tramitacao_destino }}
+            <br/>
+            <strong>Status: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.status }}
+            <br/>
+            <strong>Texto da Ação: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.texto }}
+            <br/>
+            <strong>Autores: </strong>
+            {% for autor in materia_em_tramitacao.materia.autores.all %}
+              {% if not forloop.last %}
+                {{autor}},&nbsp;
+                {% else %}
+                {{autor}}
+              {% endif%}
+            {% endfor %}
           </td>
-        </tr>
-        <tr>
-          <th scope="row">Local atual</th>
-          <td>{{ materia_em_tramitacao.materia.tramitacao_set.first.unidade_tramitacao_destino }}</td>
-          <th scope="col">Status</th>
-          <td>{{ materia_em_tramitacao.materia.tramitacao_set.first.status }}</td>
-        </tr>
-        <tr>
-          <th scope="row">Texto da Ação</th>
-          <td colspan="3">{{ materia_em_tramitacao.materia.tramitacao_set.first.texto }}</td>
         </tr>
       </tbody>
       {% endfor %}
