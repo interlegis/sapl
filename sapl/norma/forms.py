@@ -1,26 +1,23 @@
 import logging
 
+import django_filters
 from crispy_forms.layout import (Button, Fieldset, HTML, Layout)
 from django import forms
+from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models
 from django.db.models import Q
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import TipoAutor
 from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
-from sapl.materia.forms import choice_anos_com_materias
 from sapl.materia.models import (MateriaLegislativa,
                                  TipoMateriaLegislativa, Orgao)
 from sapl.parlamentares.models import Partido
-from sapl.utils import (autor_label, autor_modal, ANO_CHOICES,  choice_anos_com_normas,
+from sapl.utils import (autor_label, autor_modal, ANO_CHOICES, choice_anos_com_normas,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
-                        NormaPesquisaOrderingFilter, RangeWidgetOverride,
-                        validar_arquivo)
-
+                        NormaPesquisaOrderingFilter, validar_arquivo)
 from .models import (AnexoNormaJuridica, AssuntoNorma, AutoriaNorma,
                      NormaJuridica, NormaRelacionada, TipoNormaJuridica)
 
@@ -75,7 +72,7 @@ class NormaFilterSet(django_filters.FilterSet):
         method='filter_ementa',
         label=_('Pesquisar expressões na ementa da norma'))
 
-    indexacao = django_filters.CharFilter(lookup_expr='icontains',
+    indexacao = django_filters.CharFilter(method='filter_indexacao',
                                           label=_('Indexação'))
 
     assuntos = django_filters.ModelChoiceFilter(
@@ -132,12 +129,12 @@ class NormaFilterSet(django_filters.FilterSet):
         )
 
     def filter_ementa(self, queryset, name, value):
-        texto = value.split()
-        q = Q()
-        for t in texto:
-            q &= Q(ementa__icontains=t)
+        return queryset.annotate(search=SearchVector('ementa',
+                                 config='portuguese')).filter(search=value)
 
-        return queryset.filter(q)
+    def filter_indexacao(self, queryset, name, value):
+        return queryset.annotate(search=SearchVector('indexacao',
+                                 config='portuguese')).filter(search=value)
 
     def filter_autoria(self, queryset, name, value):
         return queryset.filter(**{

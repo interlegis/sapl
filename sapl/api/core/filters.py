@@ -71,7 +71,7 @@ class SaplFilterSetMixin(FilterSet):
                         if hasattr(lv, 'class_lookups'):
                             r += get_keys_lookups(lv.class_lookups, sflk)
 
-                        if hasattr(lv, 'output_field'):
+                        if hasattr(lv, 'output_field') and hasattr(lv, 'output_field.class_lookups'):
                             r.append(f'{sflk}{"__" if sflk else ""}range')
 
                             r += get_keys_lookups(lv.output_field.class_lookups, sflk)

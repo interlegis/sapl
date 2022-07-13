@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     'reversion_compare',
 
     'haystack',
+    'django.contrib.postgres',
     'speedinfo',
 
     'webpack_loader',
