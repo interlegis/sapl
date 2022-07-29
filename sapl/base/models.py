@@ -1,5 +1,7 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.fields.jsonb import JSONField
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.db.models.signals import post_migrate
@@ -389,3 +391,26 @@ class AuditLog(models.Model):
                                      self.model_name,
                                      self.username,
                                      )
+
+
+class Metadata(models.Model):
+    content_type = models.ForeignKey(
+        ContentType,
+        blank=True,
+        null=True,
+        default=None,
+        on_delete=models.PROTECT)
+    object_id = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        default=None)
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    metadata = JSONField(
+        verbose_name=_('Metadados'),
+        blank=True, null=True, default=None, encoder=DjangoJSONEncoder)
+
+    class Meta:
+        verbose_name = _('Metadado')
+        verbose_name_plural = _('Metadados')
+        unique_together = (('content_type', 'object_id'), )
