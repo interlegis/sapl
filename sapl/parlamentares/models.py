@@ -22,6 +22,9 @@ class Legislatura(models.Model):
     data_fim = models.DateField(verbose_name=_('Data Fim'))
     data_eleicao = models.DateField(verbose_name=_('Data Eleição'))
 
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+
     class Meta:
         ordering = ['-data_inicio']
         verbose_name = _('Legislatura')
@@ -312,7 +315,7 @@ class Parlamentar(models.Model):
     @property
     def avatar_html(self):
         return '<img class="avatar-parlamentar" src='\
-            +self.fotografia.url + '>'if self.fotografia else ''
+            + self.fotografia.url + '>'if self.fotografia else ''
 
     def delete(self, using=None, keep_parents=False):
         if self.fotografia:
@@ -513,7 +516,7 @@ class MesaDiretora(models.Model):
 
     def __str__(self):
         return _('Mesa da %(sessao)s sessao da %(legislatura)s Legislatura') % {
-            'sessao':self.sessao_legislativa, 'legislatura':self.sessao_legislativa.legislatura
+            'sessao': self.sessao_legislativa, 'legislatura': self.sessao_legislativa.legislatura
         }
 
 
@@ -522,7 +525,8 @@ class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
-    mesa_diretora = models.ForeignKey(MesaDiretora, on_delete=models.PROTECT, null=True)
+    mesa_diretora = models.ForeignKey(
+        MesaDiretora, on_delete=models.PROTECT, null=True)
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
