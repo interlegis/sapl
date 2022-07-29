@@ -656,14 +656,11 @@ class ComposicaoColigacaoCrud(MasterDetailCrud):
 class LegislaturaCrud(CrudAux):
     model = Legislatura
     help_topic = 'legislatura'
-
-    class BaseMixin(Crud.BaseMixin):
-        ordered_list = False
-        list_field_names = [
-            'numero',
-            'data_eleicao',
-            'data_inicio',
-            'data_fim']
+    list_field_names = [
+        'numero',
+        'data_eleicao',
+        'data_inicio',
+        'data_fim']
 
     class CreateView(CrudAux.CreateView):
         logger = logging.getLogger(__name__)
