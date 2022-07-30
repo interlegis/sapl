@@ -414,3 +414,6 @@ class Metadata(models.Model):
         verbose_name = _('Metadado')
         verbose_name_plural = _('Metadados')
         unique_together = (('content_type', 'object_id'), )
+
+    def __str__(self):
+        return f'Metadata de {self.content_object}'

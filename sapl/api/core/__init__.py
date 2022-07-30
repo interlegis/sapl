@@ -22,6 +22,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from sapl.api.core.filters import SaplFilterSetMixin
 from sapl.api.permissions import SaplModelPermissions
+from sapl.base.models import Metadata
 
 # ATENÇÃO: MUDANÇAS NO CORE DEVEM SER REALIZADAS COM
 #          EXTREMA CAUTELA
@@ -100,6 +101,7 @@ class SaplApiViewSetConstrutor():
                 # criada a classe sapl.api.core.serializers.{model}Serializer
                 class SaplSerializer(_serializer_class):
                     __str__ = SerializerMethodField()
+                    metadata = SerializerMethodField()
 
                     class Meta(_meta_serializer):
                         if not hasattr(_meta_serializer, 'ref_name'):
@@ -114,13 +116,25 @@ class SaplApiViewSetConstrutor():
                             if not hasattr(_meta_serializer, 'fields'):
                                 fields = '__all__'
                             elif _meta_serializer.fields != '__all__':
-                                fields = list(
-                                    _meta_serializer.fields) + ['__str__', ]
+                                fields = list(_meta_serializer.fields) + [
+                                    '__str__', 'metadata']
                             else:
                                 fields = _meta_serializer.fields
 
                     def get___str__(self, obj) -> str:
                         return str(obj)
+
+                    def get_metadata(self, obj):
+                        try:
+                            metadata = Metadata.objects.get(
+                                content_type=ContentType.objects.get_for_model(
+                                    obj._meta.model),
+                                object_id=obj.id
+                            ).metadata
+                        except:
+                            metadata = {}
+                        finally:
+                            return metadata
 
                 _meta_filterset = object if not hasattr(
                     _filterset_class, 'Meta') else _filterset_class.Meta
@@ -161,6 +175,7 @@ class SaplApiViewSetConstrutor():
                 cls._built_sets[app][model] = build(model)
 
         return cls
+
 
 """
 1. Constroi uma rest_framework.viewsets.ModelViewSet para

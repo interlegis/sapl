@@ -321,7 +321,8 @@ FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
-LOGGING_CONSOLE_VERBOSE = config('LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
+LOGGING_CONSOLE_VERBOSE = config(
+    'LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
 
 LOGGING = {
     'version': 1,
@@ -372,7 +373,7 @@ LOGGING = {
             'propagate': True,
         },
         'django': {
-            'handlers': ['applogfile'],
+            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
             'level': 'ERROR',
             'propagate': True,
         },

@@ -25,7 +25,7 @@ from django.views.generic.list import MultipleObjectMixin
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
-                                  RP_LIST)
+                        RP_LIST)
 from sapl.utils import normalize
 
 logger = logging.getLogger(settings.BASE_DIR.name)
@@ -77,6 +77,7 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
+
 
 """
 variáveis do crud:
@@ -359,6 +360,13 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
             return self.resolve_url(ACTION_DELETE, args=(self.object.id,))\
                 if self.request.user.has_perm(
                     self.permission(RP_DELETE)) else ''
+
+    @property
+    def openapi_url(self):
+        obj = self.crud if hasattr(self, 'crud') else self
+        o = self.object
+        url = f'/api/{o._meta.app_label}/{o._meta.model_name}/{o.id}'
+        return url
 
     def get_template_names(self):
         names = super(CrudBaseMixin, self).get_template_names()
