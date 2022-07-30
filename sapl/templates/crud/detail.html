@@ -101,15 +101,17 @@
       {% endfor %}
     {% endblock detail_content %}
 
-    <div class="container justify-content-end d-flex">
-      <div class="actions btn-group" role="group">
-        <a href="{{ view.openapi_url }}" class="btn btn-sm btn-info py-0">
-          <small class="text-white">
-            {% trans 'OpenAPI' %}
-          </small>
-        </a>
+    {% if view.openapi_url %}
+      <div class="container justify-content-end d-flex">
+        <div class="actions btn-group" role="group">
+          <a href="{{ view.openapi_url }}" class="btn btn-sm btn-info py-0">
+            <small class="text-white">
+              {% trans 'OpenAPI' %}
+            </small>
+          </a>
+        </div>
       </div>
-    </div>
+    {% endif %}
 
 
   </div>
