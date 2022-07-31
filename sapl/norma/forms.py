@@ -1,6 +1,5 @@
 import logging
 
-import django_filters
 from crispy_forms.layout import (Button, Fieldset, HTML, Layout)
 from django import forms
 from django.contrib.postgres.search import SearchVector
@@ -9,6 +8,7 @@ from django.db.models import Q
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import TipoAutor
 from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
@@ -18,6 +18,7 @@ from sapl.parlamentares.models import Partido
 from sapl.utils import (autor_label, autor_modal, ANO_CHOICES, choice_anos_com_normas,
                         FileFieldCheckMixin, FilterOverridesMetaMixin,
                         NormaPesquisaOrderingFilter, validar_arquivo)
+
 from .models import (AnexoNormaJuridica, AssuntoNorma, AutoriaNorma,
                      NormaJuridica, NormaRelacionada, TipoNormaJuridica)
 
@@ -121,20 +122,20 @@ class NormaFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Norma'),
                      row1, row2, row3, row4, row5,
-            Fieldset(_('Pesquisa Avançada'),
-                     row6,
-                     HTML(autor_label),
-                     HTML(autor_modal)),
+                     Fieldset(_('Pesquisa Avançada'),
+                              row6,
+                              HTML(autor_label),
+                              HTML(autor_modal)),
                      form_actions(label='Pesquisar'))
         )
 
     def filter_ementa(self, queryset, name, value):
         return queryset.annotate(search=SearchVector('ementa',
-                                 config='portuguese')).filter(search=value)
+                                                     config='portuguese')).filter(search=value)
 
     def filter_indexacao(self, queryset, name, value):
         return queryset.annotate(search=SearchVector('indexacao',
-                                 config='portuguese')).filter(search=value)
+                                                     config='portuguese')).filter(search=value)
 
     def filter_autoria(self, queryset, name, value):
         return queryset.filter(**{
@@ -308,7 +309,6 @@ class AutoriaNormaForm(ModelForm):
         if not self.instance:
             self.fields['autor'].choices = []
 
-
     class Meta:
         model = AutoriaNorma
         fields = ['tipo_autor', 'autor',
@@ -397,7 +397,12 @@ class NormaRelacionadaForm(ModelForm):
 
     class Meta:
         model = NormaRelacionada
-        fields = ['orgao', 'tipo', 'numero', 'ano', 'ementa', 'tipo_vinculo']
+        fields = ['orgao', 'tipo', 'numero', 'ano',
+                  'resumo', 'ementa', 'tipo_vinculo']
+
+        widgets = {
+            'resumo': forms.Textarea(
+                attrs={'id': 'texto-rico'})}
 
     def __init__(self, *args, **kwargs):
         super(NormaRelacionadaForm, self).__init__(*args, **kwargs)

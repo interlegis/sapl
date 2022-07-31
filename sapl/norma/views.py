@@ -100,10 +100,11 @@ class PesquisarAssuntoNormaView(FilterView):
         if data:
             url = '&' + str(self.request.META["QUERY_STRING"])
             if url.startswith("&page"):
-                    url = ''
+                url = ''
 
         if 'assunto' in self.request.META['QUERY_STRING'] or\
-         'page' in self.request.META['QUERY_STRING']: resultados = self.object_list
+                'page' in self.request.META['QUERY_STRING']:
+             resultados = self.object_list
         else:
             resultados = []
 
@@ -125,7 +126,7 @@ class NormaRelacionadaCrud(MasterDetailCrud):
     help_topic = 'norma_juridica'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['norma_relacionada', 'tipo_vinculo']
+        list_field_names = ['norma_relacionada', 'tipo_vinculo', 'resujmo']
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = NormaRelacionadaForm

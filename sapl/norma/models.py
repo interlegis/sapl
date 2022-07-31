@@ -407,6 +407,11 @@ class NormaRelacionada(models.Model):
         TipoVinculoNormaJuridica,
         on_delete=models.PROTECT,
         verbose_name=_('Tipo de Vínculo'))
+    resumo = models.TextField(
+        blank=True,
+        default="",
+        verbose_name=_('Resumo'),
+    )
 
     class Meta:
         verbose_name = _('Norma Relacionada')
