@@ -36,7 +36,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                OrdemDiaLeituraView,
                                retirar_leitura,
                                TransferenciaMateriasExpediente, TransferenciaMateriasOrdemDia,
-                               filtra_materias_copia_sessao_ajax, verifica_materia_sessao_plenaria_ajax)
+                               filtra_materias_copia_sessao_ajax, verifica_materia_sessao_plenaria_ajax,
+                               recuperar_tramitacao)
 
 
 from .apps import AppConfig
@@ -68,6 +69,7 @@ urlpatterns = [
         name='remove_parlamentar_composicao'),
 
     url(r'^sessao/recuperar-materia/', recuperar_materia),
+    url(r'^sessao/recuperar-tramitacao/', recuperar_tramitacao),
     url(r'^sessao/recuperar-numero-sessao/',
         recuperar_numero_sessao_view,
         name='recuperar_numero_sessao_view'

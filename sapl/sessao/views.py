@@ -1,4 +1,4 @@
-
+import json
 from collections import OrderedDict
 from datetime import datetime
 from re import sub
@@ -754,7 +754,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['numero_ordem', 'materia',
-                            ('materia__ementa', '', 'observacao'),
+                            ('materia__ementa', '', 'tramitacao', 'observacao'),
                             'resultado']
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -790,6 +790,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             context["tipo_materia_salvo"] = self.object.materia.tipo.id
             context["numero_materia_salvo"] = self.object.materia.numero
             context["ano_materia_salvo"] = self.object.materia.ano
+            context["tramitacao_salvo"] = None if not self.object.tramitacao else self.object.tramitacao.id
 
             return context
 
@@ -800,6 +801,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
             initial['numero_ordem'] = self.object.numero_ordem
+            initial['tramitacao'] = None if not self.object.tramitacao else self.object.tramitacao.id
 
             return initial
 
@@ -839,6 +841,23 @@ def recuperar_materia(request):
 
     return response
 
+def recuperar_tramitacao(request):
+    tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo_materia'])
+    numero = request.GET['numero_materia']
+    ano = request.GET['ano_materia']
+
+    try:
+        materia = MateriaLegislativa.objects.get(tipo=tipo,
+                                                 ano=ano,
+                                                 numero=numero)
+        tramitacao = {}
+        for obj in materia.tramitacao_set.all():
+            tramitacao[obj.id] = obj.status.descricao
+        response = JsonResponse(tramitacao)
+    except ObjectDoesNotExist:
+        response = JsonResponse({'id': 0})
+
+    return response
 
 class ExpedienteMateriaCrud(MasterDetailCrud):
     model = ExpedienteMateria
@@ -904,6 +923,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             context["tipo_materia_salvo"] = self.object.materia.tipo.id
             context["numero_materia_salvo"] = self.object.materia.numero
             context["ano_materia_salvo"] = self.object.materia.ano
+            context["tramitacao_salvo"] = self.object.tramitacao.id if self.object.tramitacao is not None else ''
 
             return context
 
@@ -914,6 +934,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
             initial['numero_ordem'] = self.object.numero_ordem
+            initial['tramitacao'] = self.object.tramitacao.id if self.object.tramitacao is not None else ''
 
             return initial
 
@@ -3757,8 +3778,8 @@ class PautaSessaoDetailView(DetailView):
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
             data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
             data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(data_hora_sessao).astimezone(pytz.utc)
-            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt = data_hora_sessao_utc).order_by(
-                '-data_tramitacao', '-id').first()
+            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
+                '-data_tramitacao', '-id').first() if m.tramitacao is None else m.tramitacao
             numeracao = m.materia.numeracao_set.first()
 
             materias_expediente.append({
@@ -3813,7 +3834,7 @@ class PautaSessaoDetailView(DetailView):
             data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
             data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(data_hora_sessao).astimezone(pytz.utc)
             ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
-                '-data_tramitacao', '-id').first()
+                '-data_tramitacao', '-id').first() if o.tramitacao is None else o.tramitacao
             numeracao = o.materia.numeracao_set.first()
 
             materias_ordem.append({

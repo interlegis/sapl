@@ -1,7 +1,8 @@
-from datetime import datetime
 import re
 
 from crispy_forms.layout import Button, Fieldset, HTML, Layout
+from datetime import datetime
+
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -12,6 +13,7 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
+import sapl.utils
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (form_actions, to_row,
                                       SaplFormHelper, SaplFormLayout)
@@ -33,11 +35,14 @@ from .models import (Bancada, ExpedienteMateria,
                      ORDENACAO_RESUMO, PresencaOrdemDia,
                      RegistroLeitura, ResumoOrdenacao, RetiradaPauta,
                      SessaoPlenaria, SessaoPlenariaPresenca,
-                     TipoResultadoVotacao, TipoRetiradaPauta)
-
+                     TipoResultadoVotacao, TipoRetiradaPauta, Tramitacao)
 
 MES_CHOICES = RANGE_MESES
 DIA_CHOICES = RANGE_DIAS_MES
+
+
+def tramitacao_select_validation():
+    return True
 
 
 class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
@@ -109,7 +114,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
         if upload_pauta:
             validar_arquivo(upload_pauta, "Pauta da Sessão")
-
+        
         if upload_ata:
             validar_arquivo(upload_ata, "Ata da Sessão")
 
@@ -117,12 +122,12 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             validar_arquivo(upload_anexo, "Anexo da Sessão")
 
         hora_inicio = self.cleaned_data['hora_inicio']
-        if not re.match(TIME_PATTERN, hora_inicio):
+        if not re.match(sapl.utils.TIME_PATTERN, hora_inicio):
             raise ValidationError(f'Formato ou valores de horário de '
                                   f'abertura errados: {hora_inicio}')
 
         hora_fim = self.cleaned_data['hora_fim']
-        if hora_fim and not re.match(TIME_PATTERN, hora_fim):
+        if hora_fim and not re.match(sapl.utils.TIME_PATTERN, hora_fim):
             raise ValidationError(f'Formato ou valores de horário de '
                                   f'encerramento errados: {hora_fim}.')
 
@@ -294,6 +299,12 @@ class BancadaForm(ModelForm):
         return bancada
 
 
+class DependentChoiceField(forms.ChoiceField):
+
+    def validate(self, value):
+        return True
+
+
 class ExpedienteMateriaForm(ModelForm):
 
     _model = ExpedienteMateria
@@ -305,6 +316,10 @@ class ExpedienteMateriaForm(ModelForm):
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
         widget=forms.Select(attrs={'autocomplete': 'off'}))
+
+    tramitacao_select = DependentChoiceField(
+        label=_('Situação Atual'),
+        widget=forms.Select())
 
     numero_materia = forms.CharField(
         label='Número Matéria', required=True,
@@ -326,7 +341,7 @@ class ExpedienteMateriaForm(ModelForm):
     class Meta:
         model = ExpedienteMateria
         fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
-                  'numero_materia', 'ano_materia', 'tipo_votacao']
+                  'numero_materia', 'ano_materia', 'tramitacao_select', 'tipo_votacao']
 
     def clean_numero_ordem(self):
         sessao = self.instance.sessao_plenaria
@@ -363,11 +378,28 @@ class ExpedienteMateriaForm(ModelForm):
         else:
             cleaned_data['materia'] = materia
 
+        try:
+            id_t = self.cleaned_data['tramitacao_select'] if self.cleaned_data['tramitacao_select'] != '' else -1
+            tramitacao = materia.tramitacao_set.get(pk=self.cleaned_data['tramitacao_select'] if self.cleaned_data['tramitacao_select'] != '' else -1)
+        except ObjectDoesNotExist:
+            if self.cleaned_data['tramitacao_select'] != '':
+                raise ValidationError(
+                    _('Tramitação selecionada não existe para a Matéria: %(value)s'),
+                    code='invalid',
+                    params={'value': self.cleaned_data['tramitacao_select']},
+                )
+            else:
+                cleaned_data['tramitacao'] = False
+        else:
+            cleaned_data['tramitacao'] = tramitacao
+
         return cleaned_data
 
     def save(self, commit=False):
         expediente = super(ExpedienteMateriaForm, self).save(commit)
         expediente.materia = self.cleaned_data['materia']
+        if self.cleaned_data['tramitacao'] is not False:
+            expediente.tramitacao = self.cleaned_data['tramitacao']
         expediente.save()
         return expediente
 
@@ -996,7 +1028,7 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
                   'ordem',
                   'expediente',
                   'observacao',
-                  'user',
+                  'user', 
                   'ip']
         widgets = {'materia': forms.HiddenInput(),
                    'ordem': forms.HiddenInput(),
@@ -1008,14 +1040,14 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
-
+        
         instance = self.initial['instance']
         if instance:
             self.instance = instance.first()
             self.fields['observacao'].initial = self.instance.observacao
 
         row1 = to_row(
-            [('observacao', 12)])
+            [('observacao', 12)])   
 
         actions = [HTML('<a href="{{ view.cancel_url }}"'
                         ' class="btn btn-warning">Cancelar Leitura</a>')]
@@ -1024,11 +1056,11 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(
             Fieldset(_('Leitura de Matéria'),
-                     HTML('''
+                    HTML('''
                         <b>Matéria:</b> {{materia}}<br>
                         <b>Ementa:</b> {{materia.ementa}} <br>
                     '''),
                      row1,
                      form_actions(more=actions),
-                     )
+                    )
         )
