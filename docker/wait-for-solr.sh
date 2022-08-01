@@ -4,10 +4,10 @@
 
 SOLR_URL=$1
 
-RETRY_COUNT=1
-RETRY_LIMIT=4
+RETRY_COUNT=0
+RETRY_LIMIT=60 # wait until 1 min
 
-echo "Waiting for solr connection at $SOLR_URL ..."
+echo "Waiting for Solr connection at $SOLR_URL ..."
 while [[ $RETRY_COUNT < $RETRY_LIMIT ]]; do
    echo "Attempt to connect to solr: $RETRY_COUNT of $RETRY_LIMIT"
    let RETRY_COUNT=RETRY_COUNT+1;
@@ -18,7 +18,7 @@ while [[ $RETRY_COUNT < $RETRY_LIMIT ]]; do
       echo "Solr server is up!"
       exit 1
    else
-      sleep 3
+      sleep 1
    fi
 done
 echo "Solr connection failed."

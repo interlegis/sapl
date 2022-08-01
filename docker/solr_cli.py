@@ -1,18 +1,102 @@
-from io import BytesIO
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import argparse
-import os
-import requests
+import logging
+import re
+import secrets
 import subprocess
 import sys
 import zipfile
+from base64 import b64encode, b64decode
+from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
 
-##
-## Este módulo deve ser executado na raiz do projeto
-##
+import requests
+from kazoo.client import KazooClient
+
+#
+# Este módulo deve ser executado na raiz do projeto
+#
+
+logging.basicConfig()
+
+SECURITY_FILE_TEMPLATE = """
+   {
+        "authentication":{
+        "blockUnknown": true,
+        "class":"solr.BasicAuthPlugin",
+        "credentials":{"%s":"%s %s"},
+        "forwardCredentials": false,
+        "realm": "Solr Login"
+        },
+        "authorization":{
+            "class":"solr.RuleBasedAuthorizationPlugin",
+            "permissions":[{"name":"security-edit", "role":"admin"}],
+            "user-role":{"%s":"admin"}
+        }
+    }
+"""
+
+URL_PATTERN = 'https?://(([a-zA-Z0-9]+):([a-zA-Z0-9]+)@)?([a-zA-Z0-9.-]+)(:[0-9]{4})?'
+
+
+def solr_hash_password(password: str, salt: str = None):
+    """
+        Generates a password and salt to be used in Basic Auth Solr
+
+        password: clean text password string
+        salt (optional): base64 salt string
+        returns: sha256 hash of password and salt (both base64 strings)
+    """
+    m = sha256()
+    if salt is None:
+        salt = secrets.token_bytes(32)
+    else:
+        salt = b64decode(salt)
+    m.update(salt + password.encode('utf-8'))
+    digest = m.digest()
+
+    m = sha256()
+    m.update(digest)
+    digest = m.digest()
+
+    cypher = b64encode(digest).decode('utf-8')
+    salt = b64encode(salt).decode('utf-8')
+    return cypher, salt
+
+
+def create_security_file(username, password):
+    print("Creating security.json file...")
+    with open("security.json", "w") as f:
+        cypher, salt = solr_hash_password(password)
+        f.write(SECURITY_FILE_TEMPLATE % (username, cypher, salt, username))
+    print("file created!")
+
+
+def upload_security_file(zk_host):
+    zk_port = 9983  # embedded ZK port
+    print(f"Uploading security file to Solr, ZK server={zk_host}:{zk_port}...")
+    try:
+        with open('security.json', 'r') as f:
+            data = f.read()
+        zk = KazooClient(hosts=f"{zk_host}:{zk_port}")
+        zk.start()
+        print("Uploading security.json file...")
+        if zk.exists('/security.json'):
+            zk.set("/security.json", str.encode(data))
+        else:
+            zk.create("/security.json", str.encode(data))
+        data, stat = zk.get('/security.json')
+        print("file uploaded!")
+        print(data.decode('utf-8'))
+        zk.stop()
+    except Exception as e:
+        print(e)
+        sys.exit(-1)
+
 
 class SolrClient:
-
     LIST_CONFIGSETS = "{}/solr/admin/configs?action=LIST&omitHeader=true&wt=json"
     UPLOAD_CONFIGSET = "{}/solr/admin/configs?action=UPLOAD&name={}&wt=json"
     LIST_COLLECTIONS = "{}/solr/admin/collections?action=LIST&wt=json"
@@ -129,7 +213,7 @@ class SolrClient:
                 print(res.content)
             return False
         return True
-    
+
     def delete_collection(self, collection_name):
         if collection_name == '*':
             collections = self.list_collections()
@@ -160,6 +244,22 @@ class SolrClient:
             print("Num docs: %s" % num_docs)
 
 
+def setup_embedded_zk(solr_url):
+    match = re.match(URL_PATTERN, solr_url)
+    if match:
+        _, solr_user, solr_pwd, solr_host, solr_port = match.groups()
+
+        if solr_user and solr_pwd and solr_host:
+            create_security_file(solr_user, solr_pwd)
+            upload_security_file(solr_host)
+        else:
+            print(f"Missing Solr's username, password, and host: {solr_user}/{solr_pwd}/{solr_host}")
+            sys.exit(-1)
+    else:
+        print(f"Solr URL path doesn't match the required format: {solr_url}")
+        sys.exit(-1)
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Cria uma collection no Solr')
@@ -178,6 +278,9 @@ if __name__ == '__main__':
     parser.add_argument('-ms', type=int, dest='max_shards_per_node', nargs='?',
                         help='Max shards per node (default=1)', default=1)
 
+    parser.add_argument("--embedded_zk", default=False, action="store_true",
+                        help="Embedded ZooKeeper")
+
     try:
         args = parser.parse_args()
     except IOError as msg:
@@ -185,10 +288,17 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     url = args.url.pop()
-    collection = args.collection.pop()
 
+    if args.embedded_zk:
+        print("Setup embedded ZooKeeper...")
+        setup_embedded_zk(url)
+
+    collection = args.collection.pop()
     client = SolrClient(url=url)
 
+    ## Add --force to force upload security.json, configset upload and collection recreation
+    ## it will clean the solr server before proceeding
+    ## Add --clean option to clean uploadconfig and collection
     if not client.exists_collection(collection):
         print("Collection '%s' doesn't exists. Creating a new one..." % collection)
         created = client.create_collection(collection,
@@ -200,6 +310,7 @@ if __name__ == '__main__':
     else:
         print("Collection '%s' exists." % collection)
 
+    ## Add --disable-index to disable auto index
     num_docs = client.get_num_docs(collection)
     if num_docs == 0:
         print("Performing a full reindex of '%s' collection..." % collection)

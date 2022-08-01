@@ -33,6 +33,7 @@ PyPDF4==1.27.0
 pyoai==2.5.0
 Unidecode==1.1.1
 whitenoise==5.1.0
+kazoo==2.8.0
 
 git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped

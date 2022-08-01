@@ -1,0 +1,77 @@
+version: "3.7"
+services:
+  sapldb:
+    image: postgres:10.5-alpine
+    restart: always
+    container_name: postgres
+    labels:
+        NAME: "postgres"
+    environment:
+      POSTGRES_PASSWORD: sapl
+      POSTGRES_USER: sapl
+      POSTGRES_DB: sapl
+      PGDATA : /var/lib/postgresql/data/
+    volumes:
+      - sapldb_data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+    networks:
+      - sapl-net
+  saplsolr:
+    image: solr:8.11
+    restart: always
+    command: bin/solr start -c -f
+    container_name: solr
+    labels:
+        NAME: "solr"
+    volumes:
+      - solr_data:/opt/solr/server/solr
+      - solr_configsets:/opt/solr/server/solr/configsets
+    ports:
+      - "8983:8983"
+    networks:
+      - sapl-net
+  sapl:
+#    image: interlegis/sapl:3.1.162-RC13
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    container_name: sapl
+    labels:
+       NAME: "sapl"
+    restart: always
+    environment:
+      ADMIN_PASSWORD: interlegis
+      ADMIN_EMAIL: email@dominio.net
+      DEBUG: 'False'
+      EMAIL_PORT: 587
+      EMAIL_USE_TLS: 'False'
+      EMAIL_HOST: smtp.dominio.net
+      EMAIL_HOST_USER: usuariosmtp
+      EMAIL_SEND_USER: usuariosmtp
+      EMAIL_HOST_PASSWORD: senhasmtp
+      USE_SOLR: 'True'
+      SOLR_COLLECTION: sapl
+      SOLR_URL: http://solr:solr@saplsolr:8983
+      IS_ZK_EMBEDDED: 'True'
+      TZ: America/Sao_Paulo
+    volumes:
+      - sapl_data:/var/interlegis/sapl/data
+      - sapl_media:/var/interlegis/sapl/media
+    depends_on:
+      - sapldb
+      - saplsolr
+    ports:
+      - "80:80"
+    networks:
+      - sapl-net
+networks:
+  sapl-net:
+    name: sapl-net
+    driver: bridge
+volumes:
+  sapldb_data:
+  sapl_data:
+  sapl_media:
+  solr_data:
+  solr_configsets:
