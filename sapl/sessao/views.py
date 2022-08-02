@@ -841,17 +841,24 @@ def recuperar_materia(request):
 
 
 def recuperar_tramitacao(request):
-    tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo_materia'])
+    tipo = request.GET['tipo_materia']
     numero = request.GET['numero_materia']
     ano = request.GET['ano_materia']
 
     try:
-        materia = MateriaLegislativa.objects.get(tipo=tipo,
+        materia = MateriaLegislativa.objects.get(tipo_id=tipo,
                                                  ano=ano,
                                                  numero=numero)
         tramitacao = {}
         for obj in materia.tramitacao_set.all():
-            tramitacao[obj.id] = obj.status.descricao
+            tramitacao[obj.id] = {
+                'status': obj.status.descricao,
+                'texto': obj.texto,
+                'data_tramitacao': obj.data_tramitacao.strftime('%d/%m/%Y'),
+                'unidade_tramitacao_local': str(obj.unidade_tramitacao_local),
+                'unidade_tramitacao_destino': str(obj.unidade_tramitacao_destino)
+
+            }
 
         response = JsonResponse(tramitacao)
     except ObjectDoesNotExist:

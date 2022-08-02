@@ -17,7 +17,7 @@
           { tipo_materia: tipo_materia, numero_materia: numero_materia, ano_materia: ano_materia },
           function(data, status) {
             if ($(".ementa-materia").length === 0){
-              $("#div_id_tipo_materia").closest('.row').after($('<div class="row"/>').append($('<div class="col-xs-12"/>').append(
+              $("#div_id_tipo_materia").closest('.row').after($('<div class="row"/>').append($('<div class="col-12"/>').append(
                 $('<div class="alert alert-info ementa-materia"/>').html(data.ementa)
               )))
             }
@@ -65,15 +65,39 @@
               { tipo_materia: tipo_materia, numero_materia: numero_materia, ano_materia: ano_materia },
               function(data, status) {
                 if (status == 'success') {
+                    $('#id_tramitacao_select').off('change')
                     $('#id_tramitacao_select').find('option').remove()
                     $('#id_tramitacao_select').append('<option value="-1">Selecione uma opção..</option>');
                     for (const property in data) {
                         console.log(tramitacao_salvo + "===" + property)
-                        $('#id_tramitacao_select').append('<option value="' + property + '">' + data[property] +'</option>');
+                        const option = $(`<option value="${property}">${data[property].data_tramitacao} - ${data[property].status}</option>`)
+                        option[0].data = data[property]
+                        $('#id_tramitacao_select').append(option)
                         if (property == tramitacao_salvo) {
                             $("#id_tramitacao_select option[value='"+ property +"']").attr("selected", "selected");
                         }
                     }
+                    $('#id_tramitacao_select').on('change', function(event) {
+                      const option = event.currentTarget.selectedOptions[0]
+
+                      if (option.data === undefined)
+                        return
+
+                      const html_alert = `Data da Tramitação: ${option.data.data_tramitacao}<br>
+                                          De: <strong>${option.data.unidade_tramitacao_local}</strong> - Para: <strong>${option.data.unidade_tramitacao_destino}</strong><br>
+                                          Status Atual: ${option.data.status}<br>
+                                          Texto da Ação: ${option.data.texto}`
+
+                      if ($(".tramitacao-materia").length === 0){
+                        $("#id_tramitacao_select").closest('.row').after($('<div class="row"/>').append($('<div class="col-12"/>').append(
+                          $('<div class="alert alert-info w-100 tramitacao-materia"/>').html(html_alert)
+                        )))
+                      }
+                      else {
+                        $('.tramitacao-materia').html(html_alert)
+                      }
+
+                    }).trigger('change')
                 }
               });
         }
