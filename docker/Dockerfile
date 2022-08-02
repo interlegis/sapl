@@ -3,9 +3,9 @@ FROM python:3.9-slim-buster
 # Setup env
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 ENV BUILD_PACKAGES apt-utils apt-file libpq-dev graphviz-dev build-essential git pkg-config \
                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev \
@@ -14,8 +14,8 @@ ENV BUILD_PACKAGES apt-utils apt-file libpq-dev graphviz-dev build-essential git
 ## NAO EH PRA TIRAR O vim DA LISTA DE COMANDOS INSTALADOS!!!
 ENV RUN_PACKAGES graphviz python3-lxml python3-magic postgresql-client python3-psycopg2 \
                  poppler-utils curl jq bash vim python3-venv tzdata nodejs \
-                 fontconfig ttf-dejavu python nginx
- 
+                 fontconfig ttf-dejavu python nginx cron
+
 RUN mkdir -p /var/interlegis/sapl
 
 WORKDIR /var/interlegis/sapl/
@@ -47,11 +47,17 @@ COPY docker/config/nginx/sapl.conf /etc/nginx/conf.d
 COPY docker/config/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/config/env_dockerfile /var/interlegis/sapl/sapl/.env
 
+# Environment variables to run collectstatic
+# ENV DATABASE_URL=sqlite:////:memory:
+# ENV SECRET_KEY=Development
+# ENV DEBUG=True
+
 RUN python3 manage.py collectstatic --noinput --clear
 
-# Remove .env(fake) e sapl.db da imagem
-RUN rm -rf /var/interlegis/sapl/sapl/.env && \
-    rm -rf /var/interlegis/sapl/sapl.db
+# Remove temporary .env
+RUN rm -rf /var/interlegis/sapl/sapl/.env
+# RUN rm -rf /var/interlegis/sapl/sapl/.env && \
+#     rm -rf /var/interlegis/sapl/sapl.db
 
 RUN chmod +x /var/interlegis/sapl/start.sh && \
     chmod +x /var/interlegis/sapl/wait-for-solr.sh && \
@@ -64,7 +70,7 @@ RUN chmod +x /var/interlegis/sapl/start.sh && \
 # Debian não possui usuário 'nginx' necessário para o Debian
 RUN useradd --no-create-home nginx
 
-ENV DEBIAN_FRONTEND teletype
+ENV DEBIAN_FRONTEND=teletype
 
 EXPOSE 80/tcp 443/tcp
 

@@ -45,6 +45,10 @@ create_env() {
 
 create_env
 
+echo "=============================================="
+echo "DATABASE_URL=$DATABASE_URL"
+echo "=============================================="
+
 /bin/bash wait-for-pg.sh $DATABASE_URL
 
 yes yes | python3 manage.py migrate
