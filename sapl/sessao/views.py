@@ -1,12 +1,8 @@
-import json
 from collections import OrderedDict
 from datetime import datetime
-from re import sub
-
-import pytz
-
-from sapl.settings import TIME_ZONE
+import json
 import logging
+from re import sub
 
 from django.conf import settings
 from django.contrib import messages
@@ -28,6 +24,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
+import pytz
 
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -41,6 +38,7 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm
+from sapl.settings import TIME_ZONE
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
@@ -841,6 +839,7 @@ def recuperar_materia(request):
 
     return response
 
+
 def recuperar_tramitacao(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo_materia'])
     numero = request.GET['numero_materia']
@@ -853,11 +852,13 @@ def recuperar_tramitacao(request):
         tramitacao = {}
         for obj in materia.tramitacao_set.all():
             tramitacao[obj.id] = obj.status.descricao
+
         response = JsonResponse(tramitacao)
     except ObjectDoesNotExist:
         response = JsonResponse({'id': 0})
 
     return response
+
 
 class ExpedienteMateriaCrud(MasterDetailCrud):
     model = ExpedienteMateria
@@ -2102,15 +2103,17 @@ def get_assinaturas(sessao_plenaria):
 
     return context
 
+
 def get_assinaturas_presidente(sessao_plenaria):
     mesa_dia = get_mesa_diretora(sessao_plenaria)['mesa']
 
-    presidente_dia =  [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']
-    presidente_dia = presidente_dia[0] if presidente_dia  else '' 
+    presidente_dia = [m['parlamentar']
+                      for m in mesa_dia if m['cargo'].descricao == 'Presidente']
+    presidente_dia = presidente_dia[0] if presidente_dia else ''
 
     context = {}
     assinatura_presidente = [
-            {'parlamentar': presidente_dia, 'cargo': "Presidente"}]
+        {'parlamentar': presidente_dia, 'cargo': "Presidente"}]
     context.update({'assinatura_mesa': assinatura_presidente})
 
     return context
@@ -3724,7 +3727,8 @@ class PautaSessaoView(TemplateView):
     template_name = "sessao/pauta_inexistente.html"
 
     def get(self, request, *args, **kwargs):
-        sessao = SessaoPlenaria.objects.filter(publicar_pauta = True).order_by("-data_inicio").first()
+        sessao = SessaoPlenaria.objects.filter(
+            publicar_pauta=True).order_by("-data_inicio").first()
 
         if not sessao:
             return self.render_to_response({})
@@ -3776,8 +3780,10 @@ class PautaSessaoDetailView(DetailView):
 
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
-            data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
-            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(data_hora_sessao).astimezone(pytz.utc)
+            data_hora_sessao = datetime.strptime(
+                data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
+            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(
+                data_hora_sessao).astimezone(pytz.utc)
             ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
                 '-data_tramitacao', '-id').first() if m.tramitacao is None else m.tramitacao
             numeracao = m.materia.numeracao_set.first()
@@ -3831,8 +3837,10 @@ class PautaSessaoDetailView(DetailView):
 
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
-            data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
-            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(data_hora_sessao).astimezone(pytz.utc)
+            data_hora_sessao = datetime.strptime(
+                data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
+            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(
+                data_hora_sessao).astimezone(pytz.utc)
             ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
                 '-data_tramitacao', '-id').first() if o.tramitacao is None else o.tramitacao
             numeracao = o.materia.numeracao_set.first()
@@ -3940,7 +3948,7 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
         qs = kwargs.get('queryset')
-        qs = qs.filter(publicar_pauta = True)
+        qs = qs.filter(publicar_pauta=True)
         kwargs['queryset'] = qs
         return kwargs
 
@@ -3969,14 +3977,14 @@ def verifica_materia_sessao_plenaria_ajax(request):
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
         is_materia_presente_any_sessao = ExpedienteMateria.objects.filter(
-             materia=id_materia_selecionada
+            materia=id_materia_selecionada
         ).exists()
     elif tipo_materia_sessao == MATERIAS_ORDEMDIA:
         is_materia_presente = OrdemDia.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
         is_materia_presente_any_sessao = OrdemDia.objects.filter(
-             materia=id_materia_selecionada
+            materia=id_materia_selecionada
         ).exists()
 
     return JsonResponse({'is_materia_presente': is_materia_presente, 'is_materia_presente_any_sessao': is_materia_presente_any_sessao})
