@@ -18,7 +18,7 @@ from base64 import b64encode, b64decode
 ##
 
 
-def solr_hash_password(password: str, salt: str = None) -> (str, str):
+def solr_hash_password(password: str, salt: str = None):
     """
         Generates a password and salt to be used in Basic Auth Solr
 
