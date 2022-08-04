@@ -10,6 +10,7 @@ import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import Tramitacao
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
@@ -360,6 +361,12 @@ class AbstractOrdemDia(models.Model):
     materia = models.ForeignKey(MateriaLegislativa,
                                 on_delete=models.PROTECT,
                                 verbose_name=_('Matéria'))
+    tramitacao = models.ForeignKey(Tramitacao,
+                                   on_delete=models.PROTECT,
+                                   verbose_name=_('Situação Atual'),
+                                   blank=True,
+                                   default='',
+                                   null=True)
     data_ordem = models.DateField(verbose_name=_('Data da Sessão'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
