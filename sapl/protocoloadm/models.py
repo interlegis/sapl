@@ -472,6 +472,9 @@ class VinculoDocAdminMateria(models.Model):
         verbose_name_plural = _(
             'Vinculos entre Documento Administrativo e Matéria Legislativa')
         ordering = ('id',)
+        unique_together = (
+            ('documento', 'materia'),
+        )
 
     def __str__(self):
         return f'Vinculo: {self.documento} - {self.materia}'
