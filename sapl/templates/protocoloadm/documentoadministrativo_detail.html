@@ -3,6 +3,29 @@
 
 {% block detail_content %}
     {{ block.super }}
+
+    {% if documentoadministrativo.materiasvinculadas.all.exists %}
+      <div class="row">
+        <div class="col-12">
+          <div id="div_id_materiasvinculadas" class="form-group">
+          <p class="control-label">Matérias Legislativas Vinculadas</p>
+          <div class="controls">
+            <div class="form-control-static">
+              {% for vinculodocadmmateria in object.materialegislativa_vinculada_set.all %}
+              <strong>Data Anexação:</strong> {{vinculodocadmmateria.data_anexacao}} {% if vinculodocadmmateria.data_desanexacao %} - {{vinculodocadmmateria.data_desanexacao}}{% endif %}
+              <br><strong>Matéria:</strong>
+              <a href="{% url 'sapl.materia:materialegislativa_detail' vinculodocadmmateria.materia.id %}">
+                {{ vinculodocadmmateria.materia }}
+              </a>
+                {% if not forloop.last %}<hr>{% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+
     {% if user.is_superuser %}
         <div class="row">
             {% if documentoadministrativo.user %}

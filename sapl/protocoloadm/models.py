@@ -220,7 +220,7 @@ class DocumentoAdministrativo(models.Model):
         MateriaLegislativa,
         blank=True,
         through='VinculoDocAdminMateria',
-        related_name='docadmsvinculados',
+        related_name='docadmvinculados',
         through_fields=(
             'documento',
             'materia'
@@ -474,7 +474,7 @@ class VinculoDocAdminMateria(models.Model):
         ordering = ('id',)
 
     def __str__(self):
-        return _(f'Vinculo: {self.documento} - {self.materia}')
+        return f'Vinculo: {self.documento} - {self.materia}'
 
 
 @reversion.register()

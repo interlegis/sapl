@@ -1,6 +1,5 @@
 {% extends "crud/detail.html" %}
-{% load i18n %}
-{% load tz %}
+{% load i18n tz common_tags %}
 
 {% block sub_actions %}
     {{ block.super }}
@@ -48,6 +47,37 @@
            {{ object.normajuridica_set.last }}</a>
        </div>
     {% endif %}
+
+    {% if object.docadmvinculados.all.exists %}
+      {% if "documentos_administrativos"|get_config_attr == 'O' or "documentos_administrativos"|get_config_attr == 'R' and not user.is_anonymous %}
+        <div class="row">
+          <div class="col-12">
+            <div id="div_id_docadmvinculados" class="form-group">
+              <p class="control-label">Documentos Administrativos Públicos Vinculados a Matéria</p>
+              <div class="controls">
+                <div class="form-control-static">
+                  {% for vinculodocadmmateria in object.documentoadministrativo_vinculado_set.all %}
+                    {% if not vinculodocadmmateria.documento.restrito or vinculodocadmmateria.documento.restrito and not user.is_anonymous %}
+                      <strong>Data Anexação:</strong> {{vinculodocadmmateria.data_anexacao}} {% if vinculodocadmmateria.data_desanexacao %} - {{vinculodocadmmateria.data_desanexacao}}{% endif %}
+                      <br><strong>Documento:</strong>
+                      <a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' vinculodocadmmateria.documento.id %}">
+                        {{ vinculodocadmmateria.documento }}
+                      </a>
+                      {% if vinculodocadmmateria.documento.restrito %}
+                        <small class="text-danger">
+                          (Documento Restrito)
+                        </small>
+                      {% endif %}
+                    {% endif %}
+                  {% if not forloop.last %}<hr>{% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+
     {% if object.audienciapublica_set.exists %}
        <p class="control-label">&emsp; Audiência(s) Pública(s)</p>
        <div class="actions btn-group btn-group-sm" role="group">
