@@ -1801,7 +1801,32 @@ class VinculoDocAdminMateriaForm(ModelForm):
         return cleaned_data
 
     def save(self, commit=False):
-        anexada = super().save(commit)
-        anexada.materia = self.cleaned_data['materia']
-        anexada.save()
-        return anexada
+        vinculo = super().save(commit)
+        vinculo.materia = self.cleaned_data['materia']
+        vinculo.save()
+        return vinculo
+
+
+class VinculoDocAdminMateriaEmLoteFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = MateriaLegislativa
+        fields = ['tipo', 'data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
+
+        self.form.fields['tipo'].required = True
+        self.form.fields['data_apresentacao'].required = True
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data_apresentacao', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Matérias'),
+                     row1, row2, form_actions(label='Pesquisar')))

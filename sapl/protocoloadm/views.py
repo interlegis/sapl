@@ -35,7 +35,8 @@ from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
-from sapl.protocoloadm.forms import VinculoDocAdminMateriaForm
+from sapl.protocoloadm.forms import VinculoDocAdminMateriaForm,\
+    VinculoDocAdminMateriaEmLoteFilterSet
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo,\
     VinculoDocAdminMateria
 from sapl.relatorios.views import relatorio_doc_administrativos
@@ -1804,22 +1805,20 @@ class VinculoDocAdminMateriaCrud(MasterDetailCrud):
             return context
 
 
-"""
-
 class VinculoDocAdminMateriaEmLoteView(PermissionRequiredMixin, FilterView):
-    filterset_class = AnexadaEmLoteFilterSet
-    template_name = 'materia/em_lote/anexada.html'
-    permission_required = ('materia.add_documentoacessorio',)
+    filterset_class = VinculoDocAdminMateriaEmLoteFilterSet
+    template_name = 'protocoloadm/em_lote/vinculodocadminmateria.html'
+    permission_required = ('protocoloadm.add_documentoadministrativo',)
 
     def get_context_data(self, **kwargs):
-        context = super(MateriaAnexadaEmLoteView,
+        context = super(VinculoDocAdminMateriaEmLoteView,
                         self).get_context_data(**kwargs)
 
         context['root_pk'] = self.kwargs['pk']
 
-        context['subnav_template_name'] = 'materia/subnav.yaml'
+        context['subnav_template_name'] = 'protocoloadm/subnav.yaml'
 
-        context['title'] = _('Matérias Anexadas em Lote')
+        context['title'] = _('Matérias Vinculadas em Lote')
 
         # Verifica se os campos foram preenchidos
         if not self.request.GET.get('tipo', " "):
@@ -1843,37 +1842,13 @@ class VinculoDocAdminMateriaEmLoteView(PermissionRequiredMixin, FilterView):
         else:
             context['object_list'] = context['object_list'].order_by(
                 'numero', '-ano')
-            principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            documento = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk'])
             not_list = [self.kwargs['pk']] + \
-                [m for m in principal.materia_principal_set.all(
-                ).values_list('materia_anexada_id', flat=True)]
+                [m for m in documento.materiasvinculadas.values_list(
+                    'id', flat=True)]
             context['object_list'] = context['object_list'].exclude(
                 pk__in=not_list)
-
-            context['temp_object_list'] = context['object_list']
-            context['object_list'] = []
-            for obj in context['temp_object_list']:
-                materia_anexada = obj
-                ciclico = False
-                anexadas_anexada = Anexada.objects.filter(
-                    materia_principal=materia_anexada
-                )
-
-                while anexadas_anexada and not ciclico:
-                    anexadas = []
-
-                    for anexa in anexadas_anexada:
-
-                        if principal == anexa.materia_anexada:
-                            ciclico = True
-                        else:
-                            for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
-                                anexadas.append(a)
-
-                    anexadas_anexada = anexadas
-
-                if not ciclico:
-                    context['object_list'].append(obj)
 
         context['numero_res'] = len(context['object_list'])
 
@@ -1912,20 +1887,19 @@ class VinculoDocAdminMateriaEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        principal = MateriaLegislativa.objects.get(pk=kwargs['pk'])
+        documento = DocumentoAdministrativo.objects.get(pk=kwargs['pk'])
         for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
 
-            anexada = Anexada()
-            anexada.materia_principal = principal
-            anexada.materia_anexada = materia
-            anexada.data_anexacao = data_anexacao
-            anexada.data_desanexacao = data_desanexacao
-            anexada.save()
+            v = VinculoDocAdminMateria()
+            v.documento = documento
+            v.materia = materia
+            v.data_anexacao = data_anexacao
+            v.data_desanexacao = data_desanexacao
+            v.save()
 
-        msg = _('Matéria(s) anexada(s).')
+        msg = _('Matéria(s) vinculadas(s).')
         messages.add_message(request, messages.SUCCESS, msg)
 
-        success_url = reverse('sapl.materia:anexada_list',
+        success_url = reverse('sapl.protocoloadm:vinculodocadminmateria_list',
                               kwargs={'pk': kwargs['pk']})
         return HttpResponseRedirect(success_url)
-"""
