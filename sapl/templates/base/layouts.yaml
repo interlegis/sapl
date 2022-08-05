@@ -61,6 +61,9 @@ AppConfig:
   - cronometro_ordem cronometro_consideracoes
   - mostrar_brasao_painel
 
+  {% trans 'Módulo Parlamentares' %}:
+  - mostrar_campos_vazios_perfil_parlamentar
+  
   {% trans 'Segurança' %}:
   - google_recaptcha_site_key google_recaptcha_secret_key
 

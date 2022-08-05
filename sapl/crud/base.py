@@ -21,7 +21,7 @@ from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
 from django.views.generic.base import ContextMixin
 from django.views.generic.list import MultipleObjectMixin
-
+from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
@@ -788,6 +788,8 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
         if hasattr(obj, 'model_set') and obj.model_set:
             self.object_list = self.get_queryset()
         context = self.get_context_data(object=self.object)
+        app_config = ConfiguracoesAplicacao.objects.first()
+        context['app_config'] = app_config
         return self.render_to_response(context)
 
     def get_queryset(self):

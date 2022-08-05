@@ -222,6 +222,11 @@ class AppConfig(models.Model):
             'Utilizar SAPL como SAPN?'),
         choices=YES_NO_CHOICES, default=False)
 
+    mostrar_campos_vazios_perfil_parlamentar = models.BooleanField(
+        verbose_name=_(
+            'Mostrar Campos sem Informação no Perfil do Parlamentar para Usuários não Logados?'),
+        choices=YES_NO_CHOICES, default=True) 
+
     class Meta:
         verbose_name = _('Configurações da Aplicação')
         verbose_name_plural = _('Configurações da Aplicação')

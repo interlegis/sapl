@@ -1583,7 +1583,8 @@ class ConfiguracoesAppForm(ModelForm):
                   'tramitacao_documento',
                   'google_recaptcha_site_key',
                   'google_recaptcha_secret_key',
-                  'sapl_as_sapn']
+                  'sapl_as_sapn',
+                  'mostrar_campos_vazios_perfil_parlamentar']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
@@ -1608,10 +1609,10 @@ class ConfiguracoesAppForm(ModelForm):
 
         if not casa.logotipo and mostrar_brasao_painel:
             self.logger.warning(
-                'Não há logitipo configurado para esta '
+                'Não há logotipo configurado para esta '
                 'CasaLegislativa ({}).'.format(casa)
             )
-            raise ValidationError("Não há logitipo configurado para esta "
+            raise ValidationError("Não há logotipo configurado para esta "
                                   "Casa legislativa.")
 
         return cleaned_data
