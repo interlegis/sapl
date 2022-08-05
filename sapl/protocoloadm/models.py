@@ -255,6 +255,14 @@ class DocumentoAdministrativo(models.Model):
             'tipo': self.tipo, 'assunto': self.assunto
         }
 
+    @property
+    def epigrafe(self):
+        return _('%(tipo)s - %(numero)s/%(ano)s') % {
+            'tipo': self.tipo,
+            'numero': self.numero,
+            'ano': self.ano
+        }
+
     def delete(self, using=None, keep_parents=False):
         texto_integral = self.texto_integral
         result = super().delete(using=using, keep_parents=keep_parents)
@@ -478,6 +486,11 @@ class VinculoDocAdminMateria(models.Model):
 
     def __str__(self):
         return f'Vinculo: {self.documento} - {self.materia}'
+
+        return _('Vinculo %(documento)s // %(materia)s') % {
+            'documento': self.documento.epigrafe,
+            'materia': self.materia
+        }
 
 
 @reversion.register()

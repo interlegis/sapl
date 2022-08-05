@@ -17,6 +17,7 @@
               <a href="{% url 'sapl.materia:materialegislativa_detail' vinculodocadmmateria.materia.id %}">
                 {{ vinculodocadmmateria.materia }}
               </a>
+              <br>{{vinculodocadmmateria.materia.ementa}}
                 {% if not forloop.last %}<hr>{% endif %}
               {% endfor %}
             </div>

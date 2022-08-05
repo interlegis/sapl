@@ -35,7 +35,9 @@ from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
-from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
+from sapl.protocoloadm.forms import VinculoDocAdminMateriaForm
+from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo,\
+    VinculoDocAdminMateria
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
@@ -1126,7 +1128,7 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
             context['object_list'] = []
         else:
             context['temp_object_list'] = context['object_list'].order_by(
-            'numero', '-ano')
+                'numero', '-ano')
             context['object_list'] = []
             for obj in context['temp_object_list']:
                 if not obj.pk == int(context['root_pk']):
@@ -1155,7 +1157,6 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
                         if not ciclico:
                             context['object_list'].append(obj)
-        
 
         context['numero_res'] = len(context['object_list'])
 
@@ -1299,7 +1300,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['ultima_edicao'] = tz.localize(datetime.now())
 
             return initial
-
 
     class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
 
@@ -1751,3 +1751,181 @@ def apaga_protocolos_view(request):
             return JsonResponse({'type': 'success', 'msg': ''})
         else:
             return JsonResponse({'type': 'error', 'msg': 'Senha Incorreta'})
+
+
+class VinculoDocAdminMateriaCrud(MasterDetailCrud):
+    model = VinculoDocAdminMateria
+    parent_field = 'documento'
+    help_topic = 'vinculodocadminmateria'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data_anexacao', ('materia', 'materia__ementa')]
+
+        @property
+        def verbose_name(self):
+            return _('Vinculo')
+
+        @property
+        def verbose_name_plural(self):
+            return _('Vinculos')
+
+        @property
+        def title(self):
+            return self.object.documento.epigrafe
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = VinculoDocAdminMateriaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = VinculoDocAdminMateriaForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.object.documento.epigrafe
+            return context
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo'] = self.object.materia.tipo.id
+            initial['numero'] = self.object.materia.numero
+            initial['ano'] = self.object.materia.ano
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'VinculoDocAdminMateriaDetail'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.object.documento.epigrafe
+            return context
+
+
+"""
+
+class VinculoDocAdminMateriaEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = AnexadaEmLoteFilterSet
+    template_name = 'materia/em_lote/anexada.html'
+    permission_required = ('materia.add_documentoacessorio',)
+
+    def get_context_data(self, **kwargs):
+        context = super(MateriaAnexadaEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        context['root_pk'] = self.kwargs['pk']
+
+        context['subnav_template_name'] = 'materia/subnav.yaml'
+
+        context['title'] = _('Matérias Anexadas em Lote')
+
+        # Verifica se os campos foram preenchidos
+        if not self.request.GET.get('tipo', " "):
+            msg = _('Por favor, selecione um tipo de matéria.')
+            messages.add_message(self.request, messages.ERROR, msg)
+
+            if not self.request.GET.get('data_apresentacao_0', " ") or not self.request.GET.get('data_apresentacao_1', " "):
+                msg = _('Por favor, preencha as datas.')
+                messages.add_message(self.request, messages.ERROR, msg)
+
+            return context
+
+        if not self.request.GET.get('data_apresentacao_0', " ") or not self.request.GET.get('data_apresentacao_1', " "):
+            msg = _('Por favor, preencha as datas.')
+            messages.add_message(self.request, messages.ERROR, msg)
+            return context
+
+        qr = self.request.GET.copy()
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].order_by(
+                'numero', '-ano')
+            principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            not_list = [self.kwargs['pk']] + \
+                [m for m in principal.materia_principal_set.all(
+                ).values_list('materia_anexada_id', flat=True)]
+            context['object_list'] = context['object_list'].exclude(
+                pk__in=not_list)
+
+            context['temp_object_list'] = context['object_list']
+            context['object_list'] = []
+            for obj in context['temp_object_list']:
+                materia_anexada = obj
+                ciclico = False
+                anexadas_anexada = Anexada.objects.filter(
+                    materia_principal=materia_anexada
+                )
+
+                while anexadas_anexada and not ciclico:
+                    anexadas = []
+
+                    for anexa in anexadas_anexada:
+
+                        if principal == anexa.materia_anexada:
+                            ciclico = True
+                        else:
+                            for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
+                                anexadas.append(a)
+
+                    anexadas_anexada = anexadas
+
+                if not ciclico:
+                    context['object_list'].append(obj)
+
+        context['numero_res'] = len(context['object_list'])
+
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('materia_id')
+
+        data_anexacao = datetime.strptime(
+            request.POST['data_anexacao'], "%d/%m/%Y").date()
+
+        if request.POST['data_desanexacao'] == '':
+            data_desanexacao = None
+            v_data_desanexacao = data_anexacao
+        else:
+            data_desanexacao = datetime.strptime(
+                request.POST['data_desanexacao'], "%d/%m/%Y").date()
+            v_data_desanexacao = data_desanexacao
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+
+            if data_anexacao > v_data_desanexacao:
+                msg = _('Data de anexação posterior à data de desanexação.')
+                messages.add_message(request, messages.ERROR, msg)
+
+            return self.get(request, self.kwargs)
+
+        if data_anexacao > v_data_desanexacao:
+            msg = _('Data de anexação posterior à data de desanexação.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        principal = MateriaLegislativa.objects.get(pk=kwargs['pk'])
+        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+
+            anexada = Anexada()
+            anexada.materia_principal = principal
+            anexada.materia_anexada = materia
+            anexada.data_anexacao = data_anexacao
+            anexada.data_desanexacao = data_desanexacao
+            anexada.save()
+
+        msg = _('Matéria(s) anexada(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+
+        success_url = reverse('sapl.materia:anexada_list',
+                              kwargs={'pk': kwargs['pk']})
+        return HttpResponseRedirect(success_url)
+"""

@@ -1119,12 +1119,15 @@ class MasterDetailCrud(Crud):
                 root_pk = self.kwargs['pk'] if 'pkk' not in self.request.GET\
                     else self.request.GET['pkk']
             kwargs.setdefault('root_pk', root_pk)
+
+            title = '%s <small>(%s)</small>' % (
+                self.object,
+                parent_object
+            ) if parent_object else ''
             context = super(CrudBaseMixin, self).get_context_data(**kwargs)
 
-            if parent_object:
-                context['title'] = '%s <small>(%s)</small>' % (
-                    self.object, parent_object)
-
+            if 'title' not in context and title:
+                context['title'] = title
             return context
 
     class ListView(Crud.ListView):

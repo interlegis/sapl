@@ -170,7 +170,7 @@ def get_field_display(obj, fieldname):
         display = '<div class="dont-break-out">{}</div>'.format(display)
     else:
         display = str(value)
-    return verbose_name, display
+    return verbose_name, display or '&nbsp;'
 
 
 class CrispyLayoutFormMixin:

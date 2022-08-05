@@ -61,8 +61,9 @@
                       <strong>Data Anexação:</strong> {{vinculodocadmmateria.data_anexacao}} {% if vinculodocadmmateria.data_desanexacao %} - {{vinculodocadmmateria.data_desanexacao}}{% endif %}
                       <br><strong>Documento:</strong>
                       <a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' vinculodocadmmateria.documento.id %}">
-                        {{ vinculodocadmmateria.documento }}
+                        {{ vinculodocadmmateria.documento.epigrafe }}
                       </a>
+                      <br>{{ vinculodocadmmateria.documento.assunto}}
                       {% if vinculodocadmmateria.documento.restrito %}
                         <small class="text-danger">
                           (Documento Restrito)
