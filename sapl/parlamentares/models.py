@@ -227,9 +227,9 @@ class Parlamentar(models.Model):
     cpf = models.CharField(
         max_length=14, blank=True, verbose_name=_('C.P.F'))
     rg = models.CharField(
-        max_length=15, blank=True, verbose_name=_('R.G.'))
+        max_length=20, blank=True, verbose_name=_('R.G.'))
     titulo_eleitor = models.CharField(
-        max_length=15,
+        max_length=25,
         blank=True,
         verbose_name=_('Título de Eleitor'))
     numero_gab_parlamentar = models.CharField(
