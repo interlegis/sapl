@@ -715,7 +715,7 @@ class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
             context['ano'] = self.request.GET['ano']
         else:
             context['ano'] = ''
-        
+
         if self.request.GET['tipo']:
             tipo = self.request.GET['tipo']
             context['tipo'] = (
@@ -1893,6 +1893,8 @@ class UserCrud(Crud):
         list_field_names = [
             'usuario', 'groups', 'is_active'
         ]
+        def openapi_url(self):
+            return ''
 
         def resolve_url(self, suffix, args=None):
             return reverse('sapl.base:%s' % self.url_name(suffix),
@@ -1924,6 +1926,7 @@ class UserCrud(Crud):
 
     class DetailView(Crud.DetailView):
         layout_key = 'UserDetail'
+
 
         def hook_usuario(self, obj):
             return 'Usuário', '{}<br><small>{}</small>'.format(
@@ -2190,7 +2193,7 @@ class SaplSearchView(SearchView):
             models = []
 
         context['models'] = ''
-        context['is_paginated'] = True  
+        context['is_paginated'] = True
 
         page_obj = context['page']
         context['page_obj'] = page_obj
