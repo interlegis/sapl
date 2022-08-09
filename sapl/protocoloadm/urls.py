@@ -25,7 +25,9 @@ from sapl.protocoloadm.views import (AcompanhamentoDocumentoView,
                                      AnexadoCrud, DocumentoAnexadoEmLoteView,
                                      PrimeiraTramitacaoEmLoteAdmView,
                                      TramitacaoEmLoteAdmView,
-                                     apaga_protocolos_view)
+                                     apaga_protocolos_view,
+                                     VinculoDocAdminMateriaCrud,
+                                     VinculoDocAdminMateriaEmLoteView)
 
 from .apps import AppConfig
 
@@ -34,18 +36,21 @@ app_name = AppConfig.name
 urlpatterns_documento_administrativo = [
     url(r'^docadm/',
         include(DocumentoAdministrativoCrud.get_urls() +
-                AnexadoCrud.get_urls() + 
+                AnexadoCrud.get_urls() +
                 TramitacaoAdmCrud.get_urls() +
-                DocumentoAcessorioAdministrativoCrud.get_urls())),
+                DocumentoAcessorioAdministrativoCrud.get_urls() +
+                VinculoDocAdminMateriaCrud.get_urls())),
 
     url(r'^docadm/pesq-doc-adm',
         PesquisarDocumentoAdministrativoView.as_view(), name='pesq_doc_adm'),
 
     url(r'^docadm/texto_integral/(?P<pk>\d+)$', doc_texto_integral,
         name='doc_texto_integral'),
-    
+
     url(r'^docadm/(?P<pk>\d+)/anexado_em_lote', DocumentoAnexadoEmLoteView.as_view(),
         name='anexado_em_lote'),
+    url(r'^docadm/(?P<pk>\d+)/vinculo-em-lote', VinculoDocAdminMateriaEmLoteView.as_view(),
+        name='vinculodocadminmateria_em_lote'),
 ]
 
 urlpatterns_protocolo = [

@@ -1,0 +1,74 @@
+{% extends "crud/detail.html" %}
+{% load i18n crispy_forms_tags %}
+{% block actions %}{% endblock %}
+
+{% block detail_content %}
+  {% if not show_results %}
+    {% crispy filter.form %}
+  {% endif %}
+  {% if show_results %}
+    {% if numero_res > 0 %}
+      {% if numero_res == 1 %}
+        <h3 style="text-align: right;">{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
+      {% else %}
+        <h3 style="text-align: right;">Foram encontradas {{ numero_res }} matérias.</h3>
+      {% endif %}
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Data Anexação*</label><input type="text" name="data_anexacao" class="form-control dateinput" required="True">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label>Data Desanexação</label><input type="text" name="data_desanexacao" class="form-control dateinput">
+              </div>
+            </div>
+          </div>
+        </fieldset>
+        <br />
+        <fieldset>
+          <legend>Matérias para Vincular em Lote</legend>
+          <table class="table table-striped table-hover">
+            <div class="controls">
+					    <div class="checkbox">
+                <label for="id_check_all"><input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos</label>
+					    </div>
+			      </div>
+            <thead><tr><th>Matéria</th></tr></thead>
+            <tbody>
+                {% for materia in object_list %}
+                  <tr>
+                    <td class="p-0">
+                      <label for="mat_{{materia.id}}" class="d-flex w-100 p-3">
+                        <input type="checkbox" id="mat_{{materia.id}}" name="materia_id" value="{{materia.id}}" {% if check %} checked {% endif %}/>
+                        {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}} - {{materia.tipo.descricao}}
+                      </label>
+                    </td>
+                  </tr>
+                {% endfor %}
+            </tbody>
+          </table>
+        </fieldset>
+        <input type="submit" value="Salvar" class="btn btn-primary"S>
+      </form>
+    {% else %}
+      <tr><td><h3 style="text-align: right;">Nenhuma matéria encontrada.</h3></td></tr>
+    {% endif %}
+  {% endif %}
+{% endblock detail_content %}
+
+{% block extra_js %}
+	<script language="JavaScript">
+		function checkAll(elem) {
+      let checkboxes = document.getElementsByName('materia_id');
+      for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type == 'checkbox')
+            checkboxes[i].checked = elem.checked;
+      }
+    }
+	</script>
+{% endblock %}

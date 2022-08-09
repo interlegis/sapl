@@ -5,7 +5,8 @@ from model_utils import Choices
 import reversion
 
 from sapl.base.models import Autor
-from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
+from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao,\
+    MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
                         get_settings_auth_user_model,
                         OverwriteStorage)
@@ -91,7 +92,8 @@ class Protocolo(models.Model):
         blank=True
     )
     de_proposicao = models.BooleanField(default=False)
-    # Não foi utilizado auto_now_add=True em timestamp porque ele usa datetime.now que não é timezone aware.
+    # Não foi utilizado auto_now_add=True em timestamp porque ele usa
+    # datetime.now que não é timezone aware.
     timestamp = models.DateTimeField(
         null=True,
         blank=True,
@@ -160,7 +162,7 @@ class DocumentoAdministrativo(models.Model):
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
 
     complemento = models.CharField(max_length=10, blank=True,
-        verbose_name=_('Complemento'))
+                                   verbose_name=_('Complemento'))
 
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
@@ -214,6 +216,17 @@ class DocumentoAdministrativo(models.Model):
         )
     )
 
+    materiasvinculadas = models.ManyToManyField(
+        MateriaLegislativa,
+        blank=True,
+        through='VinculoDocAdminMateria',
+        related_name='docadmvinculados',
+        through_fields=(
+            'documento',
+            'materia'
+        )
+    )
+
     user = models.ForeignKey(
         get_settings_auth_user_model(),
         verbose_name=_('Usuário'),
@@ -240,6 +253,14 @@ class DocumentoAdministrativo(models.Model):
     def __str__(self):
         return _('%(tipo)s - %(assunto)s') % {
             'tipo': self.tipo, 'assunto': self.assunto
+        }
+
+    @property
+    def epigrafe(self):
+        return _('%(tipo)s - %(numero)s/%(ano)s') % {
+            'tipo': self.tipo,
+            'numero': self.numero,
+            'ano': self.ano
         }
 
     def delete(self, using=None, keep_parents=False):
@@ -433,6 +454,42 @@ class Anexado(models.Model):
                      'documento_anexado_tipo': self.documento_anexado.tipo,
                      'documento_anexado_numero': self.documento_anexado.numero,
                      'documento_anexado_ano': self.documento_anexado.ano
+        }
+
+
+@reversion.register()
+class VinculoDocAdminMateria(models.Model):
+    documento = models.ForeignKey(
+        DocumentoAdministrativo, related_name='materialegislativa_vinculada_set',
+        on_delete=models.CASCADE,
+        verbose_name=_('Documento Administrativo')
+    )
+    materia = models.ForeignKey(
+        MateriaLegislativa, related_name='documentoadministrativo_vinculado_set',
+        on_delete=models.CASCADE,
+        verbose_name=_('Matéria Legislativa')
+    )
+    data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
+    data_desanexacao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Desanexação')
+    )
+
+    class Meta:
+        verbose_name = _(
+            'Vinculo entre Documento Administrativo e Matéria Legislativa')
+        verbose_name_plural = _(
+            'Vinculos entre Documento Administrativo e Matéria Legislativa')
+        ordering = ('id',)
+        unique_together = (
+            ('documento', 'materia'),
+        )
+
+    def __str__(self):
+        return f'Vinculo: {self.documento} - {self.materia}'
+
+        return _('Vinculo %(documento)s // %(materia)s') % {
+            'documento': self.documento.epigrafe,
+            'materia': self.materia
         }
 
 
