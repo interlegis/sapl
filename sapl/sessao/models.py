@@ -249,6 +249,17 @@ class SessaoPlenaria(models.Model):
         choices=YES_NO_CHOICES,
         verbose_name=_('Publicar Pauta?'))
 
+    correspondencias = models.ManyToManyField(
+        DocumentoAdministrativo,
+        blank=True,
+        through='Correspondencia',
+        related_name='sessoesplenarias',
+        through_fields=(
+            'sessao_plenaria',
+            'documento'
+        )
+    )
+
     class Meta:
         verbose_name = _('Sessão Plenária')
         verbose_name_plural = _('Sessões Plenárias')
@@ -1029,7 +1040,8 @@ class Correspondencia(models.Model):
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.CASCADE)
+                                        on_delete=models.CASCADE,
+                                        related_name='correspondencia_set')
     documento = models.ForeignKey(DocumentoAdministrativo,
                                   on_delete=models.PROTECT,
                                   verbose_name=_('Documento Administrativo'))
