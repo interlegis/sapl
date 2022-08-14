@@ -1,8 +1,8 @@
+from datetime import datetime
+import logging
 import re
 
 from crispy_forms.layout import Button, Fieldset, HTML, Layout
-from datetime import datetime
-
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -13,7 +13,6 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
-import sapl.utils
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import (form_actions, to_row,
                                       SaplFormHelper, SaplFormLayout)
@@ -21,6 +20,9 @@ from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
 from sapl.parlamentares.models import Mandato, Parlamentar
+from sapl.protocoloadm.models import TipoDocumentoAdministrativo,\
+    DocumentoAdministrativo
+from sapl.sessao.models import Correspondencia
 from sapl.utils import (autor_label, autor_modal,
                         choice_anos_com_sessaoplenaria,
                         FileFieldCheckMixin,
@@ -28,6 +30,7 @@ from sapl.utils import (autor_label, autor_modal,
                         MateriaPesquisaOrderingFilter,
                         RANGE_DIAS_MES, RANGE_MESES,
                         TIME_PATTERN, timezone, validar_arquivo)
+import sapl.utils
 
 from .models import (Bancada, ExpedienteMateria,
                      JustificativaAusencia, OcorrenciaSessao, Orador,
@@ -36,6 +39,7 @@ from .models import (Bancada, ExpedienteMateria,
                      RegistroLeitura, ResumoOrdenacao, RetiradaPauta,
                      SessaoPlenaria, SessaoPlenariaPresenca,
                      TipoResultadoVotacao, TipoRetiradaPauta, Tramitacao)
+
 
 MES_CHOICES = RANGE_MESES
 DIA_CHOICES = RANGE_DIAS_MES
@@ -114,7 +118,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
         if upload_pauta:
             validar_arquivo(upload_pauta, "Pauta da Sessão")
-        
+
         if upload_ata:
             validar_arquivo(upload_ata, "Ata da Sessão")
 
@@ -380,7 +384,8 @@ class ExpedienteMateriaForm(ModelForm):
 
         try:
             id_t = self.cleaned_data['tramitacao_select'] if self.cleaned_data['tramitacao_select'] != '' else -1
-            tramitacao = materia.tramitacao_set.get(pk=self.cleaned_data['tramitacao_select'] if self.cleaned_data['tramitacao_select'] != '' else -1)
+            tramitacao = materia.tramitacao_set.get(
+                pk=self.cleaned_data['tramitacao_select'] if self.cleaned_data['tramitacao_select'] != '' else -1)
         except ObjectDoesNotExist:
             if self.cleaned_data['tramitacao_select'] != '':
                 raise ValidationError(
@@ -822,6 +827,10 @@ class ResumoOrdenacaoForm(forms.Form):
         label='15°',
         choices=ORDENACAO_RESUMO
     )
+    decimo_sexto = forms.ChoiceField(
+        label='16°',
+        choices=ORDENACAO_RESUMO
+    )
 
     def __init__(self, *args, **kwargs):
         row1 = to_row(
@@ -856,13 +865,16 @@ class ResumoOrdenacaoForm(forms.Form):
         row15 = to_row(
             [('decimo_quinto', 12)]
         )
+        row16 = to_row(
+            [('decimo_sexto', 12)]
+        )
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
-                     row11, row12, row13, row14, row15,
+                     row11, row12, row13, row14, row15, row16,
                      form_actions(label='Atualizar'))
         )
 
@@ -905,6 +917,7 @@ class ResumoOrdenacaoForm(forms.Form):
         ordenacao.decimo_terceiro = cleaned_data['decimo_terceiro']
         ordenacao.decimo_quarto = cleaned_data['decimo_quarto']
         ordenacao.decimo_quinto = cleaned_data['decimo_quinto']
+        ordenacao.decimo_sexto = cleaned_data['decimo_sexto']
 
         ordenacao.save()
 
@@ -1028,7 +1041,7 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
                   'ordem',
                   'expediente',
                   'observacao',
-                  'user', 
+                  'user',
                   'ip']
         widgets = {'materia': forms.HiddenInput(),
                    'ordem': forms.HiddenInput(),
@@ -1040,14 +1053,14 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
-        
+
         instance = self.initial['instance']
         if instance:
             self.instance = instance.first()
             self.fields['observacao'].initial = self.instance.observacao
 
         row1 = to_row(
-            [('observacao', 12)])   
+            [('observacao', 12)])
 
         actions = [HTML('<a href="{{ view.cancel_url }}"'
                         ' class="btn btn-warning">Cancelar Leitura</a>')]
@@ -1056,11 +1069,115 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(
             Fieldset(_('Leitura de Matéria'),
-                    HTML('''
+                     HTML('''
                         <b>Matéria:</b> {{materia}}<br>
                         <b>Ementa:</b> {{materia.ementa}} <br>
                     '''),
                      row1,
                      form_actions(more=actions),
-                    )
+                     )
         )
+
+
+class CorrespondenciaForm(ModelForm):
+
+    logger = logging.getLogger(__name__)
+
+    tipo_documento = forms.ModelChoiceField(
+        label='Tipo do Documento',
+        required=True,
+        queryset=TipoDocumentoAdministrativo.objects.all(),
+        empty_label='Selecione',
+    )
+
+    numero_documento = forms.IntegerField(label='Número', required=True)
+
+    ano_documento = forms.CharField(label='Ano', required=True)
+
+    class Meta:
+        model = Correspondencia
+        fields = ['tipo', 'numero_ordem', 'observacao',
+                  'tipo_documento', 'numero_documento', 'ano_documento']
+
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        try:
+            self.logger.info("Tentando obter objeto Documento Administrativo (numero={}, ano={}, tipo={})."
+                             .format(cleaned_data['numero_documento'], cleaned_data['ano_documento'], cleaned_data['tipo_documento']))
+            documento = DocumentoAdministrativo.objects.filter(
+                numero=cleaned_data['numero_documento'],
+                ano=cleaned_data['ano_documento'],
+                tipo=cleaned_data['tipo_documento']).order_by('-id').first()
+            if not documento:
+                raise ObjectDoesNotExist()
+
+        except ObjectDoesNotExist:
+            msg = _('{} {}/{} não existe no cadastro de documentos administrativos.'
+                    .format(cleaned_data['tipo_documento'], cleaned_data['numero_documento'], cleaned_data['ano_documento']))
+            self.logger.warning(
+                "O Documento Administrativo não existe no cadastro.")
+            raise ValidationError(msg)
+
+        if Correspondencia.objects.filter(
+            sessao_plenaria=self.instance.sessao_plenaria, documento=documento
+        ).exclude(pk=self.instance.pk).exists():
+            self.logger.error(
+                "Documento Administrativo já se encontra nesta Sessão.")
+            raise ValidationError(
+                _('Documento Administrativo já se encontra nesta Sessão.'))
+
+        cleaned_data['documento'] = documento
+
+        return cleaned_data
+
+    def clean_numero_ordem(self):
+        sessao = self.instance.sessao_plenaria
+
+        numero_ordem_exists = Correspondencia.objects.filter(
+            sessao_plenaria=sessao,
+            numero_ordem=self.cleaned_data['numero_ordem']).exists()
+
+        if numero_ordem_exists and not self.instance.pk:
+            msg = _('Esse número de ordem já existe.')
+            raise ValidationError(msg)
+
+        return self.cleaned_data['numero_ordem']
+
+    def save(self, commit=False):
+        correspondencia = super().save(commit)
+        correspondencia.documento = self.cleaned_data['documento']
+        correspondencia.save()
+        return correspondencia
+
+
+class CorrespondenciaEmLoteFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = DocumentoAdministrativo
+        fields = ['tipo', 'data']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo do documento'
+        self.filters['data'].label = 'Data (Inicial - Final)'
+
+        self.form.fields['tipo'].required = True
+        self.form.fields['data'].required = True
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Documentos Administrativos'),
+                     row1, row2, form_actions(label='Pesquisar')))

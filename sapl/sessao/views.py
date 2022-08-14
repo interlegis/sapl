@@ -13,9 +13,11 @@ from django.db.models import Max, Q
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.urls import reverse
+from django.urls.base import reverse_lazy
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -36,8 +38,12 @@ from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
+from sapl.protocoloadm.models import TipoDocumentoAdministrativo,\
+    DocumentoAdministrativo
 from sapl.sessao.apps import AppConfig
-from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm
+from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm,\
+    CorrespondenciaForm, CorrespondenciaEmLoteFilterSet
+from sapl.sessao.models import Correspondencia
 from sapl.settings import TIME_ZONE
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
@@ -1888,7 +1894,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
             'decimo_segundo': self.get_tupla(ordenacao.decimo_segundo),
             'decimo_terceiro': self.get_tupla(ordenacao.decimo_terceiro),
             'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto),
-            'decimo_quinto': self.get_tupla(ordenacao.decimo_quinto)
+            'decimo_quinto': self.get_tupla(ordenacao.decimo_quinto),
+            'decimo_sexto': self.get_tupla(ordenacao.decimo_sexto)
         }
 
         return initial
@@ -1966,6 +1973,36 @@ def get_presenca_sessao(sessao_plenaria):
 
     return ({'presenca_sessao': parlamentares_sessao,
              'justificativa_ausencia': ausentes_sessao})
+
+
+def get_correspondencias(sessao_plenaria, user):
+    qs = sessao_plenaria.correspondencia_set.all()
+
+    is_anon = user.is_anonymous
+    is_ostensivo = AppsAppConfig.attr(
+        'documentos_administrativos') == 'O'
+
+    if is_anon and not is_ostensivo:
+        qs = qs.none()
+
+    if is_anon:
+        qs = qs.filter(documento__restrito=False)
+
+    results = []
+    for c in qs:
+        d = c.documento
+        results.append(
+            {
+                'id': d.id,
+                'tipo': c.get_tipo_display(),
+                'epigrafe': d.epigrafe,
+                'data': d.data.strftime('%d/%m/%Y'),
+                'assunto': d.assunto,
+                'restrito': d.restrito,
+                'is_ostensivo': is_ostensivo
+            }
+        )
+    return {'correspondencias': results}
 
 
 def get_expedientes(sessao_plenaria):
@@ -2301,6 +2338,9 @@ class ResumoView(DetailView):
         # Presença Sessão
         context.update(get_presenca_sessao(self.object))
         # =====================================================================
+        # Correspondências
+        context.update(get_correspondencias(self.object, self.request.user))
+        # =====================================================================
         # Expedientes
         context.update(get_expedientes(self.object))
         # =====================================================================
@@ -2351,9 +2391,10 @@ class ResumoView(DetailView):
         # Indica a ordem com a qual o template será renderizado
         dict_ord_template = {
             'cont_mult': 'conteudo_multimidia.html',
+            'correspondencia': 'correspondencias.html',
             'exp': 'expedientes.html',
             'id_basica': 'identificacao_basica.html',
-            'lista_p': 'lista_presenca.html',
+            'lista_p': 'lista_presenca_sessao.html',
             'lista_p_o_d': 'lista_presenca_ordem_dia.html',
             'mat_exp': 'materias_expediente.html',
             'v_n_mat_exp': 'votos_nominais_materias_expediente.html',
@@ -2384,7 +2425,8 @@ class ResumoView(DetailView):
                 'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
                 'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
                 'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto],
-                'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto]
+                'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto],
+                'decimo_sexto_ordenacao': dict_ord_template[ordenacao.decimo_sexto]
             })
         except KeyError as e:
             self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
@@ -2393,18 +2435,19 @@ class ResumoView(DetailView):
                 'primeiro_ordenacao': 'identificacao_basica.html',
                 'segundo_ordenacao': 'conteudo_multimidia.html',
                 'terceiro_ordenacao': 'mesa_diretora.html',
-                'quarto_ordenacao': 'lista_presenca.html',
-                'quinto_ordenacao': 'expedientes.html',
-                'sexto_ordenacao': 'materias_expediente.html',
-                'setimo_ordenacao': 'votos_nominais_materias_expediente.html',
-                'oitavo_ordenacao': 'oradores_expediente.html',
-                'nono_ordenacao': 'lista_presenca_ordem_dia.html',
-                'decimo_ordenacao': 'materias_ordem_dia.html',
-                'decimo_primeiro_ordenacao': 'votos_nominais_materias_ordem_dia.html',
-                'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
-                'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
-                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html',
-                'decimo_quinto_ordenacao': 'consideracoes_finais.html'
+                'quarto_ordenacao': 'lista_presenca_sessao.html',
+                'quinto_ordenacao': 'correspondencias.html',
+                'sexto_ordenacao': 'expedientes.html',
+                'setimo_ordenacao': 'materias_expediente.html',
+                'oitavo_ordenacao': 'votos_nominais_materias_expediente.html',
+                'nono_ordenacao': 'oradores_expediente.html',
+                'decimo_ordenacao': 'lista_presenca_ordem_dia.html',
+                'decimo_primeiro_ordenacao': 'materias_ordem_dia.html',
+                'decimo_segundo_ordenacao': 'votos_nominais_materias_ordem_dia.html',
+                'decimo_terceiro_ordenacao': 'oradores_ordemdia.html',
+                'decimo_quarto_ordenacao': 'oradores_explicacoes.html',
+                'decimo_quinto_ordenacao': 'ocorrencias_da_sessao.html',
+                'decimo_sexto_ordenacao': 'consideracoes_finais.html'
             })
 
         sessao = context['object']
@@ -3808,6 +3851,31 @@ class PautaSessaoDetailView(DetailView):
                 'autor': [str(x.autor) for x in m.materia.autoria_set.select_related('autor').all()]
             })
         context.update({'materia_expediente': materias_expediente})
+
+        # =====================================================================
+        # Correspondencias
+        correspondencias = []
+        qs = self.object.correspondencia_set.all()
+        is_anon = request.user.is_anonymous
+        is_ostensivo = AppsAppConfig.attr('documentos_administrativos') == 'O'
+        if is_anon and not is_ostensivo:
+            qs = qs.none()
+        elif is_anon:
+            qs = qs.filter(documento__restrito=False)
+        for c in qs:
+            d = c.documento
+            correspondencias.append(
+                {
+                    'id': d.id,
+                    'tipo': c.get_tipo_display(),
+                    'epigrafe': d.epigrafe,
+                    'data': d.data.strftime('%d/%m/%Y'),
+                    'assunto': d.assunto,
+                    'restrito': d.restrito,
+                    'is_ostensivo': is_ostensivo
+                }
+            )
+        context.update({'correspondencias': correspondencias})
         # =====================================================================
         # Expedientes
         expedientes = []
@@ -4985,3 +5053,237 @@ def retirar_leitura(request, pk, iso, oid):
     ordem_expediente.votacao_aberta = False
     ordem_expediente.save()
     return HttpResponseRedirect(succ_url)
+
+
+def recuperar_documento(request):
+    tipo = request.GET['tipo_documento']
+    numero = request.GET['numero_documento']
+    ano = request.GET['ano_documento']
+
+    is_ostensivo = AppsAppConfig.attr('documentos_administrativos') == 'O'
+
+    qs = DocumentoAdministrativo.objects.order_by('-id')
+    qs = qs.filter(tipo_id=tipo, ano=ano, numero=numero)
+
+    is_anon = request.user.is_anonymous
+    is_restrito = qs.filter(restrito=True).exists()
+    if is_anon and not is_ostensivo or is_anon and is_restrito or not qs.exists():
+        return JsonResponse({'detail': 'Documento administrativo não encontrado.'})
+
+    d = qs.first()
+    return JsonResponse(
+        {
+            'id': d.id,
+            'epigrafe': d.epigrafe,
+            'data': d.data.strftime('%d/%m/%Y'),
+            'assunto': d.assunto,
+            'restrito': d.restrito,
+            'is_ostensivo': is_ostensivo
+        }
+    )
+
+
+class CorrespondenciaCrud(MasterDetailCrud):
+    model = Correspondencia
+    parent_field = 'sessao_plenaria'
+    help_topic = 'sessaoplenaria_correspondencia'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = [('ordem_tipo'),
+                            'correspondencia', 'documento__data', 'documento']
+
+        @property
+        def verbose_name(self):
+            return _('Correspondência')
+
+        @property
+        def verbose_name_plural(self):
+            return _('Correspondências')
+
+        @property
+        def title(self):
+            return self.object.sessao_plenaria
+
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_queryset(self):
+            qs = super().get_queryset()
+
+            is_anon = self.request.user.is_anonymous
+            is_ostensivo = AppsAppConfig.attr(
+                'documentos_administrativos') == 'O'
+
+            if is_anon and not is_ostensivo:
+                return qs.none()
+
+            if is_anon:
+                return qs.filter(documento__restrito=False)
+
+            return qs
+
+        def hook_header_ordem_tipo(self, *args, **kwargs):
+            return force_text(_('Ordem / Tipo')) if not self.request.user.is_anonymous else force_text(_('Tipo'))
+
+        def hook_ordem_tipo(self, obj, ss, url):
+            if not self.request.user.is_anonymous:
+                return f'{obj.numero_ordem} - {obj.get_tipo_display()}', url
+            else:
+                return f'{obj.get_tipo_display()}', url
+
+        def hook_header_correspondencia(self, *args, **kwargs):
+            return force_text(_('Correspondência'))
+
+        def hook_correspondencia(self, obj, ss, url):
+            return obj.documento.epigrafe, reverse_lazy(
+                'sapl.protocoloadm:documentoadministrativo_detail',
+                kwargs={'pk': obj.documento.id})
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = CorrespondenciaForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            max_numero_ordem = Correspondencia.objects.filter(
+                sessao_plenaria=self.kwargs['pk']).aggregate(
+                    Max('numero_ordem'))['numero_ordem__max']
+            initial['numero_ordem'] = (
+                max_numero_ordem if max_numero_ordem else 0) + 1
+
+            return initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = CorrespondenciaForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.object.documento.epigrafe
+            return context
+
+        def get_initial(self):
+            initial = super().get_initial()
+            initial['tipo_documento'] = self.object.documento.tipo.id
+            initial['numero_documento'] = self.object.documento.numero
+            initial['ano_documento'] = self.object.documento.ano
+
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'CorrespondenciaDetail'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.object.sessao_plenaria
+            return context
+
+        def hook_documento(self, obj, verbose_name=None, field_display=None):
+            d = obj.documento
+            url = reverse(
+                'sapl.protocoloadm:documentoadministrativo_detail',
+                kwargs={'pk': d.id}
+            )
+            return (
+                verbose_name,
+                f'<a href="{url}">{d.epigrafe}</a><br>{d.assunto}'
+            )
+
+        def get_object(self, queryset=None):
+
+            obj = super().get_object(queryset=queryset)
+
+            is_anon = self.request.user.is_anonymous
+            is_ostensivo = AppsAppConfig.attr(
+                'documentos_administrativos') == 'O'
+
+            if is_anon and not is_ostensivo:
+                raise Http404()
+
+            if is_anon and obj.documento.restrito:
+                raise Http404()
+
+            return obj
+
+
+class CorrespondenciaEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = CorrespondenciaEmLoteFilterSet
+    template_name = 'sessao/em_lote/correspondencia.html'
+    permission_required = ('sessao.add_correspondencia',)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['root_pk'] = self.kwargs['pk']
+
+        context['subnav_template_name'] = 'sessao/subnav.yaml'
+
+        context['title'] = _('Correspondencias em Lote')
+
+        # Verifica se os campos foram preenchidos
+        msg = None
+        if not self.request.GET.get('tipo', " "):
+            msg = _('Por favor, selecione um tipo de documento administrativo.')
+            messages.add_message(self.request, messages.ERROR, msg)
+
+        if not self.request.GET.get('data_0', " ") or not self.request.GET.get('data_1', " "):
+            msg = _('Por favor, preencha as datas.')
+            messages.add_message(self.request, messages.ERROR, msg)
+
+        if msg:
+            return context
+
+        qr = self.request.GET.copy()
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].order_by(
+                'numero', '-ano')
+            sessao_plenaria = SessaoPlenaria.objects.get(
+                pk=self.kwargs['pk'])
+            not_list = [self.kwargs['pk']] + \
+                [m for m in sessao_plenaria.correspondencias.values_list(
+                    'id', flat=True)]
+            context['object_list'] = context['object_list'].exclude(
+                pk__in=not_list)
+
+        context['numero_res'] = len(context['object_list'])
+
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcados = request.POST.getlist('documento_id')
+
+        if len(marcados) == 0:
+            msg = _('Nenhum documento foi selecionado.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        sessao_plenaria = SessaoPlenaria.objects.get(pk=kwargs['pk'])
+
+        max_numero_ordem = Correspondencia.objects.filter(
+            sessao_plenaria=self.kwargs['pk']).aggregate(
+            Max('numero_ordem'))['numero_ordem__max'] or 0
+
+        for documento in DocumentoAdministrativo.objects.filter(
+                id__in=marcados
+        ).values_list('id', flat=True):
+            max_numero_ordem += 1
+            c = Correspondencia()
+            c.numero_ordem = max_numero_ordem
+            c.sessao_plenaria = sessao_plenaria
+            c.documento_id = documento
+            c.tipo = request.POST.get('tipo')
+            c.save()
+
+        msg = _('Correspondencias adicionadas.')
+        messages.add_message(request, messages.SUCCESS, msg)
+
+        success_url = reverse('sapl.sessao:correspondencia_list',
+                              kwargs={'pk': kwargs['pk']})
+        return HttpResponseRedirect(success_url)

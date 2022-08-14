@@ -17,6 +17,22 @@
   		</table>
 	</fieldset>
 	<fieldset>
+		<legend>Corresondências</legend>
+		<table class="table">
+			<thead class="thead-default">
+        {% for c in correspondencias %}
+            <tr>
+              <td>
+                <strong>({{c.tipo}})</strong> <strong>{{c.epigrafe}}</strong><br>
+                <strong>Data do Documento: </strong>{{c.data}}<br>
+                <strong>Assunto:</strong> {{c.assunto}}
+              </td>
+            </tr>
+        {% endfor %}
+			</thead>
+		</table>
+	</fieldset>
+	<fieldset>
 		<legend>Expedientes</legend>
 		<table class="table">
 			<thead class="thead-default">

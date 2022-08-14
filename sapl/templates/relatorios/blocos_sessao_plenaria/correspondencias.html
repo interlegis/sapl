@@ -1,0 +1,18 @@
+{% load common_tags %}
+
+<h2 class="gray-title">Correspondências</h2>
+
+<table class="grayTable">
+    <tbody>
+        {% for c in lst_correspondencias%}
+            <tr>
+                <td>
+                    <strong>({{c.tipo}})</strong> <strong>{{c.epigrafe}}</strong><br>
+                    <strong>Data do Documento: </strong>{{c.data}}<br>
+                    <strong>Assunto:</strong> {{c.assunto}}
+                </td>
+            </tr>
+        {% endfor %}
+
+    </tbody>
+</table>

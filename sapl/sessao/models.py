@@ -742,6 +742,7 @@ ORDENACAO_RESUMO = [
     ('cont_mult', 'Conteúdo Multimídia'),
     ('mesa_d', 'Mesa Diretora'),
     ('lista_p', 'Lista de Presença'),
+    ('correspondencia', 'Correspondências'),
     ('exp', 'Expedientes'),
     ('mat_exp', 'Matérias do Expediente'),
     ('v_n_mat_exp', 'Votações Nominais - Matérias do Expediente'),
@@ -821,6 +822,10 @@ class ResumoOrdenacao(models.Model):
     decimo_quinto = models.CharField(
         max_length=50,
         default=ORDENACAO_RESUMO[14][0]
+    )
+    decimo_sexto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[15][0]
     )
 
     class Meta:
@@ -1037,6 +1042,7 @@ class Correspondencia(models.Model):
     TIPO_CHOICES = Choices(
         (1, 'recebida', 'Recebida'),
         (2, 'enviada', 'Enviada'),
+        (2, 'interna', 'Interna'),
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
@@ -1065,4 +1071,4 @@ class Correspondencia(models.Model):
         return self.documento.assunto
 
     def __str__(self):
-        return _('Correspondência: {}'.format(self.documento.epigrafe))
+        return _('Correspondência: {}').format(self.documento.epigrafe)
