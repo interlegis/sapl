@@ -5212,14 +5212,20 @@ class CorrespondenciaEmLoteView(PermissionRequiredMixin, FilterView):
     template_name = 'sessao/em_lote/correspondencia.html'
     permission_required = ('sessao.add_correspondencia',)
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(sessao_plenaria_id=self.kwargs['pk'])
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context['root_pk'] = self.kwargs['pk']
+        s = SessaoPlenaria.objects.get(pk=self.kwargs['pk'])
 
         context['subnav_template_name'] = 'sessao/subnav.yaml'
 
-        context['title'] = _('Correspondencias em Lote')
+        context['title'] = _(
+            'Correspondencias em Lote <small>({})</small>').format(s)
 
         # Verifica se os campos foram preenchidos
         msg = None

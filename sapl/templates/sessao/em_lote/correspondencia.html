@@ -45,6 +45,8 @@
             <div class="controls">
 					    <div class="checkbox">
                 <label for="id_check_all"><input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos</label>
+                <br><br>
+                <small>OBS: Documentos já inseridos na sessão atual não aparecem na lista abaixo.</small>
 					    </div>
 			      </div>
             <thead><tr><th>Documento</th></tr></thead>
@@ -54,7 +56,11 @@
                     <td class="p-0">
                       <label for="doc_{{documento.id}}" class="d-flex w-100 p-3">
                         <input type="checkbox" id="doc_{{documento.id}}" name="documento_id" value="{{documento.id}}" {% if check %} checked {% endif %}/>
-                        {{documento.epigrafe}}
+                        <span>
+                          {{documento.epigrafe}} - {{documento.assunto}}
+                          {% if documento.restrito %}<br><small class="text-danger" >(Documento Restrito)</small> {% endif %}
+                        </span>
+
                       </label>
                     </td>
                   </tr>
