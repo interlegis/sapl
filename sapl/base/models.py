@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields.jsonb import JSONField
+from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.deletion import CASCADE
@@ -139,6 +140,23 @@ class AppConfig(models.Model):
         verbose_name=_('Início da numeração de protocolo'),
         default=1
     )
+    # Linha 3 -------------------------
+    identificacao_de_documentos = models.CharField(
+        max_length=254,
+        verbose_name=_('Formato da identificação dos documentos'),
+        default='{sigla} Nº {numero}/{ano}{-}{complemento} - {nome}',
+        help_text="""
+        Como mostrar a identificação dos documentos administrativos?
+        Você pode usar um conjunto de combinações que pretender.
+        Ao fazer sua edição, será mostrado logo abaixo o último documento cadastrado, como exemplo de resultado de sua edição.
+        Em caso de erro, nenhum documento será mostrado e aparecerá apenas o formato padrão mínimo, que é este: "{sigla} Nº {numero}/{ano}{-}{complemento} - {nome}".
+        Muito importante, use as chaves "{}", sem elas, você estará inserindo um texto qualquer e não o valor de um campo.
+        Você pode combinar as seguintes campos: {sigla} {nome} {numero} {ano} {complemento} {assunto}
+        Ainda pode ser usado {/}, {-}, {.} se você quiser que uma barra, traço, ou ponto
+        seja adicionado apenas se o próximo campo que será usado tenha algum conteúdo
+        (não use dois destes destes condicionais em sequência, somente o último será considerado).
+        """
+    )
 
     # MÓDULO PROPOSIÇÕES
     # Linha 1 ----------
@@ -249,15 +267,32 @@ class AppConfig(models.Model):
         )
         ordering = ('-id',)
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        fields = self._meta.get_fields()
+        for f in fields:
+            if f.name != 'id' and not cache.get(f'sapl_{f.name}') is None:
+                cache.set(f'sapl_{f.name}', getattr(self, f.name), 600)
+
+        return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+
     @classmethod
     def attr(cls, attr):
+        value = cache.get(f'sapl_{attr}')
+        if not value is None:
+            return value
+        print(f'entrou aqui para {attr}')
+
         config = AppConfig.objects.first()
 
         if not config:
             config = AppConfig()
             config.save()
 
-        return getattr(config, attr)
+        value = getattr(config, attr)
+        cache.set(f'sapl_{attr}', value, 600)
+
+        return value
 
     def __str__(self):
         return _('Configurações da Aplicação - %(id)s') % {

@@ -1,10 +1,13 @@
+import re
+
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
-from sapl.base.models import Autor
+from sapl.base.models import Autor, AppConfig as SaplAppConfig
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao,\
     MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
@@ -250,18 +253,66 @@ class DocumentoAdministrativo(models.Model):
         verbose_name_plural = _('Documentos Administrativos')
         ordering = ('id',)
 
-    def __str__(self):
-        return _('%(tipo)s - %(assunto)s') % {
-            'tipo': self.tipo, 'assunto': self.assunto
+    @classmethod
+    def mask_to_str(cls, values, mask):
+        erro = set()
+        pattern = '({[^{}]+}|{[ /.-]*})'
+        campos_escolhidos = re.findall(pattern, mask)
+        campos_permitidos = {
+            '{.}', '{/}', '{-}',
+            '{sigla}',
+            '{nome}',
+            '{numero}',
+            '{ano}',
+            '{complemento}',
+            '{assunto}',
+        }
+        condicionais = {
+            '{.}': '.',
+            '{/}': '/',
+            '{-}': '-',
         }
 
-    @property
-    def epigrafe(self):
-        return _('%(tipo)s - %(numero)s/%(ano)s') % {
-            'tipo': self.tipo,
-            'numero': self.numero,
-            'ano': self.ano
+        erro = set(campos_escolhidos) - campos_permitidos
+
+        if erro:
+            mask = '{sigla} Nº {numero}/{ano}{-}{complemento} - {nome}'
+            campos_escolhidos = re.findall(pattern, mask)
+
+        for i, k in enumerate(campos_escolhidos):
+            if k in values.keys():
+                if i > 0 and campos_escolhidos[i - 1] in condicionais:
+                    mask = mask.replace(
+                        campos_escolhidos[i - 1],
+                        condicionais[campos_escolhidos[i - 1]]if values[k] else '', 1)
+                mask = mask.replace(k, values[k], 1)
+            elif k in condicionais:
+                if i > 0 and campos_escolhidos[i - 1] in condicionais:
+                    mask = mask.replace(
+                        campos_escolhidos[i - 1],
+                        '', 1)
+                if i + 1 == len(campos_escolhidos):
+                    mask = mask.replace(k, '', 1)
+
+        return mask, erro
+
+    @cached_property
+    def _identificacao_de_documento(self):
+        mask = SaplAppConfig.attr('identificacao_de_documentos')
+
+        values = {
+            '{sigla}': self.tipo.sigla,
+            '{nome}': self.tipo.descricao,
+            '{numero}': f'{self.numero:0>3}',
+            '{ano}': f'{self.ano}',
+            '{complemento}': self.complemento,
+            '{assunto}': self.assunto
         }
+
+        return DocumentoAdministrativo.mask_to_str(values, mask)[0]
+
+    def __str__(self):
+        return self._identificacao_de_documento
 
     def delete(self, using=None, keep_parents=False):
         texto_integral = self.texto_integral
@@ -486,11 +537,6 @@ class VinculoDocAdminMateria(models.Model):
 
     def __str__(self):
         return f'Vinculo: {self.documento} - {self.materia}'
-
-        return _('Vinculo %(documento)s // %(materia)s') % {
-            'documento': self.documento.epigrafe,
-            'materia': self.materia
-        }
 
 
 @reversion.register()

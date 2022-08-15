@@ -29,6 +29,7 @@ MateriaLegislativa:
   - data_apresentacao  numero_protocolo  tipo_apresentacao
   - tipo_autor autor
   - texto_original
+
   {% trans 'Outras Informações' %}:
   - apelido  dias_prazo  polemica
   - objeto  regime_tramitacao  em_tramitacao

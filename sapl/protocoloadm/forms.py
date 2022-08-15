@@ -1139,9 +1139,10 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                 tipo = TipoDocumentoAdministrativo.objects.get(
                     id=tipo_documento)
                 raise ValidationError(
-                    _('{}/{} ({}) já existente!'.format(numero_documento,
-                                                        ano_documento,
-                                                        tipo)))
+                    _('{}/{} ({}) já existente! '
+                      'Você diferenciar preenchendo o campo complemento'.format(numero_documento,
+                                                                                ano_documento,
+                                                                                tipo)))
 
         # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
