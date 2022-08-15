@@ -1,7 +1,7 @@
 @page{
     margin-top: 5.2cm;
     size: A4 portrait;
-} 
+}
 
 h2.gray-title{
     color: gray;
@@ -13,11 +13,11 @@ h2.gray-title{
 h3 {
     font-size: 10pt;
     break-after: avoid-page;
-    page-break-after: avoid;   
+    page-break-after: avoid;
 }
 
 p, a {
-    font-size: 10pt; 
+    font-size: 10pt;
     text-align: justify;
     text-justify: inter-word;
 }
@@ -68,6 +68,7 @@ table.grayTable {
 }
 table.grayTable td, table.grayTable th {
     border: 1px solid #000000;
+    padding: 5px;
 }
 table.grayTable tbody td {
     font-size: 10px;
@@ -91,4 +92,4 @@ table.grayTable thead th {
 }
 table.grayTable thead th:first-child {
     border-left: none;
-} 
+}

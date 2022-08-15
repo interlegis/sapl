@@ -5,83 +5,97 @@
 {% load static %}
 
 {% block content %}
-	<style>
-		table.grayTable tbody td {
-			font-size: 10px;
-			max-width: 80px;
-			overflow-wrap: break-word;
-			word-wrap: break-word;
-			text-align: initial;
-		}
-	</style>
+  <style>
+    table.grayTable tbody td {
+      font-size: 10px;
+      max-width: 80px;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      text-align: initial;
+    }
+  </style>
     <h2 class="gray-title">Identificação Básica</h2>
     {% for b in basica %}
         {{ b }}<br/>
     {% endfor %}
+    <h2 class="gray-title">Correspondências</h2>
+    <table class="grayTable">
+        <tbody>
+            {% for c in correspondencias%}
+                <tr>
+                    <td>
+                        <strong>({{c.tipo}})</strong> <strong>{{c.epigrafe}}</strong><br>
+                        <strong>Data do Documento: </strong>{{c.data}}<br>
+                        <strong>Assunto:</strong> {{c.assunto}}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     <h2 class="gray-title">Expedientes</h2>
     {% for e in expedientes %}
-    	<b>{{ e.tipo }}: </b><br/><p>{{ e.conteudo|safe }}</p>
+      <b>{{ e.tipo }}: </b><br/><p>{{ e.conteudo|safe }}</p>
     {% endfor %}
     <h2 class="gray-title">Matérias do Expediente</h2>
     {% if materia_expediente %}
-    	<table class="grayTable">
-    		<thead><tr><th>Matéria</th><th>Ementa</th><th>Situação</th></tr></thead>
-        	{% for m in materia_expediente %}
-				<tr>
-					<td style="width:20%;">
-						{{ m.numero }} - {{ m.titulo }}<br />
-						<b>Processo</b>: {{ m.processo }}<br/>
-						<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
-					</td>
-					<td style="width:60%;">
-						{{ m.ementa|safe }}
-						{% if m.observacao %}<br><br>Obs.: {{m.observacao}} {% endif %}
-					</td>
-					<td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
-				</tr>
-        	{% endfor %}
-			</table>
+      <table class="grayTable">
+        <thead><tr><th>Matéria</th><th>Ementa</th><th>Situação</th></tr></thead>
+          {% for m in materia_expediente %}
+        <tr>
+          <td style="width:20%;">
+            {{ m.numero }} - {{ m.titulo }}<br />
+            <b>Processo</b>: {{ m.processo }}<br/>
+            <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+          </td>
+          <td style="width:60%;">
+            {{ m.ementa|safe }}
+            {% if m.observacao %}<br><br>Obs.: {{m.observacao}} {% endif %}
+          </td>
+          <td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
+        </tr>
+          {% endfor %}
+      </table>
     {% else %}
-    	<b>Não existem Matérias de Expediente para essa Sessão Plenária</b>
+      <b>Não existem Matérias de Expediente para essa Sessão Plenária</b>
     {% endif %}
     <h2 class="gray-title">Matérias da Ordem do Dia</h2>
     {% if materias_ordem %}
-    	<table class="grayTable">
-    		<thead><tr><th>Matéria</th><th>Ementa</th><th>Situação</th></tr></thead>
-        	{% for m in materias_ordem %}
-						<tr>
-							<td style="width:20%;">
-    						{{m.numero}} - <b>{{m.titulo}}</b><br />
-								<b>Processo</b>: {{ m.processo }}<br/>
-								<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
-    					</td>
-    					<td style="width:60%;">
-							{{m.ementa|safe}}
-							{% if m.observacao %}<br><br>Obs.: {{m.observacao}} {% endif %}
-						</td>
-						<td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
-						</tr>
-        	{% endfor %}
-      	</table>
+      <table class="grayTable">
+        <thead><tr><th>Matéria</th><th>Ementa</th><th>Situação</th></tr></thead>
+          {% for m in materias_ordem %}
+            <tr>
+              <td style="width:20%;">
+                {{m.numero}} - <b>{{m.titulo}}</b><br />
+                <b>Processo</b>: {{ m.processo }}<br/>
+                <b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+              </td>
+              <td style="width:60%;">
+              {{m.ementa|safe}}
+              {% if m.observacao %}<br><br>Obs.: {{m.observacao}} {% endif %}
+            </td>
+            <td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
+            </tr>
+          {% endfor %}
+        </table>
     {% else %}
-    	<b>Não existem Matérias de Ordem do Dia para essa Sessão Plenária</b>
+      <b>Não existem Matérias de Ordem do Dia para essa Sessão Plenária</b>
     {% endif %}
-	<fieldset>
-		{% for n in assinatura_mesa %}
-			{% if n.parlamentar %}
-			<div class="row">
-				</br></br>
-				{% for p in assinatura_mesa %}
-				</br></br></br>
-					<center>
-					<div class="col-md-6">___________________________________________ </br>
-							<b>{{p.parlamentar.nome_completo}}</b> </br>{{p.cargo}}
-							</br></br></br>
-					</div>
-					</center>
-			  {% endfor %}
-			{% endif %}
-		{% endfor %}
-			</div>
-	</fieldset>
+  <fieldset>
+    {% for n in assinatura_mesa %}
+      {% if n.parlamentar %}
+      <div class="row">
+        </br></br>
+        {% for p in assinatura_mesa %}
+        </br></br></br>
+          <center>
+          <div class="col-md-6">___________________________________________ </br>
+              <b>{{p.parlamentar.nome_completo}}</b> </br>{{p.cargo}}
+              </br></br></br>
+          </div>
+          </center>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+      </div>
+  </fieldset>
 {% endblock content %}

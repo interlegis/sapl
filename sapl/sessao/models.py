@@ -13,6 +13,7 @@ from sapl.materia.models import MateriaLegislativa
 from sapl.materia.models import Tramitacao
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
+from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
                         restringe_tipos_de_arquivo_txt, texto_upload_path,
@@ -247,6 +248,17 @@ class SessaoPlenaria(models.Model):
         default=False,
         choices=YES_NO_CHOICES,
         verbose_name=_('Publicar Pauta?'))
+
+    correspondencias = models.ManyToManyField(
+        DocumentoAdministrativo,
+        blank=True,
+        through='Correspondencia',
+        related_name='sessoesplenarias',
+        through_fields=(
+            'sessao_plenaria',
+            'documento'
+        )
+    )
 
     class Meta:
         verbose_name = _('Sessão Plenária')
@@ -730,6 +742,7 @@ ORDENACAO_RESUMO = [
     ('cont_mult', 'Conteúdo Multimídia'),
     ('mesa_d', 'Mesa Diretora'),
     ('lista_p', 'Lista de Presença'),
+    ('correspondencia', 'Correspondências'),
     ('exp', 'Expedientes'),
     ('mat_exp', 'Matérias do Expediente'),
     ('v_n_mat_exp', 'Votações Nominais - Matérias do Expediente'),
@@ -809,6 +822,10 @@ class ResumoOrdenacao(models.Model):
     decimo_quinto = models.CharField(
         max_length=50,
         default=ORDENACAO_RESUMO[14][0]
+    )
+    decimo_sexto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[15][0]
     )
 
     class Meta:
@@ -1018,3 +1035,40 @@ class RegistroLeitura(models.Model):
                 'RegistroLeitura deve ter exatamente um dos campos '
                 'ordem ou expediente preenchido. Ambos estão preenchidos: '
                 '{}, {}'. format(self.ordem, self.expediente))
+
+
+@reversion.register()
+class Correspondencia(models.Model):
+    TIPO_CHOICES = Choices(
+        (1, 'recebida', 'Recebida'),
+        (2, 'enviada', 'Enviada'),
+        (2, 'interna', 'Interna'),
+    )
+
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.CASCADE,
+                                        related_name='correspondencia_set')
+    documento = models.ForeignKey(DocumentoAdministrativo,
+                                  on_delete=models.PROTECT,
+                                  verbose_name=_('Documento Administrativo'))
+
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+
+    numero_ordem = models.PositiveIntegerField(verbose_name=_('Nº Ordem'))
+
+    tipo = models.PositiveIntegerField(
+        verbose_name=_('Tipo da Correspondência'),
+        choices=TIPO_CHOICES, default=1)
+
+    class Meta:
+        verbose_name = _('Correspondência')
+        verbose_name_plural = _('Correspondências')
+        ordering = ('numero_ordem',)
+
+    @property
+    def assunto(self):
+        return self.documento.assunto
+
+    def __str__(self):
+        return _('Correspondência: {}').format(self.documento.epigrafe)

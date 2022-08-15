@@ -21,9 +21,11 @@
 
 - title: {% trans 'Expedientes' %}
   children:
+    - title: {% trans 'Correspondências' %}
+      url: correspondencia_list
     - title: {% trans 'Expediente Diversos' %}
       url: expediente
-    - title: {% trans 'Matérias Expediente' %}
+    - title: {% trans 'Matérias do Expediente' %}
       url: expedientemateria_list
     - title: {% trans 'Oradores do Expediente' %}
       url: oradorexpediente_list
@@ -37,9 +39,9 @@
 
 - title: {% trans 'Ordem do Dia' %}
   children:
-    - title: {% trans 'Matérias Ordem do Dia' %}
+    - title: {% trans 'Matérias da Ordem do Dia' %}
       url: ordemdia_list
-    - title: {% trans 'Presença Ordem do Dia' %}
+    - title: {% trans 'Presença na Ordem do Dia' %}
       url: presencaordemdia
     - title: {% trans 'Oradores da Ordem do Dia' %}
       url: oradorordemdia_list
