@@ -314,6 +314,10 @@ class DocumentoAdministrativo(models.Model):
     def __str__(self):
         return self._identificacao_de_documento
 
+    @property
+    def epigrafe(self):
+        return str(self)
+
     def delete(self, using=None, keep_parents=False):
         texto_integral = self.texto_integral
         result = super().delete(using=using, keep_parents=keep_parents)
