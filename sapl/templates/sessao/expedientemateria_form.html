@@ -67,7 +67,7 @@
                 if (status == 'success') {
                     $('#id_tramitacao_select').off('change')
                     $('#id_tramitacao_select').find('option').remove()
-                    $('#id_tramitacao_select').append('<option value="-1">Selecione uma opção..</option>');
+                    $('#id_tramitacao_select').append('<option value="">Selecione uma opção..</option>');
                     for (const property in data) {
                         console.log(tramitacao_salvo + "===" + property)
                         const option = $(`<option value="${property}">${data[property].data_tramitacao} - ${data[property].status}</option>`)

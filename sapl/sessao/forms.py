@@ -368,8 +368,6 @@ class ExpedienteMateriaForm(ModelForm):
         if not self.is_valid():
             return cleaned_data
 
-        sessao = self.instance.sessao_plenaria
-
         try:
             materia = MateriaLegislativa.objects.get(
                 numero=self.cleaned_data['numero_materia'],
@@ -383,28 +381,26 @@ class ExpedienteMateriaForm(ModelForm):
             cleaned_data['materia'] = materia
 
         try:
-            id_t = self.cleaned_data['tramitacao_select'] if self.cleaned_data['tramitacao_select'] != '' else -1
-            tramitacao = materia.tramitacao_set.get(
-                pk=self.cleaned_data['tramitacao_select'] if self.cleaned_data['tramitacao_select'] != '' else -1)
+            if materia.tramitacao_set.exists() and self.cleaned_data['tramitacao_select']:
+                tramitacao = materia.tramitacao_set.get(
+                    pk=self.cleaned_data['tramitacao_select'])
+                cleaned_data['tramitacao'] = tramitacao
         except ObjectDoesNotExist:
-            if self.cleaned_data['tramitacao_select'] != '':
-                raise ValidationError(
-                    _('Tramitação selecionada não existe para a Matéria: %(value)s'),
-                    code='invalid',
-                    params={'value': self.cleaned_data['tramitacao_select']},
-                )
-            else:
-                cleaned_data['tramitacao'] = False
-        else:
-            cleaned_data['tramitacao'] = tramitacao
+            raise ValidationError(
+                _('Tramitação selecionada não existe para a Matéria: %(value)s'),
+                code='invalid',
+                params={'value': self.cleaned_data['tramitacao_select']},
+            )
 
         return cleaned_data
 
     def save(self, commit=False):
         expediente = super(ExpedienteMateriaForm, self).save(commit)
         expediente.materia = self.cleaned_data['materia']
-        if self.cleaned_data['tramitacao'] is not False:
+        if 'tramitacao' in self.cleaned_data and self.cleaned_data['tramitacao']:
             expediente.tramitacao = self.cleaned_data['tramitacao']
+        else:
+            expediente.tramitacao = None
         expediente.save()
         return expediente
 
