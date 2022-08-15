@@ -281,7 +281,6 @@ class AppConfig(models.Model):
         value = cache.get(f'sapl_{attr}')
         if not value is None:
             return value
-        print(f'entrou aqui para {attr}')
 
         config = AppConfig.objects.first()
 
