@@ -4,7 +4,9 @@ import datetime
 import itertools
 import logging
 import os
+import re
 
+from django.apps.registry import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model, views
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -32,8 +34,8 @@ from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.query import SearchQuerySet
 from haystack.views import SearchView
-
 from ratelimit.decorators import ratelimit
+
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
@@ -1893,6 +1895,7 @@ class UserCrud(Crud):
         list_field_names = [
             'usuario', 'groups', 'is_active'
         ]
+
         def openapi_url(self):
             return ''
 
@@ -1926,7 +1929,6 @@ class UserCrud(Crud):
 
     class DetailView(Crud.DetailView):
         layout_key = 'UserDetail'
-
 
         def hook_usuario(self, obj):
             return 'Usuário', '{}<br><small>{}</small>'.format(
@@ -2100,9 +2102,44 @@ class AppConfigCrud(CrudAux):
                         kwargs={'pk': app_config.pk}))
 
     class UpdateView(CrudAux.UpdateView):
-
-        template_name = 'base/AppConfig.html'
         form_class = ConfiguracoesAppForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.model._meta.verbose_name
+            return context
+
+        def get(self, request, *args, **kwargs):
+            if 'jsidd' in request.GET:
+                return self.json_simular_identificacao_de_documentos(request, *args, **kwargs)
+
+            return super().get(request, *args, **kwargs)
+
+        def json_simular_identificacao_de_documentos(self, request, *args, **kwargs):
+
+            DocumentoAdministrativo = apps.get_model(
+                'protocoloadm',
+                'DocumentoAdministrativo'
+            )
+
+            d = DocumentoAdministrativo.objects.order_by('-id').first()
+
+            jsidd = request.GET.get('jsidd', '')
+            values = {
+                '{sigla}': d.tipo.sigla if d else 'OF',
+                '{nome}': d.tipo.descricao if d else 'Ofício',
+                '{numero}': f'{d.numero:0>3}' if d else '001',
+                '{ano}': f'{d.ano}' if d else str(timezone.now().year),
+                '{complemento}': d.complemento if d else 'GAB',
+                '{assunto}': d.assunto if d else 'Simulação de Identificação de Documentos'
+            }
+
+            result = DocumentoAdministrativo.mask_to_str(values, jsidd)
+
+            return JsonResponse({
+                'jsidd': result[0],
+                'error': list(result[1])
+            })
 
         def form_valid(self, form):
             numeracao = AppConfig.objects.last().sequencia_numeracao_protocolo

@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields.jsonb import JSONField
+from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.deletion import CASCADE
@@ -93,63 +94,124 @@ class AppConfig(models.Model):
         ('N', _('Nunca Protocolar ao incorporar uma proposição')),
     )
 
-    documentos_administrativos = models.CharField(
-        max_length=1,
-        verbose_name=_('Visibilidade dos Documentos Administrativos'),
-        choices=TIPO_DOCUMENTO_ADMINISTRATIVO, default='O')
+    # MANTENHA A SEQUÊNCIA EQUIVALENTE COM /sapl/templates/base/layout.yaml
+    # AppConfig:
 
-    estatisticas_acesso_normas = models.CharField(
-        max_length=1,
-        verbose_name=_('Estatísticas de acesso a normas'),
-        choices=RELATORIO_ATOS_ACESSADOS, default='N')
-
-    sequencia_numeracao_proposicao = models.CharField(
-        max_length=1,
-        verbose_name=_('Sequência de numeração de proposições'),
-        choices=SEQUENCIA_NUMERACAO_PROPOSICAO, default='A')
-
-    sequencia_numeracao_protocolo = models.CharField(
-        max_length=1,
-        verbose_name=_('Sequência de numeração de protocolos'),
-        choices=SEQUENCIA_NUMERACAO_PROTOCOLO, default='A')
-
-    inicio_numeracao_protocolo = models.PositiveIntegerField(
-        verbose_name=_('Início da numeração de protocolo'),
-        default=1
-    )
-
+    # CONFIGURAÇÕES GERAIS
+    # Linha 1 ------------
     esfera_federacao = models.CharField(
         max_length=1,
         blank=True,
         default="",
         verbose_name=_('Esfera Federação'),
         choices=ESFERA_FEDERACAO_CHOICES)
+    sapl_as_sapn = models.BooleanField(
+        verbose_name=_(
+            'Utilizar SAPL como SAPN?'),
+        choices=YES_NO_CHOICES, default=False)
 
-    # TODO: a ser implementado na versão 3.2
-    # painel_aberto = models.BooleanField(
-    #     verbose_name=_('Painel aberto para usuário anônimo'),
-    #     choices=YES_NO_CHOICES, default=False)
+    # MÓDULO PARLAMENTARES
 
+    # MÓDULO MESA DIRETORA
+
+    # MÓDULO COMISSÕES
+
+    # MÓDULO BANCADAS PARLAMENTARES
+
+    # MÓDULO DOCUMENTOS ADMINISTRATIVOS
+    # Linha 1 -------------------------
+    documentos_administrativos = models.CharField(
+        max_length=1,
+        verbose_name=_('Visibilidade dos Documentos Administrativos'),
+        choices=TIPO_DOCUMENTO_ADMINISTRATIVO, default='O')
+    tramitacao_documento = models.BooleanField(
+        verbose_name=_(
+            'Tramitar documentos anexados junto com os documentos principais?'),
+        choices=YES_NO_CHOICES, default=True)
+    # Linha 2 -------------------------
+    protocolo_manual = models.BooleanField(
+        verbose_name=_('Permitir informe manual de data e hora de protocolo?'),
+        choices=YES_NO_CHOICES, default=False)
+    sequencia_numeracao_protocolo = models.CharField(
+        max_length=1,
+        verbose_name=_('Sequência de numeração de protocolos'),
+        choices=SEQUENCIA_NUMERACAO_PROTOCOLO, default='A')
+    inicio_numeracao_protocolo = models.PositiveIntegerField(
+        verbose_name=_('Início da numeração de protocolo'),
+        default=1
+    )
+    # Linha 3 -------------------------
+    identificacao_de_documentos = models.CharField(
+        max_length=254,
+        verbose_name=_('Formato da identificação dos documentos'),
+        default='{sigla} Nº {numero}/{ano}{-}{complemento} - {nome}',
+        help_text="""
+        Como mostrar a identificação dos documentos administrativos?
+        Você pode usar um conjunto de combinações que pretender.
+        Ao fazer sua edição, será mostrado logo abaixo o último documento cadastrado, como exemplo de resultado de sua edição.
+        Em caso de erro, nenhum documento será mostrado e aparecerá apenas o formato padrão mínimo, que é este: "{sigla} Nº {numero}/{ano}{-}{complemento} - {nome}".
+        Muito importante, use as chaves "{}", sem elas, você estará inserindo um texto qualquer e não o valor de um campo.
+        Você pode combinar as seguintes campos: {sigla} {nome} {numero} {ano} {complemento} {assunto}
+        Ainda pode ser usado {/}, {-}, {.} se você quiser que uma barra, traço, ou ponto
+        seja adicionado apenas se o próximo campo que será usado tenha algum conteúdo
+        (não use dois destes destes condicionais em sequência, somente o último será considerado).
+        """
+    )
+
+    # MÓDULO PROPOSIÇÕES
+    # Linha 1 ----------
+    sequencia_numeracao_proposicao = models.CharField(
+        max_length=1,
+        verbose_name=_('Sequência de numeração de proposições'),
+        choices=SEQUENCIA_NUMERACAO_PROPOSICAO, default='A')
+    receber_recibo_proposicao = models.BooleanField(
+        verbose_name=_('Protocolar proposição somente com recibo?'),
+        choices=YES_NO_CHOICES, default=True)
+    proposicao_incorporacao_obrigatoria = models.CharField(
+        verbose_name=_('Regra de incorporação de proposições e protocolo'),
+        max_length=1, choices=POLITICA_PROTOCOLO_CHOICES, default='O')
+    escolher_numero_materia_proposicao = models.BooleanField(
+        verbose_name=_(
+            'Indicar número da matéria a ser gerada na proposição?'),
+        choices=YES_NO_CHOICES, default=False)
+
+    # MÓDULO MATÉRIA LEGISLATIVA
+    # Linha 1 ------------------
+    tramitacao_origem_fixa = models.BooleanField(
+        verbose_name=_(
+            'Fixar origem de novas tramitações como sendo a tramitação de destino da última tramitação?'),
+        choices=YES_NO_CHOICES,
+        default=True,
+        help_text=_('Ao utilizar a opção NÂO, você compreende que os controles '
+                    'de origem e destino das tramitações são anulados, '
+                    'podendo seu operador registrar quaisquer origem e '
+                    'destino para as tramitações. Se você colocar Não, '
+                    'fizer tramitações aleatórias e voltar para SIM, '
+                    'o destino da tramitação mais recente será utilizado '
+                    'para a origem de uma nova inserção!'))
+    tramitacao_materia = models.BooleanField(
+        verbose_name=_(
+            'Tramitar matérias anexadas junto com as matérias principais?'),
+        choices=YES_NO_CHOICES, default=True)
+
+    # MÓDULO NORMAS JURÍDICAS
+    # MÓDULO TEXTOS ARTICULADOS
+    # Linha 1 -----------------
     texto_articulado_proposicao = models.BooleanField(
         verbose_name=_('Usar Textos Articulados para Proposições'),
         choices=YES_NO_CHOICES, default=False)
-
     texto_articulado_materia = models.BooleanField(
         verbose_name=_('Usar Textos Articulados para Matérias'),
         choices=YES_NO_CHOICES, default=False)
-
     texto_articulado_norma = models.BooleanField(
         verbose_name=_('Usar Textos Articulados para Normas'),
         choices=YES_NO_CHOICES, default=True)
 
-    proposicao_incorporacao_obrigatoria = models.CharField(
-        verbose_name=_('Regra de incorporação de proposições e protocolo'),
-        max_length=1, choices=POLITICA_PROTOCOLO_CHOICES, default='O')
-
+    # MÓDULO SESSÃO PLENÁRIA
     assinatura_ata = models.CharField(
         verbose_name=_('Quem deve assinar a ata'),
         max_length=1, choices=ASSINATURA_ATA_CHOICES, default='T')
-
+    # MÓDULO PAINEL
     cronometro_discurso = models.DurationField(
         verbose_name=_('Cronômetro do Discurso'),
         blank=True,
@@ -174,41 +236,20 @@ class AppConfig(models.Model):
         default=False,
         verbose_name=_('Mostrar brasão da Casa no painel?'))
 
-    receber_recibo_proposicao = models.BooleanField(
-        verbose_name=_('Protocolar proposição somente com recibo?'),
-        choices=YES_NO_CHOICES, default=True)
+    # MÓDULO ESTATÍSTICAS DE ACESSO
+    estatisticas_acesso_normas = models.CharField(
+        max_length=1,
+        verbose_name=_('Estatísticas de acesso a normas'),
+        choices=RELATORIO_ATOS_ACESSADOS, default='N')
 
-    protocolo_manual = models.BooleanField(
-        verbose_name=_('Informar data e hora de protocolo?'),
-        choices=YES_NO_CHOICES, default=False)
+    # MÓDULO SEGURANÇA
 
-    escolher_numero_materia_proposicao = models.BooleanField(
-        verbose_name=_(
-            'Indicar número da matéria a ser gerada na proposição?'),
-        choices=YES_NO_CHOICES, default=False)
+    # MÓDULO LEXML
 
-    tramitacao_origem_fixa = models.BooleanField(
-        verbose_name=_(
-            'Fixar origem de novas tramitações como sendo a tramitação de destino da última tramitação?'),
-        choices=YES_NO_CHOICES,
-        default=True,
-        help_text=_('Ao utilizar a opção NÂO, você compreende que os controles '
-                    'de origem e destino das tramitações são anulados, '
-                    'podendo seu operador registrar quaisquer origem e '
-                    'destino para as tramitações. Se você colocar Não, '
-                    'fizer tramitações aleatórias e voltar para SIM, '
-                    'o destino da tramitação mais recente será utilizado '
-                    'para a origem de uma nova inserção!'))
-
-    tramitacao_materia = models.BooleanField(
-        verbose_name=_(
-            'Tramitar matérias anexadas junto com as matérias principais?'),
-        choices=YES_NO_CHOICES, default=True)
-
-    tramitacao_documento = models.BooleanField(
-        verbose_name=_(
-            'Tramitar documentos anexados junto com os documentos principais?'),
-        choices=YES_NO_CHOICES, default=True)
+    # TODO: a ser implementado na versão 3.2
+    # painel_aberto = models.BooleanField(
+    #     verbose_name=_('Painel aberto para usuário anônimo'),
+    #     choices=YES_NO_CHOICES, default=False)
 
     google_recaptcha_site_key = models.CharField(
         verbose_name=_('Chave pública gerada pelo Google Recaptcha'),
@@ -216,11 +257,6 @@ class AppConfig(models.Model):
     google_recaptcha_secret_key = models.CharField(
         verbose_name=_('Chave privada gerada pelo Google Recaptcha'),
         max_length=256, default='')
-
-    sapl_as_sapn = models.BooleanField(
-        verbose_name=_(
-            'Utilizar SAPL como SAPN?'),
-        choices=YES_NO_CHOICES, default=False)
 
     class Meta:
         verbose_name = _('Configurações da Aplicação')
@@ -231,15 +267,32 @@ class AppConfig(models.Model):
         )
         ordering = ('-id',)
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        fields = self._meta.get_fields()
+        for f in fields:
+            if f.name != 'id' and not cache.get(f'sapl_{f.name}') is None:
+                cache.set(f'sapl_{f.name}', getattr(self, f.name), 600)
+
+        return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+
     @classmethod
     def attr(cls, attr):
+        value = cache.get(f'sapl_{attr}')
+        if not value is None:
+            return value
+        print(f'entrou aqui para {attr}')
+
         config = AppConfig.objects.first()
 
         if not config:
             config = AppConfig()
             config.save()
 
-        return getattr(config, attr)
+        value = getattr(config, attr)
+        cache.set(f'sapl_{attr}', value, 600)
+
+        return value
 
     def __str__(self):
         return _('Configurações da Aplicação - %(id)s') % {

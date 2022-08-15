@@ -151,7 +151,9 @@ class NormaJuridica(models.Model):
         verbose_name=_('Tipo da Norma Jurídica'))
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
-        on_delete=models.PROTECT, verbose_name=_('Matéria'))
+        on_delete=models.PROTECT,
+        verbose_name=_('Matéria'),
+        related_name='normajuridica_set')
     orgao = models.ForeignKey(
         Orgao, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Órgão'))

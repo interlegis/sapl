@@ -1,6 +1,6 @@
 from functools import wraps
 import hashlib
-from itertools import groupby
+from itertools import groupby, chain
 import logging
 from operator import itemgetter
 import os
@@ -26,6 +26,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.mail import get_connection
 from django.db import models
 from django.db.models import Q
+from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
 from django.forms.widgets import SplitDateTimeWidget
 from django.utils import six, timezone

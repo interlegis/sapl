@@ -1783,7 +1783,7 @@ class VinculoDocAdminMateriaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['title'] = self.object.documento.epigrafe
+            context['title'] = self.object.documento
             return context
 
         def get_initial(self):
