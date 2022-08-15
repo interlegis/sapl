@@ -1042,7 +1042,7 @@ class Correspondencia(models.Model):
     TIPO_CHOICES = Choices(
         (1, 'recebida', 'Recebida'),
         (2, 'enviada', 'Enviada'),
-        (2, 'interna', 'Interna'),
+        (3, 'interna', 'Interna'),
     )
 
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
