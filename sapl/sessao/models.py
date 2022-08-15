@@ -375,7 +375,7 @@ class AbstractOrdemDia(models.Model):
                                 verbose_name=_('Matéria'))
     tramitacao = models.ForeignKey(Tramitacao,
                                    on_delete=models.PROTECT,
-                                   verbose_name=_('Situação Atual'),
+                                   verbose_name=_('Situação de Pauta'),
                                    blank=True,
                                    default='',
                                    null=True)
