@@ -1045,12 +1045,15 @@ class Correspondencia(models.Model):
         (3, 'interna', 'Interna'),
     )
 
-    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
-                                        on_delete=models.CASCADE,
-                                        related_name='correspondencia_set')
-    documento = models.ForeignKey(DocumentoAdministrativo,
-                                  on_delete=models.PROTECT,
-                                  verbose_name=_('Documento Administrativo'))
+    sessao_plenaria = models.ForeignKey(
+        SessaoPlenaria,
+        on_delete=models.CASCADE,
+        related_name='correspondencia_set',
+        verbose_name=_('Sessão Plenária'))
+    documento = models.ForeignKey(
+        DocumentoAdministrativo,
+        on_delete=models.PROTECT,
+        verbose_name=_('Documento Administrativo'))
 
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
@@ -1071,4 +1074,4 @@ class Correspondencia(models.Model):
         return self.documento.assunto
 
     def __str__(self):
-        return _('Correspondência: {}').format(self.documento.epigrafe)
+        return _('Correspondência: {}').format(self.documento)

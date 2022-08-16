@@ -26,7 +26,7 @@
                       ${data.restrito? '<strong>ATENÇÃO, este é um documento restrito!!!</strong><br>':''}
                       ${!data.is_ostensivo? '<strong>ATENÇÃO, os documentos administrativos estão configurados globalmente como restritos!!!</strong><br>':''}
                       <strong>${data.epigrafe}</strong><br>
-                      <strong>Data do Documento: </strong>${data.data}<br>
+                      <strong>Data do Documento: </strong>${data.data} - <strong>Interessado: </strong>${data.interessado?data.interessado:'Não Informado.'}<br>
                       <strong>Assunto:</strong> ${data.assunto}<br><br>
                       `
                   )

@@ -3,9 +3,10 @@
   <p align="justify">
     <strong>Correspondências:</strong>
     {% for c in correspondencias %}
-        {{forloop.counter}}) <strong>{{c.tipo}}</strong> - <strong>{{c.epigrafe}}</strong> -
-        <strong>Data: </strong>{{c.data}} -
-        <strong>Assunto:</strong> {{c.assunto}};
+        <strong>{{forloop.counter}})</strong> {{c.tipo}} -
+        <strong>{{c.epigrafe}}</strong> -
+        {% if c.interessado %}Interessado: {{c.interessado}} - {% endif %}
+        Assunto: {{c.assunto}};
     {% endfor %}
   </p>
 </fieldset>

@@ -583,6 +583,7 @@ def get_sessao_plenaria(sessao, casa, user):
                 'tipo': c.get_tipo_display(),
                 'epigrafe': d.epigrafe,
                 'data': d.data.strftime('%d/%m/%Y'),
+                'interessado': d.interessado,
                 'assunto': d.assunto,
                 'restrito': d.restrito,
                 'is_ostensivo': is_ostensivo

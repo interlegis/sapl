@@ -1995,8 +1995,9 @@ def get_correspondencias(sessao_plenaria, user):
             {
                 'id': d.id,
                 'tipo': c.get_tipo_display(),
-                'epigrafe': d.epigrafe,
+                'epigrafe': d,
                 'data': d.data.strftime('%d/%m/%Y'),
+                'interessado': d.interessado,
                 'assunto': d.assunto,
                 'restrito': d.restrito,
                 'is_ostensivo': is_ostensivo
@@ -3868,8 +3869,9 @@ class PautaSessaoDetailView(DetailView):
                 {
                     'id': d.id,
                     'tipo': c.get_tipo_display(),
-                    'epigrafe': d.epigrafe,
+                    'epigrafe': d,
                     'data': d.data.strftime('%d/%m/%Y'),
+                    'interessado': d.interessado,
                     'assunto': d.assunto,
                     'restrito': d.restrito,
                     'is_ostensivo': is_ostensivo
@@ -5074,7 +5076,7 @@ def recuperar_documento(request):
     return JsonResponse(
         {
             'id': d.id,
-            'epigrafe': d.epigrafe,
+            'epigrafe': d,
             'data': d.data.strftime('%d/%m/%Y'),
             'assunto': d.assunto,
             'restrito': d.restrito,
@@ -5091,7 +5093,16 @@ class CorrespondenciaCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = [('ordem_tipo'),
-                            'correspondencia', 'documento__data', 'documento']
+                            ('documento__data', 'documento__interessado'), 'documento']
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            s = SessaoPlenaria.objects.get(pk=context['root_pk'])
+            context.update({
+                'subnav_template_name': 'sessao/subnav-solene.yaml'
+                if s.tipo.nome == "Solene" else 'sessao/subnav.yaml'})
+
+            return context
 
         @property
         def verbose_name(self):
@@ -5131,14 +5142,6 @@ class CorrespondenciaCrud(MasterDetailCrud):
             else:
                 return f'{obj.get_tipo_display()}', url
 
-        def hook_header_correspondencia(self, *args, **kwargs):
-            return force_text(_('Correspondência'))
-
-        def hook_correspondencia(self, obj, ss, url):
-            return obj.documento.epigrafe, reverse_lazy(
-                'sapl.protocoloadm:documentoadministrativo_detail',
-                kwargs={'pk': obj.documento.id})
-
     class CreateView(MasterDetailCrud.CreateView):
         form_class = CorrespondenciaForm
 
@@ -5157,7 +5160,7 @@ class CorrespondenciaCrud(MasterDetailCrud):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['title'] = self.object.documento.epigrafe
+            context['title'] = self.object.documento
             return context
 
         def get_initial(self):
@@ -5179,6 +5182,9 @@ class CorrespondenciaCrud(MasterDetailCrud):
             context['title'] = self.object.sessao_plenaria
             return context
 
+        def hook_header_sessao_plenaria(self, *args, **kwargs):
+            return _('Sessão Plenária')
+
         def hook_documento(self, obj, verbose_name=None, field_display=None):
             d = obj.documento
             url = reverse(
@@ -5187,7 +5193,7 @@ class CorrespondenciaCrud(MasterDetailCrud):
             )
             return (
                 verbose_name,
-                f'<a href="{url}">{d.epigrafe}</a><br>{d.assunto}'
+                f'<a href="{url}">{d}</a><br>{d.assunto}'
             )
 
         def get_object(self, queryset=None):
@@ -5218,12 +5224,9 @@ class CorrespondenciaEmLoteView(PermissionRequiredMixin, FilterView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        context['root_pk'] = self.kwargs['pk']
         s = SessaoPlenaria.objects.get(pk=self.kwargs['pk'])
 
-        context['subnav_template_name'] = 'sessao/subnav.yaml'
-
+        context['root_pk'] = self.kwargs['pk']
         context['title'] = _(
             'Correspondencias em Lote <small>({})</small>').format(s)
 

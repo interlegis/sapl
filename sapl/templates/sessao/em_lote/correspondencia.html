@@ -57,7 +57,7 @@
                       <label for="doc_{{documento.id}}" class="d-flex w-100 p-3">
                         <input type="checkbox" id="doc_{{documento.id}}" name="documento_id" value="{{documento.id}}" {% if check %} checked {% endif %}/>
                         <span>
-                          {{documento.epigrafe}} - {{documento.assunto}}
+                          {{documento}} - {{documento.assunto}}
                           {% if documento.restrito %}<br><small class="text-danger" >(Documento Restrito)</small> {% endif %}
                         </span>
 
