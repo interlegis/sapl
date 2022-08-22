@@ -141,14 +141,20 @@ def verifica_votacoes_abertas(request):
                 v.__str__()))
         username = request.user.username
         logger.info('user=' + username + '. Já existem votações ou leituras abertas nas seguintes Sessões: ' +
-                    ', '.join(msg_abertas) + '. Para abrir '
-                    'outra, termine ou feche as votações ou leituras abertas.')
+                    ', '.join(msg_abertas) + '. Estas votações ou leituras foram fechadas.')
         msg = _('Já existem votações ou leituras abertas nas seguintes Sessões: ' +
-                ', '.join(msg_abertas) + '. Para abrir '
-                'outra, termine ou feche as votações ou leituras abertas.')
+                ', '.join(msg_abertas) + '. Estas votações ou leituras foram fechadas.')
         messages.add_message(request, messages.INFO, msg)
 
-        return False
+        for sessao in votacoes_abertas:
+            ordens = sessao.ordemdia_set.filter(votacao_aberta=True)
+            expediente = sessao.expedientemateria_set.filter(votacao_aberta=True)
+            for o in ordens:
+                o.votacao_aberta = False
+                o.save()
+            for e in expediente:
+                e.votacao_aberta = False
+                e.save()
 
     return True
 
