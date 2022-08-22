@@ -1539,7 +1539,7 @@ def relatorio_sessao_plenaria_pdf(request, pk):
 
     dict_ord_template = {
         'cont_mult': 'conteudo_multimidia.html',
-        'correspondencias': 'correspondencias.html',
+        'correspondencia': 'correspondencias.html',
         'exp': 'expedientes.html',
         'id_basica': 'identificacao_basica.html',
         'lista_p': 'lista_presenca_sessao.html',
