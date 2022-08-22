@@ -1,3 +1,5 @@
+@import "~bootstrap/scss/variables";
+
 .navbar {
   padding: 0;
 }
@@ -26,7 +28,7 @@
       border-radius: 0;
     }
     a {
-      padding: 0 $grid-gutter-width / 2;
+      padding: 0 calc($grid-gutter-width / 2);
       line-height: 2.3rem;
       display: block;
       text-decoration: none;
@@ -45,14 +47,14 @@
     }
   }
   .search-form {
-    padding: $grid-gutter-width / 3;
+    padding: calc($grid-gutter-width / 3);
     min-width: 20%;;
   }
   a:not([href]):not([tabindex]) {
     color: #777;
   }
 
-  &.justify-content-end { 
+  &.justify-content-end {
     .dropdown-menu {
       left: auto;
       right: 0px;
@@ -71,7 +73,7 @@
       a {
         color: white;
       }
-    } 
+    }
   }
 
 }
