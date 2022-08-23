@@ -53,7 +53,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = SessaoPlenaria
-        exclude = ['cod_andamento_sessao']
+        exclude = ['cod_andamento_sessao', 'correspondencias']
 
     def clean(self):
         super(SessaoPlenariaForm, self).clean()
