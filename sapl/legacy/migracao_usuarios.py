@@ -71,7 +71,7 @@ def migrar_usuarios(dir_repo):
 
     ARQUIVO_USUARIOS = Path(dir_repo).child('usuarios.yaml')
     with open(ARQUIVO_USUARIOS, 'r') as f:
-        usuarios = yaml.load(f, yaml.Loader)
+        usuarios = yaml.load(f, yaml.SafeLoader)
     # conferimos de que só há um nome de usuário
     assert all(nome == dados['name'] for nome, dados in usuarios.items())
     usuarios = [

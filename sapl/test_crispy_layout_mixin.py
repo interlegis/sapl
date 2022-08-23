@@ -18,7 +18,7 @@ ModelName:
   - highlander '''
 
     with mock.patch('sapl.crispy_layout_mixin.read_yaml_from_file') as ryff:
-        ryff.return_value = yaml.load(stub_content, yaml.Loader)
+        ryff.return_value = yaml.load(stub_content, yaml.SafeLoader)
         assert read_layout_from_yaml('....', 'ModelName') == [
             ['Cool Legend',
              [('name', 9),  ('place', 2), ('tiny', 1)],
