@@ -14,7 +14,7 @@ django-reversion-compare==0.8.6
 django-speedinfo==1.4.0
 django-extensions==2.1.4
 django-image-cropping==1.2
-django-webpack-loader==0.6.0
+django-webpack-loader==1.6.0
 drf-spectacular==0.18.2
 django-ratelimit==3.0.1
 easy-thumbnails==2.5
