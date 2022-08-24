@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction
 from django.db.models import F, Q
 from django.db.models.aggregates import Max
 from django.db.models.deletion import PROTECT
@@ -475,48 +475,44 @@ class TextoArticulado(TimestampedMixin):
 
         view_integracao = view_integracao[0]
 
-        ta = TextoArticulado.update_or_create(view_integracao, obj)
+        origem = self
+        destino = TextoArticulado.update_or_create(view_integracao, obj)
 
-        dispositivos = Dispositivo.objects.filter(ta=self).order_by('ordem')
+        dispositivos = Dispositivo.objects.filter(ta=origem).order_by('ordem')
 
-        map_ids = {}
-        for d in dispositivos:
-            id_old = d.id
+        with transaction.atomic():
+            map_ids = {}
+            for d in dispositivos:
+                id_old = d.id
 
-            # TODO
-            # validar isso: é o suficiente para pegar apenas o texto válido?
-            # exemplo:
-            #  quando uma matéria for alterada por uma emenda
-            #  ao usar esta função para gerar uma norma deve vir apenas
-            #  o texto válido, compilado...
-            if d.dispositivo_subsequente:
-                continue
+                if d.dispositivo_subsequente:
+                    continue
 
-            d.id = None
-            d.inicio_vigencia = ta.data
-            d.fim_vigencia = None
-            d.inicio_eficacia = ta.data
-            d.fim_eficacia = None
-            d.publicacao = None
-            d.ta = ta
-            d.ta_publicado = None
-            d.dispositivo_subsequente = None
-            d.dispositivo_substituido = None
-            d.dispositivo_vigencia = None
-            d.dispositivo_atualizador = None
-            d.save()
-            map_ids[id_old] = d.id
+                d.id = None
+                d.inicio_vigencia = destino.data
+                d.fim_vigencia = None
+                d.inicio_eficacia = destino.data
+                d.fim_eficacia = None
+                d.publicacao = None
+                d.ta = destino
+                d.ta_publicado = None
+                d.dispositivo_subsequente = None
+                d.dispositivo_substituido = None
+                d.dispositivo_vigencia = None
+                d.dispositivo_atualizador = None
+                d.save()
+                map_ids[id_old] = d.id
 
-        dispositivos = Dispositivo.objects.filter(ta=ta).order_by('ordem')
+            dispositivos = Dispositivo.objects.filter(
+                ta=destino).order_by('ordem')
 
-        for d in dispositivos:
-            if not d.dispositivo_pai:
-                continue
+            for d in dispositivos:
+                if not d.dispositivo_pai:
+                    continue
 
-            d.dispositivo_pai_id = map_ids[d.dispositivo_pai_id]
-            d.save()
-
-        return ta
+                d.dispositivo_pai_id = map_ids[d.dispositivo_pai_id]
+                d.save()
+        return destino
 
     def reagrupar_ordem_de_dispositivos(self):
 

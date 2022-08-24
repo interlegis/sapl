@@ -6,6 +6,7 @@ import sys
 from braces.views import FormMessagesMixin
 from bs4 import BeautifulSoup
 from django import forms
+from django.apps.registry import apps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -1110,7 +1111,44 @@ class TextEditView(CompMixin, TemplateView):
         self.object = self.ta
         return self.object.has_edit_permission(self.request)
 
+    def importar_texto_materia(self, request, *args, **kwargs):
+        rd = redirect(to=reverse_lazy(
+            'sapl.compilacao:ta_text_edit', kwargs={
+                'ta_id': self.object.id}))
+
+        if self.object.dispositivos_set.count() > 1:
+            messages.error(
+                request,
+                _('Este Texto Articulado possui conteúdo, '
+                  'para fazer a importação você deve deixar '
+                  'apenas uma única Articulação inicial.'))
+            return rd
+
+        materia = self.materia_da_norma_deste_texto_articulado()
+        if not materia:
+            messages.error(
+                request,
+                _('A Norma [{}] não está vinculada a nenhuma matéria.'.format(self.object.content_object)))
+            return rd
+
+        self.object.dispositivos_set.all().delete()
+
+        ta_materia = materia.texto_articulado.first()
+
+        try:
+            ta_materia.clone_for(self.object.content_object)
+            #TextoArticulado.clone(ta_materia, self.object)
+        except Exception as e:
+            messages.error(
+                request,
+                _('Ocorreu erro na importação e o procedimento foi cancelado!'))
+
+        return rd
+
     def get(self, request, *args, **kwargs):
+
+        if 'importar_texto_materia' in request.GET:
+            return self.importar_texto_materia(request, *args, **kwargs)
 
         if self.object.editing_locked:
             if 'unlock' not in request.GET:
@@ -1347,6 +1385,16 @@ class TextEditView(CompMixin, TemplateView):
                     d, ta_publicado)
 
         return ''
+
+    def materia_da_norma_deste_texto_articulado(self):
+        NormaJuridica = apps.get_model(
+            'norma', 'NormaJuridica')
+        ta = self.ta
+
+        if isinstance(ta.content_object, NormaJuridica) and\
+                ta.content_object.materia:
+            return ta.content_object.materia
+        return None
 
     def runBase(self):
         result = Dispositivo.objects.filter(ta_id=self.kwargs['ta_id'])

@@ -17,11 +17,38 @@
               <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-outline-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
         {% endif %}
       </div>
-      <div class="actions btn-group" role="group">
-        <a href="{% url 'sapl.compilacao:ta_edit' object.pk %}" class="btn btn-outline-primary">{% trans 'Editar Metadados do Texto Articulado' %}</a>
+      <div class="actions btn-group dropleft" role="group">
         {% include 'compilacao/textoarticulado_menu_config.html' %}
       </div>
     </div>
+    {% if object.dispositivos_set.count == 1 %}
+      {% with view.materia_da_norma_deste_texto_articulado as materia %}
+          {% if materia %}
+            <div class="container">
+              <div class="card  text-white bg-info mb-3">
+                <div class="card-header">
+                  <strong>
+                    Importação de Texto!
+                  </strong>
+                </div>
+                <div class="card-body ">
+                  <h3 class="card-title">Esta Norma Jurídica está vinculada a uma Matéria Legislativa - {{ materia }}.<br>
+                    Esta Matéria possui Texto Articulado com {{materia.texto_articulado.all.first.dispositivos_set.count}} dispositivos.</h3>
+                  <div class="container">
+                    <h3 class="card-text text-dark float-right">Importar o texto da matéria?</h3>
+                    <br><br>
+                    <a href="?importar_texto_materia" class="btn btn-secondary float-right">Importar</a>
+                  </div>
+                  <div class="container">
+                    Caso haja compilação da Matéria com Emendas, virá o texto compilado.<br>
+                    É recomendado que, caso registre-se a compilação de emendas, o faça após terem sido aprovadas.
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endwith %}
+    {% endif %}
   {% endif %}
 {% endblock actions %}
 
