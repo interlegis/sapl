@@ -251,7 +251,7 @@ class DocumentoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Documento Administrativo')
         verbose_name_plural = _('Documentos Administrativos')
-        ordering = ('id',)
+        ordering = ('ano', 'numero', 'id',)
 
     @classmethod
     def mask_to_str(cls, values, mask):
