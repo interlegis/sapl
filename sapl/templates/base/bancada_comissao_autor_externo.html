@@ -20,7 +20,7 @@
             <tr>
               <td>{{ descricao_objeto }}</td>
               <td>
-                <a href="{% url 'sapl_index' %}{{ link }}/{{ objeto.pk }}">{{ objeto }}</a>
+                <a href="{% url 'sapl.base:sapl_index' %}{{ link }}/{{ objeto.pk }}">{{ objeto }}</a>
               </td>
               <td>
                 <a href="{% url 'sapl.base:autor_detail' autor.pk %}">{{ autor.nome }}</a>
