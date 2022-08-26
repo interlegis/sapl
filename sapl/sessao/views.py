@@ -2001,7 +2001,7 @@ def get_correspondencias(sessao_plenaria, user):
             {
                 'id': d.id,
                 'tipo': c.get_tipo_display(),
-                'epigrafe': d,
+                'epigrafe': str(d),
                 'data': d.data.strftime('%d/%m/%Y'),
                 'interessado': d.interessado,
                 'assunto': d.assunto,
@@ -3875,7 +3875,7 @@ class PautaSessaoDetailView(DetailView):
                 {
                     'id': d.id,
                     'tipo': c.get_tipo_display(),
-                    'epigrafe': d,
+                    'epigrafe': str(d),
                     'data': d.data.strftime('%d/%m/%Y'),
                     'interessado': d.interessado,
                     'assunto': d.assunto,
@@ -5082,7 +5082,7 @@ def recuperar_documento(request):
     return JsonResponse(
         {
             'id': d.id,
-            'epigrafe': d,
+            'epigrafe': str(d),
             'data': d.data.strftime('%d/%m/%Y'),
             'assunto': d.assunto,
             'restrito': d.restrito,
