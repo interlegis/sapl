@@ -793,14 +793,20 @@ class UnidadeTramitacaoCrud(CrudAux):
         def get_headers(self):
             return [_('Unidade de Tramitação')]
 
+        def is_not_empty(self, value):
+            if value is None:
+                return False
+            value = value.strip().replace('&nbsp;', '')
+            return value != ''
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             for row in context['rows']:
-                if row[0][0]:  # Comissão
+                if self.is_not_empty(row[0][0]):  # Comissão
                     pass
-                elif row[1][0]:  # Órgão
+                elif self.is_not_empty(row[1][0]):  # Órgão
                     row[0] = (row[1][0], row[0][1])
-                elif row[2][0]:  # Parlamentar
+                elif self.is_not_empty(row[2][0]):  # Parlamentar
                     row[0] = (row[2][0], row[0][1])
                 row[1], row[2] = ('', ''), ('', '')
             return context
