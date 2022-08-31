@@ -5098,7 +5098,7 @@ class CorrespondenciaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = [('ordem_tipo'),
+        list_field_names = ['numero_ordem',
                             ('documento__data', 'documento__interessado'), 'documento']
 
         def get_context_data(self, **kwargs):
@@ -5139,10 +5139,10 @@ class CorrespondenciaCrud(MasterDetailCrud):
 
             return qs
 
-        def hook_header_ordem_tipo(self, *args, **kwargs):
+        def hook_header_numero_ordem(self, *args, **kwargs):
             return force_text(_('Ordem / Tipo')) if not self.request.user.is_anonymous else force_text(_('Tipo'))
 
-        def hook_ordem_tipo(self, obj, ss, url):
+        def hook_numero_ordem(self, obj, ss, url):
             if not self.request.user.is_anonymous:
                 return f'{obj.numero_ordem} - {obj.get_tipo_display()}', url
             else:
