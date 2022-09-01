@@ -6,7 +6,13 @@
             <tr>
               <td>
                 <strong>{{c.epigrafe}}</strong><br>
-                <strong>Data: </strong>{{c.data}}{% if c.interessado %} - <strong>Assunto:</strong> {{c.assunto}} - <strong>Interessado: </strong>{{c.interessado}}{% endif %}<br>
+                <strong>Data: </strong>{{c.data}}
+                {% if c.interessado %}
+                   - <strong>Interessado:</strong> {{c.interessado}}<br>
+                {% else %}
+                -
+                {% endif %}
+                <strong>Assunto: </strong>{{c.assunto}}
               </td>
             </tr>
         {% endfor %}
