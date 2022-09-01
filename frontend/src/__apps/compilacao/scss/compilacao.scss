@@ -367,6 +367,14 @@ a:link:after, a:visited:after {
         max-width: 100%;
       }
     }
+
+    .dtxt {
+      display: inline;
+      :first-child {
+        display: inline !important;
+      }
+    }
+    
     .ementa {
       padding: 2em 0em 2em 35%;
       font-weight: bold;
@@ -424,10 +432,7 @@ a:link:after, a:visited:after {
       float:left;
       .dptt {
         position: relative;
-        p {
-          
-          display: inline !important;
-        }
+
       }
     }
 
@@ -494,7 +499,6 @@ a:link:after, a:visited:after {
         }
       }
     }
-
     .card-header {
       font-size: 1.7rem;
     }
@@ -676,6 +680,9 @@ a:link:after, a:visited:after {
         }
       }
     }
+
+
+
   } /* and dpt */
 
   .tipo-vigencias {

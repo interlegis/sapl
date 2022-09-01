@@ -12,18 +12,14 @@ import 'tinymce/plugins/lists'
 import 'tinymce/plugins/table'
 
 import './langs/pt_BR.js'
-// import contentUiCss from 'tinymce/skins/ui/oxide/content.css'
-// import contentCss from 'tinymce/skins/content/default/content.css'
 
 window.tinymce = tinymce
 window.initTextRichEditor = function (elements, readonly = false) {
   const configTinymce = {
     selector: elements === null || elements === undefined ? 'textarea' : elements,
     language: 'pt_BR',
-    // skin: false,
-    // content_css: false,
-    forced_root_block: 'div',
-    // content_style: contentUiCss.toString() + '\n' + contentCss.toString(),
+    branding: false,
+    forced_root_block: 'p',
     plugins: 'table lists advlist link code',
     toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | code',
     menubar: 'file edit view insert format table'
