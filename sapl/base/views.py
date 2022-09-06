@@ -1937,7 +1937,7 @@ class UserCrud(Crud):
             )
 
         def hook_auth_token(self, obj):
-            return 'Token', str(obj.auth_token)
+            return 'Token', str(obj.auth_token) if hasattr(obj, 'auth_token') else '&nbsp;'
 
         def hook_username(self, obj):
             return 'username', obj.username

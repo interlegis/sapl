@@ -183,7 +183,8 @@ class UserAdminForm(ModelForm):
         else:
             operadorautor = self.instance.operadorautor_set.first()
             votante = self.instance.votante_set.first()
-            self.fields['token'].initial = self.instance.auth_token.key
+            self.fields['token'].initial = self.instance.auth_token.key \
+                if hasattr(self.instance, 'auth_token') else ''
             self.fields['autor'].initial = operadorautor.autor if operadorautor else None
             self.fields['parlamentar'].initial = votante.parlamentar if votante else None
 

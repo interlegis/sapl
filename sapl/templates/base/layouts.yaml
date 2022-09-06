@@ -13,8 +13,8 @@ CasaLegislativa:
 UserDetail:
   {% trans 'Usuário' %}:
   - usuario username:3 is_active:2
-  - auth_token votante_set__parlamentar|m2m_urlize_for_detail operadorautor_set__autor|m2m_urlize_for_detail
-  - groups
+  - votante_set__parlamentar|m2m_urlize_for_detail operadorautor_set__autor|m2m_urlize_for_detail
+  - groups auth_token:5
   - user_permissions
 
 AppConfig:

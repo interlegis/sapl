@@ -20,7 +20,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def recria_token(request, pk):
-    Token.objects.get(user_id=pk).delete()
+    Token.objects.filter(user_id=pk).delete()
     token = Token.objects.create(user_id=pk)
 
     return Response({"message": "Token recriado com sucesso!", "token": token.key})
