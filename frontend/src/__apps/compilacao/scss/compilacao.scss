@@ -370,11 +370,11 @@ a:link:after, a:visited:after {
 
     .dtxt {
       display: inline;
-      :first-child {
+      & > :not(table):first-child {
         display: inline !important;
       }
     }
-    
+
     .ementa {
       padding: 2em 0em 2em 35%;
       font-weight: bold;
