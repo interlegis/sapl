@@ -2,15 +2,13 @@ const HOST_NAME = 'localhost'
 const dotenv = require('dotenv')
 
 const path = require('path')
-const shell = require('shelljs')
+const fs = require('fs')
 
 const BundleTrackerPlugin = require('webpack-bundle-tracker')
 const CompressionPlugin = require('compression-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 dotenv.config({
   path: './sapl/.env'
@@ -96,7 +94,11 @@ module.exports = {
     ])
 
     if (process.env.NODE_ENV === 'production') {
-      shell.rm('frontend/dev-webpack-stats.json')
+      fs.unlink('frontend/dev-webpack-stats.json', function (err) {
+        if (err && err.code !== 'ENOENT') {
+          console.error('Error occurred while trying to remove file')
+        }
+      })
 
       config
         .plugin('CompressionPlugin')
