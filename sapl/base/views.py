@@ -1205,7 +1205,7 @@ class EstatisticasAcessoNormas(TemplateView):
         context['mais_acessadas'] = int(
             self.request.GET.get('mais_acessadas', 5))
 
-        if not context['mes']:
+        if not context['mes'] and context['mais_acessadas'] > 10:
             context['mais_acessadas'] = 10
 
         params = {
