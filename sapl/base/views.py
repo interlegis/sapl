@@ -48,7 +48,8 @@ from sapl.crud.base import CrudAux, make_pagination, Crud,\
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio, MateriaEmTramitacao, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento, TipoMateriaLegislativa, UnidadeTramitacao,
                                  MateriaAssunto)
-from sapl.norma.models import NormaJuridica, TipoNormaJuridica
+from sapl.norma.models import NormaJuridica, TipoNormaJuridica,\
+    NormaEstatisticas, ViewNormasEstatisticas
 from sapl.parlamentares.models import (
     Filiacao, Legislatura, Mandato, Parlamentar, SessaoLegislativa)
 from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo, Protocolo, StatusTramitacaoAdministrativo,
@@ -1191,7 +1192,7 @@ class EstatisticasAcessoNormas(TemplateView):
     def get(self, request, *args, **kwargs):
         context = super(EstatisticasAcessoNormas,
                         self).get_context_data(**kwargs)
-        context['title'] = _('Normas')
+        context['title'] = _('Estatísticas de Acesso às Normas Jurídicas')
 
         form = EstatisticasAcessoNormasForm(request.GET or None)
         context['form'] = form
@@ -1200,33 +1201,32 @@ class EstatisticasAcessoNormas(TemplateView):
             return self.render_to_response(context)
 
         context['ano'] = self.request.GET['ano']
+        context['mes'] = self.request.GET.get('mes', '')
+        context['mais_acessadas'] = int(
+            self.request.GET.get('mais_acessadas', 5))
 
-        query = '''
-                select norma_id, ano, extract(month from horario_acesso) as mes, count(*)
-                from norma_normaestatisticas
-                where ano = {}
-                group by mes, ano, norma_id
-                order by mes desc;
-                '''.format(context['ano'])
-        cursor = connection.cursor()
-        cursor.execute(query)
-        rows = cursor.fetchall()
+        if not context['mes']:
+            context['mais_acessadas'] = 10
+
+        params = {
+            'ano_est': context['ano'],
+            'mais_acessadas__lte': context['mais_acessadas']
+        }
+        if context['mes']:
+            params['mes_est'] = context['mes']
+
+        estatisticas = ViewNormasEstatisticas.objects.filter(
+            **params
+        )
 
         normas_mes = collections.OrderedDict()
         meses = {1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
                  7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'}
 
-        for row in rows:
-            if not meses[int(row[2])] in normas_mes:
-                normas_mes[meses[int(row[2])]] = []
-            norma_est = [NormaJuridica.objects.get(id=row[0]), row[3]]
-            normas_mes[meses[int(row[2])]].append(norma_est)
-
-        # Ordena por acesso e limita em 5
-        for n in normas_mes:
-            sorted_by_value = sorted(
-                normas_mes[n], key=lambda kv: kv[1], reverse=True)
-            normas_mes[n] = sorted_by_value[0:5]
+        for norma in estatisticas:
+            if not meses[norma.mes_est] in normas_mes:
+                normas_mes[meses[norma.mes_est]] = []
+            normas_mes[meses[norma.mes_est]].append(norma)
 
         context['normas_mes'] = normas_mes
 

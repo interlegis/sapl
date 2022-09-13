@@ -311,6 +311,41 @@ class NormaEstatisticas(models.Model):
             'usuario': self.usuario, 'norma': self.norma}
 
 
+class ViewNormasEstatisticas(models.Model):
+    mais_acessadas = models.PositiveSmallIntegerField(
+        verbose_name=_('Mais Acessadas'))
+    ano_est = models.PositiveSmallIntegerField(
+        verbose_name=_('Ano do Registro de Acesso'))
+    mes_est = models.PositiveSmallIntegerField(
+        verbose_name=_('Mês do Registro de Acesso'))
+
+    norma_id = models.BigIntegerField(verbose_name=_('Id da Norma'))
+    norma_count = models.PositiveSmallIntegerField(
+        verbose_name=_('Mês do Registro de Acesso'))
+
+    norma_numero = models.CharField(
+        max_length=8, verbose_name=_('Número da Norma'))
+
+    norma_ano = models.PositiveSmallIntegerField(
+        verbose_name=_('Ano da Norma'))
+    norma_ementa = models.TextField(verbose_name=_('Ementa'))
+    norma_observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+
+    norma_tipo_sigla = models.CharField(
+        max_length=3,
+        verbose_name=_('Sigla do Tipo da Norma'))
+
+    norma_tipo_descricao = models.CharField(
+        max_length=50, verbose_name=_('Descrição do Tipo da Norma'))
+
+    norma_data = models.DateField(verbose_name=_('Data da Norma'))
+
+    class Meta:
+        managed = False
+        db_table = "norma_viewnormasestatisticas"
+
+
 @reversion.register()
 class AutoriaNorma(models.Model):
     autor = models.ForeignKey(Autor,

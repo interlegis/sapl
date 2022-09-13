@@ -28,7 +28,7 @@ from sapl.crispy_layout_mixin import (form_actions, to_column, to_row,
 from sapl.materia.models import (DocumentoAcessorio, MateriaEmTramitacao,
                                  MateriaLegislativa, UnidadeTramitacao,
                                  StatusTramitacao)
-from sapl.norma.models import NormaJuridica
+from sapl.norma.models import NormaJuridica, NormaEstatisticas
 from sapl.parlamentares.models import Partido, SessaoLegislativa,\
     Parlamentar, Votante
 from sapl.protocoloadm.models import DocumentoAdministrativo
@@ -40,7 +40,7 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
                         ImageThumbnailFileInput, qs_override_django_filter,
                         RANGE_ANOS, YES_NO_CHOICES, choice_tipos_normas,
-                        GoogleRecapthaMixin, parlamentares_ativos)
+                        GoogleRecapthaMixin, parlamentares_ativos, RANGE_MESES)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -903,11 +903,11 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
         buttons = FormActions(
             *[
                 HTML('''
-                                            <div class="form-check">
-                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
-                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
-                                            </div>
-                                        ''')
+                            <div class="form-check col-auto">
+                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                            </div>
+                    ''')
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
@@ -934,14 +934,29 @@ class EstatisticasAcessoNormasForm(Form):
                             choices=RANGE_ANOS,
                             initial=timezone.now().year)
 
+    mes = forms.ChoiceField(required=False,
+                            label='Mês de acesso',
+                            choices=[('', 'Todos os Meses')] + RANGE_MESES,
+                            initial='')
+
+    mais_acessadas = forms.ChoiceField(required=False,
+                                       label='Mais Acessadas',
+                                       choices=[
+                                           (5, '005 mais acessadas'),
+                                           (10, '010 mais acessadas'),
+                                           (50, '050 mais acessadas'),
+                                           (100, '100 mais acessadas'),
+                                       ],
+                                       initial=5)
+
     class Meta:
-        fields = ['ano']
+        fields = ['ano', 'mes', 'mais_acessadas']
 
     def __init__(self, *args, **kwargs):
         super(EstatisticasAcessoNormasForm, self).__init__(
             *args, **kwargs)
 
-        row1 = to_row([('ano', 12)])
+        row1 = to_row([('ano', 3), ('mes', 6), ('mais_acessadas', 3), ])
 
         buttons = FormActions(
             *[
@@ -963,6 +978,10 @@ class EstatisticasAcessoNormasForm(Form):
             Fieldset(_('Normas por acessos nos meses do ano.'),
                      row1, buttons)
         )
+        self.fields['ano'].choices = NormaEstatisticas.objects.order_by(
+            '-ano').distinct().values_list('ano', 'ano') or [
+                (timezone.now().year, timezone.now().year)
+        ]
 
     def clean(self):
         super(EstatisticasAcessoNormasForm, self).clean()
