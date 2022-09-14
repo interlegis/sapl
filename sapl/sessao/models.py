@@ -6,7 +6,6 @@ from django.db.models import Q, F
 from django.utils import timezone, formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
@@ -20,7 +19,6 @@ from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         OverwriteStorage)
 
 
-@reversion.register()
 class CargoBancada(models.Model):
     nome_cargo = models.CharField(max_length=80,
                                   verbose_name=_('Cargo de Bancada'))
@@ -38,7 +36,6 @@ class CargoBancada(models.Model):
         return self.nome_cargo
 
 
-@reversion.register()
 class Bancada(models.Model):
     legislatura = models.ForeignKey(Legislatura,
                                     on_delete=models.PROTECT,
@@ -76,7 +73,6 @@ class Bancada(models.Model):
         return self.nome
 
 
-@reversion.register()
 class TipoSessaoPlenaria(models.Model):
 
     TIPO_NUMERACAO_CHOICES = Choices(
@@ -157,7 +153,6 @@ def anexo_upload_path(instance, filename):
     # return get_sessao_media_path(instance, 'anexo', filename)
 
 
-@reversion.register()
 class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
     # andamento_sessao = models.ForeignKey(
@@ -359,7 +354,6 @@ class SessaoPlenaria(models.Model):
         ).update(data_ordem=self.data_inicio)
 
 
-@reversion.register()
 class AbstractOrdemDia(models.Model):
     TIPO_VOTACAO_CHOICES = Choices(
         (1, 'simbolica', 'Simbólica'),
@@ -413,7 +407,6 @@ class AbstractOrdemDia(models.Model):
             self.numero_ordem, self.materia, self.sessao_plenaria)
 
 
-@reversion.register()
 class ExpedienteMateria(AbstractOrdemDia):
 
     class Meta:
@@ -422,7 +415,6 @@ class ExpedienteMateria(AbstractOrdemDia):
         ordering = ['numero_ordem']
 
 
-@reversion.register()
 class TipoExpediente(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_('Tipo'))
     ordenacao = models.PositiveIntegerField(
@@ -439,7 +431,6 @@ class TipoExpediente(models.Model):
         return self.nome
 
 
-@reversion.register()
 class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
     sessao_plenaria = models.ForeignKey(
         SessaoPlenaria,
@@ -459,7 +450,6 @@ class ExpedienteSessao(models.Model):  # ExpedienteSessaoPlenaria
         return '%s - %s' % (self.tipo, self.sessao_plenaria)
 
 
-@reversion.register()
 class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
     sessao_plenaria = models.OneToOneField(SessaoPlenaria,
                                            on_delete=models.PROTECT)
@@ -475,7 +465,6 @@ class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
         return '%s - %s' % (self.sessao_plenaria, self.conteudo)
 
 
-@reversion.register()
 class ConsideracoesFinais(models.Model):  # ConsideracoesFinaisSessaoPlenaria
     sessao_plenaria = models.OneToOneField(SessaoPlenaria,
                                            on_delete=models.PROTECT)
@@ -491,7 +480,6 @@ class ConsideracoesFinais(models.Model):  # ConsideracoesFinaisSessaoPlenaria
         return '%s - %s' % (self.sessao_plenaria, self.conteudo)
 
 
-@reversion.register()
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE)
@@ -507,7 +495,6 @@ class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
         return '%s - %s' % (self.cargo, self.parlamentar)
 
 
-@reversion.register()
 class AbstractOrador(models.Model):  # Oradores
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE)
@@ -546,7 +533,6 @@ class AbstractOrador(models.Model):  # Oradores
         return result
 
 
-@reversion.register()
 class Orador(AbstractOrador):  # Oradores
 
     class Meta:
@@ -555,7 +541,6 @@ class Orador(AbstractOrador):  # Oradores
         ordering = ('id',)
 
 
-@reversion.register()
 class OradorExpediente(AbstractOrador):  # OradoresExpediente
 
     class Meta:
@@ -564,7 +549,6 @@ class OradorExpediente(AbstractOrador):  # OradoresExpediente
         ordering = ('id',)
 
 
-@reversion.register()
 class OradorOrdemDia(AbstractOrador):  # OradoresOrdemDia
 
     class Meta:
@@ -573,7 +557,6 @@ class OradorOrdemDia(AbstractOrador):  # OradoresOrdemDia
         ordering = ('id',)
 
 
-@reversion.register()
 class OrdemDia(AbstractOrdemDia):
 
     class Meta:
@@ -582,7 +565,6 @@ class OrdemDia(AbstractOrdemDia):
         ordering = ['numero_ordem']
 
 
-@reversion.register()
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE)
@@ -600,7 +582,6 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
             'parlamentar': self.parlamentar}
 
 
-@reversion.register()
 class TipoResultadoVotacao(models.Model):
     NATUREZA_CHOICES = Choices(
         ('A', 'aprovado', 'Aprovado'),
@@ -620,7 +601,6 @@ class TipoResultadoVotacao(models.Model):
         return self.nome
 
 
-@reversion.register()
 class RegistroVotacao(models.Model):
     tipo_resultado_votacao = models.ForeignKey(
         TipoResultadoVotacao,
@@ -679,7 +659,6 @@ class RegistroVotacao(models.Model):
                 '{}, {}'. format(self.ordem, self.expediente))
 
 
-@reversion.register()
 class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     '''
     As colunas ordem e expediente são redundantes, levando em consideração
@@ -724,7 +703,6 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
             'votacao': self.votacao, 'parlamentar': self.parlamentar}
 
 
-@reversion.register()
 class SessaoPlenariaPresenca(models.Model):
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE)
@@ -757,7 +735,6 @@ ORDENACAO_RESUMO = [
 ]
 
 
-@reversion.register()
 class ResumoOrdenacao(models.Model):
     '''
         Tabela para registrar em qual ordem serão renderizados os componentes
@@ -837,7 +814,6 @@ class ResumoOrdenacao(models.Model):
         return 'Ordenação do Resumo de uma Sessão'
 
 
-@reversion.register()
 class TipoRetiradaPauta(models.Model):
     descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
 
@@ -850,7 +826,6 @@ class TipoRetiradaPauta(models.Model):
         return self.descricao
 
 
-@reversion.register()
 class TipoJustificativa(models.Model):
     descricao = models.CharField(max_length=150, verbose_name=_('Descrição'))
 
@@ -863,7 +838,6 @@ class TipoJustificativa(models.Model):
         return self.descricao
 
 
-@reversion.register()
 class JustificativaAusencia(models.Model):
     TIPO_AUSENCIA_CHOICES = Choices(
         (1, 'materia', 'Matéria'),
@@ -988,7 +962,6 @@ class RetiradaPauta(models.Model):
                 '{}, {}'. format(self.ordem, self.expediente))
 
 
-@reversion.register()
 class RegistroLeitura(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     ordem = models.ForeignKey(OrdemDia,
@@ -1037,7 +1010,6 @@ class RegistroLeitura(models.Model):
                 '{}, {}'. format(self.ordem, self.expediente))
 
 
-@reversion.register()
 class Correspondencia(models.Model):
     TIPO_CHOICES = Choices(
         (1, 'recebida', 'Recebida'),

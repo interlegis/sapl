@@ -88,9 +88,6 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'image_cropping',
 
-    'reversion',
-    'reversion_compare',
-
     'haystack',
     'django.contrib.postgres',
     'speedinfo',
@@ -127,7 +124,6 @@ HAYSTACK_CONNECTIONS = {
 }
 
 MIDDLEWARE = [
-    'reversion.middleware.RevisionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',

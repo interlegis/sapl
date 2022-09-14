@@ -9,7 +9,6 @@ from django.core import exceptions
 from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-import reversion
 
 from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
                         SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
@@ -237,14 +236,6 @@ def cria_usuarios_padrao():
     rules.cria_usuarios_padrao()
 
 
-def revision_pre_delete_signal(sender, **kwargs):
-    with reversion.create_revision():
-        kwargs['instance'].save()
-        reversion.set_comment("Deletado pelo sinal.")
-
-
 models.signals.post_migrate.connect(receiver=update_groups)
 models.signals.post_migrate.connect(
     receiver=create_proxy_permissions, dispatch_uid="django.contrib.auth.management.create_permissions")
-models.signals.pre_delete.connect(
-    receiver=revision_pre_delete_signal, dispatch_uid="pre_delete_signal")

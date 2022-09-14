@@ -8,7 +8,6 @@ from django.db.models.deletion import CASCADE
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-import reversion
 
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
                         get_settings_auth_user_model, models_with_gr_for_model)
@@ -42,7 +41,6 @@ ASSINATURA_ATA_CHOICES = (
 )
 
 
-@reversion.register()
 class CasaLegislativa(models.Model):
     # TODO ajustar todos os max_length !!!!
     # cod_casa => id (pk)
@@ -85,7 +83,6 @@ class CasaLegislativa(models.Model):
             'municipio': self.municipio}
 
 
-@reversion.register()
 class AppConfig(models.Model):
 
     POLITICA_PROTOCOLO_CHOICES = (
@@ -298,7 +295,6 @@ class AppConfig(models.Model):
             'id': self.id}
 
 
-@reversion.register()
 class TipoAutor(models.Model):
     descricao = models.CharField(
         max_length=50,
@@ -323,7 +319,6 @@ class TipoAutor(models.Model):
         return self.descricao
 
 
-@reversion.register()
 class Autor(models.Model):
     operadores = models.ManyToManyField(
         get_settings_auth_user_model(),
