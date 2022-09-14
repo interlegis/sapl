@@ -4,7 +4,6 @@ from django.template import defaultfilters
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
 from sapl.base.models import Autor
 from sapl.compilacao.models import TextoArticulado
@@ -16,7 +15,6 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         OverwriteStorage)
 
 
-@reversion.register()
 class AssuntoNorma(models.Model):
     assunto = models.CharField(max_length=50, verbose_name=_('Assunto'))
     descricao = models.CharField(
@@ -31,7 +29,6 @@ class AssuntoNorma(models.Model):
         return self.assunto
 
 
-@reversion.register()
 class TipoNormaJuridica(models.Model):
     # TODO transform into Domain Model and use an FK for the field
     EQUIVALENTE_LEXML_CHOICES = ((name, name) for name in
@@ -126,7 +123,6 @@ class NormaJuridicaManager(models.Manager):
         return qs
 
 
-@reversion.register()
 class NormaJuridica(models.Model):
 
     objects = NormaJuridicaManager()
@@ -346,7 +342,6 @@ class ViewNormasEstatisticas(models.Model):
         db_table = "norma_viewnormasestatisticas"
 
 
-@reversion.register()
 class AutoriaNorma(models.Model):
     autor = models.ForeignKey(Autor,
                               verbose_name=_('Autor'),
@@ -369,7 +364,6 @@ class AutoriaNorma(models.Model):
             'autor': self.autor, 'norma': self.norma}
 
 
-@reversion.register()
 class LegislacaoCitada(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     norma = models.ForeignKey(NormaJuridica, on_delete=models.CASCADE)
@@ -407,7 +401,6 @@ class LegislacaoCitada(models.Model):
         return str(self.norma)
 
 
-@reversion.register()
 class TipoVinculoNormaJuridica(models.Model):
     sigla = models.CharField(
         max_length=1, blank=True, verbose_name=_('Sigla'))
@@ -428,7 +421,6 @@ class TipoVinculoNormaJuridica(models.Model):
         return self.descricao_ativa
 
 
-@reversion.register()
 class NormaRelacionada(models.Model):
     norma_principal = models.ForeignKey(
         NormaJuridica,
@@ -462,7 +454,6 @@ class NormaRelacionada(models.Model):
             'norma_relacionada': str(self.norma_relacionada)}
 
 
-@reversion.register()
 class AnexoNormaJuridica(models.Model):
     norma = models.ForeignKey(
         NormaJuridica,

@@ -1,4 +1,3 @@
-import reversion
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -29,7 +28,6 @@ def anexo_upload_path(instance, filename):
         instance, filename, subpath='anexo', pk_first=True)
 
 
-@reversion.register()
 class TipoAudienciaPublica(models.Model):
     TIPO_AUDIENCIA_CHOICES = Choices(('A', 'audiencia', _('Audiência Pública')),
                                      ('P', 'plebiscito', _('Plebiscito')),
@@ -51,7 +49,6 @@ class TipoAudienciaPublica(models.Model):
         return self.nome
 
 
-@reversion.register()
 class AudienciaPublica(models.Model):
     materia = models.ForeignKey(
         MateriaLegislativa,
@@ -175,7 +172,6 @@ class AudienciaPublica(models.Model):
                                  update_fields=update_fields)
 
 
-@reversion.register()
 class AnexoAudienciaPublica(models.Model):
     audiencia = models.ForeignKey(AudienciaPublica,
                                   on_delete=models.PROTECT)

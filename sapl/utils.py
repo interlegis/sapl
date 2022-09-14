@@ -37,7 +37,6 @@ from easy_thumbnails import source_generators
 from floppyforms import ClearableFileInput
 import magic
 import requests
-from reversion_compare.admin import CompareVersionAdmin
 from unipath.path import Path
 
 from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
@@ -363,7 +362,7 @@ def register_all_models_in_admin(module_name, exclude_list=[]):
     app = apps.get_app_config(appname)
     for model in app.get_models():
 
-        class CustomModelAdmin(CompareVersionAdmin):
+        class CustomModelAdmin(admin.ModelAdmin):
             list_display = [f.name for f in model._meta.fields
                             if f.name != 'id' and f.name not in exclude_list]
 
