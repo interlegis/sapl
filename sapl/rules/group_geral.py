@@ -1,3 +1,5 @@
+from django.contrib.contenttypes import models as contenttypes
+
 from sapl.audiencia import models as audiencia
 from sapl.base import models as base
 from sapl.comissoes import models as comissoes
@@ -10,6 +12,7 @@ from sapl.protocoloadm import models as protocoloadm
 from sapl.rules import SAPL_GROUP_GERAL, RP_ADD, __base__, __perms_publicas__, \
     __listdetailchange__
 from sapl.sessao import models as sessao
+
 
 rules_group_geral = {
     'group': SAPL_GROUP_GERAL,
@@ -113,6 +116,9 @@ rules_group_geral = {
 
         (audiencia.AudienciaPublica, __base__, __perms_publicas__),
         (audiencia.TipoAudienciaPublica, __base__, __perms_publicas__),
+
+        # permite consulta anônima pela api a lista de contenttypes
+        (contenttypes.ContentType, [], __perms_publicas__),
 
     ]
 }

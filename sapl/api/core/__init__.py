@@ -167,8 +167,11 @@ class SaplApiViewSetConstrutor():
             viewset.__name__ = '%sModelSaplViewSet' % _model.__name__
             return viewset
 
-        apps_sapl = [apps.apps.get_app_config(
-            n[5:]) for n in settings.SAPL_APPS]
+        apps_sapl = [
+            apps.apps.get_app_config('contenttypes')
+        ] + [
+            apps.apps.get_app_config(n[5:]) for n in settings.SAPL_APPS
+        ]
         for app in apps_sapl:
             cls._built_sets[app] = {}
             for model in app.get_models():

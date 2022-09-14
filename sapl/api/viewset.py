@@ -29,6 +29,11 @@ from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 SaplApiViewSetConstrutor = SaplApiViewSetConstrutor.build_class()
 
 
+@customize(ContentType)
+class _ContentTypeSet:
+    http_method_names = ['get', 'head', 'options', 'trace']
+
+
 @customize(Autor)
 class _AutorViewSet:
     # Customização para AutorViewSet com implementação de actions específicas
