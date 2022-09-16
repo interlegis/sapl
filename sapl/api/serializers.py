@@ -1,19 +1,68 @@
 import logging
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db.models import Q
 from image_cropping.utils import get_backend
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
+from rest_framework.relations import StringRelatedField
 
-from sapl.api.core.serializers import ModelChoiceObjectRelatedField
-from sapl.base.models import Autor
+from sapl.base.models import Autor, CasaLegislativa, Metadata
 from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
 
 
-class AutorSerializer(serializers.ModelSerializer):
-    # AutorSerializer sendo utilizado pelo gerador automático da api devidos aos
-    # critérios anotados em views.py
+class SaplSerializerMixin(serializers.ModelSerializer):
+    __str__ = SerializerMethodField()
+    metadata = SerializerMethodField()
+
+    class Meta:
+        fields = '__all__'
+
+    def get___str__(self, obj) -> str:
+        return str(obj)
+
+    def get_metadata(self, obj) -> dict:
+        try:
+            metadata = Metadata.objects.get(
+                content_type=ContentType.objects.get_for_model(
+                    obj._meta.model),
+                object_id=obj.id
+            ).metadata
+        except:
+            metadata = {}
+        finally:
+            return metadata
+
+
+class ChoiceSerializer(serializers.Serializer):
+    value = serializers.SerializerMethodField()
+    text = serializers.SerializerMethodField()
+
+    def get_text(self, obj):
+        return obj[1]
+
+    def get_value(self, obj):
+        return obj[0]
+
+
+class ModelChoiceSerializer(ChoiceSerializer):
+
+    def get_text(self, obj):
+        return str(obj)
+
+    def get_value(self, obj):
+        return obj.id
+
+
+class ModelChoiceObjectRelatedField(serializers.RelatedField):
+
+    def to_representation(self, value):
+        return ModelChoiceSerializer(value).data
+
+
+class AutorSerializer(SaplSerializerMixin):
 
     autor_related = ModelChoiceObjectRelatedField(read_only=True)
 
@@ -22,7 +71,18 @@ class AutorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ParlamentarSerializerPublic(serializers.ModelSerializer):
+class CasaLegislativaSerializer(SaplSerializerMixin):
+    version = serializers.SerializerMethodField()
+
+    def get_version(self, obj):
+        return settings.SAPL_VERSION
+
+    class Meta:
+        model = CasaLegislativa
+        fields = '__all__'
+
+
+class ParlamentarSerializerPublic(SaplSerializerMixin):
 
     class Meta:
         model = Parlamentar
@@ -32,7 +92,7 @@ class ParlamentarSerializerPublic(serializers.ModelSerializer):
                    "telefone_residencia", "titulo_eleitor", "fax_residencia"]
 
 
-class ParlamentarSerializerVerbose(serializers.ModelSerializer):
+class ParlamentarSerializerVerbose(SaplSerializerMixin):
     titular = serializers.SerializerMethodField('check_titular')
     partido = serializers.SerializerMethodField('check_partido')
     fotografia_cropped = serializers.SerializerMethodField('crop_fotografia')
@@ -55,7 +115,8 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
             )
         except Exception as e:
             self.logger.error(e)
-            self.logger.error('erro processando arquivo: %s' % obj.fotografia.path)
+            self.logger.error('erro processando arquivo: %s' %
+                              obj.fotografia.path)
 
         return thumbnail_url
 
@@ -66,7 +127,8 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
             return ""
 
         try:
-            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+            legislatura = Legislatura.objects.get(
+                id=self.context.get('legislatura'))
         except ObjectDoesNotExist:
             legislatura = Legislatura.objects.first()
         mandato = Mandato.objects.filter(
@@ -92,7 +154,8 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
             self.logger.error("Não há legislaturas cadastradas.")
             return ""
         try:
-            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+            legislatura = Legislatura.objects.get(
+                id=self.context.get('legislatura'))
         except ObjectDoesNotExist:
             legislatura = Legislatura.objects.first()
 
@@ -109,8 +172,8 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
         # Caso não exista filiação com essas condições
         except ObjectDoesNotExist:
             self.logger.warning("user=" + username + ". Parlamentar com (data<={} e data_desfiliacao>={}) "
-                              "ou (data<={} e data_desfiliacao=Null)) não possui filiação."
-                              .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
+                                "ou (data<={} e data_desfiliacao=Null)) não possui filiação."
+                                .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
             filiacao = 'Não possui filiação'
 
         # Caso exista mais de uma filiação nesse intervalo
@@ -131,4 +194,5 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
 
     class Meta:
         model = Parlamentar
-        fields = ['id', 'nome_parlamentar', 'fotografia_cropped', 'fotografia', 'ativo', 'partido', 'titular']
+        fields = ['id', 'nome_parlamentar', 'fotografia_cropped',
+                  'fotografia', 'ativo', 'partido', 'titular', ]

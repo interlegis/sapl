@@ -6,3 +6,6 @@ class AppConfig(apps.AppConfig):
     name = 'sapl.api'
     label = 'api'
     verbose_name = _('API Rest')
+
+    def ready(self):
+        from . import signals

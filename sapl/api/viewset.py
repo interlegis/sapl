@@ -1,5 +1,7 @@
 import logging
 
+from django.apps.registry import apps
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
@@ -8,10 +10,9 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from sapl.api.core import customize, SaplApiViewSetConstrutor, \
+from drfautoapi.drfautoapi import customize, ApiViewSetConstrutor, \
     wrapper_queryset_response_for_drf_action, \
     BusinessRulesNotImplementedMixin
-from sapl.api.core.serializers import ChoiceSerializer
 from sapl.api.permissions import SaplModelPermissions
 from sapl.api.serializers import ParlamentarSerializerVerbose, \
     ParlamentarSerializerPublic
@@ -26,7 +27,14 @@ from sapl.protocoloadm.models import DocumentoAdministrativo, \
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import models_with_gr_for_model, choice_anos_com_sessaoplenaria
 
-SaplApiViewSetConstrutor = SaplApiViewSetConstrutor.build_class()
+
+SaplApiViewSetConstrutor = ApiViewSetConstrutor.build_class(
+    [
+        apps.get_app_config('contenttypes')
+    ] + [
+        apps.get_app_config(n[5:]) for n in settings.SAPL_APPS
+    ]
+)
 
 
 @customize(ContentType)

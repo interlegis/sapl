@@ -1,8 +1,5 @@
-
 import logging
 
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
 from django.db.models import Q
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
@@ -17,10 +14,11 @@ from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly, AllowAny)
+from rest_framework.relations import StringRelatedField
 from rest_framework.viewsets import GenericViewSet
 
-from sapl.api.core.serializers import ModelChoiceSerializer, ChoiceSerializer
-from sapl.api.serializers import AutorSerializer
+from sapl.api.serializers import AutorSerializer, ModelChoiceSerializer,\
+    ChoiceSerializer
 from sapl.base.models import TipoAutor, Autor, CasaLegislativa
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import Legislatura
