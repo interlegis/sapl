@@ -1,31 +1,128 @@
+from collections import OrderedDict
+import importlib
+import inspect
 import logging
 
-from django import apps
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.utils import timezone
+from django.contrib.postgres.fields.jsonb import JSONField
+from django.db.models.fields.files import FileField
+from django.template.defaultfilters import capfirst
 from django.utils.decorators import classonlymethod
 from django.utils.translation import ugettext_lazy as _
+import django_filters
+from django_filters.constants import ALL_FIELDS
+from django_filters.filters import CharFilter
+from django_filters.filterset import FilterSet
 from django_filters.rest_framework.backends import DjangoFilterBackend
+from django_filters.utils import resolve_field, get_all_model_fields
 from rest_framework import serializers as rest_serializers
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.fields import SerializerMethodField
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from sapl.api.core.filters import SaplFilterSetMixin
-from sapl.api.permissions import SaplModelPermissions
-from sapl.base.models import Metadata
+logger = logging.getLogger(__name__)
 
-# ATENÇÃO: MUDANÇAS NO CORE DEVEM SER REALIZADAS COM
-#          EXTREMA CAUTELA
+
+class ApiFilterSetMixin(FilterSet):
+
+    o = CharFilter(method='filter_o')
+
+    class Meta:
+        fields = '__all__'
+        filter_overrides = {
+            FileField: {
+                'filter_class': django_filters.CharFilter,
+                'extra': lambda f: {
+                    'lookup_expr': 'exact',
+                },
+            },
+            JSONField: {
+                'filter_class': django_filters.CharFilter,
+                'extra': lambda f: {
+                    'lookup_expr': 'exact',
+                },
+            },
+        }
+
+    def filter_o(self, queryset, name, value):
+        try:
+            return queryset.order_by(
+                *map(str.strip, value.split(',')))
+        except:
+            return queryset
+
+    @classmethod
+    def get_fields(cls):
+        model = cls._meta.model
+        fields_model = get_all_model_fields(model)
+        fields_filter = cls._meta.fields
+        exclude = cls._meta.exclude
+
+        if exclude is not None and fields_filter is None:
+            fields_filter = ALL_FIELDS
+
+        fields = fields_filter if isinstance(fields_filter, dict) else {}
+
+        for f_str in fields_model:
+            if f_str not in fields:
+
+                f = model._meta.get_field(f_str)
+
+                if f.many_to_many:
+                    fields[f_str] = ['exact']
+                    continue
+
+                fields[f_str] = ['exact']
+
+                def get_keys_lookups(cl, sub_f):
+                    r = []
+                    for lk, lv in cl.items():
+
+                        if lk == 'contained_by':
+                            continue
+
+                        sflk = f'{sub_f}{"__" if sub_f else ""}{lk}'
+                        r.append(sflk)
+
+                        if hasattr(lv, 'class_lookups'):
+                            r += get_keys_lookups(lv.class_lookups, sflk)
+
+                        if hasattr(lv, 'output_field') and hasattr(lv, 'output_field.class_lookups'):
+                            r.append(f'{sflk}{"__" if sflk else ""}range')
+
+                            r += get_keys_lookups(lv.output_field.class_lookups, sflk)
+
+                    return r
+
+                fields[f_str] = list(
+                    set(fields[f_str] + get_keys_lookups(f.class_lookups, '')))
+
+        # Remove excluded fields
+        exclude = exclude or []
+
+        fields = [(f, lookups)
+                  for f, lookups in fields.items() if f not in exclude]
+
+        return OrderedDict(fields)
+
+    @classmethod
+    def filter_for_field(cls, f, name, lookup_expr='exact'):
+        # Redefine método estático para ignorar filtro para
+        # fields que não possuam lookup_expr informado
+
+        f, lookup_type = resolve_field(f, lookup_expr)
+
+        default = {
+            'field_name': name,
+            'label': capfirst(f.verbose_name),
+            'lookup_expr': lookup_expr
+        }
+
+        filter_class, params = cls.filter_for_lookup(
+            f, lookup_type)
+        default.update(params)
+        if filter_class is not None:
+            return filter_class(**default)
+        return None
 
 
 class BusinessRulesNotImplementedMixin:
@@ -40,68 +137,83 @@ class BusinessRulesNotImplementedMixin:
         raise Exception(_("DELETE Delete não implementado"))
 
 
-class SaplApiViewSetConstrutor():
+class ApiViewSetConstrutor():
 
-    class SaplApiViewSet(ModelViewSet):
+    class ApiViewSet(ModelViewSet):
         filter_backends = (DjangoFilterBackend,)
 
     _built_sets = {}
 
-    @classonlymethod
+    @classmethod
     def get_class_for_model(cls, model):
         return cls._built_sets[model._meta.app_config][model]
 
-    @classonlymethod
-    def build_class(cls):
-        import inspect
-        from sapl.api.core import serializers
+    @classmethod
+    def build_class(cls, apps):
 
-        # Carrega todas as classes de sapl.api.serializers que possuam
-        # "Serializer" como Sufixo.
-        serializers_classes = inspect.getmembers(serializers)
+        DRFAUTOAPI = settings.DRFAUTOAPI
 
-        serializers_classes = {i[0]: i[1] for i in filter(
-            lambda x: x[0].endswith('Serializer'),
-            serializers_classes
-        )}
+        serializers_classes = {}
+        filters_classes = {}
 
-        # Carrega todas as classes de sapl.api.forms que possuam
-        # "FilterSet" como Sufixo.
-        from sapl.api.core import forms
-        filters_classes = inspect.getmembers(forms)
-        filters_classes = {i[0]: i[1] for i in filter(
-            lambda x: x[0].endswith('FilterSet'),
-            filters_classes
-        )}
+        global_serializer_class = rest_serializers.ModelSerializer
+        global_filter_class = ApiFilterSetMixin
+
+        try:
+            if DRFAUTOAPI:
+                if 'DEFAULT_SERIALIZER_MODULE' in DRFAUTOAPI:
+                    serializers = importlib.import_module(
+                        DRFAUTOAPI['DEFAULT_SERIALIZER_MODULE']
+                    )
+                    serializers_classes = inspect.getmembers(serializers)
+                    serializers_classes = {i[0]: i[1] for i in filter(
+                        lambda x: x[0].endswith('Serializer'),
+                        serializers_classes
+                    )}
+
+                if 'DEFAULT_FILTER_MODULE' in DRFAUTOAPI:
+                    filters = importlib.import_module(
+                        DRFAUTOAPI['DEFAULT_FILTER_MODULE']
+                    )
+                    filters_classes = inspect.getmembers(filters)
+                    filters_classes = {i[0]: i[1] for i in filter(
+                        lambda x: x[0].endswith('FilterSet'),
+                        filters_classes
+                    )}
+
+                if 'GLOBAL_SERIALIZER_CLASS' in DRFAUTOAPI:
+                    cs = DRFAUTOAPI['GLOBAL_SERIALIZER_CLASS'].split('.')
+                    module = importlib.import_module(
+                        '.'.join(cs[0:-1]))
+                    global_serializer_class = getattr(module, cs[-1])
+
+                if 'GLOBAL_FILTERSET_CLASS' in DRFAUTOAPI:
+                    cs = DRFAUTOAPI['GLOBAL_FILTERSET_CLASS'].split('.')
+                    m = importlib.import_module('.'.join(cs[0:-1]))
+                    global_filter_class = getattr(m, cs[-1])
+
+        except Exception as e:
+            logger.error(e)
 
         built_sets = {}
 
         def build(_model):
             object_name = _model._meta.object_name
 
-            # Caso Exista, pega a classe sapl.api.serializers.{model}Serializer
-            # ou utiliza a base do drf para gerar uma automática para o model
             serializer_name = f'{object_name}Serializer'
             _serializer_class = serializers_classes.get(
-                serializer_name, rest_serializers.ModelSerializer)
+                serializer_name, global_serializer_class)
 
-            # Caso Exista, pega a classe sapl.api.core.forms.{model}FilterSet
-            # ou utiliza a base definida em
-            # sapl.api.core.filters.SaplFilterSetMixin
             filter_name = f'{object_name}FilterSet'
             _filterset_class = filters_classes.get(
-                filter_name, SaplFilterSetMixin)
+                filter_name, global_filter_class)
 
             def create_class():
 
                 _meta_serializer = object if not hasattr(
                     _serializer_class, 'Meta') else _serializer_class.Meta
 
-                # Define uma classe padrão para serializer caso não tenha sido
-                # criada a classe sapl.api.core.serializers.{model}Serializer
-                class SaplSerializer(_serializer_class):
-                    __str__ = SerializerMethodField()
-                    metadata = SerializerMethodField()
+                class ApiSerializer(_serializer_class):
 
                     class Meta(_meta_serializer):
                         if not hasattr(_meta_serializer, 'ref_name'):
@@ -116,63 +228,31 @@ class SaplApiViewSetConstrutor():
                             if not hasattr(_meta_serializer, 'fields'):
                                 fields = '__all__'
                             elif _meta_serializer.fields != '__all__':
-                                fields = list(_meta_serializer.fields) + [
-                                    '__str__', 'metadata']
+                                fields = list(_meta_serializer.fields)
                             else:
                                 fields = _meta_serializer.fields
-
-                    def get___str__(self, obj) -> str:
-                        return str(obj)
-
-                    def get_metadata(self, obj):
-                        try:
-                            metadata = Metadata.objects.get(
-                                content_type=ContentType.objects.get_for_model(
-                                    obj._meta.model),
-                                object_id=obj.id
-                            ).metadata
-                        except:
-                            metadata = {}
-                        finally:
-                            return metadata
 
                 _meta_filterset = object if not hasattr(
                     _filterset_class, 'Meta') else _filterset_class.Meta
 
-                # Define uma classe padrão para filtro caso não tenha sido
-                # criada a classe sapl.api.forms.{model}FilterSet
-                class SaplFilterSet(_filterset_class):
+                class ApiFilterSet(_filterset_class):
 
-                    class Meta(_meta_filterset):
+                    class Meta(_meta_filterset, ):
                         if not hasattr(_meta_filterset, 'model'):
                             model = _model
 
-                # Define uma classe padrão ModelViewSet de DRF
-                class ModelSaplViewSet(SaplApiViewSetConstrutor.SaplApiViewSet):
+                class ModelApiViewSet(ApiViewSetConstrutor.ApiViewSet):
                     queryset = _model.objects.all()
+                    filterset_class = ApiFilterSet
+                    serializer_class = ApiSerializer
 
-                    # Utiliza o filtro customizado pela classe
-                    # sapl.api.core.forms.{model}FilterSet
-                    # ou utiliza o trivial SaplFilterSet definido acima
-                    filterset_class = SaplFilterSet
-
-                    # Utiliza o serializer customizado pela classe
-                    # sapl.api.core.serializers.{model}Serializer
-                    # ou utiliza o trivial SaplSerializer definido acima
-                    serializer_class = SaplSerializer
-
-                return ModelSaplViewSet
+                return ModelApiViewSet
 
             viewset = create_class()
-            viewset.__name__ = '%sModelSaplViewSet' % _model.__name__
+            viewset.__name__ = '%sModelViewSet' % _model.__name__
             return viewset
 
-        apps_sapl = [
-            apps.apps.get_app_config('contenttypes')
-        ] + [
-            apps.apps.get_app_config(n[5:]) for n in settings.SAPL_APPS
-        ]
-        for app in apps_sapl:
+        for app in apps:
             cls._built_sets[app] = {}
             for model in app.get_models():
                 cls._built_sets[app][model] = build(model)
@@ -261,7 +341,7 @@ class wrapper_queryset_response_for_drf_action(object):
         def wrapper(instance_view, *args, **kwargs):
             # recupera a viewset do model anotado
             iv = instance_view
-            viewset_from_model = SaplApiViewSetConstrutor._built_sets[
+            viewset_from_model = ApiViewSetConstrutor._built_sets[
                 self.model._meta.app_config][self.model]
 
             # apossa da instancia da viewset mae do action
@@ -295,16 +375,16 @@ class customize(object):
 
     def __call__(self, cls):
 
-        class _SaplApiViewSet(
+        class _ApiViewSet(
             cls,
-                SaplApiViewSetConstrutor._built_sets[
+                ApiViewSetConstrutor._built_sets[
                     self.model._meta.app_config][self.model]
         ):
             pass
 
-        if hasattr(_SaplApiViewSet, 'build'):
-            _SaplApiViewSet = _SaplApiViewSet.build()
+        if hasattr(_ApiViewSet, 'build'):
+            _ApiViewSet = _ApiViewSet.build()
 
-        SaplApiViewSetConstrutor._built_sets[
-            self.model._meta.app_config][self.model] = _SaplApiViewSet
-        return _SaplApiViewSet
+        ApiViewSetConstrutor._built_sets[
+            self.model._meta.app_config][self.model] = _ApiViewSet
+        return _ApiViewSet
