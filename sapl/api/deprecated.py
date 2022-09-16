@@ -207,13 +207,15 @@ class AutoresPossiveisFilterSet(FilterSet):
         if legislatura_relativa.atual():
             q = q & Q(parlamentar_set__ativo=True)
 
-        legislatura_anterior = self.request.GET.get('legislatura_anterior', 'False')
+        legislatura_anterior = self.request.GET.get(
+            'legislatura_anterior', 'False')
         if legislatura_anterior.lower() == 'true':
             legislaturas = Legislatura.objects.filter(
                 data_fim__lte=data_relativa).order_by('-data_fim')[:2]
             if len(legislaturas) == 2:
                 _, leg_anterior = legislaturas
-                q = q | Q(parlamentar_set__mandato__data_inicio_mandato__gte=leg_anterior.data_inicio)
+                q = q | Q(
+                    parlamentar_set__mandato__data_inicio_mandato__gte=leg_anterior.data_inicio)
 
         qs = queryset.filter(q)
         return qs
@@ -388,33 +390,6 @@ class SessaoPlenariaOldSerializer(serializers.ModelSerializer):
     def casa(self):
         casa = CasaLegislativa.objects.first()
         return casa
-
-
-class ModelChoiceView(ListAPIView):
-    """
-    Deprecated
-
-    TODO Migrar para customização na api automática
-
-    """
-
-    # FIXME aplicar permissão correta de usuário
-    permission_classes = (IsAuthenticated,)
-    serializer_class = ModelChoiceSerializer
-
-    def get(self, request, *args, **kwargs):
-        self.model = ContentType.objects.get_for_id(
-            self.kwargs['content_type']).model_class()
-
-        pagination = request.GET.get('pagination', '')
-
-        if pagination == 'False':
-            self.pagination_class = None
-
-        return ListAPIView.get(self, request, *args, **kwargs)
-
-    def get_queryset(self):
-        return self.model.objects.all()
 
 
 class AutorListView(ListAPIView):

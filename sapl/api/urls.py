@@ -6,8 +6,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
 from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet, \
-    AutoresProvaveisListView, AutoresPossiveisListView, AutorListView, \
-    ModelChoiceView
+    AutoresProvaveisListView, AutoresPossiveisListView, AutorListView
 from sapl.api.views import AppVersionView, recria_token
 from sapl.api.viewset import SaplApiViewSetConstrutor
 
@@ -44,8 +43,7 @@ deprecated_urlpatterns_api = [
     url(r'^autor/possiveis',
         AutoresPossiveisListView.as_view(), name='autores_possiveis_list'),
     url(r'^autor', AutorListView.as_view(), name='autor_list'),
-    url(r'^model/(?P<content_type>\d+)/(?P<pk>\d*)$',
-        ModelChoiceView.as_view(), name='model_list'),
+
 ]
 
 urlpatterns = [
