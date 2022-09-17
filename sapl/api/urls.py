@@ -15,13 +15,10 @@ from .apps import AppConfig
 
 app_name = AppConfig.name
 
-router = DefaultRouter()
+router = SaplApiViewSetConstrutor.router()
+
 router.register(r'materia$', MateriaLegislativaViewSet)
 router.register(r'sessao-plenaria', SessaoPlenariaViewSet)
-
-for app, built_sets in SaplApiViewSetConstrutor._built_sets.items():
-    for view_prefix, viewset in built_sets.items():
-        router.register(f'{app.label}/{view_prefix._meta.model_name}', viewset)
 
 urlpatterns_router = router.urls
 

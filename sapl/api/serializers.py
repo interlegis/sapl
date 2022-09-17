@@ -7,7 +7,6 @@ from django.db.models import Q
 from image_cropping.utils import get_backend
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
-from rest_framework.relations import StringRelatedField
 
 from sapl.base.models import Autor, CasaLegislativa, Metadata
 from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura

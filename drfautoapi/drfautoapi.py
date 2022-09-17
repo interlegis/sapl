@@ -16,7 +16,9 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.utils import resolve_field, get_all_model_fields
 from rest_framework import serializers as rest_serializers
 from rest_framework.response import Response
+from rest_framework.routers import DefaultRouter
 from rest_framework.viewsets import ModelViewSet
+
 
 logger = logging.getLogger(__name__)
 
@@ -156,10 +158,15 @@ class ApiViewSetConstrutor():
     def import_modules(cls, modules):
         for m in modules:
             importlib.import_module(m)
-            #components = inspect.getmembers(components_ref)
-            # for key, vclass in components:
-            # if type(vclass) == cls:
-            #        cls.update(vclass)
+
+    @classmethod
+    def router(cls, router_class=DefaultRouter):
+        router = router_class()
+        for app, built_sets in cls._built_sets.items():
+            for model, viewset in built_sets.items():
+                router.register(
+                    f'{app.label}/{model._meta.model_name}', viewset)
+        return router
 
     @classmethod
     def build_class(cls, apps):
