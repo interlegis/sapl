@@ -5,7 +5,8 @@ from rest_framework.response import Response
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
     customize, wrapper_queryset_response_for_drf_action
-from sapl.api.serializers import ChoiceSerializer
+from sapl.api.serializers import ChoiceSerializer,\
+    SessaoPlenariaECidadaniaSerializer
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import choice_anos_com_sessaoplenaria
 
@@ -34,3 +35,13 @@ class _SessaoPlenariaViewSet:
     @wrapper_queryset_response_for_drf_action(model=ExpedienteSessao)
     def get_expedientes(self):
         return self.get_queryset().filter(sessao_plenaria_id=self.kwargs['pk'])
+
+    @action(detail=True)
+    def ecidadania(self, request, *args, **kwargs):
+        self.serializer_class = SessaoPlenariaECidadaniaSerializer
+        return self.retrieve(request, *args, **kwargs)
+
+    @action(detail=False, url_path='ecidadania')
+    def ecidadania_list(self, request, *args, **kwargs):
+        self.serializer_class = SessaoPlenariaECidadaniaSerializer
+        return self.list(request, *args, **kwargs)

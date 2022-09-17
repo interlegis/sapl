@@ -3,9 +3,8 @@ from django.conf.urls import include, url
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, \
     SpectacularRedocView
 from rest_framework.authtoken.views import obtain_auth_token
-from rest_framework.routers import DefaultRouter
 
-from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet, \
+from sapl.api.deprecated import SessaoPlenariaViewSet, \
     AutoresProvaveisListView, AutoresPossiveisListView, AutorListView
 from sapl.api.views import AppVersionView, recria_token,\
     SaplApiViewSetConstrutor
@@ -17,8 +16,12 @@ app_name = AppConfig.name
 
 router = SaplApiViewSetConstrutor.router()
 
-router.register(r'materia$', MateriaLegislativaViewSet)
-router.register(r'sessao-plenaria', SessaoPlenariaViewSet)
+# TODO: eliminar endpoint, transferido para SaplApiViewSetConstrutor
+# verificar se ainda permanece necessidade desses endpoint's
+# /api/sessao-planaria -> /api/sessao/sessaoplenaria/ecidadania
+#  /api/sessao-planaria/{pk} -> /api/sessao/sessaoplenaria/{pk}/ecidadania
+router.register(r'sessao-plenaria', SessaoPlenariaViewSet,
+                basename='sessao_plenaria_old')
 
 urlpatterns_router = router.urls
 
