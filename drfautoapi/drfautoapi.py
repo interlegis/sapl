@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.db.models.fields.files import FileField
 from django.template.defaultfilters import capfirst
-from django.utils.decorators import classonlymethod
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 from django_filters.constants import ALL_FIELDS
@@ -259,67 +258,6 @@ class ApiViewSetConstrutor():
 
         return cls
 
-
-"""
-1. Constroi uma rest_framework.viewsets.ModelViewSet para
-   todos os models de todas as apps do sapl
-2. Define DjangoFilterBackend como ferramenta de filtro dos campos
-3. Define Serializer como a seguir:
-    3.1 - Define um Serializer genérico para cada módel
-    3.2 - Recupera Serializer customizado em sapl.api.core.serializers
-    3.3 - Para todo model é opcional a existência de
-          sapl.api.core.serializers.{model}Serializer.
-          Caso não seja definido um Serializer customizado, utiliza-se o trivial
-4. Define um FilterSet como a seguir:
-    4.1 - Define um FilterSet genérico para cada módel
-    4.2 - Recupera FilterSet customizado em sapl.api.core.forms
-    4.3 - Para todo model é opcional a existência de
-          sapl.api.core.forms.{model}FilterSet.
-          Caso não seja definido um FilterSet customizado, utiliza-se o trivial
-    4.4 - todos os campos que aceitam lookup 'exact'
-          podem ser filtrados por default
-
-5. SaplApiViewSetConstrutor não cria padrões e/ou exige conhecimento alem dos
-    exigidos pela DRF.
-
-6. As rotas são criadas seguindo nome da app e nome do model
-    http://localhost:9000/api/{applabel}/{model_name}/
-    e seguem as variações definidas em:
-    https://www.django-rest-framework.org/api-guide/routers/#defaultrouter
-
-7. Todas as viewsets construídas por SaplApiViewSetConstrutor e suas rotas
-    (paginate list, detail, edit, create, delete)
-   bem como testes em ambiente de desenvolvimento podem ser conferidas em:
-   http://localhost:9000/api/
-   desde que settings.DEBUG=True
-
-**SaplApiViewSetConstrutor._built_sets** é um dict de dicts de models conforme:
-    {
-        ...
-
-        'audiencia': {
-            'tipoaudienciapublica': TipoAudienciaPublicaViewSet,
-            'audienciapublica': AudienciaPublicaViewSet,
-            'anexoaudienciapublica': AnexoAudienciaPublicaViewSet
-
-            ...
-
-            },
-
-        ...
-
-        'base': {
-            'casalegislativa': CasaLegislativaViewSet,
-            'appconfig': AppConfigViewSet,
-
-            ...
-
-        }
-
-        ...
-
-    }
-"""
 
 # Toda Classe construida acima, pode ser redefinida e aplicado quaisquer
 # das possibilidades para uma classe normal criada a partir de

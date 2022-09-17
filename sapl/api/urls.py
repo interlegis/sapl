@@ -7,8 +7,8 @@ from rest_framework.routers import DefaultRouter
 
 from sapl.api.deprecated import MateriaLegislativaViewSet, SessaoPlenariaViewSet, \
     AutoresProvaveisListView, AutoresPossiveisListView, AutorListView
-from sapl.api.views import AppVersionView, recria_token
-from sapl.api.viewset import SaplApiViewSetConstrutor
+from sapl.api.views import AppVersionView, recria_token,\
+    SaplApiViewSetConstrutor
 
 from .apps import AppConfig
 
@@ -21,8 +21,7 @@ router.register(r'sessao-plenaria', SessaoPlenariaViewSet)
 
 for app, built_sets in SaplApiViewSetConstrutor._built_sets.items():
     for view_prefix, viewset in built_sets.items():
-        router.register(app.label + '/' +
-                        view_prefix._meta.model_name, viewset)
+        router.register(f'{app.label}/{view_prefix._meta.model_name}', viewset)
 
 urlpatterns_router = router.urls
 
