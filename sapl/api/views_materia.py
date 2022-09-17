@@ -100,7 +100,7 @@ class _MateriaLegislativaViewSet:
         ultima_tramitacao = materia.tramitacao_set.order_by(
             '-data_tramitacao', '-id').first()
 
-        serializer_class = MateriaApiViewSetConstrutor.get_class_for_model(
+        serializer_class = MateriaApiViewSetConstrutor.get_viewset_for_model(
             Tramitacao).serializer_class(ultima_tramitacao)
 
         return Response(serializer_class.data)

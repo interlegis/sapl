@@ -147,7 +147,7 @@ class ApiViewSetConstrutor():
         filter_backends = (DjangoFilterBackend,)
 
     @classmethod
-    def get_class_for_model(cls, model):
+    def get_viewset_for_model(cls, model):
         return cls._built_sets[model._meta.app_config][model]
 
     @classmethod
