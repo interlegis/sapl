@@ -11,7 +11,7 @@ from sapl.materia.models import TipoMateriaLegislativa, Tramitacao,\
     MateriaLegislativa, Proposicao
 
 
-MateriaApiViewSetConstrutor = ApiViewSetConstrutor.build_class(
+ApiViewSetConstrutor.build_class(
     [
         apps.get_app_config('materia')
     ]

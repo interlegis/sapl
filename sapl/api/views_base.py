@@ -4,11 +4,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor, customize
+from sapl.api.forms import AutoresPossiveisFilterSet
 from sapl.base.models import Autor
 from sapl.utils import models_with_gr_for_model
 
 
-BaseApiViewSetConstrutor = ApiViewSetConstrutor.build_class(
+ApiViewSetConstrutor.build_class(
     [
         apps.get_app_config('contenttypes'),
         apps.get_app_config('base')
@@ -87,3 +88,8 @@ class _AutorViewSet:
 
             setattr(cls, _model._meta.model_name, func)
         return cls
+
+    @action(detail=False)
+    def possiveis(self, request, *args, **kwargs):
+        self.filterset_class = AutoresPossiveisFilterSet
+        return self.list(request, *args, **kwargs)

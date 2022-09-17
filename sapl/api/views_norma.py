@@ -7,7 +7,7 @@ from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
 from sapl.norma.models import NormaJuridica
 
 
-NormaApiViewSetConstrutor = ApiViewSetConstrutor.build_class(
+ApiViewSetConstrutor.build_class(
     [
         apps.get_app_config('norma')
     ]

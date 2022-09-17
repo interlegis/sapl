@@ -15,7 +15,7 @@ from sapl.materia.models import Proposicao
 from sapl.parlamentares.models import Mandato, Legislatura
 from sapl.parlamentares.models import Parlamentar
 
-ParlamentaresApiViewSetConstrutor = ApiViewSetConstrutor.build_class(
+ApiViewSetConstrutor.build_class(
     [
         apps.get_app_config('parlamentares')
     ]

@@ -11,7 +11,7 @@ from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
 from sapl.utils import choice_anos_com_sessaoplenaria
 
 
-SessaoApiViewSetConstrutor = ApiViewSetConstrutor.build_class(
+ApiViewSetConstrutor.build_class(
     [
         apps.get_app_config('sessao')
     ]

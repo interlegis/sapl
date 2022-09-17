@@ -7,30 +7,27 @@
    <script language="Javascript">
       $(document).ready(function() {
           var autores_pre_cadastrados = $.parseJSON($("#id_autores").val());
-
           $("#id_tipo_autor").change(function() {
               var tipo_selecionado = $("#id_tipo_autor").val();
               $("#id_autor option").remove()
               if (tipo_selecionado !== '') {
                 var json_data = {
                    tipo : tipo_selecionado,
-                   data_relativa : $("#id_data_relativa").val()
+                   data_relativa : $("#id_data_relativa").val(),
+                   o: 'nome',
+                   get_all: true
                 }
-                $.getJSON("/api/autor/possiveis", json_data, function(data){
-                  $("#div_id_autor > div").html('');
+                $.getJSON("{% url 'sapl.api:autor-possiveis' %}", json_data, function(data){
+                    $("#div_id_autor > div").html('');
                     if (data) {
-                      var results = data;
-
-                      $.each(results, function(idx, obj) {
-
-                        if (autores_pre_cadastrados.indexOf(obj.value) !== -1)
+                      $.each(data, function(idx, obj) {
+                        if (autores_pre_cadastrados.indexOf(obj.id) !== -1)
                           return ;
-
                         $('<input/>')
                           .attr('type', 'checkbox')
                           .attr('name','autor')
                           .attr('id', 'id_autor_'+idx)
-                          .attr('value', obj.value)
+                          .attr('value', obj.id)
                           .appendTo(
                             $('<label/>')
                               .appendTo(
@@ -40,8 +37,7 @@
                                   )
                                 )
                             )
-                          .after(obj.text)
-                           
+                          .after(obj.nome)
                       });
                     }
                 });

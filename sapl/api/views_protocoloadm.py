@@ -9,7 +9,7 @@ from sapl.protocoloadm.models import DocumentoAdministrativo, \
     DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
 
 
-ProtocoloAdmApiViewSetConstrutor = ApiViewSetConstrutor.build_class(
+ApiViewSetConstrutor.build_class(
     [
         apps.get_app_config('protocoloadm')
     ]
