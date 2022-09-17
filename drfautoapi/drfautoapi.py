@@ -125,6 +125,7 @@ class ApiFilterSetMixin(FilterSet):
 
 
 class BusinessRulesNotImplementedMixin:
+    http_method_names = ['get', 'head', 'options', 'trace']
 
     def create(self, request, *args, **kwargs):
         raise Exception(_("POST Create não implementado"))
@@ -138,14 +139,18 @@ class BusinessRulesNotImplementedMixin:
 
 class ApiViewSetConstrutor():
 
+    _built_sets = {}
+
     class ApiViewSet(ModelViewSet):
         filter_backends = (DjangoFilterBackend,)
-
-    _built_sets = {}
 
     @classmethod
     def get_class_for_model(cls, model):
         return cls._built_sets[model._meta.app_config][model]
+
+    @classmethod
+    def update(cls, other):
+        cls._built_sets.update(other._built_sets)
 
     @classmethod
     def build_class(cls, apps):
