@@ -1,1 +1,1 @@
-#default_app_config = 'drfautoapi.api.apps.AppConfig'
+# Transformar em projeto externo instalável para uso geral

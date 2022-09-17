@@ -1,15 +1,15 @@
 {
   "status": "done",
   "assets": {
-    "fonts/fa-brands-400.86c7e1fa.woff2": {
-      "name": "fonts/fa-brands-400.86c7e1fa.woff2",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.86c7e1fa.woff2",
-      "publicPath": "/static/sapl/frontend/fonts/fa-brands-400.86c7e1fa.woff2"
-    },
     "fonts/fa-brands-400.f5defc2e.ttf": {
       "name": "fonts/fa-brands-400.f5defc2e.ttf",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.f5defc2e.ttf",
       "publicPath": "/static/sapl/frontend/fonts/fa-brands-400.f5defc2e.ttf"
+    },
+    "fonts/fa-brands-400.86c7e1fa.woff2": {
+      "name": "fonts/fa-brands-400.86c7e1fa.woff2",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.86c7e1fa.woff2",
+      "publicPath": "/static/sapl/frontend/fonts/fa-brands-400.86c7e1fa.woff2"
     },
     "fonts/fa-regular-400.e0550912.woff2": {
       "name": "fonts/fa-regular-400.e0550912.woff2",
@@ -41,10 +41,10 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/css/global.45591136.css",
       "publicPath": "/static/sapl/frontend/css/global.45591136.css"
     },
-    "js/global.babaa14f.js": {
-      "name": "js/global.babaa14f.js",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.babaa14f.js",
-      "publicPath": "/static/sapl/frontend/js/global.babaa14f.js"
+    "js/global.e8c9c610.js": {
+      "name": "js/global.e8c9c610.js",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.e8c9c610.js",
+      "publicPath": "/static/sapl/frontend/js/global.e8c9c610.js"
     },
     "css/parlamentar.cd5dc5a8.css": {
       "name": "css/parlamentar.cd5dc5a8.css",
@@ -476,15 +476,20 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.874df7f4.js.LICENSE.txt",
       "publicPath": "/static/sapl/frontend/js/chunk-vendors.874df7f4.js.LICENSE.txt"
     },
-    "js/global.babaa14f.js.LICENSE.txt": {
-      "name": "js/global.babaa14f.js.LICENSE.txt",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.babaa14f.js.LICENSE.txt",
-      "publicPath": "/static/sapl/frontend/js/global.babaa14f.js.LICENSE.txt"
+    "js/global.e8c9c610.js.LICENSE.txt": {
+      "name": "js/global.e8c9c610.js.LICENSE.txt",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.e8c9c610.js.LICENSE.txt",
+      "publicPath": "/static/sapl/frontend/js/global.e8c9c610.js.LICENSE.txt"
     },
     "fonts/fa-v4compatibility.7e7e1dad.ttf.gz": {
       "name": "fonts/fa-v4compatibility.7e7e1dad.ttf.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-v4compatibility.7e7e1dad.ttf.gz",
       "publicPath": "/static/sapl/frontend/fonts/fa-v4compatibility.7e7e1dad.ttf.gz"
+    },
+    "js/global.e8c9c610.js.gz": {
+      "name": "js/global.e8c9c610.js.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.e8c9c610.js.gz",
+      "publicPath": "/static/sapl/frontend/js/global.e8c9c610.js.gz"
     },
     "js/parlamentar.25e7f0fa.js.gz": {
       "name": "js/parlamentar.25e7f0fa.js.gz",
@@ -501,11 +506,6 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/painel.7aa779e9.js.gz",
       "publicPath": "/static/sapl/frontend/js/painel.7aa779e9.js.gz"
     },
-    "js/global.babaa14f.js.gz": {
-      "name": "js/global.babaa14f.js.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.babaa14f.js.gz",
-      "publicPath": "/static/sapl/frontend/js/global.babaa14f.js.gz"
-    },
     "js/compilacao.1c9473f1.js.gz": {
       "name": "js/compilacao.1c9473f1.js.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/compilacao.1c9473f1.js.gz",
@@ -521,25 +521,25 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg.gz",
       "publicPath": "/static/sapl/frontend/img/down_arrow_select.jpg.gz"
     },
-    "js/skins/content/dark/content.css.gz": {
-      "name": "js/skins/content/dark/content.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.css.gz"
-    },
     "js/skins/content/dark/content.min.css.gz": {
       "name": "js/skins/content/dark/content.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.min.css.gz"
     },
-    "js/skins/content/default/content.css.gz": {
-      "name": "js/skins/content/default/content.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/content/default/content.css.gz"
+    "js/skins/content/dark/content.css.gz": {
+      "name": "js/skins/content/dark/content.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.css.gz"
     },
     "js/skins/content/default/content.min.css.gz": {
       "name": "js/skins/content/default/content.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/default/content.min.css.gz"
+    },
+    "js/skins/content/default/content.css.gz": {
+      "name": "js/skins/content/default/content.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/content/default/content.css.gz"
     },
     "js/skins/content/document/content.css.gz": {
       "name": "js/skins/content/document/content.css.gz",
@@ -591,15 +591,15 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.css.gz"
     },
-    "js/skins/ui/oxide/content.inline.min.css.gz": {
-      "name": "js/skins/ui/oxide/content.inline.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz"
-    },
     "js/skins/ui/oxide/content.min.css.gz": {
       "name": "js/skins/ui/oxide/content.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz"
+    },
+    "js/skins/ui/oxide/content.inline.min.css.gz": {
+      "name": "js/skins/ui/oxide/content.inline.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz"
     },
     "js/skins/ui/oxide/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/oxide/skin.shadowdom.css.gz",
@@ -641,15 +641,15 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css.gz"
     },
-    "js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz": {
-      "name": "js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz"
-    },
     "js/skins/ui/oxide/skin.min.css.gz": {
       "name": "js/skins/ui/oxide/skin.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz"
+    },
+    "js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz": {
+      "name": "js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz"
     },
     "js/skins/ui/tinymce-5/content.css.gz": {
       "name": "js/skins/ui/tinymce-5/content.css.gz",
@@ -670,6 +670,11 @@
       "name": "js/skins/ui/tinymce-5/content.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz"
+    },
+    "js/skins/ui/oxide-dark/skin.min.css.gz": {
+      "name": "js/skins/ui/oxide-dark/skin.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css.gz"
     },
     "js/skins/ui/oxide-dark/skin.css.gz": {
       "name": "js/skins/ui/oxide-dark/skin.css.gz",
@@ -696,20 +701,20 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css.gz"
     },
-    "js/skins/ui/tinymce-5-dark/content.inline.min.css.gz": {
-      "name": "js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz"
-    },
-    "js/skins/ui/oxide-dark/skin.min.css.gz": {
-      "name": "js/skins/ui/oxide-dark/skin.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css.gz"
-    },
     "js/skins/ui/tinymce-5-dark/content.min.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/content.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz"
+    },
+    "js/skins/ui/tinymce-5/skin.css.gz": {
+      "name": "js/skins/ui/tinymce-5/skin.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz"
+    },
+    "js/skins/ui/tinymce-5-dark/content.inline.min.css.gz": {
+      "name": "js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz",
@@ -721,20 +726,15 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz"
     },
-    "js/skins/ui/tinymce-5/skin.css.gz": {
-      "name": "js/skins/ui/tinymce-5/skin.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz"
+    "js/skins/ui/tinymce-5/skin.min.css.gz": {
+      "name": "js/skins/ui/tinymce-5/skin.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz"
     },
     "js/chunk-vendors.874df7f4.js.LICENSE.txt.gz": {
       "name": "js/chunk-vendors.874df7f4.js.LICENSE.txt.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.874df7f4.js.LICENSE.txt.gz",
       "publicPath": "/static/sapl/frontend/js/chunk-vendors.874df7f4.js.LICENSE.txt.gz"
-    },
-    "js/skins/ui/tinymce-5/skin.min.css.gz": {
-      "name": "js/skins/ui/tinymce-5/skin.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz"
     },
     "fonts/fa-regular-400.3edb9004.ttf.gz": {
       "name": "fonts/fa-regular-400.3edb9004.ttf.gz",
@@ -782,7 +782,7 @@
       "css/chunk-vendors.9904f9d0.css",
       "js/chunk-vendors.874df7f4.js",
       "css/global.45591136.css",
-      "js/global.babaa14f.js"
+      "js/global.e8c9c610.js"
     ],
     "parlamentar": [
       "css/chunk-vendors.9904f9d0.css",
