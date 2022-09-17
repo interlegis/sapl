@@ -153,6 +153,15 @@ class ApiViewSetConstrutor():
         cls._built_sets.update(other._built_sets)
 
     @classmethod
+    def import_modules(cls, modules):
+        for m in modules:
+            importlib.import_module(m)
+            #components = inspect.getmembers(components_ref)
+            # for key, vclass in components:
+            # if type(vclass) == cls:
+            #        cls.update(vclass)
+
+    @classmethod
     def build_class(cls, apps):
 
         DRFAUTOAPI = settings.DRFAUTOAPI
@@ -160,7 +169,7 @@ class ApiViewSetConstrutor():
         serializers_classes = {}
         filters_classes = {}
 
-        global_serializer_class = rest_serializers.ModelSerializer
+        global_serializer_mixin = rest_serializers.ModelSerializer
         global_filter_class = ApiFilterSetMixin
 
         try:
@@ -185,14 +194,14 @@ class ApiViewSetConstrutor():
                         filters_classes
                     )}
 
-                if 'GLOBAL_SERIALIZER_CLASS' in DRFAUTOAPI:
-                    cs = DRFAUTOAPI['GLOBAL_SERIALIZER_CLASS'].split('.')
+                if 'GLOBAL_SERIALIZER_MIXIN' in DRFAUTOAPI:
+                    cs = DRFAUTOAPI['GLOBAL_SERIALIZER_MIXIN'].split('.')
                     module = importlib.import_module(
                         '.'.join(cs[0:-1]))
-                    global_serializer_class = getattr(module, cs[-1])
+                    global_serializer_mixin = getattr(module, cs[-1])
 
-                if 'GLOBAL_FILTERSET_CLASS' in DRFAUTOAPI:
-                    cs = DRFAUTOAPI['GLOBAL_FILTERSET_CLASS'].split('.')
+                if 'GLOBAL_FILTERSET_MIXIN' in DRFAUTOAPI:
+                    cs = DRFAUTOAPI['GLOBAL_FILTERSET_MIXIN'].split('.')
                     m = importlib.import_module('.'.join(cs[0:-1]))
                     global_filter_class = getattr(m, cs[-1])
 
@@ -206,7 +215,7 @@ class ApiViewSetConstrutor():
 
             serializer_name = f'{object_name}Serializer'
             _serializer_class = serializers_classes.get(
-                serializer_name, global_serializer_class)
+                serializer_name, global_serializer_mixin)
 
             filter_name = f'{object_name}FilterSet'
             _filterset_class = filters_classes.get(

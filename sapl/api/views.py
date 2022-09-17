@@ -8,17 +8,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor
-from sapl.api.views_audiencia import AudienciaApiViewSetConstrutor
-from sapl.api.views_base import BaseApiViewSetConstrutor
-from sapl.api.views_comissoes import ComissoesApiViewSetConstrutor
-from sapl.api.views_compilacao import CompilacaoApiViewSetConstrutor
-from sapl.api.views_materia import MateriaApiViewSetConstrutor
-from sapl.api.views_norma import NormaApiViewSetConstrutor
-from sapl.api.views_painel import PainelApiViewSetConstrutor
-from sapl.api.views_parlamentares import ParlamentaresApiViewSetConstrutor
-from sapl.api.views_protocoloadm import ProtocoloAdmApiViewSetConstrutor
-from sapl.api.views_sessao import SessaoApiViewSetConstrutor
-
 
 logger = logging.getLogger(__name__)
 
@@ -47,16 +36,18 @@ class AppVersionView(APIView):
 
 
 SaplApiViewSetConstrutor = ApiViewSetConstrutor
-SaplApiViewSetConstrutor.update(AudienciaApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(BaseApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(ComissoesApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(CompilacaoApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(MateriaApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(NormaApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(PainelApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(ParlamentaresApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(ProtocoloAdmApiViewSetConstrutor)
-SaplApiViewSetConstrutor.update(SessaoApiViewSetConstrutor)
+SaplApiViewSetConstrutor.import_modules([
+    'sapl.api.views_audiencia',
+    'sapl.api.views_base',
+    'sapl.api.views_comissoes',
+    'sapl.api.views_compilacao',
+    'sapl.api.views_materia',
+    'sapl.api.views_norma',
+    'sapl.api.views_painel',
+    'sapl.api.views_parlamentares',
+    'sapl.api.views_protocoloadm',
+    'sapl.api.views_sessao',
+])
 
 
 """
