@@ -4,8 +4,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, \
     SpectacularRedocView
 from rest_framework.authtoken.views import obtain_auth_token
 
-from sapl.api.deprecated import SessaoPlenariaViewSet, \
-    AutoresProvaveisListView, AutorListView
+from sapl.api.deprecated import SessaoPlenariaViewSet, AutorListView
 from sapl.api.views import AppVersionView, recria_token,\
     SaplApiViewSetConstrutor
 
@@ -37,8 +36,6 @@ urlpatterns_api_doc = [
 
 # TODO: refatorar para customização da api automática
 deprecated_urlpatterns_api = [
-    url(r'^autor/provaveis',
-        AutoresProvaveisListView.as_view(), name='autores_provaveis_list'),
     url(r'^autor', AutorListView.as_view(), name='autor_list'),
 
 ]

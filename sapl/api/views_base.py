@@ -1,13 +1,20 @@
+import logging
+
 from django.apps.registry import apps
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
+from django.http.response import Http404
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor, customize
 from sapl.api.forms import AutoresPossiveisFilterSet
-from sapl.base.models import Autor
-from sapl.utils import models_with_gr_for_model
+from sapl.api.serializers import ChoiceSerializer
+from sapl.base.models import Autor, TipoAutor
+from sapl.utils import models_with_gr_for_model, SaplGenericRelation
 
+
+logger = logging.getLogger(__name__)
 
 ApiViewSetConstrutor.build_class(
     [
@@ -93,3 +100,82 @@ class _AutorViewSet:
     def possiveis(self, request, *args, **kwargs):
         self.filterset_class = AutoresPossiveisFilterSet
         return self.list(request, *args, **kwargs)
+
+    @action(detail=False)
+    def provaveis(self, request, *args, **kwargs):
+
+        self.get_queryset = self.provaveis__get_queryset
+
+        self.filter_backends = []
+        self.filterset_class = None
+        self.serializer_class = ChoiceSerializer
+        return self.list(request, *args, **kwargs)
+
+    def provaveis__get_queryset(self):
+
+        params = {'content_type__isnull': False}
+        username = self.request.user.username
+        tipo = ''
+        try:
+            tipo = int(self.request.GET.get('tipo', ''))
+            if tipo:
+                params['id'] = tipo
+        except Exception as e:
+            logger.error('user= ' + username + '. ' + str(e))
+            pass
+
+        tipos = TipoAutor.objects.filter(**params)
+
+        if not tipos.exists() and tipo:
+            raise Http404()
+
+        r = []
+        for tipo in tipos:
+            q = self.request.GET.get('q', '').strip()
+
+            model_class = tipo.content_type.model_class()
+
+            fields = list(filter(
+                lambda field: isinstance(field, SaplGenericRelation) and
+                field.related_model == Autor,
+                model_class._meta.get_fields(include_hidden=True)))
+
+            """
+                fields - é um array de SaplGenericRelation que deve possuir o
+                     atributo fields_search. Verifique na documentação da classe
+                     a estrutura de fields_search.
+                """
+
+            assert len(fields) >= 1, (_(
+                'Não foi encontrado em %(model)s um atributo do tipo '
+                'SaplGenericRelation que use o model %(model_autor)s') % {
+                'model': model_class._meta.verbose_name,
+                'model_autor': Autor._meta.verbose_name})
+
+            qs = model_class.objects.all()
+
+            q_filter = Q()
+            if q:
+                for item in fields:
+                    if item.related_model != Autor:
+                        continue
+                    q_fs = Q()
+                    for field in item.fields_search:
+                        q_fs = q_fs | Q(**{'%s%s' % (
+                            field[0],
+                            field[1]): q})
+                    q_filter = q_filter & q_fs
+
+                qs = qs.filter(q_filter).distinct(
+                    fields[0].fields_search[0][0]).order_by(
+                        fields[0].fields_search[0][0])
+            else:
+                qs = qs.order_by(fields[0].fields_search[0][0])
+
+            qs = qs.values_list(
+                'id', fields[0].fields_search[0][0])
+            r += list(qs)
+
+        if tipos.count() > 1:
+            r.sort(key=lambda x: x[1].upper())
+        return r
