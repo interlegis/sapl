@@ -33,7 +33,7 @@ class _ContentTypeSet:
 class _AutorViewSet:
     """
     Nesta customização do que foi criado em
-    BaseApiViewSetConstrutor além do ofertado por
+    ApiViewSetConstrutor além do ofertado por
     rest_framework.viewsets.ModelViewSet, dentre outras customizações
     possíveis, foi adicionado as rotas referentes aos relacionamentos genéricos
 
@@ -112,7 +112,6 @@ class _AutorViewSet:
         return self.list(request, *args, **kwargs)
 
     def provaveis__get_queryset(self):
-
         params = {'content_type__isnull': False}
         username = self.request.user.username
         tipo = ''
