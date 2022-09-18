@@ -3,8 +3,11 @@ import importlib
 import inspect
 import logging
 
+from django.apps.config import AppConfig
+from django.apps.registry import apps
 from django.conf import settings
 from django.contrib.postgres.fields.jsonb import JSONField
+from django.db.models.base import ModelBase
 from django.db.models.fields.files import FileField
 from django.template.defaultfilters import capfirst
 from django.utils.translation import ugettext_lazy as _
@@ -169,7 +172,7 @@ class ApiViewSetConstrutor():
         return router
 
     @classmethod
-    def build_class(cls, apps):
+    def build_class(cls, apps_or_models):
 
         DRFAUTOAPI = settings.DRFAUTOAPI
 
@@ -272,8 +275,20 @@ class ApiViewSetConstrutor():
             viewset.__name__ = '%sModelViewSet' % _model.__name__
             return viewset
 
-        for app in apps:
-            cls._built_sets[app] = {}
+        for am in apps_or_models:
+
+            if isinstance(am, ModelBase):
+                app = am._meta.app_config
+            else:
+                app = am
+
+            if app not in cls._built_sets:
+                cls._built_sets[app] = {}
+
+            if am != app:
+                cls._built_sets[app][am] = build(am)
+                continue
+
             for model in app.get_models():
                 cls._built_sets[app][model] = build(model)
 
