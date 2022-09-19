@@ -1,0 +1,7 @@
+{% for k, v in extracted.metadata.items %}
+    {% for val in v %}
+        {{ k }}: {{ val|safe }}
+    {% endfor %}
+{% endfor %}
+
+{{ extracted|striptags|safe }}

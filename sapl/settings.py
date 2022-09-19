@@ -22,12 +22,12 @@ from dj_database_url import parse as db_url
 from easy_thumbnails.conf import Settings as thumbnail_settings
 from unipath import Path
 
+logging.captureWarnings(True)
 
 host = socket.gethostbyname_ex(socket.gethostname())[0]
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='')
@@ -41,13 +41,12 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
-SAPL_VERSION = '3.1.162-RC6'
+SAPL_VERSION = '3.1.163-RC6'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
 
 # SAPL business apps in dependency order
 SAPL_APPS = (
@@ -81,7 +80,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'floppyforms',
 
-    'drf_yasg',
+    'drf_spectacular',
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
@@ -93,6 +92,7 @@ INSTALLED_APPS = (
     'reversion_compare',
 
     'haystack',
+    'django.contrib.postgres',
     'speedinfo',
 
     'webpack_loader',
@@ -139,7 +139,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar', )
+    INSTALLED_APPS += ('debug_toolbar',)
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
     INTERNAL_IPS = ('127.0.0.1')
 
@@ -160,12 +160,23 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         "rest_framework.authentication.SessionAuthentication",
     ),
+
+    'DEFAULT_SCHEMA_CLASS': 'sapl.api.core.schema.Schema',
+
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
+
     "DEFAULT_FILTER_BACKENDS": (
         "rest_framework.filters.SearchFilter",
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Sapl API - docs',
+    'DESCRIPTION': 'Sapl API  - Docs',
+    'VERSION': '1.0.0',
+}
+
 CACHES = {
     'default': {
         'BACKEND': 'speedinfo.backends.proxy_cache',
@@ -173,7 +184,6 @@ CACHES = {
         'LOCATION': '/var/tmp/django_cache',
     }
 }
-
 
 ROOT_URLCONF = 'sapl.urls'
 
@@ -200,7 +210,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'sapl.wsgi.application'
 
@@ -273,7 +282,7 @@ WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
         'BUNDLE_DIR_NAME': 'sapl/static/sapl/frontend',
-        'STATS_FILE':  PROJECT_DIR.child('frontend').child(f'{"dev-" if DEBUG else ""}webpack-stats.json'),
+        'STATS_FILE': PROJECT_DIR.child('frontend').child(f'{"dev-" if DEBUG else ""}webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
@@ -282,7 +291,6 @@ WEBPACK_LOADER = {
 if DEBUG and not WEBPACK_LOADER['DEFAULT']['STATS_FILE'].exists():
     WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = PROJECT_DIR.child(
         'frontend').child(f'webpack-stats.json')
-
 
 STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
@@ -313,9 +321,21 @@ FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
+LOGGING_CONSOLE_VERBOSE = config(
+    'LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s ' + host + ' %(pathname)s %(name)s:%(funcName)s:%(lineno)d %(message)s'
@@ -328,7 +348,14 @@ LOGGING = {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
+            'filters': ['require_debug_true'],
             'formatter': 'simple',
+        },
+        'console_verbose': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'filters': ['require_debug_true'],
+            'formatter': 'verbose',
         },
         'applogfile': {
             'level': 'INFO',
@@ -341,12 +368,12 @@ LOGGING = {
     },
     'loggers': {
         'sapl': {
-            'handlers': ['applogfile'],
-            'level': 'INFO',
+            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
+            'level': 'DEBUG' if LOGGING_CONSOLE_VERBOSE else 'INFO',
             'propagate': True,
         },
         'django': {
-            'handlers': ['applogfile'],
+            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
             'level': 'ERROR',
             'propagate': True,
         },
@@ -358,15 +385,4 @@ PASSWORD_HASHERS = [
     'sapl.hashers.ZopeSHA1PasswordHasher',
 ]
 
-
-def remove_warnings():
-    import warnings
-    warnings.filterwarnings(
-        'ignore', module='floppyforms',
-        message='Unable to import floppyforms.gis'
-    )
-
-
 LOGOUT_REDIRECT_URL = '/login'
-
-remove_warnings()

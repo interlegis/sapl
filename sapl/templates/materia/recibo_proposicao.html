@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load tz %}
 {% load crispy_forms_tags %}
+{% load common_tags %}
 {% load webpack_static from webpack_loader %}
 
 {% block detail_content %}
@@ -50,10 +51,11 @@
     </tr>
     <tr>
       <td>Autor: <b>{{proposicao.autor}}</b></td>
-      <td>Data de Envio: <b>{{proposicao.data_envio|localtime|date:"d/m/Y H:i:s"}}</b></td>
+      <td>Enviada por: <b>{{ proposicao.user|format_user }}</b></td>
     </tr>
     <tr>
       <td>Descrição: <b>{{proposicao.descricao}}</b></td>
+      <td>Data de Envio: <b>{{proposicao.data_envio|localtime|date:"d/m/Y H:i:s"}}</b></td>
     </tr>
   </table>
 

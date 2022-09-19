@@ -60,7 +60,7 @@ class AssuntoNormaCrud(CrudAux):
 class PesquisarAssuntoNormaView(FilterView):
     model = AssuntoNorma
     filterset_class = AssuntoNormaFilterSet
-    paginate_by = 10
+    paginate_by = 20
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarAssuntoNormaView, self).get_filterset_kwargs(
@@ -100,17 +100,22 @@ class PesquisarAssuntoNormaView(FilterView):
         if data:
             url = '&' + str(self.request.META["QUERY_STRING"])
             if url.startswith("&page"):
-                ponto_comeco = url.find("assunto=") - 1
-                url = url[ponto_comeco:]
+                url = ''
 
-        context = self.get_context_data(
-            filter=self.filterset, object_list=self.object_list,
-            filter_url=url, numero_res=len(self.object_list)
-        )
+        if 'assunto' in self.request.META['QUERY_STRING'] or\
+                'page' in self.request.META['QUERY_STRING']:
+             resultados = self.object_list
+        else:
+            resultados = []
 
-        context["show_results"] = show_results_filter_set(
-            self.request.GET.copy()
-        )
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=resultados,
+                                        filter_url=url,
+                                        numero_res=len(resultados)
+                                        )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
         return self.render_to_response(context)
 
@@ -121,7 +126,7 @@ class NormaRelacionadaCrud(MasterDetailCrud):
     help_topic = 'norma_juridica'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['norma_relacionada', 'tipo_vinculo']
+        list_field_names = ['norma_relacionada', 'tipo_vinculo', 'resujmo']
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = NormaRelacionadaForm
@@ -492,7 +497,7 @@ class AutoriaNormaCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL]
     list_field_names = ['autor', 'autor__tipo__descricao', 'primeiro_autor']
 
-    class LocalBaseMixin():
+    class LocalBaseMixin:
         form_class = AutoriaNormaForm
 
         @property
@@ -513,7 +518,7 @@ class AutoriaNormaCrud(MasterDetailCrud):
         def get_initial(self):
             initial = super().get_initial()
             initial.update({
-                'data_relativa': self.object.norma.data_apresentacao,
+                'data_relativa': self.object.norma.data,
                 'tipo_autor': self.object.autor.tipo.id,
             })
             return initial

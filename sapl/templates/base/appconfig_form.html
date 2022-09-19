@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags menus%}
+
+{% block base_content %}
+{% crispy form %}
+{% endblock base_content %}
+
+{% block extra_js %}
+  <script language="Javascript">
+
+    function json_simular_identificacao_de_documento() {
+      var jsidd = $("#id_identificacao_de_documentos").val()
+      $.get("",
+        { jsidd: jsidd},
+        function(data, status) {
+          $("#jsidd").remove()
+            $("#div_id_identificacao_de_documentos").closest('.row').after($('<div class="row"/>').append($('<div class="col-12"/>').append(
+              $(`<div id="jsidd" class="alert alert-${data.error.length > 0 ? "danger":"info"}"/>`).html(
+                `
+                  Resultado: <strong>${data.jsidd}</strong>
+                  ${data.error.length > 0 ? '<br><br>Erro(s):': ''}
+                  ${data.error.length > 0 ? data.error: ''}
+                `
+              )
+            )))
+      });
+    }
+    var fields = ["#id_identificacao_de_documentos",];
+    for (i = 0; i < fields.length; i++){
+        $(fields[i]).keyup(function() {
+          json_simular_identificacao_de_documento();
+        });
+    }
+    $(document).ready( function() {
+      json_simular_identificacao_de_documento();
+    });
+  </script>
+{% endblock %}

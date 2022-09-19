@@ -5,15 +5,15 @@ TipoSessaoPlenaria:
 
 SessaoPlenaria:
   {% trans 'Dados Básicos' %}:
-  - legislatura  sessao_legislativa tipo numero:2
+  - legislatura  sessao_legislativa tipo numero:1 publicar_pauta:2
   - data_inicio:5  hora_inicio:5  iniciada
   - data_fim:5  hora_fim:5  finalizada
-  - upload_pauta  upload_ata  upload_anexo
+  - upload_pauta   upload_ata  upload_anexo
   - url_audio  url_video
 
 SessaoSolene:
   {% trans 'Dados Básicos' %}:
-  - legislatura  sessao_legislativa tipo:3  numero:1
+  - legislatura  sessao_legislativa tipo:3  numero:1 publicar_pauta:2
   - data_inicio:5  hora_inicio:5  iniciada
   - data_fim:5  hora_fim:5  finalizada
   - tema_solene
@@ -53,13 +53,14 @@ OradorOrdemDia:
   - numero_ordem parlamentar
   - url_discurso observacao
   - upload_anexo
-  
+
 ExpedienteMateria:
   {% trans 'Matéria do Expediente' %}:
   - data_ordem numero_ordem
   - tipo_materia numero_materia ano_materia
   - tipo_votacao
   - apenas_leitura
+  - tramitacao_select
   - observacao
 
 OrdemDia:
@@ -68,6 +69,7 @@ OrdemDia:
   - tipo_materia numero_materia ano_materia
   - tipo_votacao
   - apenas_leitura
+  - tramitacao_select
   - observacao
 
 ExpedienteMateriaDetail:
@@ -75,6 +77,7 @@ ExpedienteMateriaDetail:
   - materia
   - ementa
   - tipo_votacao
+  - tramitacao
   - observacao
 
 OrdemDiaDetail:
@@ -82,6 +85,7 @@ OrdemDiaDetail:
   - materia
   - ementa
   - tipo_votacao
+  - tramitacao
   - observacao
 
 Bancada:
@@ -118,4 +122,16 @@ RetiradaPauta:
   {% trans 'Retirada de Pauta' %}:
   - tipo_de_retirada materia
   - data parlamentar
+  - observacao
+
+Correspondencia:
+  {% trans 'Documento Administrativo' %}:
+  - numero_ordem:3 tipo:4
+  - tipo_documento:6 numero_documento:3 ano_documento:3
+  - observacao
+
+CorrespondenciaDetail:
+  {% trans 'Correspondencia' %}:
+  - numero_ordem:2 tipo:3 sessao_plenaria
+  - documento|fk_urlize_for_detail
   - observacao

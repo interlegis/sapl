@@ -1,0 +1,71 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load common_tags %}
+{% load static %}
+
+{% block actions %}{% endblock %}
+
+{% block detail_content %}
+
+<head>
+    <link rel="stylesheet" href="{% static '/sapl/css/ancora.css'%}">
+</head>
+
+<div class="clearfix">
+    <h1 class="page-header">
+        Normas <small>({{nome_parlamentar}})</small>
+    </h1>
+</div>
+
+<div class="ancora">
+        <p class="titulo-conteudo">Conteúdo</p>
+    <ol>
+        <li><a href="#primeiro-autor">Primeiro Autor</a></li>
+        <li><a href="#co-autor">Co-Autor</a></li>
+    </ol>
+</div>
+
+<h2 id="primeiro-autor" style="text-align: center">Primeiro Autor</h2>
+<br/>
+<table class="table table-striped table-bordered">
+{% for autoria in autoria.0 %}
+  <thead class="thead-default"><tr><td><h3>Ano: {{ autoria.0 }}</h3></td></tr></thead>
+  {% for normas in autoria.1 %}
+     <tr>
+     <td>{{ normas.1 }}&nbsp;</td>
+     <td>
+     <a href="{% url 'sapl.norma:norma_pesquisa'%}?tipo={{normas.0}}&ano={{autoria.0}}&autorianorma__autor={{autor_pk}}&autorianorma__primeiro_autor=True">
+       {{ normas.2}}
+     </a>
+     </td>
+     <td>&nbsp;{{ normas.3}}</td>
+   </tr>
+  {% endfor %}
+{%endfor %}
+</table>
+
+<h2>Total: {{ autoria.1 }}</h2><br/>
+
+<h2 id="co-autor" style="text-align: center">Co-Autor</h2>
+<br/>
+<table class="table table-striped table-bordered">
+{% for coautoria in coautoria.0 %}
+  <thead class="thead-default"><tr><td><h3>Ano: {{ coautoria.0 }}</h3></td></tr></thead>
+  {% for normas in coautoria.1 %}
+  <tr>
+  <td>{{ normas.1 }}&nbsp;</td>
+  <td>
+  <a href="{% url 'sapl.norma:norma_pesquisa'%}?tipo={{normas.0}}&ano={{coautoria.0}}&autorianorma__autor={{autor_pk}}&autorianorma__primeiro_autor=False">
+    {{ normas.2}}
+  </a>
+  </td>
+  <td>&nbsp;{{ normas.3}}</td>
+</tr>
+  {% endfor %}
+{%endfor %}
+</table>
+
+<h2>Total: {{ coautoria.1 }}</h2><br/>
+
+
+{% endblock detail_content %}

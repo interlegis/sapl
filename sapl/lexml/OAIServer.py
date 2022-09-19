@@ -6,8 +6,10 @@ import oaipmh.error
 import oaipmh.metadata
 import oaipmh.server
 from django.urls import reverse
+from django.utils import timezone
 from lxml import etree
 from lxml.builder import ElementMaker
+
 
 from sapl.base.models import AppConfig, CasaLegislativa
 from sapl.lexml.models import LexmlPublicador, LexmlProvedor
@@ -102,9 +104,12 @@ class OAIServer:
         return appconfig.esfera_federacao
 
     def recupera_norma(self, offset, batch_size, from_, until, identifier, esfera):
-        kwargs = {'data__lte': until}
+        kwargs = {'data__isnull': False,
+                  'esfera_federacao__isnull': False,
+                  'timestamp__isnull': False,
+                  'timestamp__lte': until}
         if from_:
-            kwargs['data__gte'] = from_
+            kwargs['timestamp__gte'] = from_
         if identifier:
             kwargs['numero'] = identifier
         if esfera:
@@ -232,11 +237,21 @@ class OAIServer:
             return None
 
     def oai_query(self, offset=0, batch_size=10, from_=None, until=None, identifier=None):
+        from_ = timezone.make_aware(from_)  # convert from naive to timezone aware datetime
         esfera = self.get_esfera_federacao()
         offset = 0 if offset < 0 else offset
         batch_size = 10 if batch_size < 0 else batch_size
-        until = datetime.now() if not until or until > datetime.now() else until
-        normas = self.recupera_norma(offset, batch_size, from_, until, identifier, esfera)
+
+        until = timezone.make_aware(until) \
+            if until and timezone.make_aware(until) < timezone.now() \
+            else timezone.now()
+
+        normas = self.recupera_norma(offset,
+                                     batch_size,
+                                     from_,
+                                     until,
+                                     identifier,
+                                     esfera)
         for norma in normas:
             resultado = {}
             identificador = self.monta_id(norma)

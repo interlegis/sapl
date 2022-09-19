@@ -9,7 +9,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 install_requires = [
-    'django>=1.11.19,<2.0',
+    'django>=1.11.19,<3.0',
     'django-haystack==2.8.1',
     'django-filter==2.0.0',
     'djangorestframework==3.11.2',
@@ -29,7 +29,7 @@ install_requires = [
     'easy-thumbnails==2.5',
     'python-decouple==3.1',
     'psycopg2-binary==2.7.6.1',
-    'pyyaml==4.2b1',
+    'pyyaml==5.4',
     'pytz==2018.9',
     'python-magic==0.4.15',
     'unipath==1.1',
@@ -42,7 +42,7 @@ install_requires = [
 ]
 setup(
     name='interlegis-sapl',
-    version='3.1.162-RC6',
+    version='3.1.163-RC6',
     packages=find_packages(),
     include_package_data=True,
     license='GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007',

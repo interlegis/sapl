@@ -1,0 +1,29 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load common_tags %}
+
+{% block actions %}{% endblock %}
+{% block detail_content %}
+  {% if perms|get_add_perm:view %}
+    <form method="post" accept-charset="ISO-8859-1">
+    {% csrf_token %}
+      <fieldset class="form-group">
+        <textarea rows="5" cols="50" name="conteudo" id="conteudo">{{object.consideracoesfinais.conteudo}}</textarea>
+      </fieldset>
+      <input type="submit" name="save" value="Salvar" class="btn btn-primary"/>
+      <input type="submit" name="delete" value="Apagar" class="btn btn-danger" />
+    </form>
+  {% else %}
+  {{object.consideracoesfinais.conteudo|safe}}
+  {% endif %}
+{% endblock detail_content %}
+
+<!-- Texto RICO -->
+{% block extra_js %}
+  {% if perms|get_add_perm:view %}
+    <script language="JavaScript">
+      initTextRichEditor(null);
+    </script>
+  {% endif %}
+{% endblock %}

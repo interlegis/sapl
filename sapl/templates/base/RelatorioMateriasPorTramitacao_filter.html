@@ -38,29 +38,38 @@
 
     <table class="table table-bordered table-hover">
       <thead class="thead-default" >
-        <tr class="active">
-          <th>Matéria</th>
-          <th>Ementa</th>
-          <th>Local Atual</th>
-          <th>Status</th>
-          <th>Autores</th>
+        <tr>
+          <th scope="col">Matéria</th>
         </tr>
       </thead>
+      {% for materia_em_tramitacao in object_list %}
       <tbody>
-        {% for materia_em_tramitacao in object_list %}
-          <tr>
-            <td>
-              <a href="{% url 'sapl.materia:materialegislativa_detail' materia_em_tramitacao.materia.pk %}">
+        <tr>
+          <td>
+            <a href="{% url 'sapl.materia:materialegislativa_detail' materia_em_tramitacao.materia.pk %}">
                 {{ materia_em_tramitacao.materia.tipo.descricao }} {{ materia_em_tramitacao.materia.numero }}/{{ materia_em_tramitacao.materia.ano }}
-              </a>
-            </td>
-            <td>{{ materia_em_tramitacao.materia.ementa }}</td>
-            <td>{{ materia_em_tramitacao.materia.tramitacao_set.first.unidade_tramitacao_destino }}</td>
-            <td>{{ materia_em_tramitacao.materia.tramitacao_set.first.status }}</td>
-            <td>{% for autor in materia_em_tramitacao.materia.autores.all %} <p>{{autor}}</p>{% endfor %}</td>
-          </tr>
-        {% endfor %}
+            </a>
+            <br/>
+            <strong>Ementa: </strong>{{ materia_em_tramitacao.materia.ementa }}
+            <br/>
+            <strong>Local Atual: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.unidade_tramitacao_destino }}
+            <br/>
+            <strong>Status: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.status }}
+            <br/>
+            <strong>Texto da Ação: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.texto }}
+            <br/>
+            <strong>Autores: </strong>
+            {% for autor in materia_em_tramitacao.materia.autores.all %}
+              {% if not forloop.last %}
+                {{autor}},&nbsp;
+                {% else %}
+                {{autor}}
+              {% endif%}
+            {% endfor %}
+          </td>
+        </tr>
       </tbody>
+      {% endfor %}
     </table>
   {% endif %}
   {% include 'paginacao.html' %}

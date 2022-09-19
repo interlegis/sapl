@@ -344,9 +344,9 @@ class MateriaLegislativa(models.Model):
                 numero=self.numero_protocolo).first()
             if protocolo:
                 if protocolo.timestamp:
-                    return protocolo.timestamp.date()
+                    return protocolo.timestamp
                 elif protocolo.timestamp_data_hora_manual:
-                    return protocolo.timestamp_data_hora_manual.date()
+                    return protocolo.timestamp_data_hora_manual
                 elif protocolo.data:
                     return protocolo.data
 
@@ -556,7 +556,7 @@ class DocumentoAcessorio(models.Model):
     autor = models.CharField(
         max_length=200, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
-    indexacao = models.TextField(blank=True)
+    indexacao = models.TextField(blank=True, verbose_name=_('Indexação'))
     arquivo = models.FileField(
         blank=True,
         null=True,

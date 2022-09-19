@@ -1,35 +1,38 @@
-    <h2 class="gray-title">Matérias da Ordem do Dia</h2>
+<h2 class="gray-title">Matérias da Ordem do Dia</h2>
 
-    <table class="grayTable" style="height: 145px;" width="443">
-            <thead>
-                <tr>
-                    <th>Matéria</th>
-                    <th>Ementa</th>
-                    <th>Resultado da Votação</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for materia in lst_votacao%}
-                    <tr>
-                        <td>
-                            <dl>
-                                <dt><b>{{materia.num_ordem}} -</b> {{materia.id_materia}}</dt>
-                                <dt style="text-align: left;"><b>Turno:</b> {{materia.des_turno}}</dt>
-                                <dt style="text-align: left;"><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
-                            </dl>
-                        </td>
-                        <td style="width:60%">
-                            <div style="margin:10px">
-                                {{materia.txt_ementa}}
-                                {% if materia.ordem_observacao %}<br><br>Obs.: {{materia.ordem_observacao}} {% endif %}
-                            </div>
-                        </td>
-                        <td style="text-align: center;">
-                            &nbsp;<b>{{materia.nom_resultado}}</b>
-                            <br><br>{{materia.votacao_observacao}}
-                        </td>
-                    </tr>
-                {% endfor %}
-
-            </tbody>
-    </table>
+{% for materia in lst_votacao%}
+{% if forloop.first %}
+<table class="grayTable" style="height: 145px;" width="443">
+    <thead>
+        <tr>
+            <th>Matéria</th>
+            <th>Ementa</th>
+            <th>Resultado da Votação</th>
+        </tr>
+    </thead>
+    <tbody>
+{% endif %}
+    <tr>
+        <td>
+            <dl>
+                <dt><b>{{materia.num_ordem}} -</b> {{materia.id_materia}}</dt>
+                <dt style="text-align: left;"><b>Turno:</b> {{materia.des_turno}}</dt>
+                <dt style="text-align: left;"><b>{{materia.num_autores}}: </b>{{materia.nom_autor}}</dt>
+            </dl>
+        </td>
+        <td style="width:60%">
+            <div style="margin:10px">
+                {{materia.txt_ementa}}
+                {% if materia.ordem_observacao %}<br><br>Obs.: {{materia.ordem_observacao}} {% endif %}
+            </div>
+        </td>
+        <td style="text-align: center;">
+            &nbsp;<b>{{materia.nom_resultado}}</b>
+            <br><br>{{materia.votacao_observacao}}
+        </td>
+    </tr>
+{% if forloop.last %}
+    </tbody>
+</table>
+{% endif %}
+{% endfor %}

@@ -4,9 +4,11 @@ import datetime
 import itertools
 import logging
 import os
+import re
 
+from django.apps.registry import apps
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, views
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
@@ -23,6 +25,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
@@ -31,12 +34,13 @@ from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView
 from haystack.query import SearchQuerySet
 from haystack.views import SearchView
+from ratelimit.decorators import ratelimit
 
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
                              NovaSenhaForm, UserAdminForm,
-                             OperadorAutorForm)
+                             OperadorAutorForm, LoginForm, SaplSearchForm)
 from sapl.base.models import Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination, Crud,\
@@ -62,7 +66,7 @@ from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured, parlamentares_ativos,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, num_materias_por_tipo,
                         google_recaptcha_configured, sapl_as_sapn,
-                        groups_remove_user, groups_add_user)
+                        groups_remove_user, groups_add_user, get_client_ip)
 
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, RelatorioAtasFilterSet,
                     RelatorioAudienciaFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet,
@@ -84,6 +88,15 @@ class IndexView(TemplateView):
         if sapl_as_sapn():
             return redirect('/norma/pesquisar')
         return TemplateView.get(self, request, *args, **kwargs)
+
+
+@method_decorator(ratelimit(key=lambda group, request: get_client_ip(request),
+                            rate='20/m',
+                            method=ratelimit.UNSAFE,
+                            block=True), name='dispatch')
+class LoginSapl(views.LoginView):
+    template_name = 'base/login.html'
+    authentication_form = LoginForm
 
 
 class ConfirmarEmailView(TemplateView):
@@ -699,6 +712,12 @@ class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
 
         context['data_tramitacao'] = (self.request.GET['tramitacao__data_fim_prazo_0'] + ' - ' +
                                       self.request.GET['tramitacao__data_fim_prazo_1'])
+
+        if self.request.GET['ano']:
+            context['ano'] = self.request.GET['ano']
+        else:
+            context['ano'] = ''
+
         if self.request.GET['tipo']:
             tipo = self.request.GET['tipo']
             context['tipo'] = (
@@ -896,7 +915,8 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
             )
         else:
             context['materia__autor'] = ''
-
+        if 'page' in qr:
+            del qr['page']
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         context['show_results'] = show_results_filter_set(qr)
 
@@ -1876,6 +1896,9 @@ class UserCrud(Crud):
             'usuario', 'groups', 'is_active'
         ]
 
+        def openapi_url(self):
+            return ''
+
         def resolve_url(self, suffix, args=None):
             return reverse('sapl.base:%s' % self.url_name(suffix),
                            args=args)
@@ -2079,9 +2102,44 @@ class AppConfigCrud(CrudAux):
                         kwargs={'pk': app_config.pk}))
 
     class UpdateView(CrudAux.UpdateView):
-
-        template_name = 'base/AppConfig.html'
         form_class = ConfiguracoesAppForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.model._meta.verbose_name
+            return context
+
+        def get(self, request, *args, **kwargs):
+            if 'jsidd' in request.GET:
+                return self.json_simular_identificacao_de_documentos(request, *args, **kwargs)
+
+            return super().get(request, *args, **kwargs)
+
+        def json_simular_identificacao_de_documentos(self, request, *args, **kwargs):
+
+            DocumentoAdministrativo = apps.get_model(
+                'protocoloadm',
+                'DocumentoAdministrativo'
+            )
+
+            d = DocumentoAdministrativo.objects.order_by('-id').first()
+
+            jsidd = request.GET.get('jsidd', '')
+            values = {
+                '{sigla}': d.tipo.sigla if d else 'OF',
+                '{nome}': d.tipo.descricao if d else 'Ofício',
+                '{numero}': f'{d.numero:0>3}' if d else '001',
+                '{ano}': f'{d.ano}' if d else str(timezone.now().year),
+                '{complemento}': d.complemento if d else 'GAB',
+                '{assunto}': d.assunto if d else 'Simulação de Identificação de Documentos'
+            }
+
+            result = DocumentoAdministrativo.mask_to_str(values, jsidd)
+
+            return JsonResponse({
+                'jsidd': result[0],
+                'error': list(result[1])
+            })
 
         def form_valid(self, form):
             numeracao = AppConfig.objects.last().sequencia_numeracao_protocolo
@@ -2151,8 +2209,20 @@ class AppConfigCrud(CrudAux):
 class SaplSearchView(SearchView):
     results_per_page = 10
 
+    def __init__(self, template=None, load_all=True, form_class=None, searchqueryset=None, results_per_page=None):
+        super().__init__(
+            template=template,
+            load_all=load_all,
+            form_class=SaplSearchForm,
+            searchqueryset=None,
+            results_per_page=results_per_page
+        )
+
     def get_context(self):
         context = super(SaplSearchView, self).get_context()
+
+        data = self.request.GET or self.request.POST
+        data = data.copy()
 
         if 'models' in self.request.GET:
             models = self.request.GET.getlist('models')
@@ -2160,6 +2230,19 @@ class SaplSearchView(SearchView):
             models = []
 
         context['models'] = ''
+        context['is_paginated'] = True
+
+        page_obj = context['page']
+        context['page_obj'] = page_obj
+        paginator = context['paginator']
+        context['page_range'] = make_pagination(
+            page_obj.number, paginator.num_pages)
+
+        if 'page' in data:
+            del data['page']
+
+        context['filter_url'] = (
+            '&' + data.urlencode()) if len(data) > 0 else ''
 
         for m in models:
             context['models'] = context['models'] + '&models=' + m

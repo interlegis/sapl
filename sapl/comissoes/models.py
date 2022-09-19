@@ -177,11 +177,10 @@ class Participacao(models.Model):  # ComposicaoComissao
     data_desligamento = models.DateField(blank=True,
                                          null=True,
                                          verbose_name=_('Data Desligamento'))
-    motivo_desligamento = models.CharField(
-        max_length=150, blank=True,
-        verbose_name=_('Motivo Desligamento'))
-    observacao = models.CharField(
-        max_length=150, blank=True, verbose_name=_('Observação'))
+    motivo_desligamento = models.TextField(
+        blank=True, verbose_name=_('Motivo Desligamento'))
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
 
     class Meta:
         verbose_name = _('Participação em Comissão')

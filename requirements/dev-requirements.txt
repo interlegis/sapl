@@ -2,7 +2,7 @@
 
 autopep8==1.2.4
 beautifulsoup4==4.9.1
-django-debug-toolbar==1.8
+django-debug-toolbar==1.11.1
 ipdb==0.13.3
 pdbpp==0.9.2
 pip-review==0.4

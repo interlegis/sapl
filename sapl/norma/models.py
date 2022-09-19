@@ -120,6 +120,7 @@ class NormaJuridicaManager(models.Manager):
             if not count:
                 ta.dispositivos_set.filter(
                     dispositivo_pai__isnull=False).delete()
+                ta.publicacao_set.all().delete()
                 ta.delete()
 
         return qs
@@ -150,7 +151,9 @@ class NormaJuridica(models.Model):
         verbose_name=_('Tipo da Norma Jurídica'))
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
-        on_delete=models.PROTECT, verbose_name=_('Matéria'))
+        on_delete=models.PROTECT,
+        verbose_name=_('Matéria'),
+        related_name='normajuridica_set')
     orgao = models.ForeignKey(
         Orgao, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Órgão'))
@@ -406,6 +409,11 @@ class NormaRelacionada(models.Model):
         TipoVinculoNormaJuridica,
         on_delete=models.PROTECT,
         verbose_name=_('Tipo de Vínculo'))
+    resumo = models.TextField(
+        blank=True,
+        default="",
+        verbose_name=_('Resumo'),
+    )
 
     class Meta:
         verbose_name = _('Norma Relacionada')

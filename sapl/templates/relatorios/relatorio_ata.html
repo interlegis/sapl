@@ -5,7 +5,8 @@
     <h3 style="text-align:center;">Ata Eletrônica da {{sessaoplenaria}}</h3>
     {% include 'sessao/blocos_ata/identificacao_basica.html' %}
     {% include 'sessao/blocos_ata/mesa_diretora.html' %}
-    {% include 'sessao/blocos_ata/lista_presenca.html' %}
+    {% include 'sessao/blocos_ata/lista_presenca_sessao.html' %}
+    {% include 'sessao/blocos_ata/correspondencias.html' %}
     {% include 'sessao/blocos_ata/expedientes.html' %}
     {% include 'sessao/blocos_ata/materias_expediente.html' %}
     {% include 'sessao/blocos_ata/oradores_expediente.html' %}
@@ -14,7 +15,8 @@
     {% include 'sessao/blocos_ata/oradores_ordemdia.html' %}
     {% include 'sessao/blocos_ata/oradores_explicacoes.html' %}
     {% include 'sessao/blocos_ata/ocorrencias_da_sessao.html' %}
-    
+    {% include 'sessao/blocos_ata/consideracoes_finais.html' %}
+
     {% if assinatura_mesa or assinatura_presentes %}
 
     <div style="padding:5px;margin-top:50px;border-top: 1px solid black;">
@@ -29,14 +31,14 @@
                     {% if forloop.counter0|divisibleby:2 %}
         	            <tr style="margin-top:20px">
                             <td>
-                                <div style="float: left; position: relative; top: -50px; left: 8px; width: 120px">____________________ </br>
+                                <div style="float: left; position: relative; top: 0px; left: 8px; width: 120px">____________________ </br>
         	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {% if p.parlamentar|filiacao_data_filter:object.data_inicio %} {{ p.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</p>
-        	        	        	    </br></br></br>
+        	        	        	    </br></br>
         	          	        </div>
                     {% else %}
-                                <div style="float: left; position: relative; top: -50px; left: 142px; width: 120px; margin-right:-220px;">____________________ </br>
+                                <div style="float: left; position: relative; top: 0px; left: 142px; width: 120px; margin-right:-220px;">____________________ </br>
         	        	            <p style="font-size:8pt"><b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {% if p.parlamentar|filiacao_data_filter:object.data_inicio %} {{ p.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</p>
-        	        	        	    </br></br></br>
+        	        	        	    </br></br>
         	          	        </div>
                             </td>
                         </tr>
@@ -47,15 +49,15 @@
                     {% if forloop.counter0|divisibleby:2 %}
         	            <tr style="margin-top:20px">
                             <td>
-                                <div style="float: left; position: relative;top: -50px; left: 8px; width: 120px;">_____________________</br>
+                                <div style="float: left; position: relative;top: 0px; left: 8px; width: 120px;">_____________________</br>
         	        	            <p style="font-size:8pt">
                                         {{p.nome_completo}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</p>
-                                        </br></br></br>
+                                        </br></br>
         	          	        </div>
                     {% else %}
-                                <div style="float: left; position: relative; top: -50px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
+                                <div style="float: left; position: relative; top: 0px;left: 142px; width: 120px; margin-right:-220px;">_____________________ </br>
         	        	            <p style="font-size:8pt">{{p.nome_completo}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}</p>
-        	        	        	    </br></br></br>
+        	        	        	    </br></br>
         	          	        </div>
                             </td>
                         </tr>

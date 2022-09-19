@@ -2,6 +2,7 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% load webpack_static from webpack_loader %}
+{% load common_tags %}
 {% block detail_content %}
 <style xmlns:max-width="http://www.w3.org/1999/xhtml">
 		table {
@@ -110,6 +111,12 @@
                     <td>{{ protocolo.interessado }}</td>
             </tr>
 		{% endif %}
+		{% if protocolo.de_proposicao %}
+			<tr>
+				<th>Proposição enviada por</th>
+				<td>{{ protocolo.user|format_user }}</td>
+			</tr>
+			{% endif %}
 		<tr>
 			<th>Natureza</th>
 			<td>

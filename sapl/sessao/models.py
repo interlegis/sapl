@@ -2,7 +2,7 @@ from operator import xor
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils import timezone, formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -10,8 +10,10 @@ import reversion
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import Tramitacao
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
+from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
                         restringe_tipos_de_arquivo_txt, texto_upload_path,
@@ -80,6 +82,7 @@ class TipoSessaoPlenaria(models.Model):
     TIPO_NUMERACAO_CHOICES = Choices(
         (1, 'quizenal', 'Quinzenal'),
         (2, 'mensal', 'Mensal'),
+        (5, 'semestral', 'Semestral'),
         (10, 'anual', 'Anual'),
         (11, 'sessao_legislativa', 'Sessão Legislativa'),
         (12, 'legislatura', 'Legislatura'),
@@ -102,7 +105,7 @@ class TipoSessaoPlenaria(models.Model):
     def __str__(self):
         return self.nome
 
-    def queryset_tipo_numeracao(self, legislatura, sessao_legislativa, data):
+    def build_predicados_queryset(self, legislatura, sessao_legislativa, data):
 
         qs = Q(tipo=self)
         tnc = self.TIPO_NUMERACAO_CHOICES
@@ -115,6 +118,13 @@ class TipoSessaoPlenaria(models.Model):
             qs &= Q(sessao_legislativa=sessao_legislativa)
         elif self.tipo_numeracao == tnc.anual:
             qs &= Q(data_inicio__year=data.year)
+        elif self.tipo_numeracao == tnc.semestral:
+            m = data.month
+            p = {
+                'data_inicio__year': data.year,
+                f'data_inicio__month__{"gt" if m > 6 else "lte"}': 6
+            }
+            qs &= Q(**p)
         elif self.tipo_numeracao in (tnc.mensal, tnc.quizenal):
             qs &= Q(data_inicio__year=data.year, data_inicio__month=data.month)
 
@@ -229,6 +239,27 @@ class SessaoPlenaria(models.Model):
     tema_solene = models.TextField(
         blank=True, max_length=500, verbose_name=_('Tema da Sessão Solene'))
 
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True, auto_now=True, verbose_name=_('Data'))
+
+    publicar_pauta = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        choices=YES_NO_CHOICES,
+        verbose_name=_('Publicar Pauta?'))
+
+    correspondencias = models.ManyToManyField(
+        DocumentoAdministrativo,
+        blank=True,
+        through='Correspondencia',
+        related_name='sessoesplenarias',
+        through_fields=(
+            'sessao_plenaria',
+            'documento'
+        )
+    )
+
     class Meta:
         verbose_name = _('Sessão Plenária')
         verbose_name_plural = _('Sessões Plenárias')
@@ -248,6 +279,9 @@ class SessaoPlenaria(models.Model):
             base += ' do mês de {}'.format(
                 formats.date_format(self.data_inicio, 'F')
             )
+
+        if self.tipo.tipo_numeracao == tnc.semestral:
+            base += f' do {1 if self.data_inicio.month <= 6 else 2}º Semestre'
 
         if self.tipo.tipo_numeracao <= tnc.anual:
             base += ' de {}'.format(self.data_inicio.year)
@@ -277,7 +311,7 @@ class SessaoPlenaria(models.Model):
         upload_pauta = self.upload_pauta
         upload_ata = self.upload_ata
         upload_anexo = self.upload_anexo
-        
+
         result = super().delete(using=using, keep_parents=keep_parents)
 
         if upload_pauta:
@@ -311,10 +345,18 @@ class SessaoPlenaria(models.Model):
             self.upload_ata = upload_ata
             self.upload_anexo = upload_anexo
 
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        models.Model.save(self, force_insert=force_insert,
+                          force_update=force_update,
+                          using=using,
+                          update_fields=update_fields)
+
+        self.ordemdia_set.exclude(
+            data_ordem=F('sessao_plenaria__data_inicio')
+        ).update(data_ordem=self.data_inicio)
+
+        self.expedientemateria_set.exclude(
+            data_ordem=F('sessao_plenaria__data_inicio')
+        ).update(data_ordem=self.data_inicio)
 
 
 @reversion.register()
@@ -331,6 +373,12 @@ class AbstractOrdemDia(models.Model):
     materia = models.ForeignKey(MateriaLegislativa,
                                 on_delete=models.PROTECT,
                                 verbose_name=_('Matéria'))
+    tramitacao = models.ForeignKey(Tramitacao,
+                                   on_delete=models.PROTECT,
+                                   verbose_name=_('Situação de Pauta'),
+                                   blank=True,
+                                   default='',
+                                   null=True)
     data_ordem = models.DateField(verbose_name=_('Data da Sessão'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
@@ -428,6 +476,22 @@ class OcorrenciaSessao(models.Model):  # OcorrenciaSessaoPlenaria
 
 
 @reversion.register()
+class ConsideracoesFinais(models.Model):  # ConsideracoesFinaisSessaoPlenaria
+    sessao_plenaria = models.OneToOneField(SessaoPlenaria,
+                                           on_delete=models.PROTECT)
+    conteudo = models.TextField(
+        blank=True, verbose_name=_('Considerações Finais da Sessão Plenária'))
+
+    class Meta:
+        verbose_name = _('Consideração Final da Sessão Plenária')
+        verbose_name_plural = _('Considerações Finais da Sessão Plenária')
+        ordering = ('id',)
+
+    def __str__(self):
+        return '%s - %s' % (self.sessao_plenaria, self.conteudo)
+
+
+@reversion.register()
 class IntegranteMesa(models.Model):  # MesaSessaoPlenaria
     sessao_plenaria = models.ForeignKey(SessaoPlenaria,
                                         on_delete=models.CASCADE)
@@ -480,6 +544,7 @@ class AbstractOrador(models.Model):  # Oradores
             upload_anexo.delete(save=False)
 
         return result
+
 
 @reversion.register()
 class Orador(AbstractOrador):  # Oradores
@@ -677,6 +742,7 @@ ORDENACAO_RESUMO = [
     ('cont_mult', 'Conteúdo Multimídia'),
     ('mesa_d', 'Mesa Diretora'),
     ('lista_p', 'Lista de Presença'),
+    ('correspondencia', 'Correspondências'),
     ('exp', 'Expedientes'),
     ('mat_exp', 'Matérias do Expediente'),
     ('v_n_mat_exp', 'Votações Nominais - Matérias do Expediente'),
@@ -686,7 +752,8 @@ ORDENACAO_RESUMO = [
     ('v_n_mat_o_d', 'Votações Nominais - Matérias da Ordem do Dia'),
     ('oradores_o_d', 'Oradores da Ordem do Dia'),
     ('oradores_expli', 'Oradores das Explicações Pessoais'),
-    ('ocorr_sessao', 'Ocorrências da Sessão')
+    ('ocorr_sessao', 'Ocorrências da Sessão'),
+    ('cons_finais', 'Considerações Finais')
 ]
 
 
@@ -751,6 +818,14 @@ class ResumoOrdenacao(models.Model):
     decimo_quarto = models.CharField(
         max_length=50,
         default=ORDENACAO_RESUMO[13][0]
+    )
+    decimo_quinto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[14][0]
+    )
+    decimo_sexto = models.CharField(
+        max_length=50,
+        default=ORDENACAO_RESUMO[15][0]
     )
 
     class Meta:
@@ -948,7 +1023,7 @@ class RegistroLeitura(models.Model):
     def __str__(self):
         return _('Leitura - '
                  'Matéria: %(materia)s') % {
-                    'materia': self.materia}
+            'materia': self.materia}
 
     def clean(self):
         """Exatamente um dos campos ordem ou expediente deve estar preenchido.
@@ -960,3 +1035,43 @@ class RegistroLeitura(models.Model):
                 'RegistroLeitura deve ter exatamente um dos campos '
                 'ordem ou expediente preenchido. Ambos estão preenchidos: '
                 '{}, {}'. format(self.ordem, self.expediente))
+
+
+@reversion.register()
+class Correspondencia(models.Model):
+    TIPO_CHOICES = Choices(
+        (1, 'recebida', 'Recebida'),
+        (2, 'enviada', 'Enviada'),
+        (3, 'interna', 'Interna'),
+    )
+
+    sessao_plenaria = models.ForeignKey(
+        SessaoPlenaria,
+        on_delete=models.CASCADE,
+        related_name='correspondencia_set',
+        verbose_name=_('Sessão Plenária'))
+    documento = models.ForeignKey(
+        DocumentoAdministrativo,
+        on_delete=models.PROTECT,
+        verbose_name=_('Documento Administrativo'))
+
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+
+    numero_ordem = models.PositiveIntegerField(verbose_name=_('Nº Ordem'))
+
+    tipo = models.PositiveIntegerField(
+        verbose_name=_('Tipo da Correspondência'),
+        choices=TIPO_CHOICES, default=1)
+
+    class Meta:
+        verbose_name = _('Correspondência')
+        verbose_name_plural = _('Correspondências')
+        ordering = ('numero_ordem',)
+
+    @property
+    def assunto(self):
+        return self.documento.assunto
+
+    def __str__(self):
+        return _('Correspondência: {}').format(self.documento)

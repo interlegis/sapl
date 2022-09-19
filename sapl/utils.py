@@ -1,6 +1,6 @@
 from functools import wraps
 import hashlib
-from itertools import groupby
+from itertools import groupby, chain
 import logging
 from operator import itemgetter
 import os
@@ -26,6 +26,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.mail import get_connection
 from django.db import models
 from django.db.models import Q
+from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
 from django.forms.widgets import SplitDateTimeWidget
 from django.utils import six, timezone
@@ -48,6 +49,8 @@ from sapl.settings import MAX_DOC_UPLOAD_SIZE
 # por conta dos leitores de códigos de barra, que trocavam
 # a '/' por '&' ou ';'
 SEPARADOR_HASH_PROPOSICAO = 'K'
+
+TIME_PATTERN = '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
 
 
 def groups_remove_user(user, groups_name):
@@ -494,6 +497,12 @@ def choice_anos_com_normas():
     return choice_anos(NormaJuridica)
 
 
+def choice_tipos_normas():
+    from sapl.norma.models import TipoNormaJuridica
+    return [(id, descricao) for (id, descricao) in
+            TipoNormaJuridica.objects.all().values_list('id', 'descricao')]
+
+
 def choice_anos_com_protocolo():
     from sapl.protocoloadm.models import Protocolo
     return choice_anos(Protocolo)
@@ -550,7 +559,8 @@ FILTER_OVERRIDES_DATEFIELD = {
 
 class FilterOverridesMetaMixin:
     filter_overrides = {
-        models.DateField: FILTER_OVERRIDES_DATEFIELD
+        models.DateField: FILTER_OVERRIDES_DATEFIELD,
+        models.DateTimeField: FILTER_OVERRIDES_DATEFIELD
     }
 
 

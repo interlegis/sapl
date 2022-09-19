@@ -1,32 +1,24 @@
-// app - global
-// é uma app fundamental para o layout do sapl tradicional.
-// é importada pelo backend em seus templates
-
-import '@fortawesome/fontawesome-free/css/all.css'
-
 import 'bootstrap'
-
-import 'webpack-jquery-ui/dialog'
-import 'webpack-jquery-ui/sortable'
-import 'webpack-jquery-ui/datepicker'
-import 'webpack-jquery-ui/autocomplete'
-import 'jquery-ui/ui/i18n/datepicker-pt-BR'
-
-import 'jquery-ui-themes/themes/cupertino/jquery-ui.min.css'
-
 import 'jquery-mask-plugin'
 
-import './scss/app.scss'
-
-import './js/tinymce'
-import './js/image_cropping'
-import './js/functions'
+import 'jquery-ui/dist/jquery-ui'
+import 'jquery-ui/ui/widgets/dialog'
+import 'jquery-ui/ui/widgets/sortable'
+import 'jquery-ui/ui/widgets/datepicker'
+import 'jquery-ui/ui/widgets/autocomplete'
+import 'jquery-ui/ui/i18n/datepicker-pt-BR'
 
 import * as moment from 'moment'
 import 'moment/locale/pt-br'
 
-// eslint-disable-next-line
-require('imports-loader?window.jQuery=jquery!./js/jquery.runner.js')
+import './js/tinymce'
+import './js/image_cropping'
+import './js/functions'
+import './js/jquery.runner'
+
+import '@fortawesome/fontawesome-free/css/all.css'
+import 'jquery-ui-themes/themes/cupertino/jquery-ui.min.css'
+import './scss/app.scss'
 
 window.$ = $
 window.jQuery = $

@@ -104,9 +104,9 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-                not proposicao.autor.operadores.filter(
-                    id=request.user.id
-                ).exists()
+            not proposicao.autor.operadores.filter(
+                        id=request.user.id
+                    ).exists()
             ):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
@@ -394,7 +394,7 @@ class StatusTramitacaoCrud(CrudAux):
 class PesquisarStatusTramitacaoView(FilterView):
     model = StatusTramitacao
     filterset_class = StatusTramitacaoFilterSet
-    paginate_by = 10
+    paginate_by = 20
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarStatusTramitacaoView, self).get_filterset_kwargs(
@@ -434,17 +434,22 @@ class PesquisarStatusTramitacaoView(FilterView):
         if data:
             url = '&' + str(self.request.META["QUERY_STRING"])
             if url.startswith("&page"):
-                ponto_comeco = url.find("descricao=") - 1
-                url = url[ponto_comeco:]
+                url = ''
 
-        context = self.get_context_data(
-            filter=self.filterset, object_list=self.object_list,
-            filter_url=url, numero_res=len(self.object_list)
-        )
+        if 'descricao' in self.request.META['QUERY_STRING'] or\
+                'page' in self.request.META['QUERY_STRING']:
+            resultados = self.object_list
+        else:
+            resultados = []
 
-        context["show_results"] = show_results_filter_set(
-            self.request.GET.copy()
-        )
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=resultados,
+                                        filter_url=url,
+                                        numero_res=len(resultados)
+                                        )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
         return self.render_to_response(context)
 
@@ -583,6 +588,7 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
         context = super(ProposicaoRecebida, self).get_context_data(**kwargs)
         paginator = context['paginator']
         page_obj = context['page_obj']
+        context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
         context['NO_ENTRIES_MSG'] = 'Nenhuma proposição recebida.'
@@ -787,14 +793,20 @@ class UnidadeTramitacaoCrud(CrudAux):
         def get_headers(self):
             return [_('Unidade de Tramitação')]
 
+        def is_not_empty(self, value):
+            if value is None:
+                return False
+            value = value.strip().replace('&nbsp;', '')
+            return value != ''
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             for row in context['rows']:
-                if row[0][0]:  # Comissão
+                if self.is_not_empty(row[0][0]):  # Comissão
                     pass
-                elif row[1][0]:  # Órgão
+                elif self.is_not_empty(row[1][0]):  # Órgão
                     row[0] = (row[1][0], row[0][1])
-                elif row[2][0]:  # Parlamentar
+                elif self.is_not_empty(row[2][0]):  # Parlamentar
                     row[0] = (row[2][0], row[0][1])
                 row[1], row[2] = ('', ''), ('', '')
             return context
@@ -1241,12 +1253,19 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
     ordering = ['-data_hora']
     paginate_by = 10
     model = HistoricoProposicao
-    permission_required = ('materia.detail_proposicao', )
+    permission_required = ('materia.detail_proposicao_enviada', )
 
     def get_queryset(self):
         qs = super().get_queryset()
+
+        from sapl.rules import SAPL_GROUP_AUTOR
+        from django.contrib.auth.models import Group
+
         user = self.request.user
-        if not user.is_superuser:
+        grupo_autor = Group.objects.get(name=SAPL_GROUP_AUTOR)
+
+        if not user.is_superuser and grupo_autor.user_set.filter(
+                id=user.id).exists():
             autores = Autor.objects.filter(user=user)
             qs = qs.filter(proposicao__autor__in=autores)
         return qs
@@ -1383,10 +1402,11 @@ class TramitacaoCrud(MasterDetailCrud):
             # necessária?
             if ultima_tramitacao:
                 if ultima_tramitacao.unidade_tramitacao_destino:
-                    context['form'].fields[
-                        'unidade_tramitacao_local'].choices = [
-                        (ultima_tramitacao.unidade_tramitacao_destino.pk,
-                         ultima_tramitacao.unidade_tramitacao_destino)]
+                    if BaseAppConfig.attr('tramitacao_origem_fixa'):
+                        context['form'].fields[
+                            'unidade_tramitacao_local'].choices = [
+                            (ultima_tramitacao.unidade_tramitacao_destino.pk,
+                             ultima_tramitacao.unidade_tramitacao_destino)]
                 else:
                     self.logger.error('user=' + username + '. Unidade de tramitação destino '
                                       'da última tramitação não pode ser vazia!')
@@ -1399,7 +1419,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
             # Se não for a primeira tramitação daquela matéria, o campo
             # não pode ser modificado
-            if not primeira_tramitacao:
+            if not primeira_tramitacao and BaseAppConfig.attr('tramitacao_origem_fixa'):
                 context['form'].fields[
                     'unidade_tramitacao_local'].widget.attrs['readonly'] = True
 
@@ -2255,8 +2275,13 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
 
         qr = self.request.GET.copy()
         context['tipos_docs'] = TipoDocumento.objects.all()
-        context['object_list'] = context['object_list'].order_by(
-            'ano', 'numero')
+
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].order_by(
+                'ano', 'numero')
+
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
@@ -2377,39 +2402,42 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
             return context
 
         qr = self.request.GET.copy()
-        context['object_list'] = context['object_list'].order_by(
-            'numero', '-ano')
-        principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
-        not_list = [self.kwargs['pk']] + \
-            [m for m in principal.materia_principal_set.all(
-            ).values_list('materia_anexada_id', flat=True)]
-        context['object_list'] = context['object_list'].exclude(
-            pk__in=not_list)
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].order_by(
+                'numero', '-ano')
+            principal = MateriaLegislativa.objects.get(pk=self.kwargs['pk'])
+            not_list = [self.kwargs['pk']] + \
+                [m for m in principal.materia_principal_set.all(
+                ).values_list('materia_anexada_id', flat=True)]
+            context['object_list'] = context['object_list'].exclude(
+                pk__in=not_list)
 
-        context['temp_object_list'] = context['object_list']
-        context['object_list'] = []
-        for obj in context['temp_object_list']:
-            materia_anexada = obj
-            ciclico = False
-            anexadas_anexada = Anexada.objects.filter(
-                materia_principal=materia_anexada
-            )
+            context['temp_object_list'] = context['object_list']
+            context['object_list'] = []
+            for obj in context['temp_object_list']:
+                materia_anexada = obj
+                ciclico = False
+                anexadas_anexada = Anexada.objects.filter(
+                    materia_principal=materia_anexada
+                )
 
-            while anexadas_anexada and not ciclico:
-                anexadas = []
+                while anexadas_anexada and not ciclico:
+                    anexadas = []
 
-                for anexa in anexadas_anexada:
+                    for anexa in anexadas_anexada:
 
-                    if principal == anexa.materia_anexada:
-                        ciclico = True
-                    else:
-                        for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
-                            anexadas.append(a)
+                        if principal == anexa.materia_anexada:
+                            ciclico = True
+                        else:
+                            for a in Anexada.objects.filter(materia_principal=anexa.materia_anexada):
+                                anexadas.append(a)
 
-                anexadas_anexada = anexadas
+                    anexadas_anexada = anexadas
 
-            if not ciclico:
-                context['object_list'].append(obj)
+                if not ciclico:
+                    context['object_list'].append(obj)
 
         context['numero_res'] = len(context['object_list'])
 

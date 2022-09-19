@@ -495,8 +495,8 @@ def get_votos(response, materia):
                     if votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).voto:
                         response['presentes'][i]['voto'] = 'Voto Informado'
                 except ObjectDoesNotExist:
-                    logger.error("Votos do parlamentar (id={}) não encontrados. Retornado vazio."
-                                 .format(p['parlamentar_id']))
+                    # logger.error("Votos do parlamentar (id={}) não encontrados. Retornado vazio."
+                    #              .format(p['parlamentar_id']))
                     response['presentes'][i]['voto'] = ''
     elif leitura:
         response.update({

@@ -367,6 +367,14 @@ a:link:after, a:visited:after {
         max-width: 100%;
       }
     }
+
+    .dtxt {
+      display: inline;
+      :first-child {
+        display: inline !important;
+      }
+    }
+    
     .ementa {
       padding: 2em 0em 2em 35%;
       font-weight: bold;
@@ -424,6 +432,7 @@ a:link:after, a:visited:after {
       float:left;
       .dptt {
         position: relative;
+
       }
     }
 
@@ -490,7 +499,6 @@ a:link:after, a:visited:after {
         }
       }
     }
-
     .card-header {
       font-size: 1.7rem;
     }
@@ -672,6 +680,9 @@ a:link:after, a:visited:after {
         }
       }
     }
+
+
+
   } /* and dpt */
 
   .tipo-vigencias {
@@ -1381,7 +1392,7 @@ a:link:after, a:visited:after {
               &::before {
                 z-index: 20;
                 position: absolute;
-                background: url(/static/img/icon_delete_white.png) no-repeat 50% 50%;
+                background: url(@/assets/img/icon_delete_white.png) no-repeat 50% 50%;
                 content:"";
                 top: 0;
                 left: 0;
@@ -1403,7 +1414,7 @@ a:link:after, a:visited:after {
                 color: white;
               }
               &::before {
-                background: url(/static/img/icon_save_white.png) no-repeat 50% 50%;
+                background: url(@/assets/img/icon_save_white.png) no-repeat 50% 50%;
               }
             }
             span {

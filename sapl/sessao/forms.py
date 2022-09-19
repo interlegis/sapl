@@ -1,8 +1,8 @@
-import django_filters
+from datetime import datetime
+import logging
+import re
 
 from crispy_forms.layout import Button, Fieldset, HTML, Layout
-from datetime import datetime
-
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -11,20 +11,26 @@ from django.db.models import Q
 from django.forms import ModelForm
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 
 from sapl.base.models import Autor, TipoAutor
-from sapl.crispy_layout_mixin import (form_actions, to_row, 
+from sapl.crispy_layout_mixin import (form_actions, to_row,
                                       SaplFormHelper, SaplFormLayout)
 from sapl.materia.forms import MateriaLegislativaFilterSet
 from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
                                  TipoMateriaLegislativa)
 from sapl.parlamentares.models import Mandato, Parlamentar
+from sapl.protocoloadm.models import TipoDocumentoAdministrativo,\
+    DocumentoAdministrativo
+from sapl.sessao.models import Correspondencia
 from sapl.utils import (autor_label, autor_modal,
                         choice_anos_com_sessaoplenaria,
                         FileFieldCheckMixin,
+                        FilterOverridesMetaMixin,
                         MateriaPesquisaOrderingFilter,
                         RANGE_DIAS_MES, RANGE_MESES,
-                        timezone, validar_arquivo)
+                        TIME_PATTERN, timezone, validar_arquivo)
+import sapl.utils
 
 from .models import (Bancada, ExpedienteMateria,
                      JustificativaAusencia, OcorrenciaSessao, Orador,
@@ -32,18 +38,22 @@ from .models import (Bancada, ExpedienteMateria,
                      ORDENACAO_RESUMO, PresencaOrdemDia,
                      RegistroLeitura, ResumoOrdenacao, RetiradaPauta,
                      SessaoPlenaria, SessaoPlenariaPresenca,
-                     TipoResultadoVotacao, TipoRetiradaPauta)
+                     TipoResultadoVotacao, TipoRetiradaPauta, Tramitacao)
 
 
 MES_CHOICES = RANGE_MESES
 DIA_CHOICES = RANGE_DIAS_MES
 
 
+def tramitacao_select_validation():
+    return True
+
+
 class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
     class Meta:
         model = SessaoPlenaria
-        exclude = ['cod_andamento_sessao']
+        exclude = ['cod_andamento_sessao', 'correspondencias']
 
     def clean(self):
         super(SessaoPlenariaForm, self).clean()
@@ -65,7 +75,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             "para a Legislatura, Sessão Legislativa e Tipo informados. "
             "Favor escolher um número distinto.")
 
-        qs = tipo.queryset_tipo_numeracao(leg, sl, abertura)
+        qs = tipo.build_predicados_queryset(leg, sl, abertura)
         qs &= Q(numero=num)
 
         if SessaoPlenaria.objects.filter(qs).exclude(pk=instance.pk).exists():
@@ -85,8 +95,7 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             encerramento_entre_leg = True
             encerramento_entre_sl = True
 
-
-        ## Sessões Extraordinárias podem estar fora da sessão legislativa
+        # Sessões Extraordinárias podem estar fora da sessão legislativa
         descricao_tipo = tipo.nome.lower()
         if "extraordinária" in descricao_tipo or "especial" in descricao_tipo:
             # Ignora checagem de limites para Sessão Legislativa
@@ -102,7 +111,6 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
             raise ValidationError("A data de abertura e encerramento da Sessão "
                                   "Plenária deve estar compreendida entre a "
                                   "data de abertura e encerramento da Sessão Legislativa")
-        
 
         upload_pauta = self.cleaned_data.get('upload_pauta', False)
         upload_ata = self.cleaned_data.get('upload_ata', False)
@@ -110,12 +118,22 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
 
         if upload_pauta:
             validar_arquivo(upload_pauta, "Pauta da Sessão")
-        
+
         if upload_ata:
             validar_arquivo(upload_ata, "Ata da Sessão")
 
         if upload_anexo:
             validar_arquivo(upload_anexo, "Anexo da Sessão")
+
+        hora_inicio = self.cleaned_data['hora_inicio']
+        if not re.match(sapl.utils.TIME_PATTERN, hora_inicio):
+            raise ValidationError(f'Formato ou valores de horário de '
+                                  f'abertura errados: {hora_inicio}')
+
+        hora_fim = self.cleaned_data['hora_fim']
+        if hora_fim and not re.match(sapl.utils.TIME_PATTERN, hora_fim):
+            raise ValidationError(f'Formato ou valores de horário de '
+                                  f'encerramento errados: {hora_fim}.')
 
         return self.cleaned_data
 
@@ -285,6 +303,12 @@ class BancadaForm(ModelForm):
         return bancada
 
 
+class DependentChoiceField(forms.ChoiceField):
+
+    def validate(self, value):
+        return True
+
+
 class ExpedienteMateriaForm(ModelForm):
 
     _model = ExpedienteMateria
@@ -296,6 +320,10 @@ class ExpedienteMateriaForm(ModelForm):
         queryset=TipoMateriaLegislativa.objects.all(),
         empty_label='Selecione',
         widget=forms.Select(attrs={'autocomplete': 'off'}))
+
+    tramitacao_select = DependentChoiceField(
+        label=_('Situação de Pauta'),
+        widget=forms.Select())
 
     numero_materia = forms.CharField(
         label='Número Matéria', required=True,
@@ -317,7 +345,7 @@ class ExpedienteMateriaForm(ModelForm):
     class Meta:
         model = ExpedienteMateria
         fields = ['data_ordem', 'numero_ordem', 'tipo_materia', 'observacao',
-                  'numero_materia', 'ano_materia', 'tipo_votacao']
+                  'numero_materia', 'ano_materia', 'tramitacao_select', 'tipo_votacao']
 
     def clean_numero_ordem(self):
         sessao = self.instance.sessao_plenaria
@@ -340,8 +368,6 @@ class ExpedienteMateriaForm(ModelForm):
         if not self.is_valid():
             return cleaned_data
 
-        sessao = self.instance.sessao_plenaria
-
         try:
             materia = MateriaLegislativa.objects.get(
                 numero=self.cleaned_data['numero_materia'],
@@ -354,11 +380,27 @@ class ExpedienteMateriaForm(ModelForm):
         else:
             cleaned_data['materia'] = materia
 
+        try:
+            if materia.tramitacao_set.exists() and self.cleaned_data['tramitacao_select']:
+                tramitacao = materia.tramitacao_set.get(
+                    pk=self.cleaned_data['tramitacao_select'])
+                cleaned_data['tramitacao'] = tramitacao
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                _('Tramitação selecionada não existe para a Matéria: %(value)s'),
+                code='invalid',
+                params={'value': self.cleaned_data['tramitacao_select']},
+            )
+
         return cleaned_data
 
     def save(self, commit=False):
         expediente = super(ExpedienteMateriaForm, self).save(commit)
         expediente.materia = self.cleaned_data['materia']
+        if 'tramitacao' in self.cleaned_data and self.cleaned_data['tramitacao']:
+            expediente.tramitacao = self.cleaned_data['tramitacao']
+        else:
+            expediente.tramitacao = None
         expediente.save()
         return expediente
 
@@ -529,7 +571,7 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
         queryset=StatusTramitacao.objects.all(),
         label=_('Status da Matéria'))
 
-    class Meta:
+    class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tramitacao__status',
                   'numero',
@@ -605,7 +647,8 @@ class OradorForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['parlamentar'].queryset = \
-            Parlamentar.objects.filter(ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(
+                mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorForm, self).clean()
@@ -642,12 +685,9 @@ class OradorForm(ModelForm):
 class OradorExpedienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        id_sessao = int(self.initial['id_sessao'])
-        sessao = SessaoPlenaria.objects.get(id=id_sessao)
-        legislatura_vigente = sessao.legislatura
         self.fields['parlamentar'].queryset = \
-            Parlamentar.objects.filter(mandato__legislatura=legislatura_vigente,
-                                       ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(
+                mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()
@@ -682,12 +722,9 @@ class OradorExpedienteForm(ModelForm):
 class OradorOrdemDiaForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        id_sessao = int(self.initial['id_sessao'])
-        sessao = SessaoPlenaria.objects.get(id=id_sessao)
-        legislatura_vigente = sessao.legislatura
         self.fields['parlamentar'].queryset = \
-            Parlamentar.objects.filter(mandato__legislatura=legislatura_vigente,
-                                       ativo=True).order_by('nome_parlamentar')
+            Parlamentar.objects.filter(
+                mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorOrdemDiaForm, self).clean()
@@ -782,6 +819,14 @@ class ResumoOrdenacaoForm(forms.Form):
         label='14°',
         choices=ORDENACAO_RESUMO
     )
+    decimo_quinto = forms.ChoiceField(
+        label='15°',
+        choices=ORDENACAO_RESUMO
+    )
+    decimo_sexto = forms.ChoiceField(
+        label='16°',
+        choices=ORDENACAO_RESUMO
+    )
 
     def __init__(self, *args, **kwargs):
         row1 = to_row(
@@ -813,13 +858,19 @@ class ResumoOrdenacaoForm(forms.Form):
         row14 = to_row(
             [('decimo_quarto', 12)]
         )
+        row15 = to_row(
+            [('decimo_quinto', 12)]
+        )
+        row16 = to_row(
+            [('decimo_sexto', 12)]
+        )
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
             Fieldset(_(''),
                      row1, row2, row3, row4, row5,
                      row6, row7, row8, row9, row10,
-                     row11, row12, row13, row14,
+                     row11, row12, row13, row14, row15, row16,
                      form_actions(label='Atualizar'))
         )
 
@@ -861,6 +912,8 @@ class ResumoOrdenacaoForm(forms.Form):
         ordenacao.decimo_segundo = cleaned_data['decimo_segundo']
         ordenacao.decimo_terceiro = cleaned_data['decimo_terceiro']
         ordenacao.decimo_quarto = cleaned_data['decimo_quarto']
+        ordenacao.decimo_quinto = cleaned_data['decimo_quinto']
+        ordenacao.decimo_sexto = cleaned_data['decimo_sexto']
 
         ordenacao.save()
 
@@ -975,7 +1028,8 @@ class JustificativaAusenciaForm(ModelForm):
 
 class OrdemExpedienteLeituraForm(forms.ModelForm):
 
-    observacao = forms.CharField(required=False, label='Observação', widget=forms.Textarea,)
+    observacao = forms.CharField(
+        required=False, label='Observação', widget=forms.Textarea,)
 
     class Meta:
         model = RegistroLeitura
@@ -983,7 +1037,7 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
                   'ordem',
                   'expediente',
                   'observacao',
-                  'user', 
+                  'user',
                   'ip']
         widgets = {'materia': forms.HiddenInput(),
                    'ordem': forms.HiddenInput(),
@@ -995,14 +1049,14 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
-        
+
         instance = self.initial['instance']
         if instance:
             self.instance = instance.first()
             self.fields['observacao'].initial = self.instance.observacao
 
         row1 = to_row(
-            [('observacao', 12)])   
+            [('observacao', 12)])
 
         actions = [HTML('<a href="{{ view.cancel_url }}"'
                         ' class="btn btn-warning">Cancelar Leitura</a>')]
@@ -1011,11 +1065,115 @@ class OrdemExpedienteLeituraForm(forms.ModelForm):
         self.helper.form_method = 'POST'
         self.helper.layout = Layout(
             Fieldset(_('Leitura de Matéria'),
-                    HTML('''
+                     HTML('''
                         <b>Matéria:</b> {{materia}}<br>
                         <b>Ementa:</b> {{materia.ementa}} <br>
                     '''),
                      row1,
                      form_actions(more=actions),
-                    )
+                     )
         )
+
+
+class CorrespondenciaForm(ModelForm):
+
+    logger = logging.getLogger(__name__)
+
+    tipo_documento = forms.ModelChoiceField(
+        label='Tipo do Documento',
+        required=True,
+        queryset=TipoDocumentoAdministrativo.objects.all(),
+        empty_label='Selecione',
+    )
+
+    numero_documento = forms.IntegerField(label='Número', required=True)
+
+    ano_documento = forms.CharField(label='Ano', required=True)
+
+    class Meta:
+        model = Correspondencia
+        fields = ['tipo', 'numero_ordem', 'observacao',
+                  'tipo_documento', 'numero_documento', 'ano_documento']
+
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+        try:
+            self.logger.info("Tentando obter objeto Documento Administrativo (numero={}, ano={}, tipo={})."
+                             .format(cleaned_data['numero_documento'], cleaned_data['ano_documento'], cleaned_data['tipo_documento']))
+            documento = DocumentoAdministrativo.objects.filter(
+                numero=cleaned_data['numero_documento'],
+                ano=cleaned_data['ano_documento'],
+                tipo=cleaned_data['tipo_documento']).order_by('-id').first()
+            if not documento:
+                raise ObjectDoesNotExist()
+
+        except ObjectDoesNotExist:
+            msg = _('{} {}/{} não existe no cadastro de documentos administrativos.'
+                    .format(cleaned_data['tipo_documento'], cleaned_data['numero_documento'], cleaned_data['ano_documento']))
+            self.logger.warning(
+                "O Documento Administrativo não existe no cadastro.")
+            raise ValidationError(msg)
+
+        if Correspondencia.objects.filter(
+            sessao_plenaria=self.instance.sessao_plenaria, documento=documento
+        ).exclude(pk=self.instance.pk).exists():
+            self.logger.error(
+                "Documento Administrativo já se encontra nesta Sessão.")
+            raise ValidationError(
+                _('Documento Administrativo já se encontra nesta Sessão.'))
+
+        cleaned_data['documento'] = documento
+
+        return cleaned_data
+
+    def clean_numero_ordem(self):
+        sessao = self.instance.sessao_plenaria
+
+        numero_ordem_exists = Correspondencia.objects.filter(
+            sessao_plenaria=sessao,
+            numero_ordem=self.cleaned_data['numero_ordem']).exists()
+
+        if numero_ordem_exists and not self.instance.pk:
+            msg = _('Esse número de ordem já existe.')
+            raise ValidationError(msg)
+
+        return self.cleaned_data['numero_ordem']
+
+    def save(self, commit=False):
+        correspondencia = super().save(commit)
+        correspondencia.documento = self.cleaned_data['documento']
+        correspondencia.save()
+        return correspondencia
+
+
+class CorrespondenciaEmLoteFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = DocumentoAdministrativo
+        fields = ['tipo', 'data']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo do documento'
+        self.filters['data'].label = 'Data (Inicial - Final)'
+
+        self.form.fields['tipo'].required = True
+        self.form.fields['data'].required = True
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Documentos Administrativos'),
+                     row1, row2, form_actions(label='Pesquisar')))

@@ -176,6 +176,8 @@
       {% endblock content_container %}
 
       {% if not request|has_iframe %}
+
+
       {% block footer_container %}
       <footer id="footer" class="footer page__row hidden-print">
         <div class="container">
@@ -192,8 +194,9 @@
                 <small>
                   Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto.
                 </small>
-		<span>Release: 3.1.162-RC6</span>
+		<span>Release: 3.1.163-RC6</span>
               </p>
+
             </div>
             <div class="col-md-4">
               <a class="footer__logo" href="#">
@@ -216,8 +219,11 @@
                   <span class="street-address">{{ endereco }}</span>
                   <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
                   <br>
+                  <small><a href="{% url 'sapl.api:swagger_ui_schema_api' %}">{% trans 'OpenAPI' %}</a></small> |
+
                   <a href="{{endereco_web}}" class="url">{% trans 'Site' %}</a> |
                   <a href="mailto:{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
+
 
                 </small>
               </address>
@@ -239,6 +245,13 @@
     {% endblock footer_container %}
     {% endif %}
 
+    <div vw class="enabled">
+      <div vw-access-button class="active"></div>
+      <div vw-plugin-wrapper>
+        <div class="vw-plugin-top-wrapper"></div>
+      </div>
+    </div>
+
     {% block foot_js %}
 
       {% block webpack_loader_js %}
@@ -250,6 +263,14 @@
       {% endblock webpack_loader_chunks_js %}
 
       {% block extra_js %}{% endblock extra_js %}
+
+
+      {% if not DEBUG %}
+        <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+        <script>
+          new window.VLibras.Widget('https://vlibras.gov.br/app');
+        </script>
+      {% endif %}
 
       <script type="text/javascript" >
         function inIframe () {

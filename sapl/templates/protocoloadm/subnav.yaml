@@ -7,3 +7,5 @@
   url: tramitacaoadministrativo_list
 - title: {% trans 'Documento Acessório' %}
   url: documentoacessorioadministrativo_list
+- title: {% trans 'Matérias Vinculadas' %}
+  url: vinculodocadminmateria_list

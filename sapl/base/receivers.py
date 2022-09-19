@@ -4,7 +4,7 @@ import logging
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
-from django.db.models.signals import post_delete, post_save,\
+from django.db.models.signals import post_delete, post_save, \
     post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.dispatch import receiver
@@ -13,9 +13,22 @@ from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.email_utils import do_envia_email_tramitacao
 from sapl.base.models import AuditLog, TipoAutor, Autor
+from sapl.decorators import receiver_multi_senders
 from sapl.materia.models import Tramitacao
 from sapl.protocoloadm.models import TramitacaoAdministrativo
 from sapl.utils import get_base_url, models_with_gr_for_model
+
+models_with_gr_for_autor = models_with_gr_for_model(Autor)
+
+
+@receiver_multi_senders(post_save, senders=models_with_gr_for_autor)
+def handle_update_autor_related(sender, **kwargs):
+    # for m in models_with_gr_for_autor:
+    instance = kwargs.get('instance')
+    autor = instance.autor.first()
+    if autor:
+        autor.nome = str(instance)
+        autor.save()
 
 
 @receiver(post_save, sender=Tramitacao)
@@ -143,11 +156,9 @@ def audit_log_post_save(sender, **kwargs):
 def cria_models_tipo_autor(app_config=None, verbosity=2, interactive=True,
                            using=DEFAULT_DB_ALIAS, **kwargs):
 
-    models = models_with_gr_for_model(Autor)
-
     print("\n\033[93m\033[1m{}\033[0m".format(
         _('Atualizando registros TipoAutor do SAPL:')))
-    for model in models:
+    for model in models_with_gr_for_autor:
         content_type = ContentType.objects.get_for_model(model)
         tipo_autor = TipoAutor.objects.filter(
             content_type=content_type.id).exists()

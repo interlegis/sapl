@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
+from prompt_toolkit.key_binding.bindings.named_commands import self_insert
 import reversion
 
 from sapl.base.models import Autor
@@ -20,6 +21,9 @@ class Legislatura(models.Model):
     data_inicio = models.DateField(verbose_name=_('Data Início'))
     data_fim = models.DateField(verbose_name=_('Data Fim'))
     data_eleicao = models.DateField(verbose_name=_('Data Eleição'))
+
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
 
     class Meta:
         ordering = ['-data_inicio']
@@ -223,9 +227,9 @@ class Parlamentar(models.Model):
     cpf = models.CharField(
         max_length=14, blank=True, verbose_name=_('C.P.F'))
     rg = models.CharField(
-        max_length=15, blank=True, verbose_name=_('R.G.'))
+        max_length=20, blank=True, verbose_name=_('R.G.'))
     titulo_eleitor = models.CharField(
-        max_length=15,
+        max_length=25,
         blank=True,
         verbose_name=_('Título de Eleitor'))
     numero_gab_parlamentar = models.CharField(
@@ -498,17 +502,36 @@ class CargoMesa(models.Model):
 
 
 @reversion.register()
+class MesaDiretora(models.Model):
+    data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
+    data_fim = models.DateField(verbose_name=_('Data Fim'), null=True)
+    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
+                                           on_delete=models.PROTECT)
+    descricao = models.TextField(verbose_name=_('Descrição'), blank=True)
+
+    class Meta:
+        verbose_name = _('Mesa Diretora')
+        verbose_name_plural = _('Mesas Diretoras')
+        ordering = ('-data_inicio', '-sessao_legislativa')
+
+    def __str__(self):
+        return _('Mesa da %(sessao)s sessao da %(legislatura)s Legislatura') % {
+            'sessao': self.sessao_legislativa, 'legislatura': self.sessao_legislativa.legislatura
+        }
+
+
+@reversion.register()
 class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
-                                           on_delete=models.PROTECT)
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
+    mesa_diretora = models.ForeignKey(
+        MesaDiretora, on_delete=models.PROTECT, null=True)
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
         verbose_name_plural = _('Ocupações de cargo na Mesa')
-        ordering = ('cargo', '-sessao_legislativa', 'parlamentar')
+        ordering = ('cargo', 'parlamentar')
 
     def __str__(self):
         return _('%(parlamentar)s - %(cargo)s') % {

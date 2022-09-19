@@ -31,9 +31,9 @@ urlpatterns = [
     url(r'^relatorios/(?P<nro>\d+)/(?P<ano>\d+)/etiqueta-protocolo$',
         relatorio_etiqueta_protocolo, name='relatorio_etiqueta_protocolo'),
 
-    # Url utilizada no arquivo: templates/sessao/pauta_sessao_filter.html
-    url(r'^relatorios/pauta-sessao/(?P<pk>\d+)/$',
-        relatorio_pauta_sessao, name='relatorio_pauta_sessao'),
+    # # Url utilizada no arquivo: templates/sessao/pauta_sessao_filter.html
+    # url(r'^relatorios/pauta-sessao/(?P<pk>\d+)/$',
+    #     relatorio_pauta_sessao, name='relatorio_pauta_sessao'),
     
     url(r'^relatorios/(?P<pk>\d+)/resumo_ata$',
         resumo_ata_pdf, name='resumo_ata_pdf'),

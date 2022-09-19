@@ -4,7 +4,7 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                AdicionarVariasMateriasOrdemDia, BancadaCrud,
                                CargoBancadaCrud, ExpedienteMateriaCrud,
                                ExpedienteView, JustificativaAusenciaCrud,
-                               OcorrenciaSessaoView, MateriaOrdemDiaCrud, OradorOrdemDiaCrud,
+                               OcorrenciaSessaoView, ConsideracoesFinaisView, MateriaOrdemDiaCrud, OradorOrdemDiaCrud,
                                MesaView, OradorCrud,
                                OradorExpedienteCrud, PainelView,
                                PautaSessaoDetailView, PautaSessaoView,
@@ -36,7 +36,9 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                OrdemDiaLeituraView,
                                retirar_leitura,
                                TransferenciaMateriasExpediente, TransferenciaMateriasOrdemDia,
-                               filtra_materias_copia_sessao_ajax, verifica_materia_sessao_plenaria_ajax)
+                               filtra_materias_copia_sessao_ajax, verifica_materia_sessao_plenaria_ajax,
+                               recuperar_tramitacao, CorrespondenciaEmLoteView,
+                               CorrespondenciaCrud, recuperar_documento)
 
 
 from .apps import AppConfig
@@ -51,7 +53,13 @@ urlpatterns = [
                              JustificativaAusenciaCrud.get_urls() +
                              MateriaOrdemDiaCrud.get_urls() +
                              OradorOrdemDiaCrud.get_urls() +
-                             RetiradaPautaCrud.get_urls())),
+                             RetiradaPautaCrud.get_urls() +
+                             CorrespondenciaCrud.get_urls()
+                             )),
+
+
+    url(r'^sessao/(?P<pk>\d+)/correspondencia-em-lote', CorrespondenciaEmLoteView.as_view(),
+        name='correspondencia_em_lote'),
 
     url(r'^sessao/(?P<pk>\d+)/mesa$', MesaView.as_view(), name='mesa'),
 
@@ -67,7 +75,9 @@ urlpatterns = [
         remove_parlamentar_composicao,
         name='remove_parlamentar_composicao'),
 
+    url(r'^sessao/recuperar-documento/', recuperar_documento),
     url(r'^sessao/recuperar-materia/', recuperar_materia),
+    url(r'^sessao/recuperar-tramitacao/', recuperar_tramitacao),
     url(r'^sessao/recuperar-numero-sessao/',
         recuperar_numero_sessao_view,
         name='recuperar_numero_sessao_view'
@@ -79,8 +89,8 @@ urlpatterns = [
         sessao_legislativa_legislatura_ajax,
         name='sessao_legislativa_legislatura_ajax_view'),
     url(r'^sessao/filtra-materias-copia-sessao-ajax/',
-        filtra_materias_copia_sessao_ajax, 
-        name='filtra_materias_copia_sessao_ajax_view'),    
+        filtra_materias_copia_sessao_ajax,
+        name='filtra_materias_copia_sessao_ajax_view'),
     url(r'^sessao/verifica-materia-sessao-plenaria-ajax/',
         verifica_materia_sessao_plenaria_ajax,
         name='verifica_materia_sessao_plenaria_ajax_view'),
@@ -89,7 +99,8 @@ urlpatterns = [
         abrir_votacao,
         name="abrir_votacao"),
 
-    url(r'^sessao/(?P<pk>\d+)/reordena/(?P<tipo>[\w\-]+)/(?P<ordenacao>\d+)/$', reordena_materias, name="reordena_materias"),
+    url(r'^sessao/(?P<pk>\d+)/reordena/(?P<tipo>[\w\-]+)/(?P<ordenacao>\d+)/$',
+        reordena_materias, name="reordena_materias"),
 
     url(r'^sistema/sessao-plenaria/tipo/',
         include(TipoSessaoCrud.get_urls())),
@@ -128,6 +139,8 @@ urlpatterns = [
         ExpedienteView.as_view(), name='expediente'),
     url(r'^sessao/(?P<pk>\d+)/ocorrencia_sessao$',
         OcorrenciaSessaoView.as_view(), name='ocorrencia_sessao'),
+    url(r'^sessao/(?P<pk>\d+)/consideracoes_finais$',
+        ConsideracoesFinaisView.as_view(), name='consideracoes_finais'),
     url(r'^sessao/(?P<pk>\d+)/presenca$',
         PresencaView.as_view(), name='presenca'),
     url(r'^sessao/(?P<pk>\d+)/painel$',

@@ -1,0 +1,17 @@
+kind: pipeline
+type: kubernetes
+name: default
+steps:
+- name: docker
+  image: plugins/docker
+  settings:
+    repo: porto.interlegis.leg.br/spdt/sapl
+    registry: porto.interlegis.leg.br
+    mirror: https://registrycache.interlegis.leg.br
+    pull: if-not-exists
+    dockerfile: docker/Dockerfile
+    auto_tag: true
+    username:
+      from_secret: porto_user
+    password:
+      from_secret: porto_pw

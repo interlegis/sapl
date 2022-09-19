@@ -1,10 +1,10 @@
-import pytest
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
+import pytest
 
 from sapl.base.models import CasaLegislativa
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
@@ -12,7 +12,7 @@ from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TipoDispositivoRelationship)
 from sapl.materia.models import AcompanhamentoMateria
 from sapl.protocoloadm.models import AcompanhamentoDocumento
-from sapl.rules import SAPL_GROUPS, map_rules
+from sapl.rules import __base__, SAPL_GROUPS, map_rules, RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE
 from sapl.test_urls import create_perms_post_migrate
 from scripts.lista_permissions_in_decorators import \
     lista_permissions_in_decorators
@@ -56,29 +56,29 @@ def test_models_in_rules_patterns(model_item):
 
 # __falsos_positivos__
 __fp__in__test_permission_of_models_in_rules_patterns = {
-    map_rules.RP_ADD: [CasaLegislativa,
+    RP_ADD: [CasaLegislativa,
                        TipoDispositivo,
                        TipoDispositivoRelationship,
                        PerfilEstruturalTextoArticulado],
 
-    map_rules.RP_CHANGE: [AcompanhamentoMateria,
+    RP_CHANGE: [AcompanhamentoMateria,
                           AcompanhamentoDocumento,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
                           PerfilEstruturalTextoArticulado],
 
-    map_rules.RP_DELETE: [CasaLegislativa,
+    RP_DELETE: [CasaLegislativa,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
                           PerfilEstruturalTextoArticulado],
 
-    map_rules.RP_LIST: [AcompanhamentoMateria,
+    RP_LIST: [AcompanhamentoMateria,
                           AcompanhamentoDocumento,
                         TipoDispositivo,
                         TipoDispositivoRelationship,
                         PerfilEstruturalTextoArticulado],
 
-    map_rules.RP_DETAIL: [AcompanhamentoMateria,
+    RP_DETAIL: [AcompanhamentoMateria,
                           AcompanhamentoDocumento,
                           TipoDispositivo,
                           TipoDispositivoRelationship,
@@ -92,7 +92,7 @@ __fp__in__test_permission_of_models_in_rules_patterns = {
 def test_permission_of_models_in_rules_patterns(model_item):
 
     create_perms_post_migrate(model_item._meta.app_config)
-    permissions = map_rules.__base__ + list(
+    permissions = __base__ + list(
         filter(
             lambda perm: not perm.startswith(
                 'detail_') and not perm.startswith('list_'),
@@ -186,7 +186,7 @@ def test_permission_required_of_views_exists(url_item):
 
         if hasattr(view, 'permission_required'):
             if isinstance(view.permission_required, six.string_types):
-                perms = (view.permission_required, )
+                perms = (view.permission_required,)
             else:
                 perms = view.permission_required
 

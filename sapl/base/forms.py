@@ -2,6 +2,7 @@ import logging
 import os
 
 from crispy_forms.bootstrap import FieldWithButtons, InlineRadios, StrictButton, FormActions
+from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Row, Submit
 from django import forms
 from django.conf import settings
@@ -17,6 +18,7 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
+from haystack.forms import ModelSearchForm
 
 from sapl.audiencia.models import AudienciaPublica
 from sapl.base.models import Autor, TipoAutor, OperadorAutor
@@ -37,7 +39,7 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         choice_anos_com_normas, choice_anos_com_materias,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
                         ImageThumbnailFileInput, qs_override_django_filter,
-                        RANGE_ANOS, YES_NO_CHOICES,
+                        RANGE_ANOS, YES_NO_CHOICES, choice_tipos_normas,
                         GoogleRecapthaMixin, parlamentares_ativos)
 
 from .models import AppConfig, CasaLegislativa
@@ -879,6 +881,11 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
                                       choices=choice_anos_com_normas,
                                       initial=ultimo_ano_com_norma)
 
+    tipo = django_filters.ChoiceFilter(required=False,
+                                       label='Tipo Norma',
+                                       choices=choice_tipos_normas,
+                                       initial=0)
+
     class Meta:
         model = NormaJuridica
         fields = ['ano']
@@ -890,7 +897,7 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
         self.filters['ano'].label = 'Ano'
         self.form.fields['ano'].required = True
 
-        row1 = to_row([('ano', 12)])
+        row1 = to_row([('ano', 6), ('tipo', 6)])
 
         buttons = FormActions(
             *[
@@ -969,6 +976,11 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
                                       choices=choice_anos_com_normas,
                                       initial=ultimo_ano_com_norma)
 
+    tipo = django_filters.ChoiceFilter(required=False,
+                                       label='Tipo Norma',
+                                       choices=choice_tipos_normas,
+                                       initial=0)
+
     vigencia = forms.ChoiceField(
         label=_('Vigência'),
         choices=[(True, "Vigente"), (False, "Não vigente")],
@@ -984,7 +996,7 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
         self.form.fields['ano'].required = True
         self.form.fields['vigencia'] = self.vigencia
 
-        row1 = to_row([('ano', 12)])
+        row1 = to_row([('ano', 6), ('tipo', 6)])
         row2 = to_row([('vigencia', 12)])
 
         buttons = FormActions(
@@ -1150,6 +1162,10 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
 
+    ano = django_filters.ChoiceFilter(required=False,
+                                      label='Ano da Matéria',
+                                      choices=choice_anos_com_materias)
+
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
@@ -1171,10 +1187,11 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         self.filters['tramitacao__unidade_tramitacao_destino'].label = 'Unidade Destino'
         self.filters['tramitacao__status'].label = 'Status de tramitação'
 
-        row1 = to_row([('tramitacao__data_fim_prazo', 12)])
-        row2 = to_row([('tramitacao__unidade_tramitacao_local', 6),
+        row1 = to_row([('ano', 12)])
+        row2 = to_row([('tramitacao__data_fim_prazo', 12)])
+        row3 = to_row([('tramitacao__unidade_tramitacao_local', 6),
                        ('tramitacao__unidade_tramitacao_destino', 6)])
-        row3 = to_row(
+        row4 = to_row(
             [('tipo', 6),
              ('tramitacao__status', 6)])
 
@@ -1196,7 +1213,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações'),
-                     row1, row2, row3,
+                     row1, row2, row3, row4,
                      buttons, )
         )
 
@@ -1561,11 +1578,13 @@ class ConfiguracoesAppForm(ModelForm):
                   'assinatura_ata',
                   'estatisticas_acesso_normas',
                   'escolher_numero_materia_proposicao',
+                  'tramitacao_origem_fixa',
                   'tramitacao_materia',
                   'tramitacao_documento',
                   'google_recaptcha_site_key',
                   'google_recaptcha_secret_key',
-                  'sapl_as_sapn']
+                  'sapl_as_sapn',
+                  'identificacao_de_documentos']
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
@@ -1888,3 +1907,23 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
                      row3,
                      form_actions(label='Pesquisar'))
         )
+
+
+class SaplSearchForm(ModelSearchForm):
+
+    def search(self):
+        sqs = super().search()
+
+        return sqs.order_by('-last_update')
+
+    """def get_models(self):
+        Return a list of the selected models.
+        search_models = []
+
+        if self.is_valid():
+            for model in self.cleaned_data['models']:
+                search_models.append(haystack_get_model(*model.split('.')))
+
+        return search_models
+
+        return ModelSearchForm.get_models(self)"""

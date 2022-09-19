@@ -20,6 +20,7 @@ from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
 from sapl.materia.models import (MateriaLegislativa,
                                  TipoMateriaLegislativa,
                                  UnidadeTramitacao)
+from sapl.protocoloadm.models import VinculoDocAdminMateria
 from sapl.utils import (AnoNumeroOrderingFilter, autor_label, autor_modal,
                         choice_anos_com_documentoadministrativo,
                         choice_anos_com_materias, timing,
@@ -793,7 +794,7 @@ class TramitacaoAdmForm(ModelForm):
                                             ip=tramitacao.ip,
                                             ultima_edicao=tramitacao.ultima_edicao
                                             ))
-            ## TODO: BULK UPDATE não envia Signal para Tramitacao
+            # TODO: BULK UPDATE não envia Signal para Tramitacao
             TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
@@ -915,7 +916,7 @@ class TramitacaoAdmEditForm(TramitacaoAdmForm):
 
                     da.tramitacao = False if nova_tram_principal.status.indicador == "F" else True
                     da.save()
-        ## TODO: refatorar?
+        # TODO: refatorar?
         return nova_tram_principal
 
 
@@ -1089,7 +1090,8 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                   'restrito',
                   'user',
                   'ip',
-                  'ultima_edicao'
+                  'ultima_edicao',
+                  'autor'
                   ]
 
         widgets = {'protocolo': forms.HiddenInput(),
@@ -1137,9 +1139,10 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
                 tipo = TipoDocumentoAdministrativo.objects.get(
                     id=tipo_documento)
                 raise ValidationError(
-                    _('{}/{} ({}) já existente!'.format(numero_documento,
-                                                        ano_documento,
-                                                        tipo)))
+                    _('{}/{} ({}) já existente! '
+                      'Você diferenciar preenchendo o campo complemento'.format(numero_documento,
+                                                                                ano_documento,
+                                                                                tipo)))
 
         # campos opcionais, mas que se informados devem ser válidos
         if numero_protocolo and ano_protocolo:
@@ -1210,7 +1213,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
             [('tipo', 3), ('numero', 3), ('complemento', 3), ('ano', 3)])
 
         row2 = to_row(
-            [('data', 4), ('numero_protocolo', 4), ('ano_protocolo', 4)])
+            [('data', 3), ('numero_protocolo', 3), ('ano_protocolo', 3), ('autor', 3)])
 
         row3 = to_row(
             [('assunto', 12)])
@@ -1693,7 +1696,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                                                 ip=tramitacao.ip,
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
-                ## TODO: BULK UPDATE não envia Signal para Tramitacao
+                # TODO: BULK UPDATE não envia Signal para Tramitacao
                 TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
 
         return tramitacao
@@ -1731,3 +1734,100 @@ class TramitacaoEmLoteAdmFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitação em Lote'),
                      row1, row2, form_actions(label=_('Pesquisar'))))
+
+
+class VinculoDocAdminMateriaForm(ModelForm):
+
+    logger = logging.getLogger(__name__)
+
+    tipo = forms.ModelChoiceField(
+        label='Tipo',
+        required=True,
+        queryset=TipoMateriaLegislativa.objects.all(),
+        empty_label='Selecione',
+    )
+
+    numero = forms.IntegerField(label='Número', required=True)
+
+    ano = forms.CharField(label='Ano', required=True)
+
+    class Meta:
+        model = VinculoDocAdminMateria
+        fields = ['tipo', 'numero', 'ano', 'data_anexacao', 'data_desanexacao']
+
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+
+        if not self.is_valid():
+            return self.cleaned_data
+
+        cleaned_data = self.cleaned_data
+
+        data_anexacao = cleaned_data['data_anexacao']
+        data_desanexacao = cleaned_data['data_desanexacao'] if cleaned_data['data_desanexacao'] else data_anexacao
+
+        if data_anexacao > data_desanexacao:
+            self.logger.error(
+                "Data de anexação posterior à data de desanexação.")
+            raise ValidationError(
+                _("Data de anexação posterior à data de desanexação."))
+
+        try:
+            self.logger.info("Tentando obter objeto MateriaLegislativa (numero={}, ano={}, tipo={})."
+                             .format(cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo']))
+            materia = MateriaLegislativa.objects.get(
+                numero=cleaned_data['numero'],
+                ano=cleaned_data['ano'],
+                tipo=cleaned_data['tipo'])
+        except ObjectDoesNotExist:
+            msg = _('A {} {}/{} não existe no cadastro de matérias legislativas.'
+                    .format(cleaned_data['tipo'], cleaned_data['numero'], cleaned_data['ano']))
+            self.logger.warning(
+                "A matéria a ser anexada não existe no cadastro de matérias legislativas.")
+            raise ValidationError(msg)
+
+        if VinculoDocAdminMateria.objects.filter(
+            documento=self.instance.documento, materia=materia
+        ).exclude(pk=self.instance.pk).exists():
+            self.logger.error(
+                "Matéria já se encontra vinculada a este documento.")
+            raise ValidationError(
+                _('Matéria já se encontra vinculada a este documento'))
+
+        cleaned_data['materia'] = materia
+
+        return cleaned_data
+
+    def save(self, commit=False):
+        vinculo = super().save(commit)
+        vinculo.materia = self.cleaned_data['materia']
+        vinculo.save()
+        return vinculo
+
+
+class VinculoDocAdminMateriaEmLoteFilterSet(django_filters.FilterSet):
+
+    class Meta(FilterOverridesMetaMixin):
+        model = MateriaLegislativa
+        fields = ['tipo', 'data_apresentacao']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['data_apresentacao'].label = 'Data (Inicial - Final)'
+
+        self.form.fields['tipo'].required = True
+        self.form.fields['data_apresentacao'].required = True
+
+        row1 = to_row([('tipo', 12)])
+        row2 = to_row([('data_apresentacao', 12)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa de Matérias'),
+                     row1, row2, form_actions(label='Pesquisar')))

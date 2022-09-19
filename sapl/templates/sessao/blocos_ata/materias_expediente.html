@@ -18,13 +18,15 @@
 			{% endif %}
 			{% if m.tipo_votacao %}
 				Tipo: {{m.tipo_votacao}},
-				Sim: {{ m.voto_sim }},
-				Não: {{ m.voto_nao }},
-				Abstenções: {{m.voto_abstencoes}},
+				{% if m.tipo_votacao != 'Leitura' %}
+					Sim: {{ m.voto_sim }},
+					Não: {{ m.voto_nao }},
+					Abstenções: {{m.voto_abstencoes}},
+				{% endif %}
 			{% endif %}
 			Resultado:</b> 	{{m.resultado}}
 			{% if m.resultado_observacao %} - Obs.: {{m.resultado_observacao}} {% endif %}
-			{% if m.voto_nominal%}
+			{% if m.voto_nominal %}
 				<b>Votos Nominais :</b>
 				{% for voto in m.voto_nominal %}
 					{{voto.0}} - {{voto.1}}

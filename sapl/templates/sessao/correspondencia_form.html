@@ -1,0 +1,50 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+
+{% block extra_js %}
+  <script language="Javascript">
+    // document.getElementById("id_observacao").readOnly = true;
+
+    function recuperar_documento() {
+      var tipo_documento = $("#id_tipo_documento").val()
+      var numero_documento = $("#id_numero_documento").val()
+      var ano_documento = $("#id_ano_documento").val()
+
+      if (tipo_documento && numero_documento && ano_documento) {
+        $.get("/sessao/recuperar-documento/",
+          { tipo_documento: tipo_documento, numero_documento: numero_documento, ano_documento: ano_documento },
+          function(data, status) {
+            $('.assunto-documento').closest('.row').remove()
+            $("#div_id_tipo_documento").closest('.row').after(
+              $('<div class="row"/>').append(
+                $('<div class="col-12"/>').append(
+                  $(`<div class="alert alert-${data.restrito || !data.is_ostensivo ? 'danger' : 'info'} assunto-documento"/>`).html(
+
+                    (data.id === undefined) ? `<strong>${data.detail}</strong>`
+                    :
+                      `
+                      ${data.restrito? '<strong>ATENÇÃO, este é um documento restrito!!!</strong><br>':''}
+                      ${!data.is_ostensivo? '<strong>ATENÇÃO, os documentos administrativos estão configurados globalmente como restritos!!!</strong><br>':''}
+                      <strong>${data.epigrafe}</strong><br>
+                      <strong>Data do Documento: </strong>${data.data} - <strong>Interessado: </strong>${data.interessado?data.interessado:'Não Informado.'}<br>
+                      <strong>Assunto:</strong> ${data.assunto}<br><br>
+                      `
+                  )
+                )
+              )
+            )
+          }
+        )
+      }
+    }
+    var fields = ["#id_tipo_documento", "#id_numero_documento", "#id_ano_documento"];
+    for (i = 0; i < fields.length; i++){
+        $(fields[i]).change(function() {
+            recuperar_documento();
+        });
+    }
+    recuperar_documento();
+    $(document).ready( function() {
+    });
+  </script>
+{% endblock %}

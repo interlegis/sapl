@@ -3,17 +3,17 @@ import html
 import logging
 import re
 import tempfile
-import unidecode
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse
-from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
+from django.utils.translation import ugettext_lazy as _
+import unidecode
+from weasyprint import HTML, CSS
 
-from sapl.settings import MEDIA_URL
-from sapl.base.models import Autor, CasaLegislativa
+from sapl.base.models import Autor, CasaLegislativa, AppConfig as SaplAppConfig
 from sapl.comissoes.models import Comissao
 from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
                                  Tramitacao, UnidadeTramitacao, ConfigEtiquetaMateriaLegislativa)
@@ -25,24 +25,25 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 Orador, OradorExpediente,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
-                                RegistroVotacao, VotoParlamentar, OradorOrdemDia, TipoExpediente, ResumoOrdenacao)
-from sapl.settings import STATIC_ROOT
-from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode
-
+                                RegistroVotacao, VotoParlamentar, OradorOrdemDia,
+                                ConsideracoesFinais, TipoExpediente, ResumoOrdenacao)
 from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_presenca_sessao, get_expedientes,
                                get_materias_expediente, get_oradores_expediente,
                                get_presenca_ordem_do_dia, get_materias_ordem_do_dia,
                                get_oradores_ordemdia,
-                               get_oradores_explicacoes_pessoais, get_ocorrencias_da_sessao, get_assinaturas)
+                               get_oradores_explicacoes_pessoais, get_consideracoes_finais,
+                               get_ocorrencias_da_sessao, get_assinaturas,
+                               get_correspondencias)
+from sapl.settings import MEDIA_URL
+from sapl.settings import STATIC_ROOT
+from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode
 
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
-
-from weasyprint import HTML, CSS
 
 
 def get_kwargs_params(request, fields):
@@ -112,7 +113,7 @@ def get_materias(mats):
     for materia in mats:
         dic = {}
         dic['titulo'] = materia.tipo.sigla + " " + materia.tipo.descricao \
-                        + " " + str(materia.numero) + "/" + str(materia.ano)
+            + " " + str(materia.numero) + "/" + str(materia.ano)
         dic['txt_ementa'] = materia.ementa
 
         dic['nom_autor'] = ', '.join(
@@ -508,7 +509,7 @@ def is_empty(value):
     return True if not txt.strip() else False
 
 
-def get_sessao_plenaria(sessao, casa):
+def get_sessao_plenaria(sessao, casa, user):
     inf_basicas_dic = {
         "num_sessao_plen": str(sessao.numero),
         "nom_sessao": sessao.tipo.nome,
@@ -535,7 +536,8 @@ def get_sessao_plenaria(sessao, casa):
     for composicao in IntegranteMesa.objects.select_related('parlamentar', 'cargo')\
                                             .filter(sessao_plenaria=sessao)\
                                             .order_by('cargo_id'):
-        partido_sigla = Filiacao.objects.filter(parlamentar=composicao.parlamentar).first()
+        partido_sigla = Filiacao.objects.filter(
+            parlamentar=composicao.parlamentar).first()
         sigla = '' if not partido_sigla else partido_sigla.partido.sigla
         lst_mesa.append({
             'nom_parlamentar': composicao.parlamentar.nome_parlamentar,
@@ -545,7 +547,8 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista de presença na sessão
     lst_presenca_sessao = []
-    presenca = SessaoPlenariaPresenca.objects.filter(sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
+    presenca = SessaoPlenariaPresenca.objects.filter(
+        sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
     for parlamentar in [p.parlamentar for p in presenca]:
         lst_presenca_sessao.append({
             "nom_parlamentar": parlamentar.nome_parlamentar,
@@ -554,7 +557,8 @@ def get_sessao_plenaria(sessao, casa):
 
     # Lista de ausencias na sessão
     lst_ausencia_sessao = []
-    ausencia = JustificativaAusencia.objects.filter(sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
+    ausencia = JustificativaAusencia.objects.filter(
+        sessao_plenaria=sessao).order_by('parlamentar__nome_parlamentar')
     for ausente in ausencia:
         lst_ausencia_sessao.append({
             "parlamentar": ausente.parlamentar,
@@ -562,9 +566,34 @@ def get_sessao_plenaria(sessao, casa):
             "tipo": "Matéria" if ausente.ausencia == 1 else "Sessão"
         })
 
+    # Exibe as Correspondencias
+    lst_correspondencias = []
+    qs = sessao.correspondencia_set.all()
+    is_anon = user.is_anonymous
+    is_ostensivo = SaplAppConfig.attr('documentos_administrativos') == 'O'
+    if is_anon and not is_ostensivo:
+        qs = qs.none()
+    elif is_anon:
+        qs = qs.filter(documento__restrito=False)
+    for c in qs:
+        d = c.documento
+        lst_correspondencias.append(
+            {
+                'id': d.id,
+                'tipo': c.get_tipo_display(),
+                'epigrafe': d.epigrafe,
+                'data': d.data.strftime('%d/%m/%Y'),
+                'interessado': d.interessado,
+                'assunto': d.assunto,
+                'restrito': d.restrito,
+                'is_ostensivo': is_ostensivo
+            }
+        )
+
     # Exibe os Expedientes
     lst_expedientes = []
-    expedientes = ExpedienteSessao.objects.filter(sessao_plenaria=sessao).order_by('tipo__nome')
+    expedientes = ExpedienteSessao.objects.filter(
+        sessao_plenaria=sessao).order_by('tipo__nome')
     for e in expedientes:
         conteudo = e.conteudo
         if not is_empty(conteudo):
@@ -572,9 +601,11 @@ def get_sessao_plenaria(sessao, casa):
             # https://github.com/interlegis/sapl/issues/1046
             conteudo = re.sub('style=".*?"', '', conteudo)
             conteudo = re.sub('class=".*?"', '', conteudo)
-            conteudo = re.sub('align=".*?"', '', conteudo)  # OSTicket Ticket #796450
+            # OSTicket Ticket #796450
+            conteudo = re.sub('align=".*?"', '', conteudo)
             conteudo = re.sub('<p\s+>', '<p>', conteudo)
-            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)  # OSTicket Ticket #796450
+            # OSTicket Ticket #796450
+            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)
             conteudo = html.unescape(conteudo)
 
             # escape special character '&'
@@ -612,12 +643,15 @@ def get_sessao_plenaria(sessao, casa):
             "votacao_observacao": ' '
         }
 
-        numeracao = Numeracao.objects.filter(materia=expediente_materia.materia).first()
+        numeracao = Numeracao.objects.filter(
+            materia=expediente_materia.materia).first()
         if numeracao:
-            dic_expediente_materia["des_numeracao"] = (str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
+            dic_expediente_materia["des_numeracao"] = (
+                str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
 
         autoria = materia.autoria_set.all()
-        dic_expediente_materia['num_autores'] = 'Autores' if len(autoria) > 1 else 'Autor'
+        dic_expediente_materia['num_autores'] = 'Autores' if len(
+            autoria) > 1 else 'Autor'
         if autoria:
             for a in autoria:
                 if a.autor.nome:
@@ -630,14 +664,19 @@ def get_sessao_plenaria(sessao, casa):
             materia=expediente_materia.materia).first()
         rp = expediente_materia.retiradapauta_set.filter(
             materia=expediente_materia.materia).first()
+        rl = expediente_materia.registroleitura_set.filter(
+            materia=expediente_materia.materia).first()
         if rv:
             resultado = rv.tipo_resultado_votacao.nome
             resultado_observacao = rv.observacao
         elif rp:
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
+        elif rl:
+            resultado = _('Matéria lida')
+            resultado_observacao = rl.observacao
         else:
-            resultado = _('Matéria lida') \
+            resultado = _('Matéria não lida') \
                 if expediente_materia.tipo_votacao == 4 \
                 else _('Matéria não votada')
             resultado_observacao = _(' ')
@@ -652,7 +691,7 @@ def get_sessao_plenaria(sessao, casa):
     # Lista dos votos nominais das matérias do Expediente
     lst_expediente_materia_vot_nom = []
 
-    materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao,tipo_votacao=2)\
+    materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao, tipo_votacao=2)\
                                                                    .order_by('-materia')
 
     for mevn in materias_expediente_votacao_nominal:
@@ -672,8 +711,10 @@ def get_sessao_plenaria(sessao, casa):
     # Lista dos oradores do Expediente
     lst_oradores_expediente = []
     for orador_expediente in OradorExpediente.objects.filter(sessao_plenaria=sessao).order_by('numero_ordem'):
-        parlamentar = Parlamentar.objects.get(id=orador_expediente.parlamentar.id)
-        partido_sigla = Filiacao.objects.filter(parlamentar=parlamentar).first()
+        parlamentar = Parlamentar.objects.get(
+            id=orador_expediente.parlamentar.id)
+        partido_sigla = Filiacao.objects.filter(
+            parlamentar=parlamentar).first()
         lst_oradores_expediente.append({
             "num_ordem": orador_expediente.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
@@ -709,7 +750,8 @@ def get_sessao_plenaria(sessao, casa):
 
         numeracao = materia.numeracao_set.first()
         if numeracao:
-            dic_votacao["des_numeracao"] = (str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
+            dic_votacao["des_numeracao"] = (
+                str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
 
         materia_em_tramitacao = materia.materiaemtramitacao_set.first()
         dic_votacao.update({
@@ -736,14 +778,19 @@ def get_sessao_plenaria(sessao, casa):
             materia=votacao.materia).first()
         rp = votacao.retiradapauta_set.filter(
             materia=votacao.materia).first()
+        rl = votacao.registroleitura_set.filter(
+            materia=votacao.materia).first()
         if rv:
             resultado = rv.tipo_resultado_votacao.nome
             resultado_observacao = rv.observacao
         elif rp:
             resultado = rp.tipo_de_retirada.descricao
             resultado_observacao = rp.observacao
+        elif rl:
+            resultado = _('Matéria lida')
+            resultado_observacao = rl.observacao
         else:
-            resultado = _('Matéria lida') if \
+            resultado = _('Matéria não lida') if \
                 votacao.tipo_votacao == 4 else _('Matéria não votada')
             resultado_observacao = _(' ')
 
@@ -777,11 +824,14 @@ def get_sessao_plenaria(sessao, casa):
     # Lista dos oradores da Ordem do Dia
     lst_oradores_ordemdia = []
 
-    oradores_ordem_dia = OradorOrdemDia.objects.filter(sessao_plenaria=sessao).order_by('numero_ordem')
+    oradores_ordem_dia = OradorOrdemDia.objects.filter(
+        sessao_plenaria=sessao).order_by('numero_ordem')
 
     for orador_ordemdia in oradores_ordem_dia:
-        parlamentar_orador = Parlamentar.objects.get(id=orador_ordemdia.parlamentar.id)
-        sigla_partido = Filiacao.objects.filter(parlamentar=parlamentar_orador).first()
+        parlamentar_orador = Parlamentar.objects.get(
+            id=orador_ordemdia.parlamentar.id)
+        sigla_partido = Filiacao.objects.filter(
+            parlamentar=parlamentar_orador).first()
 
         lst_oradores_ordemdia.append({
             "num_ordem": orador_ordemdia.numero_ordem,
@@ -794,17 +844,18 @@ def get_sessao_plenaria(sessao, casa):
     lst_oradores = []
     for orador in Orador.objects.select_related('parlamentar').filter(sessao_plenaria=sessao).order_by('numero_ordem'):
         parlamentar = orador.parlamentar
-        partido_sigla = orador.parlamentar.filiacao_set.select_related('partido', 'parlamentar').first()
+        partido_sigla = orador.parlamentar.filiacao_set.select_related(
+            'partido', 'parlamentar').first()
         lst_oradores.append({
             "num_ordem": orador.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
+            "observacao": orador.observacao,
             "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
         })
 
     # Ocorrências da Sessão
     lst_ocorrencias = []
     ocorrencias = OcorrenciaSessao.objects.filter(sessao_plenaria=sessao)
-
     for o in ocorrencias:
         conteudo = o.conteudo
 
@@ -821,11 +872,32 @@ def get_sessao_plenaria(sessao, casa):
 
         lst_ocorrencias.append(o)
 
+    # Ocorrências da Sessão
+    lst_consideracoes = []
+    consideracoes = ConsideracoesFinais.objects.filter(sessao_plenaria=sessao)
+
+    for c in consideracoes:
+        conteudo = c.conteudo
+
+        # unescape HTML codes
+        # https://github.com/interlegis/sapl/issues/1046
+        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = html.unescape(conteudo)
+
+        # escape special character '&'
+        #   https://github.com/interlegis/sapl/issues/1009
+        conteudo = conteudo.replace('&', '&amp;')
+
+        c.conteudo = conteudo
+
+        lst_consideracoes.append(c)
+
     return (inf_basicas_dic,
             cont_mult_dic,
             lst_mesa,
             lst_presenca_sessao,
             lst_ausencia_sessao,
+            lst_correspondencias,
             lst_expedientes,
             lst_expediente_materia,
             lst_expediente_materia_vot_nom,
@@ -835,13 +907,15 @@ def get_sessao_plenaria(sessao, casa):
             lst_votacao_vot_nom,
             lst_oradores_ordemdia,
             lst_oradores,
-            lst_ocorrencias)
+            lst_ocorrencias,
+            lst_consideracoes)
 
 
 def get_turno(materia):
     descricao_turno = ''
     descricao_tramitacao = ''
-    tramitacoes = materia.tramitacao_set.order_by('-data_tramitacao', '-id').all()
+    tramitacoes = materia.tramitacao_set.order_by(
+        '-data_tramitacao', '-id').all()
     tramitacoes_turno = tramitacoes.exclude(turno="")
 
     if tramitacoes:
@@ -850,7 +924,8 @@ def get_turno(materia):
                 if t[0] == tramitacoes_turno.first().turno:
                     descricao_turno = str(t[1])
                     break
-        descricao_tramitacao = tramitacoes.first().status.descricao if tramitacoes.first().status else 'Não informada'
+        descricao_tramitacao = tramitacoes.first(
+        ).status.descricao if tramitacoes.first().status else 'Não informada'
     return descricao_turno, descricao_tramitacao
 
 
@@ -886,6 +961,7 @@ def relatorio_sessao_plenaria(request, pk):
      lst_mesa,
      lst_presenca_sessao,
      lst_ausencia_sessao,
+     lst_correspondencias,
      lst_expedientes,
      lst_expediente_materia,
      lst_expediente_materia_vot_nom,
@@ -895,7 +971,8 @@ def relatorio_sessao_plenaria(request, pk):
      lst_votacao_vot_nom,
      lst_oradores_ordemdia,
      lst_oradores,
-     lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
+     lst_ocorrencias,
+     lst_consideracoes) = get_sessao_plenaria(sessao, casa, request.user)
 
     for idx in range(len(lst_expedientes)):
         txt_expedientes = lst_expedientes[idx]['txt_expediente']
@@ -911,6 +988,7 @@ def relatorio_sessao_plenaria(request, pk):
         lst_mesa,
         lst_presenca_sessao,
         lst_ausencia_sessao,
+        lst_correspondencias,
         lst_expedientes,
         lst_expediente_materia,
         lst_expediente_materia_vot_nom,
@@ -920,7 +998,8 @@ def relatorio_sessao_plenaria(request, pk):
         lst_votacao_vot_nom,
         lst_oradores_ordemdia,
         lst_oradores,
-        lst_ocorrencias)
+        lst_ocorrencias,
+        lst_consideracoes)
 
     response.write(pdf)
     return response
@@ -936,10 +1015,10 @@ def get_protocolos(prots):
         ts = timezone.localtime(protocolo.timestamp)
         if protocolo.timestamp:
             dic['data'] = ts.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' + \
-                          ts.strftime("%H:%m")
+                ts.strftime("%H:%m")
         else:
             dic['data'] = protocolo.data.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' \
-                          + protocolo.hora.strftime("%H:%m")
+                + protocolo.hora.strftime("%H:%m")
 
         dic['txt_assunto'] = protocolo.assunto_ementa
 
@@ -1030,7 +1109,7 @@ def relatorio_etiqueta_protocolo(request, nro, ano):
 
     protocolo = Protocolo.objects.filter(numero=nro, ano=ano)
 
-    m = MateriaLegislativa.objects.filter(numero_protocolo=nro,ano=ano)
+    m = MateriaLegislativa.objects.filter(numero_protocolo=nro, ano=ano)
 
     protocolo_data = get_etiqueta_protocolos(protocolo)
 
@@ -1067,7 +1146,7 @@ def get_etiqueta_protocolos(prots):
         for materia in MateriaLegislativa.objects.filter(
                 numero_protocolo=p.numero, ano=p.ano):
             dic['num_materia'] = materia.tipo.sigla + ' ' + \
-                                 str(materia.numero) + '/' + str(materia.ano)
+                str(materia.numero) + '/' + str(materia.ano)
 
         dic['natureza'] = ''
         if p.tipo_processo == 0:
@@ -1079,7 +1158,7 @@ def get_etiqueta_protocolos(prots):
         for documento in DocumentoAdministrativo.objects.filter(
                 protocolo=p):
             dic['num_documento'] = documento.tipo.sigla + ' ' + \
-                                   str(documento.numero) + '/' + str(documento.ano)
+                str(documento.numero) + '/' + str(documento.ano)
 
         dic['ident_processo'] = dic['num_materia'] or dic['num_documento']
 
@@ -1145,7 +1224,7 @@ def get_pauta_sessao(sessao, casa):
 
         dic_expediente_materia = {}
         dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + \
-                                                 ' - ' + materia.tipo.descricao
+            ' - ' + materia.tipo.descricao
         dic_expediente_materia["num_ordem"] = str(
             expediente_materia.numero_ordem)
         dic_expediente_materia["id_materia"] = str(
@@ -1189,7 +1268,7 @@ def get_pauta_sessao(sessao, casa):
             id=votacao.materia.id).first()
         dic_votacao = {}
         dic_votacao["tipo_materia"] = materia.tipo.sigla + \
-                                      ' - ' + materia.tipo.descricao
+            ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem
         dic_votacao["id_materia"] = str(
             materia.numero) + "/" + str(materia.ano)
@@ -1231,9 +1310,11 @@ def get_pauta_sessao(sessao, casa):
             # https://github.com/interlegis/sapl/issues/1046
             conteudo = re.sub('style=".*?"', '', conteudo)
             conteudo = re.sub('class=".*?"', '', conteudo)
-            conteudo = re.sub('align=".*?"', '', conteudo)  # OSTicket Ticket #796450
+            # OSTicket Ticket #796450
+            conteudo = re.sub('align=".*?"', '', conteudo)
             conteudo = re.sub('<p\s+>', '<p>', conteudo)
-            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)  # OSTicket Ticket #796450
+            # OSTicket Ticket #796450
+            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)
             conteudo = html.unescape(conteudo)
 
             # escape special character '&'
@@ -1263,7 +1344,8 @@ def make_pdf(base_url, main_template, header_template, main_css='', header_css='
 
     # Template of header
     html = HTML(base_url=base_url, string=header_template)
-    header = html.render(stylesheets=[CSS(string='@page {size:A4; margin:1cm;}')])
+    header = html.render(
+        stylesheets=[CSS(string='@page {size:A4; margin:1cm;}')])
 
     header_page = header.pages[0]
     header_body = get_page_body(header_page._page_box.all_children())
@@ -1289,24 +1371,29 @@ def resumo_ata_pdf(request, pk):
     context.update(get_identificacao_basica(sessao_plenaria))
     context.update(get_mesa_diretora(sessao_plenaria))
     context.update(get_presenca_sessao(sessao_plenaria))
+    context.update(get_correspondencias(sessao_plenaria, request.user))
     context.update(get_expedientes(sessao_plenaria))
     context.update(get_materias_expediente(sessao_plenaria))
     context.update(get_oradores_expediente(sessao_plenaria))
     context.update(get_presenca_ordem_do_dia(sessao_plenaria))
     context.update(get_materias_ordem_do_dia(sessao_plenaria))
     context.update(get_oradores_ordemdia(sessao_plenaria))
-    context.update(get_oradores_explicacoes_pessoais(sessao_plenaria))
     context.update(get_ocorrencias_da_sessao(sessao_plenaria))
+    context.update(get_consideracoes_finais(sessao_plenaria))
+    context.update(get_oradores_explicacoes_pessoais(sessao_plenaria))
     context.update(get_assinaturas(sessao_plenaria))
     context.update({'object': sessao_plenaria})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
-    header_context = {"casa": casa, 'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+    header_context = {"casa": casa,
+                      'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
 
     html_template = render_to_string('relatorios/relatorio_ata.html', context)
-    html_header = render_to_string('relatorios/header_ata.html', header_context)
+    html_header = render_to_string(
+        'relatorios/header_ata.html', header_context)
 
-    pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+    pdf_file = make_pdf(
+        base_url=base_url, main_template=html_template, header_template=html_header)
 
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
@@ -1324,12 +1411,15 @@ def cria_relatorio(request, context, html_string, header_info=""):
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
 
-    header_context = {"casa": casa, 'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL, 'info': header_info}
+    header_context = {"casa": casa, 'logotipo': casa.logotipo,
+                      'MEDIA_URL': MEDIA_URL, 'info': header_info}
 
     html_template = render_to_string(html_string, context)
-    html_header = render_to_string('relatorios/header_ata.html', header_context)
+    html_header = render_to_string(
+        'relatorios/header_ata.html', header_context)
 
-    pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+    pdf_file = make_pdf(
+        base_url=base_url, main_template=html_template, header_template=html_header)
 
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
@@ -1409,7 +1499,7 @@ def relatorio_pauta_sessao_weasy(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_pauta_sessao.html', info)
 
 
-def relatorio_sessao_plenaria_pdf(request, pk):  
+def relatorio_sessao_plenaria_pdf(request, pk):
     base_url = request.build_absolute_uri()
     logger = logging.getLogger(__name__)
     username = request.user.username
@@ -1434,6 +1524,7 @@ def relatorio_sessao_plenaria_pdf(request, pk):
      lst_mesa,
      lst_presenca_sessao,
      lst_ausencia_sessao,
+     lst_correspondencias,
      lst_expedientes,
      lst_expediente_materia,
      lst_expediente_materia_vot_nom,
@@ -1443,10 +1534,12 @@ def relatorio_sessao_plenaria_pdf(request, pk):
      lst_votacao_vot_nom,
      lst_oradores_ordemdia,
      lst_oradores,
-     lst_ocorrencias) = get_sessao_plenaria(sessao, casa)
+     lst_ocorrencias,
+     lst_consideracoes) = get_sessao_plenaria(sessao, casa, request.user)
 
     dict_ord_template = {
         'cont_mult': 'conteudo_multimidia.html',
+        'correspondencia': 'correspondencias.html',
         'exp': 'expedientes.html',
         'id_basica': 'identificacao_basica.html',
         'lista_p': 'lista_presenca_sessao.html',
@@ -1459,28 +1552,31 @@ def relatorio_sessao_plenaria_pdf(request, pk):
         'oradores_exped': 'oradores_expediente.html',
         'oradores_o_d': 'oradores_ordemdia.html',
         'oradores_expli': 'oradores_explicacoes.html',
-        'ocorr_sessao': 'ocorrencias_sessao.html'
+        'ocorr_sessao': 'ocorrencias_da_sessao.html',
+        'cons_finais': 'consideracoes_finais.html'
     }
 
     context = {
-         "inf_basicas_dic": inf_basicas_dic,
-         "cont_mult_dic": cont_mult_dic,
-         "lst_mesa": lst_mesa,
-         "lst_expediente_materia_vot_nom": lst_expediente_materia_vot_nom,
-         "lst_presenca_sessao": lst_presenca_sessao,
-         "lst_ausencia_sessao": lst_ausencia_sessao,
-         "lst_expedientes": lst_expedientes,
-         "lst_expediente_materia": lst_expediente_materia,
-         "lst_oradores_expediente": lst_oradores_expediente,
-         "lst_presenca_ordem_dia": lst_presenca_ordem_dia,
-         "lst_votacao": lst_votacao,
-         "lst_oradores_ordemdia": lst_oradores_ordemdia,
-         "lst_votacao_vot_nom": lst_votacao_vot_nom,
-         "lst_oradores": lst_oradores,
-         "lst_ocorrencias": lst_ocorrencias,
-         "rodape": rodape,
-         "data": dt.today().strftime('%d/%m/%Y')
-     }
+        "inf_basicas_dic": inf_basicas_dic,
+        "cont_mult_dic": cont_mult_dic,
+        "lst_mesa": lst_mesa,
+        "lst_expediente_materia_vot_nom": lst_expediente_materia_vot_nom,
+        "lst_presenca_sessao": lst_presenca_sessao,
+        "lst_ausencia_sessao": lst_ausencia_sessao,
+        "lst_correspondencias": lst_correspondencias,
+        "lst_expedientes": lst_expedientes,
+        "lst_expediente_materia": lst_expediente_materia,
+        "lst_oradores_expediente": lst_oradores_expediente,
+        "lst_presenca_ordem_dia": lst_presenca_ordem_dia,
+        "lst_votacao": lst_votacao,
+        "lst_oradores_ordemdia": lst_oradores_ordemdia,
+        "lst_votacao_vot_nom": lst_votacao_vot_nom,
+        "lst_oradores": lst_oradores,
+        "lst_ocorrencias": lst_ocorrencias,
+        "lst_consideracoes": lst_consideracoes,
+        "rodape": rodape,
+        "data": dt.today().strftime('%d/%m/%Y')
+    }
 
     ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
     try:
@@ -1498,7 +1594,9 @@ def relatorio_sessao_plenaria_pdf(request, pk):
             'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
             'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
             'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
-            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto]
+            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto],
+            'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto],
+            'decimo_sexto_ordenacao': dict_ord_template[ordenacao.decimo_sexto]
         })
     except KeyError as e:
         # self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
@@ -1508,19 +1606,22 @@ def relatorio_sessao_plenaria_pdf(request, pk):
             'segundo_ordenacao': 'conteudo_multimidia.html',
             'terceiro_ordenacao': 'mesa_diretora.html',
             'quarto_ordenacao': 'lista_presenca_sessao.html',
-            'quinto_ordenacao': 'expedientes.html',
-            'sexto_ordenacao': 'materias_expediente.html',
-            'setimo_ordenacao': 'votos_nominais_expediente.html',
-            'oitavo_ordenacao': 'oradores_expediente.html',
-            'nono_ordenacao': 'lista_presenca_ordemdia.html',
-            'decimo_ordenacao': 'materias_ordemdia.html',
-            'decimo_primeiro_ordenacao': 'votos_nominais_ordemdia.html',
-            'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
-            'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
-            'decimo_quarto_ordenacao': 'ocorrencias_sessao.html'
+            'quinto_ordenacao': 'correspondencias.html',
+            'sexto_ordenacao': 'expedientes.html',
+            'setimo_ordenacao': 'materias_expediente.html',
+            'oitavo_ordenacao': 'votos_nominais_expediente.html',
+            'nono_ordenacao': 'oradores_expediente.html',
+            'decimo_ordenacao': 'lista_presenca_ordemdia.html',
+            'decimo_primeiro_ordenacao': 'materias_ordemdia.html',
+            'decimo_segundo_ordenacao': 'votos_nominais_ordemdia.html',
+            'decimo_terceiro_ordenacao': 'oradores_ordemdia.html',
+            'decimo_quarto_ordenacao': 'oradores_explicacoes.html',
+            'decimo_quinto_ordenacao': 'ocorrencias_da_sessao.html',
+            'decimo_sexto_ordenacao': 'consideracoes_finais.html'
         })
 
-    html_template = render_to_string('relatorios/relatorio_sessao_plenaria.html', context)
+    html_template = render_to_string(
+        'relatorios/relatorio_sessao_plenaria.html', context)
 
     info = "Resumo da {}ª Reunião {} \
                 da {}ª Sessão Legislativa da {} \
@@ -1535,7 +1636,8 @@ def relatorio_sessao_plenaria_pdf(request, pk):
                                                                   "logotipo": casa.logotipo,
                                                                   "info": info})
 
-    pdf_file = make_pdf(base_url=base_url, main_template=html_template, header_template=html_header)
+    pdf_file = make_pdf(
+        base_url=base_url, main_template=html_template, header_template=html_header)
 
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
@@ -1548,32 +1650,35 @@ def relatorio_sessao_plenaria_pdf(request, pk):
 def gera_etiqueta_ml(materia_legislativa, base_url):
     confg = ConfigEtiquetaMateriaLegislativa.objects.first()
 
-    ml_info =  unidecode.unidecode("{}/{}-{}".format(materia_legislativa.numero,
-                                                     materia_legislativa.ano, 
-                                                     materia_legislativa.tipo.sigla))
+    ml_info = unidecode.unidecode("{}/{}-{}".format(materia_legislativa.numero,
+                                                    materia_legislativa.ano,
+                                                    materia_legislativa.tipo.sigla))
     base64_data = create_barcode(ml_info, 100, 500)
     barcode = 'data:image/png;base64,{0}'.format(base64_data)
 
     max_ementa_size = 240
     ementa = materia_legislativa.ementa
-    ementa = ementa if len(ementa) < max_ementa_size else ementa[:max_ementa_size]+"..."
+    ementa = ementa if len(
+        ementa) < max_ementa_size else ementa[:max_ementa_size] + "..."
 
     context = {
         'numero': materia_legislativa.numero,
         'ano': materia_legislativa.ano,
         'tipo': materia_legislativa.tipo,
-        'data_apresentacao':materia_legislativa.data_apresentacao,
+        'data_apresentacao': materia_legislativa.data_apresentacao,
         'autores': materia_legislativa.autores.all(),
-        'ementa':ementa,
+        'ementa': ementa,
         'largura': confg.largura,
-        'altura':confg.largura,
+        'altura': confg.largura,
         'barcode': barcode
     }
 
-    main_template = render_to_string('relatorios/etiqueta_materia_legislativa.html', context)
+    main_template = render_to_string(
+        'relatorios/etiqueta_materia_legislativa.html', context)
 
     html = HTML(base_url=base_url, string=main_template)
-    main_doc = html.render(stylesheets=[CSS(string="@page {{size: {}cm {}cm;}}".format(confg.largura,confg.altura))])
+    main_doc = html.render(stylesheets=[CSS(
+        string="@page {{size: {}cm {}cm;}}".format(confg.largura, confg.altura))])
 
     pdf_file = main_doc.write_pdf()
     return pdf_file
@@ -1582,7 +1687,7 @@ def gera_etiqueta_ml(materia_legislativa, base_url):
 def etiqueta_materia_legislativa(request, pk):
     base_url = request.build_absolute_uri()
     materia_legislativa = MateriaLegislativa.objects.get(pk=pk)
-    
+
     pdf_file = gera_etiqueta_ml(materia_legislativa, base_url)
 
     response = HttpResponse(content_type='application/pdf;')

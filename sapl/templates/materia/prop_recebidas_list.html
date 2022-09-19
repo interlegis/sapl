@@ -11,16 +11,21 @@
         <thead>
           <tr>
             <th>Data do Recebimento</th>
+            <th>Data do Envio</th>
             <th>Tipo</th>
             <th>Descrição</th>
             <th>Autor</th>
             <th>Vínculo</th>
+            {% if AppConfig.receber_recibo_proposicao %}
+            <th>Recibo</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
           {% for prop in object_list %}
             <tr>
               <td><a href="{% url 'sapl.materia:proposicao_detail' prop.pk %}">{{ prop.data_recebimento|localtime|date:"d/m/Y H:i:s" }}</a></td>
+              <td>{{ prop.data_envio|localtime|date:"d/m/Y H:i:s" }}</td>
               <td>{{ prop.tipo.descricao }}</td>
               <td>{{ prop.descricao }}</td>
               <td>{{ prop.autor }}</td>
@@ -32,6 +37,11 @@
                   <a href="{% url 'sapl.materia:documentoacessorio_detail' prop.object_id %}">{{ prop.conteudo_gerado_related.materia.tipo.sigla }} {{ prop.conteudo_gerado_related.materia.numero }}/{{ prop.conteudo_gerado_related.materia.ano }}</a>
                 {% endif %}
               </td>
+              {% if AppConfig.receber_recibo_proposicao and not prop.hash_code %}
+              <td>
+                <a class="btn btn-outline-primary" onclick="window.open('{% url 'sapl.materia:recibo-proposicao' prop.pk %}','Recibo','width=1100, height=600, scrollbars=yes')">{% trans "Recibo de Envio" %}</a>
+              </td>
+              {% endif %}
             </tr>
           {% endfor %}
         </tbody>
