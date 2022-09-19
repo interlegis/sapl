@@ -104,7 +104,7 @@ class AppConfig(models.Model):
         choices=ESFERA_FEDERACAO_CHOICES)
     sapl_as_sapn = models.BooleanField(
         verbose_name=_(
-            'Utilizar SAPL como SAPN?'),
+            'Utilizar SAPL apenas como SAPL-Normas?'),
         choices=YES_NO_CHOICES, default=False)
 
     # MÓDULO PARLAMENTARES

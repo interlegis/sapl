@@ -11,7 +11,7 @@
 
   <head>
     <meta charset="utf-8">
-    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+    <title>{% block head_title %}{% if sapl_as_sapn %}SAPL-Normas - {% else %}SAPL - {%endif%}{{nome_sistema}}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#343a40">
 
