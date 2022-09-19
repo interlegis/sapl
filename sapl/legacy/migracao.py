@@ -7,8 +7,7 @@ import yaml
 from django.core import management
 from unipath import Path
 
-from sapl.legacy.migracao_dados import (REPO, TAG_MARCO, gravar_marco, info,
-                                        migrar_dados)
+from sapl.legacy.migracao_dados import REPO, TAG_MARCO, gravar_marco, info, migrar_dados
 from sapl.legacy.migracao_documentos import migrar_documentos
 from sapl.legacy.migracao_usuarios import migrar_usuarios
 from sapl.legacy.scripts.exporta_zope.variaveis_comuns import TAG_ZOPE
@@ -26,8 +25,7 @@ def migrar(primeira_migracao=False, apagar_do_legado=False):
         info("A migração já está feita.")
         return
     assert TAG_ZOPE in REPO.tags, adornar_msg(
-        "Antes de migrar "
-        "é necessário fazer a exportação de documentos do zope"
+        "Antes de migrar " "é necessário fazer a exportação de documentos do zope"
     )
     management.call_command("migrate")
     migracao_corretiva = not primeira_migracao
@@ -83,9 +81,7 @@ def scrap_sde(url, usuario, senha=None):
     )
     assert res.status_code == 200
 
-    url_proposicao_tmpl = (
-        "{}/sapl_documentos/proposicao/{}/renderXML?xsl=__default__"
-    )
+    url_proposicao_tmpl = "{}/sapl_documentos/proposicao/{}/renderXML?xsl=__default__"
     total = Proposicao.objects.count()
     for num, proposicao in enumerate(Proposicao.objects.all()):
         pk = proposicao.pk
