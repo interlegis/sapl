@@ -98,4 +98,3 @@ CargoMesa:
 ComposicaoMesa:
   cargo: cod_cargo
   parlamentar: cod_parlamentar
-  sessao_legislativa: cod_sessao_leg

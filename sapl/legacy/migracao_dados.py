@@ -60,10 +60,13 @@ from sapl.norma.models import (
     TipoVinculoNormaJuridica,
 )
 from sapl.parlamentares.models import (
+    ComposicaoMesa,
     Legislatura,
     Mandato,
+    MesaDiretora,
     Parlamentar,
     Partido,
+    SessaoLegislativa,
     TipoAfastamento,
 )
 from sapl.protocoloadm.models import (
@@ -1264,22 +1267,36 @@ def migrar_model(model, apagar_do_legado):
         else:
             campos_chave = campos_pk_legado
 
-        apagados_pelo_usuario = Version.objects.get_deleted(model)
-        apagados_pelo_usuario = [
-            {k: v for k, v in get_campos_crus_reversion(version).items()}
-            for version in apagados_pelo_usuario
-        ]
-        campos_chave_novos = {campos_velhos_p_novos[c] for c in campos_chave}
-        apagados_pelo_usuario = [
-            {k: v for k, v in apagado.items() if k in campos_chave_novos}
-            for apagado in apagados_pelo_usuario
-        ]
-
+        # ----------------------------------------------------------------------
+        # HACK:
+        #
+        # Após a refatoração que introduziu parlamentares.models.MesaDiretora
+        # este código parou de funcionar.
+        #
+        # Ele não é necessário em uma migração de primeira primeira vez.
+        #
+        # Certamente não acontecerá mais nenhuma migração incremental,
+        # logo podemos desativá-lo
+        # ----------------------------------------------------------------------
+        #
+        # apagados_pelo_usuario = Version.objects.get_deleted(model)
+        # apagados_pelo_usuario = [
+        #     {k: v for k, v in get_campos_crus_reversion(version).items()}
+        #     for version in apagados_pelo_usuario
+        # ]
+        # campos_chave_novos = {campos_velhos_p_novos[c] for c in campos_chave}
+        # apagados_pelo_usuario = [
+        #     {k: v for k, v in apagado.items() if k in campos_chave_novos}
+        #     for apagado in apagados_pelo_usuario
+        # ]
+        #
+        # def ja_esta_migrado(old):
+        #     chave = {campos_velhos_p_novos[c]: getattr(old, c) for c in campos_chave}
+        #     return (
+        #         chave in apagados_pelo_usuario or model.objects.filter(**chave).exists()
+        #     )
         def ja_esta_migrado(old):
-            chave = {campos_velhos_p_novos[c]: getattr(old, c) for c in campos_chave}
-            return (
-                chave in apagados_pelo_usuario or model.objects.filter(**chave).exists()
-            )
+            return False
 
         ultima_pk_legado = model_legado.objects.count()
 
@@ -1741,6 +1758,27 @@ def adjust_reuniao_comissao(new, old):
     new.hora_inicio = str_to_time(old.hr_inicio_reuniao)
 
 
+def get_mesa_diretora(cod_sessao_leg):
+    sessao_legislativa = SessaoLegislativa.objects.get(pk=cod_sessao_leg)
+    try:
+        mesa = MesaDiretora.objects.get(sessao_legislativa=sessao_legislativa)
+    except MesaDiretora.DoesNotExist:
+        with reversion.create_revision():
+            # cria uma mesa diretora vazia única para a sessão legislativa
+            # baseado em sapl/parlamentares/migrations/0037_atribuiMesaDiretora.py
+            mesa = MesaDiretora.objects.create(
+                data_inicio=sessao_legislativa.data_inicio,
+                data_fim=sessao_legislativa.data_fim,
+                sessao_legislativa=sessao_legislativa,
+            )
+            reversion.set_comment("Mesa criada pela migração")
+    return mesa
+
+
+def adjust_composicao_mesa(new: ComposicaoMesa, old):
+    new.mesa_diretora = get_mesa_diretora(old.cod_sessao_leg)
+
+
 def remove_style(conteudo):
     if "style" not in conteudo:
         return conteudo  # atalho que acelera muito os casos sem style
@@ -1779,6 +1817,7 @@ AJUSTE_ANTES_SALVAR = {
     TipoResultadoVotacao: adjust_tiporesultadovotacao,
     ExpedienteSessao: adjust_expediente_sessao,
     Reuniao: adjust_reuniao_comissao,
+    ComposicaoMesa: adjust_composicao_mesa,
 }
 
 AJUSTE_DEPOIS_SALVAR = {NormaJuridica: adjust_normajuridica_depois_salvar}
