@@ -15,6 +15,7 @@ import pkg_resources
 import pyaml
 import pytz
 import reversion
+import sapl.legacy.models as legacy_models
 import yaml
 from bs4 import BeautifulSoup
 from django.apps import apps
@@ -27,8 +28,6 @@ from django.db import connections, transaction
 from django.db.models import Max, Q
 from pyaml import UnsafePrettyYAMLDumper
 from reversion.models import Revision, Version
-from unipath import Path
-
 from sapl.base.models import AppConfig as AppConf
 from sapl.base.models import Autor, TipoAutor
 from sapl.base.receivers import cria_models_tipo_autor
@@ -82,6 +81,7 @@ from sapl.sessao.models import (
     TipoResultadoVotacao,
 )
 from sapl.utils import normalize
+from unipath import Path
 
 from .scripts.normaliza_dump_mysql import normaliza_dump_mysql
 
@@ -1683,7 +1683,7 @@ def adjust_normajuridica_depois_salvar():
     )
 
 
-def adjust_autor(new, old):
+def adjust_autor(new: Autor, old: legacy_models.Autor):
     # vincula autor com o objeto relacionado, tentando os três campos antigos
     # o primeiro campo preenchido será usado, podendo lançar ForeignKeyFaltando
     for model_relacionado, campo_nome in [
@@ -1712,7 +1712,8 @@ def adjust_autor(new, old):
                 )
         grupo_autor = Group.objects.get(name="Autor")
         user.groups.add(grupo_autor)
-        new.user = user
+        # baseado em sapl/base/migrations/0046_auto_20210314_1532.py
+        new.operadores.add(user)
 
 
 def adjust_comissao(new, old):
