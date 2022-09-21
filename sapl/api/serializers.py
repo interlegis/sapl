@@ -1,19 +1,68 @@
 import logging
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db.models import Q
 from image_cropping.utils import get_backend
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 
-from sapl.api.core.serializers import ModelChoiceObjectRelatedField
-from sapl.base.models import Autor
+from sapl.base.models import Autor, CasaLegislativa, Metadata
 from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
+from sapl.sessao.models import OrdemDia, SessaoPlenaria
 
 
-class AutorSerializer(serializers.ModelSerializer):
-    # AutorSerializer sendo utilizado pelo gerador automático da api devidos aos
-    # critérios anotados em views.py
+class SaplSerializerMixin(serializers.ModelSerializer):
+    __str__ = SerializerMethodField()
+    metadata = SerializerMethodField()
+
+    class Meta:
+        fields = '__all__'
+
+    def get___str__(self, obj) -> str:
+        return str(obj)
+
+    def get_metadata(self, obj) -> dict:
+        try:
+            metadata = Metadata.objects.get(
+                content_type=ContentType.objects.get_for_model(
+                    obj._meta.model),
+                object_id=obj.id
+            ).metadata
+        except:
+            metadata = {}
+        finally:
+            return metadata
+
+
+class ChoiceSerializer(serializers.Serializer):
+    value = serializers.SerializerMethodField()
+    text = serializers.SerializerMethodField()
+
+    def get_text(self, obj):
+        return obj[1]
+
+    def get_value(self, obj):
+        return obj[0]
+
+
+class ModelChoiceSerializer(ChoiceSerializer):
+
+    def get_text(self, obj):
+        return str(obj)
+
+    def get_value(self, obj):
+        return obj.id
+
+
+class ModelChoiceObjectRelatedField(serializers.RelatedField):
+
+    def to_representation(self, value):
+        return ModelChoiceSerializer(value).data
+
+
+class AutorSerializer(SaplSerializerMixin):
 
     autor_related = ModelChoiceObjectRelatedField(read_only=True)
 
@@ -22,7 +71,18 @@ class AutorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ParlamentarSerializerPublic(serializers.ModelSerializer):
+class CasaLegislativaSerializer(SaplSerializerMixin):
+    version = serializers.SerializerMethodField()
+
+    def get_version(self, obj):
+        return settings.SAPL_VERSION
+
+    class Meta:
+        model = CasaLegislativa
+        fields = '__all__'
+
+
+class ParlamentarSerializerPublic(SaplSerializerMixin):
 
     class Meta:
         model = Parlamentar
@@ -32,7 +92,7 @@ class ParlamentarSerializerPublic(serializers.ModelSerializer):
                    "telefone_residencia", "titulo_eleitor", "fax_residencia"]
 
 
-class ParlamentarSerializerVerbose(serializers.ModelSerializer):
+class ParlamentarSerializerVerbose(SaplSerializerMixin):
     titular = serializers.SerializerMethodField('check_titular')
     partido = serializers.SerializerMethodField('check_partido')
     fotografia_cropped = serializers.SerializerMethodField('crop_fotografia')
@@ -55,7 +115,8 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
             )
         except Exception as e:
             self.logger.error(e)
-            self.logger.error('erro processando arquivo: %s' % obj.fotografia.path)
+            self.logger.error('erro processando arquivo: %s' %
+                              obj.fotografia.path)
 
         return thumbnail_url
 
@@ -66,7 +127,8 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
             return ""
 
         try:
-            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+            legislatura = Legislatura.objects.get(
+                id=self.context.get('legislatura'))
         except ObjectDoesNotExist:
             legislatura = Legislatura.objects.first()
         mandato = Mandato.objects.filter(
@@ -92,7 +154,8 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
             self.logger.error("Não há legislaturas cadastradas.")
             return ""
         try:
-            legislatura = Legislatura.objects.get(id=self.context.get('legislatura'))
+            legislatura = Legislatura.objects.get(
+                id=self.context.get('legislatura'))
         except ObjectDoesNotExist:
             legislatura = Legislatura.objects.first()
 
@@ -109,8 +172,8 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
         # Caso não exista filiação com essas condições
         except ObjectDoesNotExist:
             self.logger.warning("user=" + username + ". Parlamentar com (data<={} e data_desfiliacao>={}) "
-                              "ou (data<={} e data_desfiliacao=Null)) não possui filiação."
-                              .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
+                                "ou (data<={} e data_desfiliacao=Null)) não possui filiação."
+                                .format(legislatura.data_fim, legislatura.data_fim, legislatura.data_fim))
             filiacao = 'Não possui filiação'
 
         # Caso exista mais de uma filiação nesse intervalo
@@ -131,4 +194,120 @@ class ParlamentarSerializerVerbose(serializers.ModelSerializer):
 
     class Meta:
         model = Parlamentar
-        fields = ['id', 'nome_parlamentar', 'fotografia_cropped', 'fotografia', 'ativo', 'partido', 'titular']
+        fields = ['id', 'nome_parlamentar', 'fotografia_cropped',
+                  'fotografia', 'ativo', 'partido', 'titular', ]
+
+
+class SessaoPlenariaECidadaniaSerializer(serializers.ModelSerializer):
+
+    codReuniao = serializers.SerializerMethodField('get_pk_sessao')
+    codReuniaoPrincipal = serializers.SerializerMethodField('get_pk_sessao')
+    txtTituloReuniao = serializers.SerializerMethodField('get_name')
+    txtSiglaOrgao = serializers.SerializerMethodField('get_sigla_orgao')
+    txtApelido = serializers.SerializerMethodField('get_name')
+    txtNomeOrgao = serializers.SerializerMethodField('get_nome_orgao')
+    codEstadoReuniao = serializers.SerializerMethodField(
+        'get_estadoSessaoPlenaria')
+    txtTipoReuniao = serializers.SerializerMethodField('get_tipo_sessao')
+    txtObjeto = serializers.SerializerMethodField('get_assunto_sessao')
+    txtLocal = serializers.SerializerMethodField('get_endereco_orgao')
+    bolReuniaoConjunta = serializers.SerializerMethodField(
+        'get_reuniao_conjunta')
+    bolHabilitarEventoInterativo = serializers.SerializerMethodField(
+        'get_iterativo')
+    idYoutube = serializers.SerializerMethodField('get_url')
+    codEstadoTransmissaoYoutube = serializers.SerializerMethodField(
+        'get_estadoTransmissaoYoutube')
+    datReuniaoString = serializers.SerializerMethodField('get_date')
+
+    # Constantes SessaoPlenaria (de 1-9) (apenas 3 serão usados)
+    SESSAO_FINALIZADA = 4
+    SESSAO_EM_ANDAMENTO = 3
+    SESSAO_CONVOCADA = 2
+
+    # Constantes EstadoTranmissaoYoutube (de 0 a 2)
+    TRANSMISSAO_ENCERRADA = 2
+    TRANSMISSAO_EM_ANDAMENTO = 1
+    SEM_TRANSMISSAO = 0
+
+    class Meta:
+        model = SessaoPlenaria
+        fields = (
+            'codReuniao',
+            'codReuniaoPrincipal',
+            'txtTituloReuniao',
+            'txtSiglaOrgao',
+            'txtApelido',
+            'txtNomeOrgao',
+            'codEstadoReuniao',
+            'txtTipoReuniao',
+            'txtObjeto',
+            'txtLocal',
+            'bolReuniaoConjunta',
+            'bolHabilitarEventoInterativo',
+            'idYoutube',
+            'codEstadoTransmissaoYoutube',
+            'datReuniaoString'
+        )
+
+    def get_pk_sessao(self, obj):
+        return obj.pk
+
+    def get_name(self, obj):
+        return obj.__str__()
+
+    def get_estadoSessaoPlenaria(self, obj):
+        if obj.finalizada:
+            return self.SESSAO_FINALIZADA
+        elif obj.iniciada:
+            return self.SESSAO_EM_ANDAMENTO
+        else:
+            return self.SESSAO_CONVOCADA
+
+    def get_tipo_sessao(self, obj):
+        return obj.tipo.__str__()
+
+    def get_url(self, obj):
+        return obj.url_video if obj.url_video else None
+
+    def get_iterativo(self, obj):
+        return obj.interativa if obj.interativa else False
+
+    def get_date(self, obj):
+        return "{} {}{}".format(
+            obj.data_inicio.strftime("%d/%m/%Y"),
+            obj.hora_inicio,
+            ":00"
+        )
+
+    def get_estadoTransmissaoYoutube(self, obj):
+        if obj.url_video:
+            if obj.finalizada:
+                return self.TRANSMISSAO_ENCERRADA
+            else:
+                return self.TRANSMISSAO_EM_ANDAMENTO
+        else:
+            return self.SEM_TRANSMISSAO
+
+    def get_assunto_sessao(self, obj):
+        pauta_sessao = ''
+        ordem_dia = OrdemDia.objects.filter(sessao_plenaria=obj.pk)
+        pauta_sessao = ', '.join([i.materia.__str__() for i in ordem_dia])
+
+        return str(pauta_sessao)
+
+    def get_endereco_orgao(self, obj):
+        return self.casa().endereco
+
+    def get_reuniao_conjunta(self, obj):
+        return False
+
+    def get_sigla_orgao(self, obj):
+        return self.casa().sigla
+
+    def get_nome_orgao(self, obj):
+        return self.casa().nome
+
+    def casa(self):
+        casa = CasaLegislativa.objects.first()
+        return casa

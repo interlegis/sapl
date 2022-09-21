@@ -1490,10 +1490,20 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
 
 class TipoProposicaoForm(ModelForm):
 
+    content_types_choices = [
+        (
+            f'{ct.app_label}/{ct.model}',
+            ct
+        )
+        for k, ct in ContentType.objects.get_for_models(
+            *models_with_gr_for_model(TipoProposicao)
+        ).items()
+    ]
+
     logger = logging.getLogger(__name__)
 
-    content_type = forms.ModelChoiceField(
-        queryset=ContentType.objects.all(),
+    content_type = forms.ChoiceField(
+        choices=content_types_choices,
         label=TipoProposicao._meta.get_field('content_type').verbose_name,
         required=True,
         help_text=TipoProposicao._meta.get_field('content_type').help_text)
@@ -1550,18 +1560,6 @@ class TipoProposicaoForm(ModelForm):
 
         super(TipoProposicaoForm, self).__init__(*args, **kwargs)
 
-        content_types = ContentType.objects.get_for_models(
-            *models_with_gr_for_model(TipoProposicao))
-
-        self.fields['content_type'].choices = [
-            (ct.pk, ct) for k, ct in content_types.items()]
-        # Ordena por id
-        self.fields['content_type'].choices.sort(key=lambda x: x[0])
-
-        if self.instance.pk:
-            self.fields[
-                'tipo_conteudo_related'].initial = self.instance.object_id
-
     def clean(self):
         super(TipoProposicaoForm, self).clean()
 
@@ -1570,7 +1568,16 @@ class TipoProposicaoForm(ModelForm):
 
         cd = self.cleaned_data
 
-        content_type = cd['content_type']
+        content_type = cd['content_type'].split('/')
+        content_type = ContentType.objects.filter(
+            app_label=content_type[0],
+            model=content_type[1]).first()
+        cd['content_type'] = content_type
+
+        if not content_type:
+            self.logger.error("Meta Tipo Inexistente")
+            raise ValidationError(
+                _('Meta Tipo Inexistente.'))
 
         if 'tipo_conteudo_related' not in cd or not cd[
            'tipo_conteudo_related']:

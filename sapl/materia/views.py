@@ -477,6 +477,13 @@ class TipoProposicaoCrud(CrudAux):
         form_class = TipoProposicaoForm
         layout_key = None
 
+        def get_initial(self):
+            initial = CrudAux.UpdateView.get_initial(self)
+            ct = self.object.content_type
+            initial['content_type'] = f'{ct.app_label}/{ct.model}'
+            initial['tipo_conteudo_related'] = self.object.object_id
+            return initial
+
 
 def criar_materia_proposicao(proposicao):
     tipo_materia = TipoMateriaLegislativa.objects.get(

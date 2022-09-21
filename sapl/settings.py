@@ -157,7 +157,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ),
 
-    'DEFAULT_SCHEMA_CLASS': 'sapl.api.core.schema.Schema',
+    'DEFAULT_SCHEMA_CLASS': 'sapl.api.schema.Schema',
 
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
 
@@ -165,6 +165,13 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
+}
+
+DRFAUTOAPI = {
+    'DEFAULT_SERIALIZER_MODULE': 'sapl.api.serializers',
+    'DEFAULT_FILTER_MODULE': 'sapl.api.forms',
+    'GLOBAL_SERIALIZER_MIXIN': 'sapl.api.serializers.SaplSerializerMixin',
+    'GLOBAL_FILTERSET_MIXIN': 'sapl.api.forms.SaplFilterSetMixin'
 }
 
 SPECTACULAR_SETTINGS = {

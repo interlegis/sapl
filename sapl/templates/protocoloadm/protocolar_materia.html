@@ -8,16 +8,7 @@
 
 {% block extra_js %}
    <script language="Javascript">
-     function compare(a, b) {
-       if (a.text < b.text)
-         return -1;
-       if (a.text > b.text)
-         return 1;
-       return 0;
-     }
-
       $(document).ready(function() {
-
         $("input[name=data_hora_manual]").change(function(event) {
           if (this.value === 'True' && this.checked)
             $("#protocolo_data_hora_manual").show();
@@ -25,7 +16,7 @@
             $("#protocolo_data_hora_manual").hide();
         });
         $("input[name=data_hora_manual]").trigger('change')
-        
+
         function busca_ementa() {
           var vincular_materia = $("#id_vincular_materia_1").prop("checked");
           var ano_materia = $("#id_ano_materia").val();
@@ -62,26 +53,26 @@
               $("#id_autor option").remove()
               if (tipo_selecionado !== undefined && tipo_selecionado !== null) {
                 var json_data = {
-                   tipo : tipo_selecionado
+                   tipo : tipo_selecionado,
+                   o: 'nome',
+                   get_all: true
                 }
-                $.getJSON("/api/autor/possiveis", json_data, function(data){
+                $.getJSON("{% url 'sapl.api:autor-possiveis' %}", json_data, function(data){
                     if (data) {
-                      var results = data.sort(compare);
-                      if (results.length > 1) {
+                      if (data.length > 1) {
                         $("#id_autor").append("<option>-----</option>");
                       }
-                      $.each(results, function(idx, obj) {
+                      $.each(data, function(idx, obj) {
                           $("#id_autor")
                             .append($("<option></option>")
-                            .attr("value", obj.value)
-                            .text(obj.text));
+                            .attr("value", obj.id)
+                            .text(obj.nome));
                       });
                       $("#id_autor").prop("selectedIndex", 0);
                     }
                 });
             }
           });
-
       });
    </script>
 {% endblock %}

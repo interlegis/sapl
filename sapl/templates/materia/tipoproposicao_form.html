@@ -20,40 +20,49 @@ $(document).ready(function(){
   var initial_select = parseInt($("input[name=tipo_conteudo_related]").val());
   $("input[name=tipo_conteudo_related]").remove();
   $('#id_content_type').change(function(event) {
-    var pk = this[event.target.selectedIndex].value;
-    var url = '{% url 'sapl.api:model_list' 0 ''%}'
-    url = url.replace('0', pk) + '?pagination=False'
+    const url_part_pattern = this[event.target.selectedIndex].value
+    const url = `/api/${url_part_pattern}/?o=id&page=1&page_size=100`
 
-    $.get(url).done(function(data) {
-      if (data === undefined || data.length == 0) {
-        $( "#dialog" ).dialog({
-            resizable: false,
-            height: "auto",
-            width: 400,
-            modal: true,
-            buttons: {
-                OK: function() {
-                    $( this ).dialog( "close" );
-                }
-            }
-        });
-        return;
-      }
-
-      var radios = $("#div_id_tipo_conteudo_related_radio > div").html('');
-      data.forEach(function (val, index) {
-        var html_radio = '<div class="radio"><label id="id_tipo_conteudo_related_'+index+'"><input type="radio" name="tipo_conteudo_related" id="id_tipo_conteudo_related_'+index+'" value="'+val.value+'"'+(initial_select ?' checked="checked"':'')+'>'+val.text+'</label></div>';
-
-        if (val.value === initial_select)
-          initial_select=0;
-        radios.append(html_radio);
-      });
-    });
-  });
-  $('#id_content_type').trigger('change');
-});
-
-
+    const rad_tip_conteudo = $("#div_id_tipo_conteudo_related_radio > div").html('');
+    const popule_rad_tip_conteudo = function(url_get) {
+      $.get(url_get).done(function(response) {
+        if (response.pagination.total_entries === 0) {
+          $( "#dialog" ).dialog({
+              resizable: false,
+              height: "auto",
+              width: 400,
+              modal: true,
+              buttons: {
+                  OK: function() {
+                      $( this ).dialog( "close" );
+                  }
+              }
+          });
+          return;
+        }
+        response.results.forEach(function (val, index) {
+          var html_radio = `
+            <div class="radio">
+              <label id="id_tipo_conteudo_related_${val.id}">
+                <input type="radio"
+                  name="tipo_conteudo_related"
+                  id="id_tipo_conteudo_related_${val.id}"
+                  value="${val.id}"
+                  ${(initial_select ?'checked="checked"':'')}>
+                  ${val.__str__}
+              </label>
+            </div>`
+            if (val.id === initial_select)
+              initial_select=0;
+            rad_tip_conteudo.append(html_radio);
+          })
+          if(response.pagination.links.next !== null )
+            popule_rad_tip_conteudo(response.pagination.links.next)
+      })
+    }
+    popule_rad_tip_conteudo(url)
+  })
+  $('#id_content_type').trigger('change')
+})
 </script>
-
 {% endblock %}

@@ -5,17 +5,7 @@
 
 {% block extra_js %}
    <script language="Javascript">
-
-     function compare(a, b) {
-       if (a.text < b.text)
-         return -1;
-       if (a.text > b.text)
-         return 1;
-       return 0;
-     }
-
       $(document).ready(function() {
-
          function atualiza_select_autor() {
               var tipo_selecionado = $("#id_tipo_autor").val();
               var autor_selecionado = $("#id_autor").val();
@@ -24,19 +14,20 @@
                 var json_data = {
                    tipo : tipo_selecionado,
                    data_relativa : $("#id_data_relativa").val(),
-                   legislatura_anterior: $('#id_legislatura_anterior').is(':checked')
+                   legislatura_anterior: $('#id_legislatura_anterior').is(':checked'),
+                   o: 'nome',
+                   get_all: true
                 }
-                $.getJSON("/api/autor/possiveis", json_data, function(data){
+                $.getJSON("{% url 'sapl.api:autor-possiveis' %}", json_data, function(data){
                     if (data) {
-                      var results = data.sort(compare);
-                      if (results.length > 1) {
+                      if (data.length > 1) {
                         $("#id_autor").append("<option>-----</option>");
                       }
-                      $.each(results, function(idx, obj) {
+                      $.each(data, function(idx, obj) {
                           $("#id_autor")
                             .append($("<option></option>")
-                            .attr("value", obj.value)
-                            .text(obj.text));
+                            .attr("value", obj.id)
+                            .text(obj.nome));
                       });
                       $("#id_autor").val(autor_selecionado);
                     }
