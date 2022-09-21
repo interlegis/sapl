@@ -1253,7 +1253,10 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
     ordering = ['-data_hora']
     paginate_by = 10
     model = HistoricoProposicao
-    permission_required = ('materia.detail_proposicao_enviada', )
+    permission_required = ('materia.detail_proposicao_enviada',
+                           'materia.detail_proposicao_devolvida',
+                           'materia.detail_proposicao_incorporada'
+                           )
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -1266,7 +1269,7 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
 
         if not user.is_superuser and grupo_autor.user_set.filter(
                 id=user.id).exists():
-            autores = Autor.objects.filter(user=user)
+            autores = Autor.objects.filter(operadores=user)
             qs = qs.filter(proposicao__autor__in=autores)
         return qs
 
