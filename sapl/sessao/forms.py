@@ -646,9 +646,16 @@ class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
 class OradorForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        sessao = SessaoPlenaria.objects.get(id=self.initial['id_sessao'])
         self.fields['parlamentar'].queryset = \
             Parlamentar.objects.filter(
-                mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
+                mandato__data_inicio_mandato__isnull=False,
+                mandato__data_fim_mandato__isnull=False,
+                mandato__data_inicio_mandato__lte=sessao.data_inicio,
+                mandato__data_fim_mandato__gte=sessao.data_inicio,
+                ativo=True
+            ).distinct().order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorForm, self).clean()
@@ -685,9 +692,16 @@ class OradorForm(ModelForm):
 class OradorExpedienteForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        sessao = SessaoPlenaria.objects.get(id=self.initial['id_sessao'])
         self.fields['parlamentar'].queryset = \
             Parlamentar.objects.filter(
-                mandato__legislatura__sessaoplenaria=self.initial['id_sessao'], ativo=True).order_by('nome_parlamentar')
+                mandato__data_inicio_mandato__isnull=False,
+                mandato__data_fim_mandato__isnull=False,
+                mandato__data_inicio_mandato__lte=sessao.data_inicio,
+                mandato__data_fim_mandato__gte=sessao.data_inicio,
+                ativo=True
+            ).distinct().order_by('nome_parlamentar')
 
     def clean(self):
         super(OradorExpedienteForm, self).clean()
