@@ -90,7 +90,6 @@ INSTALLED_APPS = (
 
     'haystack',
     'django.contrib.postgres',
-    'speedinfo',
 
     'webpack_loader',
 
@@ -176,8 +175,7 @@ SPECTACULAR_SETTINGS = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'speedinfo.backends.proxy_cache',
-        'CACHE_BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
     }
 }
