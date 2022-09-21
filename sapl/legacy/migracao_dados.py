@@ -1492,19 +1492,6 @@ def adjust_ordemdia_antes_salvar(new: OrdemDia, old: legacy_models.OrdemDia):
 
 
 def adjust_parlamentar(new: Parlamentar, old: legacy_models.Parlamentar):
-    if old.ind_unid_deliberativa:
-        value = new.unidade_deliberativa
-        # Field is defined as not null in legacy db,
-        # but data includes null values
-        #  => transform None to False
-        if value is None:
-            warn(
-                "unidade_deliberativa_nulo_p_false",
-                "nulo convertido para falso na unidade_deliberativa "
-                "do parlamentar {pk_parlamentar}",
-                {"pk_parlamentar": old.cod_parlamentar},
-            )
-            new.unidade_deliberativa = False
     # migra município de residência
     if old.cod_localidade_resid:
         municipio_uf = list(
