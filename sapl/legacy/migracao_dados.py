@@ -1070,6 +1070,14 @@ def do_flush():
     # )
     # fill_vinculo_norma_juridica()
     #
+    # # tb apagamos os dados do reversion, p nao confundir apagados_pelo_usuario
+    # Revision.objects.all().delete()
+    # Version.objects.all().delete()
+    #
+    # apaga tipos de autor padrão (criados no flush acima)
+    # TipoAutor.objects.all().delete()
+    #
+    # ---------------------------------------------------------------------------
     # O flush está ativando o evento em sapl.rules.apps
     # que está criando permissoes duplicadas
     # models.signals.post_migrate.connect(receiver=create_proxy_permissions, ...)
@@ -1087,16 +1095,12 @@ def do_flush():
         NormaJuridica,
         Protocolo,
         Mandato,
+        Revision,
+        Version,
     ):
         assert not model.objects.exists()
 
     info("O banco acabou de ser criado e está vazio => prosseguimos")
-
-    # apaga tipos de autor padrão (criados no flush acima)
-    TipoAutor.objects.all().delete()
-    # tb apagamos os dados do reversion, p nao confundir apagados_pelo_usuario
-    Revision.objects.all().delete()
-    Version.objects.all().delete()
 
 
 def migrar_dados(primeira_migracao=False, apagar_do_legado=False):
