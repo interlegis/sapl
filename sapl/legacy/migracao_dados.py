@@ -951,40 +951,13 @@ def iter_sql_records(tabela):
 
 
 def fill_vinculo_norma_juridica():
-    lista = [
-        ("A", "Altera o(a)", "Alterado(a) pelo(a)"),
-        ("R", "Revoga integralmente o(a)", "Revogado(a) integralmente pelo(a)"),
-        ("P", "Revoga parcialmente o(a)", "Revogado(a) parcialmente pelo(a)"),
-        (
-            "T",
-            "Revoga integralmente por consolidação",
-            "Revogado(a) integralmente por consolidação",
-        ),
-        ("C", "Norma correlata", "Norma correlata"),
-        ("S", "Ressalva o(a)", "Ressalvada pelo(a)"),
-        ("E", "Reedita o(a)", "Reeditada pelo(a)"),
-        ("I", "Reedita com alteração o(a)", "Reeditada com alteração pelo(a)"),
-        ("G", "Regulamenta o(a)", "Regulamentada pelo(a)"),
-        ("K", "Suspende parcialmente o(a)", "Suspenso(a) parcialmente pelo(a)"),
-        ("L", "Suspende integralmente o(a)", "Suspenso(a) integralmente pelo(a)"),
-        (
-            "N",
-            "Julga integralmente inconstitucional",
-            "Julgada integralmente inconstitucional",
-        ),
-        (
-            "O",
-            "Julga parcialmente inconstitucional",
-            "Julgada parcialmente inconstitucional",
-        ),
-    ]
-    lista_objs = [
-        TipoVinculoNormaJuridica(
-            sigla=item[0], descricao_ativa=item[1], descricao_passiva=item[2]
-        )
-        for item in lista
-    ]
-    TipoVinculoNormaJuridica.objects.bulk_create(lista_objs)
+    # carrega dados iniciais conforme:
+    # sapl/norma/migrations/0016_tipovinculonormajuridica_revoga_integramente.py
+    from django.core.management import call_command
+
+    if not TipoVinculoNormaJuridica.objects.all().exists():
+        fixture_file = "sapl/norma/fixtures/pre_popula_tipo_vinculo_norma.json"
+        call_command("loaddata", fixture_file)
 
 
 def criar_configuracao_inicial():
@@ -1095,6 +1068,7 @@ def do_flush():
     # FlushCommand().handle(
     #     database="default", interactive=False, verbosity=0, allow_cascade=True
     # )
+    # fill_vinculo_norma_juridica()
     #
     # O flush está ativando o evento em sapl.rules.apps
     # que está criando permissoes duplicadas
@@ -1123,8 +1097,6 @@ def do_flush():
     # tb apagamos os dados do reversion, p nao confundir apagados_pelo_usuario
     Revision.objects.all().delete()
     Version.objects.all().delete()
-
-    fill_vinculo_norma_juridica()
 
 
 def migrar_dados(primeira_migracao=False, apagar_do_legado=False):
