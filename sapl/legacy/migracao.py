@@ -1,12 +1,8 @@
-import os
 import subprocess
 from getpass import getpass
 
 import requests
-import yaml
 from django.core import management
-from unipath import Path
-
 from sapl.legacy.migracao_dados import REPO, TAG_MARCO, gravar_marco, info, migrar_dados
 from sapl.legacy.migracao_documentos import migrar_documentos
 from sapl.legacy.migracao_usuarios import migrar_usuarios
@@ -14,13 +10,14 @@ from sapl.legacy.scripts.exporta_zope.variaveis_comuns import TAG_ZOPE
 from sapl.legacy.scripts.verifica_diff import verifica_diff
 from sapl.legacy_migration_settings import DIR_REPO, NOME_BANCO_LEGADO
 from sapl.materia.models import Proposicao
+from unipath import Path
 
 
 def adornar_msg(msg):
     return "\n{1}\n{0}\n{1}".format(msg, "#" * len(msg))
 
 
-def migrar(primeira_migracao=False, apagar_do_legado=False):
+def migrar(primeira_migracao=True, apagar_do_legado=False):
     if TAG_MARCO in REPO.tags:
         info("A migração já está feita.")
         return

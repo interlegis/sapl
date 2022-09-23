@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-
 from sapl.legacy.migracao import migrar
 
 
@@ -19,7 +18,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--primeira_migracao",
             action="store_true",
-            default=False,
+            default=True,
             dest="primeira_migracao",
             help="Apagar banco antes de migrar",
         )
