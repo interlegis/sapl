@@ -2,7 +2,6 @@ import datetime
 import json
 import os
 import re
-import subprocess
 import traceback
 from collections import OrderedDict, defaultdict
 from dataclasses import dataclass
@@ -1838,23 +1837,6 @@ def time_constructor(loader, node):
 yaml.add_constructor("!time", time_constructor)
 
 TAG_MARCO = "marco"
-
-
-def gerar_backup_postgres():
-    print("Gerando backup do banco... ", end="", flush=True)
-    arq_backup = DIR_REPO.child("{}.backup".format(NOME_BANCO_LEGADO))
-    arq_backup.remove()
-    backup_cmds = [
-        f"""
-        docker exec postgres pg_dump -U sapl --format custom --blobs --verbose
-        --file {arq_backup.name} {NOME_BANCO_LEGADO}""",
-        f"docker cp postgres:{arq_backup.name} {arq_backup}",
-        f"docker exec postgres rm {arq_backup.name}",
-    ]
-    for cmd in backup_cmds:
-        subprocess.check_output(cmd.split(), stderr=subprocess.DEVNULL)
-    REPO.git.add([arq_backup.name])  # type: ignore
-    print("SUCESSO")
 
 
 def gravar_marco(nome_dir, pula_se_ja_existe=False):

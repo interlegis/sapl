@@ -3,14 +3,7 @@ from getpass import getpass
 
 import requests
 from django.core import management
-from sapl.legacy.migracao_dados import (
-    REPO,
-    TAG_MARCO,
-    gerar_backup_postgres,
-    gravar_marco,
-    info,
-    migrar_dados,
-)
+from sapl.legacy.migracao_dados import REPO, TAG_MARCO, gravar_marco, info, migrar_dados
 from sapl.legacy.migracao_documentos import migrar_documentos
 from sapl.legacy.migracao_usuarios import migrar_usuarios
 from sapl.legacy.scripts.exporta_zope.variaveis_comuns import TAG_ZOPE
@@ -55,8 +48,24 @@ def migrar(primeira_migracao=True, apagar_do_legado=False):
         verifica_diff(sigla)
 
 
-def compactar_media():
+def gerar_backup_postgres():
+    print("Gerando backup do banco... ", end="", flush=True)
+    arq_backup = DIR_REPO.child("{}.backup".format(NOME_BANCO_LEGADO))
+    arq_backup.remove()
+    backup_cmds = [
+        f"""
+        docker exec postgres pg_dump -U sapl --format custom --blobs --verbose
+        --file {arq_backup.name} {NOME_BANCO_LEGADO}""",
+        f"docker cp postgres:{arq_backup.name} {arq_backup}",
+        f"docker exec postgres rm {arq_backup.name}",
+    ]
+    for cmd in backup_cmds:
+        subprocess.check_output(cmd.split(), stderr=subprocess.DEVNULL)
+    REPO.git.add([arq_backup.name])  # type: ignore
+    print("SUCESSO")
 
+
+def compactar_media():
     # tar de media/sapl
     print("Criando tar de media... ", end="", flush=True)
     arq_tar = DIR_REPO.child("{}.media.tar".format(NOME_BANCO_LEGADO))
@@ -65,7 +74,7 @@ def compactar_media():
     print("SUCESSO")
 
 
-PROPOSICAO_UPLOAD_TO = Proposicao._meta.get_field("texto_original").upload_to
+PROPOSICAO_UPLOAD_TO = Proposicao._meta.get_field("texto_original").upload_to  # type: ignore
 
 
 def salva_conteudo_do_sde(proposicao, conteudo):
@@ -131,7 +140,7 @@ def commit_ajustes():
     ).read_file()
     assert ajustes.count("RESSUSCITADOS") <= 1
 
-    consulta_sapl = git.Repo(f"/home/mazza/work/consulta_sapls")
+    consulta_sapl = git.Repo("/home/mazza/work/consulta_sapls")  # type: ignore
     consulta_sapl.git.add(
         f"/home/mazza/work/consulta_sapls/ajustes_pre_migracao/{sigla}*"
     )
