@@ -3,7 +3,14 @@ from getpass import getpass
 
 import requests
 from django.core import management
-from sapl.legacy.migracao_dados import REPO, TAG_MARCO, gravar_marco, info, migrar_dados
+from sapl.legacy.migracao_dados import (
+    REPO,
+    TAG_MARCO,
+    gerar_backup_postgres,
+    gravar_marco,
+    info,
+    migrar_dados,
+)
 from sapl.legacy.migracao_documentos import migrar_documentos
 from sapl.legacy.migracao_usuarios import migrar_usuarios
 from sapl.legacy.scripts.exporta_zope.variaveis_comuns import TAG_ZOPE
@@ -27,12 +34,22 @@ def migrar(primeira_migracao=True, apagar_do_legado=False):
     management.call_command("migrate")
     migracao_corretiva = not primeira_migracao
     if migracao_corretiva:
-        gravar_marco("producao", versiona=False, gera_backup=False)
+        gravar_marco("producao")
     fks_orfas = migrar_dados(primeira_migracao, apagar_do_legado)
     assert not fks_orfas, "Ainda existem FKs órfãs"
     migrar_usuarios(REPO.working_dir, primeira_migracao)
     migrar_documentos(REPO, primeira_migracao)
-    gravar_marco()
+    if migracao_corretiva:
+        dir_dados = gravar_marco("dados")
+        REPO.git.add([dir_dados.name])
+
+    gerar_backup_postgres()
+
+    # versiona mudanças, se de fato existem
+    if "master" not in REPO.heads or REPO.index.diff("HEAD"):
+        REPO.index.commit("Migração concluída")
+    REPO.git.execute("git tag -f".split() + [TAG_MARCO])
+
     if migracao_corretiva:
         sigla = NOME_BANCO_LEGADO[-3:]
         verifica_diff(sigla)
@@ -96,10 +113,10 @@ def scrap_sde(url, usuario, senha=None):
 def tenta_correcao():
     from sapl.legacy.migracao_dados import ocorrencias
 
-    gravar_marco("producao", versiona=False, gera_backup=False)
+    gravar_marco("producao")
     migrar_dados()
     assert "fk" not in ocorrencias, "AINDA EXISTEM FKS ORFAS"
-    gravar_marco(versiona=False, gera_backup=False)
+    gravar_marco("dados")
     sigla = NOME_BANCO_LEGADO[-3:]
     verifica_diff(sigla)
 

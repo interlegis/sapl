@@ -1840,14 +1840,30 @@ yaml.add_constructor("!time", time_constructor)
 TAG_MARCO = "marco"
 
 
-def gravar_marco(
-    nome_dir="dados", pula_se_ja_existe=False, versiona=True, gera_backup=True
-):
+def gerar_backup_postgres():
+    print("Gerando backup do banco... ", end="", flush=True)
+    arq_backup = DIR_REPO.child("{}.backup".format(NOME_BANCO_LEGADO))
+    arq_backup.remove()
+    backup_cmds = [
+        f"""
+        docker exec postgres pg_dump -U sapl --format custom --blobs --verbose
+        --file {arq_backup.name} {NOME_BANCO_LEGADO}""",
+        f"docker cp postgres:{arq_backup.name} {arq_backup}",
+        f"docker exec postgres rm {arq_backup.name}",
+    ]
+    for cmd in backup_cmds:
+        subprocess.check_output(cmd.split(), stderr=subprocess.DEVNULL)
+    REPO.git.add([arq_backup.name])  # type: ignore
+    print("SUCESSO")
+
+
+def gravar_marco(nome_dir, pula_se_ja_existe=False):
     """Grava um dump de todos os dados como arquivos yaml no repo de marco"""
     # prepara ou localiza repositorio
     dir_dados = Path(REPO.working_dir, nome_dir)
     if pula_se_ja_existe and dir_dados.exists():
-        return
+        return dir_dados
+
     # limpa todo o conteúdo antes
     dir_dados.rmtree()
     dir_dados.mkdir()
@@ -1873,32 +1889,7 @@ def gravar_marco(
     # grava valores das seqeunces
     sequences = dict(sorted(sequences))
     Path(dir_dados, "sequences.yaml").write_file(pyaml.dump(sequences))
-
-    # backup do banco
-    if gera_backup:
-        print("Gerando backup do banco... ", end="", flush=True)
-        arq_backup = DIR_REPO.child("{}.backup".format(NOME_BANCO_LEGADO))
-        arq_backup.remove()
-        backup_cmds = [
-            f"""
-            docker exec postgres pg_dump -U sapl --format custom --blobs --verbose
-            --file {arq_backup.name} {NOME_BANCO_LEGADO}""",
-            f"docker cp postgres:{arq_backup.name} {arq_backup}",
-            f"docker exec postgres rm {arq_backup.name}",
-        ]
-        for cmd in backup_cmds:
-            subprocess.check_output(cmd.split(), stderr=subprocess.DEVNULL)
-        print("SUCESSO")
-
-    # versiona mudanças
-    if versiona:
-        REPO.git.add([dir_dados.name])
-        if gera_backup:
-            REPO.git.add([arq_backup.name])  # type: ignore
-        if "master" not in REPO.heads or REPO.index.diff("HEAD"):
-            # se de fato existe mudança
-            REPO.index.commit(f"Grava marco (em {nome_dir})")
-        REPO.git.execute("git tag -f".split() + [TAG_MARCO])
+    return dir_dados
 
 
 def encode_version(version):
