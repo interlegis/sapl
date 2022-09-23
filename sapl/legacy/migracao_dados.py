@@ -1879,11 +1879,15 @@ def gravar_marco(
         print("Gerando backup do banco... ", end="", flush=True)
         arq_backup = DIR_REPO.child("{}.backup".format(NOME_BANCO_LEGADO))
         arq_backup.remove()
-        backup_cmd = f"""
-            pg_dump --host localhost --port 5432 --username postgres
-            --no-password --format custom --blobs --verbose --file
-            {arq_backup} {NOME_BANCO_LEGADO}"""
-        subprocess.check_output(backup_cmd.split(), stderr=subprocess.DEVNULL)
+        backup_cmds = [
+            f"""
+            docker exec postgres pg_dump -U sapl --format custom --blobs --verbose
+            --file {arq_backup.name} {NOME_BANCO_LEGADO}""",
+            f"docker cp postgres:{arq_backup.name} {arq_backup}",
+            f"docker exec postgres rm {arq_backup.name}",
+        ]
+        for cmd in backup_cmds:
+            subprocess.check_output(cmd.split(), stderr=subprocess.DEVNULL)
         print("SUCESSO")
 
     # versiona mudanças
