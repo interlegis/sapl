@@ -71,9 +71,9 @@ class SessaoPlenariaForm(FileFieldCheckMixin, ModelForm):
         encerramento = self.cleaned_data['data_fim']
 
         error = ValidationError(
-            "Número de Sessão Plenária já existente "
-            "para a Legislatura, Sessão Legislativa e Tipo informados. "
-            "Favor escolher um número distinto.")
+            "Número de Sessão Plenária '" + str(num) + "' já existente "
+            "para o Tipo de Sessão " + str(tipo) + " da " + str(sl) +
+            " Sessão Legislativa da " + str(leg) + " Legislatura. Por Favor, escolha um número distinto.")
 
         qs = tipo.build_predicados_queryset(leg, sl, abertura)
         qs &= Q(numero=num)
