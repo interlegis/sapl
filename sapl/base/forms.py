@@ -946,6 +946,8 @@ class EstatisticasAcessoNormasForm(Form):
                                            (10, '010 mais acessadas'),
                                            (50, '050 mais acessadas'),
                                            (100, '100 mais acessadas'),
+                                           (500, '500 mais acessadas'),
+                                           (1000, '1000 mais acessadas'),
                                        ],
                                        initial=5)
 

@@ -1219,6 +1219,7 @@ class EstatisticasAcessoNormas(TemplateView):
             **params
         )
 
+        normas_count_mes = collections.OrderedDict()
         normas_mes = collections.OrderedDict()
         meses = {1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
                  7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'}
@@ -1226,9 +1227,14 @@ class EstatisticasAcessoNormas(TemplateView):
         for norma in estatisticas:
             if not meses[norma.mes_est] in normas_mes:
                 normas_mes[meses[norma.mes_est]] = []
+                normas_count_mes[meses[norma.mes_est]] = 0
+
+            normas_count_mes[meses[norma.mes_est]] += norma.norma_count
             normas_mes[meses[norma.mes_est]].append(norma)
 
         context['normas_mes'] = normas_mes
+
+        context['normas_count_mes'] = normas_count_mes
 
         is_relatorio = request.GET.get('relatorio')
 
