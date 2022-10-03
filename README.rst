@@ -73,7 +73,7 @@ Orientações gerais sobre o GitHub
 
 Suporte ao utilizadores
 ===================================
-   `Sala do Discord "Somos Interlegis" sobre SAPL  <https://discord.com/channels/982104281966596206/982242722226245652>`_
+   `Sala do Discord "Somos Interlegis" sobre SAPL  <https://discord.gg/fzXSbhZbcy>`_
 
 
 Perguntas Frequentes
