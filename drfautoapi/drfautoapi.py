@@ -2,17 +2,19 @@ from collections import OrderedDict
 import importlib
 import inspect
 import logging
+import re
 
 from django.apps.config import AppConfig
 from django.apps.registry import apps
 from django.conf import settings
 from django.contrib.postgres.fields.jsonb import JSONField
 from django.db.models.base import ModelBase
+from django.db.models.fields import TextField, CharField
 from django.db.models.fields.files import FileField
 from django.template.defaultfilters import capfirst
 from django.utils.translation import ugettext_lazy as _
 import django_filters
-from django_filters.constants import ALL_FIELDS
+from django_filters.constants import ALL_FIELDS, EMPTY_VALUES
 from django_filters.filters import CharFilter
 from django_filters.filterset import FilterSet
 from django_filters.rest_framework.backends import DjangoFilterBackend
@@ -24,6 +26,43 @@ from rest_framework.viewsets import ModelViewSet
 
 
 logger = logging.getLogger(__name__)
+
+
+class SplitStringCharFilter(django_filters.CharFilter):
+    _re = re.compile(r'("[^"]+"| +|[^"]+)')
+
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+        if self.distinct:
+            qs = qs.distinct()
+        lookup = '%s__%s' % (self.field_name, self.lookup_expr)
+
+        values = [value]
+        if self.lookup_expr == 'icontains':
+            if not '"' in value:
+                values = value.split(' ')
+            else:
+                values = list(
+                    filter(
+                        lambda x: x and x != ' ' and x[0] != '"',
+                        self._re.findall(value)
+                    )
+                ) + list(
+                    map(
+                        lambda x: x[1:-1],
+                        filter(
+                            lambda x: x and x[0] == '"',
+                            self._re.findall(value)
+                        )
+                    )
+                )
+
+        if not isinstance(values, list):
+            values = [values]
+        for v in values:
+            qs = self.get_method(qs)(**{lookup: v})
+        return qs
 
 
 class ApiFilterSetMixin(FilterSet):
@@ -38,6 +77,12 @@ class ApiFilterSetMixin(FilterSet):
                 'extra': lambda f: {
                     'lookup_expr': 'exact',
                 },
+            },
+            CharField: {
+                'filter_class': SplitStringCharFilter,
+            },
+            TextField: {
+                'filter_class': SplitStringCharFilter,
             },
             JSONField: {
                 'filter_class': django_filters.CharFilter,
@@ -81,16 +126,16 @@ class ApiFilterSetMixin(FilterSet):
                     r = []
                     for lk, lv in cl.items():
 
-                        if lk == 'contained_by':
+                        if lk in ('contained_by', 'trigram_similar', 'unaccent', 'search'):
                             continue
 
                         sflk = f'{sub_f}{"__" if sub_f else ""}{lk}'
                         r.append(sflk)
 
-                        if hasattr(lv, 'class_lookups'):
-                            r += get_keys_lookups(lv.class_lookups, sflk)
+                        if hasattr(lv, 'get_lookups'):
+                            r += get_keys_lookups(lv.get_lookups(), sflk)
 
-                        if hasattr(lv, 'output_field') and hasattr(lv, 'output_field.class_lookups'):
+                        if hasattr(lv, 'output_field') and hasattr(lv, 'output_field.get_lookups'):
                             r.append(f'{sflk}{"__" if sflk else ""}range')
 
                             r += get_keys_lookups(lv.output_field.class_lookups, sflk)
@@ -98,7 +143,7 @@ class ApiFilterSetMixin(FilterSet):
                     return r
 
                 fields[f_str] = list(
-                    set(fields[f_str] + get_keys_lookups(f.class_lookups, '')))
+                    set(fields[f_str] + get_keys_lookups(f.get_lookups(), '')))
 
         # Remove excluded fields
         exclude = exclude or []
