@@ -329,10 +329,15 @@ class AcompanhamentoDocumentoView(CreateView):
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
+
+        if self.model == DocumentoAcessorioAdministrativo and 'docadm/' + self.kwargs['pk'] in str(self.request):
+            doc_adm = DocumentoAdministrativo.objects.get(id=self.kwargs['pk'])
+            if doc_adm.restrito and not 'protocoloadm.change_documentoacessorioadministrativo' in self.request.user.get_all_permissions():
+                return False
+
         app_config = AppConfig.objects.last()
         if app_config and app_config.documentos_administrativos == 'O':
             return True
-
         return super().has_permission()
 
 
@@ -1390,15 +1395,51 @@ class DocumentoAcessorioAdministrativoCrud(MasterDetailCrud):
         form_class = DocumentoAcessorioAdministrativoForm
 
     class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
+        template_name = "protocoloadm/documentoacessorioadministrativo_list.html"
 
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data', '-id')
+            exibir_restritos = 'protocoloadm.change_documentoacessorioadministrativo' in self.request.user.get_all_permissions()
+            if 'o' in self.request.GET:
+                o = self.request.GET['o']
+                indice_field = abs(int(o)) - 1
+                if '-' in o:
+                    order_by = '-' + self.list_field_names[indice_field]
+                else:
+                    order_by = self.list_field_names[indice_field]
+                if exibir_restritos:
+                    return qs.filter(**kwargs).order_by(order_by, '-data', '-id')
+                else:
+                    return qs.filter(**kwargs).order_by('restrito', order_by, '-data', '-id')
+
+            if exibir_restritos:
+               return qs.filter(**kwargs).order_by('-data', '-id')
+            else:
+               return qs.filter(**kwargs).order_by('restrito', '-data', '-id')
+
 
     class DetailView(DocumentoAdministrativoMixin,
                      MasterDetailCrud.DetailView):
-        pass
+        layout_key = 'DocumentoAcessorioAdministrativo'
+        template_name = "protocoloadm/documentoacessorioadministrativo_detail.html"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
+            context['user'] = self.request.user
+            doc_acessorio = DocumentoAcessorioAdministrativo.objects.get(
+                pk=self.kwargs['pk'])
+            doc_adm = DocumentoAdministrativo.objects.get(
+                id=doc_acessorio.documento_id)
+            if not doc_adm.restrito:
+                context['doc_adm_restrito'] = False
+                context['object'] = doc_acessorio
+            else:
+                context['doc_adm_restrito'] = True
+            if (doc_adm.restrito or doc_acessorio.restrito) and not 'protocoloadm.change_documentoacessorioadministrativo' in self.request.user.get_all_permissions():
+                context['title'] = 'Documento Restrito'
+            return context
 
 
 def atualizar_numero_documento(request):

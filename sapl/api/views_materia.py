@@ -8,7 +8,7 @@ from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
     customize, wrapper_queryset_response_for_drf_action
 from sapl.api.permissions import SaplModelPermissions
 from sapl.materia.models import TipoMateriaLegislativa, Tramitacao,\
-    MateriaLegislativa, Proposicao
+    MateriaLegislativa, Proposicao, DocumentoAcessorio
 
 
 ApiViewSetConstrutor.build_class(
@@ -109,6 +109,19 @@ class _MateriaLegislativaViewSet:
     def anexadas(self, request, *args, **kwargs):
         self.queryset = self.get_object().anexadas.all()
         return self.list(request, *args, **kwargs)
+
+
+
+@customize(DocumentoAcessorio)
+class _DocumentoAcessorioViewSet:
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+
+        if user.is_anonymous or 'materia.change_documentoacessorio' not in user.get_all_permissions():
+            qs = qs.exclude(restrito=True)
+        return qs
 
 
 @customize(TipoMateriaLegislativa)

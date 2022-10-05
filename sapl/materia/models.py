@@ -554,6 +554,11 @@ class DocumentoAcessorio(models.Model):
     proposicao = GenericRelation('Proposicao', related_query_name='proposicao')
     data_ultima_atualizacao = models.DateTimeField(
         blank=True, null=True, auto_now=True, verbose_name=_('Data'))
+    restrito = models.BooleanField(default=False,
+                                   verbose_name=_('Restrito'),
+                                   blank=True)
+    justificativa_restricao = models.TextField(
+        blank=True, verbose_name=_('Justificativa de Restrição'))
 
     class Meta:
         verbose_name = _('Documento Acessório')
