@@ -1555,6 +1555,12 @@ class ConfiguracoesAppForm(ModelForm):
         label=_('Mostrar brasão da Casa no painel?'),
         required=False)
 
+    mostrar_voto = forms.BooleanField(
+        help_text=_('Se selecionado, exibe qual é o voto, e não apenas a indicação de que já votou, '
+                    'com a votação ainda aberta.'),
+        label=_('Mostrar voto do Parlamentar no painel durante a votação?'),
+        required=False)
+
     google_recaptcha_site_key = forms.CharField(
         label=AppConfig._meta.get_field(
             'google_recaptcha_site_key').verbose_name,
@@ -1594,6 +1600,7 @@ class ConfiguracoesAppForm(ModelForm):
                   'cronometro_ordem',
                   'cronometro_consideracoes',
                   'mostrar_brasao_painel',
+                  'mostrar_voto',
                   'receber_recibo_proposicao',
                   'assinatura_ata',
                   'estatisticas_acesso_normas',
