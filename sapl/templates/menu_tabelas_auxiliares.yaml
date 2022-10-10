@@ -208,6 +208,9 @@
   - title: {% trans 'Tipos de Vides' %}
     url: sapl.compilacao:tipovide_list
     css_class: btn btn-link
+  - title: {% trans 'Tipos de Dispositivos' %}
+    url: sapl.compilacao:tipodispositivo_list
+    css_class: btn btn-link
 - title: {% trans 'Módulo LexML' %}
   css_class: head_title
   children:

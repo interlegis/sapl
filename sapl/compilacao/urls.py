@@ -116,5 +116,9 @@ urlpatterns = [
         include(VeiculoPublicacaoCrud.get_urls())),
     url(r'^sistema/ta/config/tipo/',
         include(TipoTextoArticuladoCrud.get_urls())),
+    url(r'^sistema/ta/config/tipodispositivo/',
+        include(TipoDispositivoCrud.get_urls())),
+
+
 
 ]
