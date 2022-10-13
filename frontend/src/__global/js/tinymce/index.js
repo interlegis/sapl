@@ -14,12 +14,13 @@ import 'tinymce/plugins/table'
 import './langs/pt_BR.js'
 
 window.tinymce = tinymce
-window.initTextRichEditor = function (elements, readonly = false) {
+window.initTextRichEditor = function (elements, readonly = false, paste_as_text = false) {
   const configTinymce = {
     selector: elements === null || elements === undefined ? 'textarea' : elements,
     language: 'pt_BR',
     branding: false,
     forced_root_block: 'p',
+    paste_as_text,
     plugins: 'table lists advlist link code',
     toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | code',
     menubar: 'file edit view insert format table'
