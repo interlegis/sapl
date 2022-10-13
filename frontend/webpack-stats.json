@@ -11,6 +11,11 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.86c7e1fa.woff2",
       "publicPath": "/static/sapl/frontend/fonts/fa-brands-400.86c7e1fa.woff2"
     },
+    "fonts/fa-solid-900.64d5644d.woff2": {
+      "name": "fonts/fa-solid-900.64d5644d.woff2",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-solid-900.64d5644d.woff2",
+      "publicPath": "/static/sapl/frontend/fonts/fa-solid-900.64d5644d.woff2"
+    },
     "fonts/fa-regular-400.e0550912.woff2": {
       "name": "fonts/fa-regular-400.e0550912.woff2",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.e0550912.woff2",
@@ -20,11 +25,6 @@
       "name": "fonts/fa-regular-400.3edb9004.ttf",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.3edb9004.ttf",
       "publicPath": "/static/sapl/frontend/fonts/fa-regular-400.3edb9004.ttf"
-    },
-    "fonts/fa-solid-900.64d5644d.woff2": {
-      "name": "fonts/fa-solid-900.64d5644d.woff2",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-solid-900.64d5644d.woff2",
-      "publicPath": "/static/sapl/frontend/fonts/fa-solid-900.64d5644d.woff2"
     },
     "fonts/fa-solid-900.f418d876.ttf": {
       "name": "fonts/fa-solid-900.f418d876.ttf",
@@ -41,10 +41,10 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/css/global.45591136.css",
       "publicPath": "/static/sapl/frontend/css/global.45591136.css"
     },
-    "js/global.e8c9c610.js": {
-      "name": "js/global.e8c9c610.js",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.e8c9c610.js",
-      "publicPath": "/static/sapl/frontend/js/global.e8c9c610.js"
+    "js/global.f01dd32a.js": {
+      "name": "js/global.f01dd32a.js",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.f01dd32a.js",
+      "publicPath": "/static/sapl/frontend/js/global.f01dd32a.js"
     },
     "css/parlamentar.cd5dc5a8.css": {
       "name": "css/parlamentar.cd5dc5a8.css",
@@ -85,171 +85,6 @@
       "name": "js/chunk-vendors.874df7f4.js",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.874df7f4.js",
       "publicPath": "/static/sapl/frontend/js/chunk-vendors.874df7f4.js"
-    },
-    "audio/ring.mp3": {
-      "name": "audio/ring.mp3",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/audio/ring.mp3",
-      "publicPath": "/static/sapl/frontend/audio/ring.mp3"
-    },
-    "img/arrow.png": {
-      "name": "img/arrow.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/arrow.png",
-      "publicPath": "/static/sapl/frontend/img/arrow.png"
-    },
-    "img/authenticated.png": {
-      "name": "img/authenticated.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/authenticated.png",
-      "publicPath": "/static/sapl/frontend/img/authenticated.png"
-    },
-    "img/avatar.png": {
-      "name": "img/avatar.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/avatar.png",
-      "publicPath": "/static/sapl/frontend/img/avatar.png"
-    },
-    "img/beta.png": {
-      "name": "img/beta.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/beta.png",
-      "publicPath": "/static/sapl/frontend/img/beta.png"
-    },
-    "img/bg.png": {
-      "name": "img/bg.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/bg.png",
-      "publicPath": "/static/sapl/frontend/img/bg.png"
-    },
-    "img/brasao_transp.gif": {
-      "name": "img/brasao_transp.gif",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/brasao_transp.gif",
-      "publicPath": "/static/sapl/frontend/img/brasao_transp.gif"
-    },
-    "img/down_arrow_select.jpg": {
-      "name": "img/down_arrow_select.jpg",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg",
-      "publicPath": "/static/sapl/frontend/img/down_arrow_select.jpg"
-    },
-    "img/etiqueta.png": {
-      "name": "img/etiqueta.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/etiqueta.png",
-      "publicPath": "/static/sapl/frontend/img/etiqueta.png"
-    },
-    "img/favicon.ico": {
-      "name": "img/favicon.ico",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/favicon.ico",
-      "publicPath": "/static/sapl/frontend/img/favicon.ico"
-    },
-    "img/file.png": {
-      "name": "img/file.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/file.png",
-      "publicPath": "/static/sapl/frontend/img/file.png"
-    },
-    "img/hand-note.png": {
-      "name": "img/hand-note.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/hand-note.png",
-      "publicPath": "/static/sapl/frontend/img/hand-note.png"
-    },
-    "img/icon_comissoes.png": {
-      "name": "img/icon_comissoes.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_comissoes.png",
-      "publicPath": "/static/sapl/frontend/img/icon_comissoes.png"
-    },
-    "img/icon_delete_white.png": {
-      "name": "img/icon_delete_white.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_delete_white.png",
-      "publicPath": "/static/sapl/frontend/img/icon_delete_white.png"
-    },
-    "img/icon_materia_legislativa.png": {
-      "name": "img/icon_materia_legislativa.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_materia_legislativa.png",
-      "publicPath": "/static/sapl/frontend/img/icon_materia_legislativa.png"
-    },
-    "img/icon_mesa_diretora.png": {
-      "name": "img/icon_mesa_diretora.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_mesa_diretora.png",
-      "publicPath": "/static/sapl/frontend/img/icon_mesa_diretora.png"
-    },
-    "img/icon_normas_juridicas.png": {
-      "name": "img/icon_normas_juridicas.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_normas_juridicas.png",
-      "publicPath": "/static/sapl/frontend/img/icon_normas_juridicas.png"
-    },
-    "img/icon_normas_juridicas_destaque.png": {
-      "name": "img/icon_normas_juridicas_destaque.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_normas_juridicas_destaque.png",
-      "publicPath": "/static/sapl/frontend/img/icon_normas_juridicas_destaque.png"
-    },
-    "img/icon_parlamentares.png": {
-      "name": "img/icon_parlamentares.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_parlamentares.png",
-      "publicPath": "/static/sapl/frontend/img/icon_parlamentares.png"
-    },
-    "img/icon_pautas.png": {
-      "name": "img/icon_pautas.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_pautas.png",
-      "publicPath": "/static/sapl/frontend/img/icon_pautas.png"
-    },
-    "img/icon_plenarias.png": {
-      "name": "img/icon_plenarias.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_plenarias.png",
-      "publicPath": "/static/sapl/frontend/img/icon_plenarias.png"
-    },
-    "img/icon_relatorios.png": {
-      "name": "img/icon_relatorios.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_relatorios.png",
-      "publicPath": "/static/sapl/frontend/img/icon_relatorios.png"
-    },
-    "img/icon_save_white.png": {
-      "name": "img/icon_save_white.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_save_white.png",
-      "publicPath": "/static/sapl/frontend/img/icon_save_white.png"
-    },
-    "img/lexml.gif": {
-      "name": "img/lexml.gif",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/lexml.gif",
-      "publicPath": "/static/sapl/frontend/img/lexml.gif"
-    },
-    "img/logo.png": {
-      "name": "img/logo.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/logo.png",
-      "publicPath": "/static/sapl/frontend/img/logo.png"
-    },
-    "img/logo_cc.png": {
-      "name": "img/logo_cc.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/logo_cc.png",
-      "publicPath": "/static/sapl/frontend/img/logo_cc.png"
-    },
-    "img/logo_interlegis.png": {
-      "name": "img/logo_interlegis.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/logo_interlegis.png",
-      "publicPath": "/static/sapl/frontend/img/logo_interlegis.png"
-    },
-    "img/manual.png": {
-      "name": "img/manual.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/manual.png",
-      "publicPath": "/static/sapl/frontend/img/manual.png"
-    },
-    "img/pdflogo.png": {
-      "name": "img/pdflogo.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/pdflogo.png",
-      "publicPath": "/static/sapl/frontend/img/pdflogo.png"
-    },
-    "img/perfil.png": {
-      "name": "img/perfil.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/perfil.png",
-      "publicPath": "/static/sapl/frontend/img/perfil.png"
-    },
-    "img/search-gray.png": {
-      "name": "img/search-gray.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/search-gray.png",
-      "publicPath": "/static/sapl/frontend/img/search-gray.png"
-    },
-    "img/search.png": {
-      "name": "img/search.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/search.png",
-      "publicPath": "/static/sapl/frontend/img/search.png"
-    },
-    "img/user.png": {
-      "name": "img/user.png",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/user.png",
-      "publicPath": "/static/sapl/frontend/img/user.png"
     },
     "js/skins/content/dark/content.css": {
       "name": "js/skins/content/dark/content.css",
@@ -471,35 +306,200 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css"
     },
+    "audio/ring.mp3": {
+      "name": "audio/ring.mp3",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/audio/ring.mp3",
+      "publicPath": "/static/sapl/frontend/audio/ring.mp3"
+    },
+    "img/arrow.png": {
+      "name": "img/arrow.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/arrow.png",
+      "publicPath": "/static/sapl/frontend/img/arrow.png"
+    },
+    "img/authenticated.png": {
+      "name": "img/authenticated.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/authenticated.png",
+      "publicPath": "/static/sapl/frontend/img/authenticated.png"
+    },
+    "img/avatar.png": {
+      "name": "img/avatar.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/avatar.png",
+      "publicPath": "/static/sapl/frontend/img/avatar.png"
+    },
+    "img/beta.png": {
+      "name": "img/beta.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/beta.png",
+      "publicPath": "/static/sapl/frontend/img/beta.png"
+    },
+    "img/bg.png": {
+      "name": "img/bg.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/bg.png",
+      "publicPath": "/static/sapl/frontend/img/bg.png"
+    },
+    "img/brasao_transp.gif": {
+      "name": "img/brasao_transp.gif",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/brasao_transp.gif",
+      "publicPath": "/static/sapl/frontend/img/brasao_transp.gif"
+    },
+    "img/down_arrow_select.jpg": {
+      "name": "img/down_arrow_select.jpg",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg",
+      "publicPath": "/static/sapl/frontend/img/down_arrow_select.jpg"
+    },
+    "img/etiqueta.png": {
+      "name": "img/etiqueta.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/etiqueta.png",
+      "publicPath": "/static/sapl/frontend/img/etiqueta.png"
+    },
+    "img/favicon.ico": {
+      "name": "img/favicon.ico",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/favicon.ico",
+      "publicPath": "/static/sapl/frontend/img/favicon.ico"
+    },
+    "img/file.png": {
+      "name": "img/file.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/file.png",
+      "publicPath": "/static/sapl/frontend/img/file.png"
+    },
+    "img/hand-note.png": {
+      "name": "img/hand-note.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/hand-note.png",
+      "publicPath": "/static/sapl/frontend/img/hand-note.png"
+    },
+    "img/icon_comissoes.png": {
+      "name": "img/icon_comissoes.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_comissoes.png",
+      "publicPath": "/static/sapl/frontend/img/icon_comissoes.png"
+    },
+    "img/icon_delete_white.png": {
+      "name": "img/icon_delete_white.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_delete_white.png",
+      "publicPath": "/static/sapl/frontend/img/icon_delete_white.png"
+    },
+    "img/icon_materia_legislativa.png": {
+      "name": "img/icon_materia_legislativa.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_materia_legislativa.png",
+      "publicPath": "/static/sapl/frontend/img/icon_materia_legislativa.png"
+    },
+    "img/icon_mesa_diretora.png": {
+      "name": "img/icon_mesa_diretora.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_mesa_diretora.png",
+      "publicPath": "/static/sapl/frontend/img/icon_mesa_diretora.png"
+    },
+    "img/icon_normas_juridicas.png": {
+      "name": "img/icon_normas_juridicas.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_normas_juridicas.png",
+      "publicPath": "/static/sapl/frontend/img/icon_normas_juridicas.png"
+    },
+    "img/icon_normas_juridicas_destaque.png": {
+      "name": "img/icon_normas_juridicas_destaque.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_normas_juridicas_destaque.png",
+      "publicPath": "/static/sapl/frontend/img/icon_normas_juridicas_destaque.png"
+    },
+    "img/icon_parlamentares.png": {
+      "name": "img/icon_parlamentares.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_parlamentares.png",
+      "publicPath": "/static/sapl/frontend/img/icon_parlamentares.png"
+    },
+    "img/icon_pautas.png": {
+      "name": "img/icon_pautas.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_pautas.png",
+      "publicPath": "/static/sapl/frontend/img/icon_pautas.png"
+    },
+    "img/icon_plenarias.png": {
+      "name": "img/icon_plenarias.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_plenarias.png",
+      "publicPath": "/static/sapl/frontend/img/icon_plenarias.png"
+    },
+    "img/icon_relatorios.png": {
+      "name": "img/icon_relatorios.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_relatorios.png",
+      "publicPath": "/static/sapl/frontend/img/icon_relatorios.png"
+    },
+    "img/icon_save_white.png": {
+      "name": "img/icon_save_white.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/icon_save_white.png",
+      "publicPath": "/static/sapl/frontend/img/icon_save_white.png"
+    },
+    "img/lexml.gif": {
+      "name": "img/lexml.gif",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/lexml.gif",
+      "publicPath": "/static/sapl/frontend/img/lexml.gif"
+    },
+    "img/logo.png": {
+      "name": "img/logo.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/logo.png",
+      "publicPath": "/static/sapl/frontend/img/logo.png"
+    },
+    "img/logo_cc.png": {
+      "name": "img/logo_cc.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/logo_cc.png",
+      "publicPath": "/static/sapl/frontend/img/logo_cc.png"
+    },
+    "img/logo_interlegis.png": {
+      "name": "img/logo_interlegis.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/logo_interlegis.png",
+      "publicPath": "/static/sapl/frontend/img/logo_interlegis.png"
+    },
+    "img/manual.png": {
+      "name": "img/manual.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/manual.png",
+      "publicPath": "/static/sapl/frontend/img/manual.png"
+    },
+    "img/pdflogo.png": {
+      "name": "img/pdflogo.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/pdflogo.png",
+      "publicPath": "/static/sapl/frontend/img/pdflogo.png"
+    },
+    "img/perfil.png": {
+      "name": "img/perfil.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/perfil.png",
+      "publicPath": "/static/sapl/frontend/img/perfil.png"
+    },
+    "img/search-gray.png": {
+      "name": "img/search-gray.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/search-gray.png",
+      "publicPath": "/static/sapl/frontend/img/search-gray.png"
+    },
+    "img/search.png": {
+      "name": "img/search.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/search.png",
+      "publicPath": "/static/sapl/frontend/img/search.png"
+    },
+    "img/user.png": {
+      "name": "img/user.png",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/user.png",
+      "publicPath": "/static/sapl/frontend/img/user.png"
+    },
     "js/chunk-vendors.874df7f4.js.LICENSE.txt": {
       "name": "js/chunk-vendors.874df7f4.js.LICENSE.txt",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.874df7f4.js.LICENSE.txt",
       "publicPath": "/static/sapl/frontend/js/chunk-vendors.874df7f4.js.LICENSE.txt"
     },
-    "js/global.e8c9c610.js.LICENSE.txt": {
-      "name": "js/global.e8c9c610.js.LICENSE.txt",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.e8c9c610.js.LICENSE.txt",
-      "publicPath": "/static/sapl/frontend/js/global.e8c9c610.js.LICENSE.txt"
+    "js/global.f01dd32a.js.LICENSE.txt": {
+      "name": "js/global.f01dd32a.js.LICENSE.txt",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.f01dd32a.js.LICENSE.txt",
+      "publicPath": "/static/sapl/frontend/js/global.f01dd32a.js.LICENSE.txt"
     },
     "fonts/fa-v4compatibility.7e7e1dad.ttf.gz": {
       "name": "fonts/fa-v4compatibility.7e7e1dad.ttf.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-v4compatibility.7e7e1dad.ttf.gz",
       "publicPath": "/static/sapl/frontend/fonts/fa-v4compatibility.7e7e1dad.ttf.gz"
     },
-    "js/global.e8c9c610.js.gz": {
-      "name": "js/global.e8c9c610.js.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.e8c9c610.js.gz",
-      "publicPath": "/static/sapl/frontend/js/global.e8c9c610.js.gz"
-    },
-    "js/parlamentar.25e7f0fa.js.gz": {
-      "name": "js/parlamentar.25e7f0fa.js.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/parlamentar.25e7f0fa.js.gz",
-      "publicPath": "/static/sapl/frontend/js/parlamentar.25e7f0fa.js.gz"
+    "js/global.f01dd32a.js.gz": {
+      "name": "js/global.f01dd32a.js.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.f01dd32a.js.gz",
+      "publicPath": "/static/sapl/frontend/js/global.f01dd32a.js.gz"
     },
     "css/painel.e2b9504e.css.gz": {
       "name": "css/painel.e2b9504e.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/css/painel.e2b9504e.css.gz",
       "publicPath": "/static/sapl/frontend/css/painel.e2b9504e.css.gz"
+    },
+    "js/parlamentar.25e7f0fa.js.gz": {
+      "name": "js/parlamentar.25e7f0fa.js.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/parlamentar.25e7f0fa.js.gz",
+      "publicPath": "/static/sapl/frontend/js/parlamentar.25e7f0fa.js.gz"
     },
     "js/painel.7aa779e9.js.gz": {
       "name": "js/painel.7aa779e9.js.gz",
@@ -511,35 +511,30 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/compilacao.1c9473f1.js.gz",
       "publicPath": "/static/sapl/frontend/js/compilacao.1c9473f1.js.gz"
     },
-    "css/compilacao.f4baf459.css.gz": {
-      "name": "css/compilacao.f4baf459.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/css/compilacao.f4baf459.css.gz",
-      "publicPath": "/static/sapl/frontend/css/compilacao.f4baf459.css.gz"
-    },
-    "img/down_arrow_select.jpg.gz": {
-      "name": "img/down_arrow_select.jpg.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg.gz",
-      "publicPath": "/static/sapl/frontend/img/down_arrow_select.jpg.gz"
+    "js/skins/content/dark/content.css.gz": {
+      "name": "js/skins/content/dark/content.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.css.gz"
     },
     "js/skins/content/dark/content.min.css.gz": {
       "name": "js/skins/content/dark/content.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.min.css.gz"
     },
-    "js/skins/content/dark/content.css.gz": {
-      "name": "js/skins/content/dark/content.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.css.gz"
+    "js/skins/content/default/content.css.gz": {
+      "name": "js/skins/content/default/content.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/content/default/content.css.gz"
+    },
+    "css/compilacao.f4baf459.css.gz": {
+      "name": "css/compilacao.f4baf459.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/css/compilacao.f4baf459.css.gz",
+      "publicPath": "/static/sapl/frontend/css/compilacao.f4baf459.css.gz"
     },
     "js/skins/content/default/content.min.css.gz": {
       "name": "js/skins/content/default/content.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/default/content.min.css.gz"
-    },
-    "js/skins/content/default/content.css.gz": {
-      "name": "js/skins/content/default/content.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/content/default/content.css.gz"
     },
     "js/skins/content/document/content.css.gz": {
       "name": "js/skins/content/document/content.css.gz",
@@ -591,15 +586,15 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.css.gz"
     },
-    "js/skins/ui/oxide/content.min.css.gz": {
-      "name": "js/skins/ui/oxide/content.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz"
-    },
     "js/skins/ui/oxide/content.inline.min.css.gz": {
       "name": "js/skins/ui/oxide/content.inline.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz"
+    },
+    "js/skins/ui/oxide/content.min.css.gz": {
+      "name": "js/skins/ui/oxide/content.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz"
     },
     "js/skins/ui/oxide/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/oxide/skin.shadowdom.css.gz",
@@ -621,6 +616,11 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.css.gz"
     },
+    "js/skins/ui/oxide/skin.css.gz": {
+      "name": "js/skins/ui/oxide/skin.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.css.gz"
+    },
     "js/skins/ui/oxide-dark/content.inline.min.css.gz": {
       "name": "js/skins/ui/oxide-dark/content.inline.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.min.css.gz",
@@ -631,20 +631,15 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.min.css.gz"
     },
-    "js/skins/ui/oxide/skin.css.gz": {
-      "name": "js/skins/ui/oxide/skin.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.css.gz"
+    "js/skins/ui/oxide/skin.min.css.gz": {
+      "name": "js/skins/ui/oxide/skin.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz"
     },
     "js/skins/ui/oxide-dark/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/oxide-dark/skin.shadowdom.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css.gz"
-    },
-    "js/skins/ui/oxide/skin.min.css.gz": {
-      "name": "js/skins/ui/oxide/skin.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz"
     },
     "js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz": {
       "name": "js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz",
@@ -666,11 +661,6 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.min.css.gz"
     },
-    "js/skins/ui/tinymce-5/content.min.css.gz": {
-      "name": "js/skins/ui/tinymce-5/content.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz"
-    },
     "js/skins/ui/oxide-dark/skin.min.css.gz": {
       "name": "js/skins/ui/oxide-dark/skin.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css.gz",
@@ -691,30 +681,40 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.min.css.gz"
     },
-    "js/skins/ui/tinymce-5-dark/content.css.gz": {
-      "name": "js/skins/ui/tinymce-5-dark/content.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css.gz"
+    "js/skins/ui/tinymce-5/content.min.css.gz": {
+      "name": "js/skins/ui/tinymce-5/content.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/content.inline.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/content.inline.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css.gz"
     },
-    "js/skins/ui/tinymce-5-dark/content.min.css.gz": {
-      "name": "js/skins/ui/tinymce-5-dark/content.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz"
-    },
-    "js/skins/ui/tinymce-5/skin.css.gz": {
-      "name": "js/skins/ui/tinymce-5/skin.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz"
+    "js/skins/ui/tinymce-5-dark/content.css.gz": {
+      "name": "js/skins/ui/tinymce-5-dark/content.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/content.inline.min.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz"
+    },
+    "js/skins/ui/tinymce-5-dark/content.min.css.gz": {
+      "name": "js/skins/ui/tinymce-5-dark/content.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz"
+    },
+    "js/skins/ui/tinymce-5/skin.min.css.gz": {
+      "name": "js/skins/ui/tinymce-5/skin.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz"
+    },
+    "js/skins/ui/tinymce-5/skin.css.gz": {
+      "name": "js/skins/ui/tinymce-5/skin.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz",
@@ -726,10 +726,20 @@
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz"
     },
-    "js/skins/ui/tinymce-5/skin.min.css.gz": {
-      "name": "js/skins/ui/tinymce-5/skin.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz"
+    "js/skins/ui/tinymce-5-dark/skin.css.gz": {
+      "name": "js/skins/ui/tinymce-5-dark/skin.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css.gz"
+    },
+    "img/down_arrow_select.jpg.gz": {
+      "name": "img/down_arrow_select.jpg.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg.gz",
+      "publicPath": "/static/sapl/frontend/img/down_arrow_select.jpg.gz"
+    },
+    "js/skins/ui/tinymce-5-dark/skin.min.css.gz": {
+      "name": "js/skins/ui/tinymce-5-dark/skin.min.css.gz",
+      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css.gz",
+      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css.gz"
     },
     "js/chunk-vendors.874df7f4.js.LICENSE.txt.gz": {
       "name": "js/chunk-vendors.874df7f4.js.LICENSE.txt.gz",
@@ -740,16 +750,6 @@
       "name": "fonts/fa-regular-400.3edb9004.ttf.gz",
       "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.3edb9004.ttf.gz",
       "publicPath": "/static/sapl/frontend/fonts/fa-regular-400.3edb9004.ttf.gz"
-    },
-    "js/skins/ui/tinymce-5-dark/skin.css.gz": {
-      "name": "js/skins/ui/tinymce-5-dark/skin.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css.gz"
-    },
-    "js/skins/ui/tinymce-5-dark/skin.min.css.gz": {
-      "name": "js/skins/ui/tinymce-5-dark/skin.min.css.gz",
-      "path": "/home/leandro/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css.gz",
-      "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css.gz"
     },
     "css/global.45591136.css.gz": {
       "name": "css/global.45591136.css.gz",
@@ -782,7 +782,7 @@
       "css/chunk-vendors.9904f9d0.css",
       "js/chunk-vendors.874df7f4.js",
       "css/global.45591136.css",
-      "js/global.e8c9c610.js"
+      "js/global.f01dd32a.js"
     ],
     "parlamentar": [
       "css/chunk-vendors.9904f9d0.css",
