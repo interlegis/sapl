@@ -82,7 +82,7 @@ def dispositivo_desativado(dispositivo, inicio_vigencia, fim_vigencia):
 @register.simple_tag
 def nota_automatica(dispositivo, ta_pub_list):
 
-    if dispositivo.ta_publicado:
+    if dispositivo.ta_publicado and dispositivo.dispositivo_atualizador is not None and dispositivo.dispositivo_atualizador.dispositivo_pai is not None:
         d = dispositivo.dispositivo_atualizador.dispositivo_pai
 
         if d.auto_inserido:
