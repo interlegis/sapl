@@ -446,7 +446,7 @@ def response_nenhuma_materia(response):
     return JsonResponse(response)
 
 
-def get_votos(response, materia):
+def get_votos(response, materia, mostrar_voto):
     logger = logging.getLogger(__name__)
     if type(materia) == OrdemDia:
         if materia.tipo_votacao != 4:
@@ -492,8 +492,13 @@ def get_votos(response, materia):
             for i, p in enumerate(response['presentes']):
                 try:
                     logger.info("Tentando obter votos do parlamentar (id={}).".format(p['parlamentar_id']))
-                    if votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).voto:
-                        response['presentes'][i]['voto'] = 'Voto Informado'
+                    voto = votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).voto
+
+                    if voto:
+                        if mostrar_voto:
+                            response['presentes'][i]['voto'] = voto
+                        else:
+                            response['presentes'][i]['voto'] = 'Voto Informado'
                 except ObjectDoesNotExist:
                     # logger.error("Votos do parlamentar (id={}) não encontrados. Retornado vazio."
                     #              .format(p['parlamentar_id']))
@@ -563,7 +568,8 @@ def get_dados_painel(request, pk):
         'cronometro_ordem': get_cronometro_status(request, 'ordem'),
         'cronometro_consideracoes': get_cronometro_status(request, 'consideracoes'),
         'status_painel': sessao.painel_aberto,
-        'brasao': brasao
+        'brasao': brasao,
+        'mostrar_voto': app_config.mostrar_voto
     }
 
     ordem_dia = get_materia_aberta(pk)
@@ -574,11 +580,11 @@ def get_dados_painel(request, pk):
     if ordem_dia:
         return JsonResponse(get_votos(
             get_presentes(pk, response, ordem_dia),
-            ordem_dia))
+            ordem_dia, app_config.mostrar_voto))
     elif expediente:
         return JsonResponse(get_votos(
             get_presentes(pk, response, expediente),
-            expediente))
+            expediente, app_config.mostrar_voto))
 
     # Caso não tenha nenhuma aberta,
     # a matéria a ser mostrada no Painel deve ser a última votada
@@ -614,7 +620,7 @@ def get_dados_painel(request, pk):
     if ordem_expediente:
         return JsonResponse(get_votos(
                             get_presentes(pk, response, ordem_expediente),
-                            ordem_expediente))
+                            ordem_expediente, app_config.mostrar_voto))
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(get_presentes(pk, response, None))

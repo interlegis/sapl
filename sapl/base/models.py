@@ -233,6 +233,10 @@ class AppConfig(models.Model):
         default=False,
         verbose_name=_('Mostrar brasão da Casa no painel?'))
 
+    mostrar_voto = models.BooleanField(
+        verbose_name=_('Exibir voto do Parlamentar antes de encerrar a votação?'),
+        choices=YES_NO_CHOICES, default=False)
+
     # MÓDULO ESTATÍSTICAS DE ACESSO
     estatisticas_acesso_normas = models.CharField(
         max_length=1,
