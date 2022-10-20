@@ -258,7 +258,7 @@ class Reuniao(models.Model):
     class Meta:
         verbose_name = _('Reunião de Comissão')
         verbose_name_plural = _('Reuniões de Comissão')
-        ordering = ('numero', 'comissao')
+        ordering = ('-data', '-nome')
 
     def __str__(self):
         return self.nome

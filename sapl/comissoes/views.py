@@ -212,7 +212,6 @@ class ReuniaoCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['data', 'nome', 'tema', 'upload_ata']
-        ordering = '-data'
 
     class DetailView(MasterDetailCrud.DetailView):
         template_name = "comissoes/reuniao_detail.html"
