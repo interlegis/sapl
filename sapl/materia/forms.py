@@ -1490,15 +1490,18 @@ class TramitacaoEmLoteFilterSet(django_filters.FilterSet):
 
 class TipoProposicaoForm(ModelForm):
 
-    content_types_choices = [
-        (
-            f'{ct.app_label}/{ct.model}',
-            ct
-        )
-        for k, ct in ContentType.objects.get_for_models(
-            *models_with_gr_for_model(TipoProposicao)
-        ).items()
-    ]
+    try:
+        content_types_choices = [
+            (
+                f'{ct.app_label}/{ct.model}',
+                ct
+            )
+            for k, ct in ContentType.objects.get_for_models(
+                *models_with_gr_for_model(TipoProposicao)
+            ).items()
+        ]
+    except:
+        content_types_choices = []
 
     logger = logging.getLogger(__name__)
 
