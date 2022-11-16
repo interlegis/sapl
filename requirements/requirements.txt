@@ -27,7 +27,8 @@ gunicorn==19.9.0
 more-itertools==8.2.0
 pysolr==3.6.0
 PyPDF4==1.27.0
-pyoai==2.5.0
+#pyoai==2.5.1
+git+https://github.com/infrae/pyoai@5ff2f15e869869e70d8139e4c37b7832854d7049
 Unidecode==1.1.1
 whitenoise==5.1.0
 kazoo==2.8.0
