@@ -93,6 +93,8 @@ INSTALLED_APPS = (
 
     'webpack_loader',
 
+    'django_prometheus',
+
 ) + SAPL_APPS
 
 # FTS = Full Text Search
@@ -123,6 +125,7 @@ HAYSTACK_CONNECTIONS = {
 }
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -132,6 +135,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
