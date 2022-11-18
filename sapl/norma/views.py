@@ -274,13 +274,14 @@ class NormaCrud(Crud):
     class DetailView(Crud.DetailView):
         def get(self, request, *args, **kwargs):
             estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
-            if estatisticas_acesso_normas == 'S':
+            if estatisticas_acesso_normas == 'S' and \
+                    NormaJuridica.objects.filter(id=kwargs['pk']).exists():
                 NormaEstatisticas.objects.create(usuario=str(self.request.user),
                                                  norma_id=kwargs['pk'],
                                                  ano=timezone.now().year,
                                                  horario_acesso=timezone.now())
 
-            if not 'display' in request.GET and \
+            if 'display' not in request.GET and \
                     not request.user.has_perm('norma.change_normajuridica'):
                 ta = self.get_object().texto_articulado.first()
                 if ta and ta.privacidade == STATUS_TA_PUBLIC:
