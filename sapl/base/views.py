@@ -39,9 +39,9 @@ from ratelimit.decorators import ratelimit
 from sapl import settings
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica
 from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, RecuperarSenhaForm,
-                             NovaSenhaForm, UserAdminForm,
+                             NovaSenhaForm, UserAdminForm, AuditLogFilterSet,
                              OperadorAutorForm, LoginForm, SaplSearchForm)
-from sapl.base.models import Autor, TipoAutor, OperadorAutor
+from sapl.base.models import AuditLog, Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.crud.base import CrudAux, make_pagination, Crud,\
     ListWithSearchForm, MasterDetailCrud
@@ -2254,6 +2254,71 @@ class SaplSearchView(SearchView):
             context['models'] = context['models'] + '&models=' + m
 
         return context
+
+
+class PesquisarAuditLogView(FilterView):
+    model = AuditLog
+    filterset_class = AuditLogFilterSet
+    paginate_by = 20
+
+    permission_required = ('base.list_appconfig',)
+
+    def get_filterset_kwargs(self, filterset_class):
+        super(PesquisarAuditLogView, self).get_filterset_kwargs(
+            filterset_class
+        )
+
+        return ({
+            "data": self.request.GET or None,
+            "queryset": self.get_queryset().order_by("-id")
+        })
+
+    def get_context_data(self, **kwargs):
+        context = super(PesquisarAuditLogView, self).get_context_data(
+            **kwargs
+        )
+
+        paginator = context["paginator"]
+        page_obj = context["page_obj"]
+
+        context.update({
+            "page_range": make_pagination(
+                page_obj.number, paginator.num_pages
+            ),
+            "NO_ENTRIES_MSG": "Nenhum registro de log encontrado!",
+            "title": _("Pesquisar Logs de Auditoria")
+        })
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        super(PesquisarAuditLogView, self).get(request)
+
+        data = self.filterset.data
+
+        url = ''
+
+        if data:
+            url = '&' + str(self.request.META["QUERY_STRING"])
+            if url.startswith("&page"):
+                url = ''
+
+        resultados = self.object_list
+        # if 'page' in self.request.META['QUERY_STRING']:
+        #      resultados = self.object_list
+        # else:
+        #     resultados = []
+
+        context = self.get_context_data(filter=self.filterset,
+                                        object_list=resultados,
+                                        filter_url=url,
+                                        numero_res=len(resultados)
+                                        )
+
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
+
+        return self.render_to_response(context)
 
 
 class AlterarSenha(FormView):
