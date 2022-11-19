@@ -751,15 +751,15 @@ def get_models():
 
 class AuditLogFilterSet(django_filters.FilterSet):
     OPERATION_CHOICES = (
-        ('C', 'Criar'),
-        ('D', 'Apagar'),
-        ('U', 'Atualizar'),
+        ('U', 'Atualizado'),
+        ('C', 'Criado'),
+        ('D', 'Excluído'),
     )
 
     username = django_filters.ChoiceFilter(choices=get_username(), label=_('Usuário'))
     object_id = django_filters.NumberFilter(label=_('Id'))
     operation = django_filters.ChoiceFilter(choices=OPERATION_CHOICES, label=_('Operação'))
-    model_name = django_filters.ChoiceFilter(choices=get_models, label=_('Objeto'))
+    model_name = django_filters.ChoiceFilter(choices=get_models, label=_('Tipo de Registro'))
     timestamp = django_filters.DateRangeFilter(label=_('Período'))
 
     class Meta:
@@ -769,10 +769,10 @@ class AuditLogFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        row0 = to_row([('username', 3),
+        row0 = to_row([('username', 2),
                        ('operation', 2),
                        ('model_name', 4),
-                       ('object_id', 1),
+                       ('object_id', 2),
                        ('timestamp', 2)])
 
         self.form.helper = SaplFormHelper()

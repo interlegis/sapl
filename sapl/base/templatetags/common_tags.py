@@ -30,6 +30,17 @@ def define(arg):
 
 
 @register.simple_tag
+def describe_operation(value):
+    if value == "C":
+        return "Criar"
+    elif value == "D":
+        return "Apagar"
+    elif value == "U":
+        return "Atualizar"
+    return ""
+
+
+@register.simple_tag
 def field_verbose_name(instance, field_name):
     return instance._meta.get_field(field_name).verbose_name
 
@@ -50,6 +61,25 @@ def model_verbose_name(class_name):
 def model_verbose_name_plural(class_name):
     model = get_class(class_name)
     return model._meta.verbose_name_plural
+
+
+@register.filter
+def obfuscate_value(value, key):
+    if key in ["hash", "google_recaptcha_secret_key", "password", "google_recaptcha_site_key", "hash_code"]:
+        return "***************"
+    return value
+
+
+@register.filter
+def desc_operation(value):
+    if value == "C":
+        return "Criado"
+    elif value == "D":
+        return "Excluido"
+    elif value == "U":
+        return "Atualizado"
+    return ""
+
 
 @register.filter
 def format_user(user):

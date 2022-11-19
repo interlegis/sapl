@@ -1,5 +1,5 @@
 {% extends "crud/list.html" %}
-{% load i18n %}
+{% load i18n common_tags %}
 {% load tz %}
 {% load crispy_forms_tags staticfiles %}
 
@@ -30,9 +30,9 @@ deleted {
 						<th>Data/Hora</th>
 						<th>Usuário</th>
 						<th>Operação</th>
-						<th>Objeto</th>
+						<th>Registro</th>
 						<th>Id</th>
-						<th>Campos</th>
+						<th>&nbsp;</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -40,27 +40,26 @@ deleted {
 						<tr class="background:{%if obj.operation == 'D' %}red{%else%}lightgray{%endif%}">
 							<td>{{ obj.timestamp|localtime|date:"d/m/Y, H:i:s" }}</td>
 							<td>{{ obj.username|default:"Não informado" }}</td>
-							<td>{{ obj.operation }}</td>
+							<td>{{ obj.operation|desc_operation }}</td>
 							<td>{{ obj.model_name }}</td>
 							<td>{{obj.data.pk}}</td>
 							<td>
-								<strong>Campos ({{obj.data.fields|length}})</strong><br/>
+								<strong>Atributos ({{obj.data.fields|length}})</strong><br/>
 								<hr/>
+								<ul>
 								{% for key, value in obj.data.fields.items %}
-									<ul>
-										<li>
-											{{key}}:
-											{% if key == "password" %}*********{%else%}{{value|default_if_none:""}}{%endif%}<br/>
-										</li>
-									</ul>
-									{% if forloop.counter == 10 %}
+									{% if forloop.counter == 11 %}
 										<div id="{{obj.id}}" style="display:none;">
 									{%endif%}
+										<li>
+											{{key}}: {{ value|default_if_none:""|obfuscate_value:key }}<br/>
+										</li>
 									{% if forloop.last and 	forloop.counter > 10 %}
 										</div>
 										<input class="btn btn-primary btn-sm" type="button" value="Expandir/Colapsar" onclick="toggleDetails({{obj.id}})"/>
 									{% endif %}
 								{% endfor %}
+								</ul>
 							</td>
 						</tr>
 					{% endfor %}
