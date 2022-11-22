@@ -38,7 +38,7 @@
             
             <div class="checkbox" id="check_all">
                 <label for="id_check_all">
-                    <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
+                    <input type="checkbox" id="id_check_all" onchange="toggleCheck(this)" /> Marcar/Desmarcar Todos
                 </label>
             </div>
 
@@ -103,7 +103,7 @@
 
 {% block extra_js %}
     <script>
-        function checkAll(elem) {
+        function toggleCheck(elem) {
             let checkboxes = document.getElementsByName('marcadas_4');
             for (let i = 0; i < checkboxes.length; i++) {
                 if (checkboxes[i].type == 'checkbox') 

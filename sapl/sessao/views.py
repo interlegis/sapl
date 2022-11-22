@@ -274,8 +274,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         exist_leitura = obj.registroleitura_set.filter(
             materia=obj.materia).exists()
 
-        if (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or \
-                (obj.tipo_votacao == 4 and not exist_leitura):
+        if (obj.tipo_votacao != LEITURA and not exist_resultado and not exist_retirada) or \
+                (obj.tipo_votacao == LEITURA and not exist_leitura):
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
@@ -4384,7 +4384,7 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         pass
 
 
-class LeituraEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
+class LeituraEmBloco(PermissionRequiredForAppCrudMixin, ListView):
     template_name = 'sessao/leitura/leitura_bloco.html'
     app_label = AppConfig.label
     expediente = True
@@ -4392,7 +4392,7 @@ class LeituraEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
 
     def get_queryset(self):
         return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
-                                                retiradapauta=None, tipo_votacao=4, registroleitura__materia=None)
+                                                retiradapauta=None, tipo_votacao=LEITURA, registroleitura__materia=None)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -4413,46 +4413,35 @@ class LeituraEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
     def post(self, request, *args, **kwargs):
         if 'marcadas_4' in request.POST:
             models = None
+            selectedlist = request.POST.getlist('marcadas_4')
             if request.POST['origem'] == 'ordem':
-                models = OrdemDia.objects.filter(id__in=request.POST.getlist('marcadas_4'))
+                models = OrdemDia.objects.filter(id__in=selectedlist)
             elif request.POST['origem'] == 'expediente':
-                models = ExpedienteMateria.objects.filter(id__in=request.POST.getlist('marcadas_4'))
+                models = ExpedienteMateria.objects.filter(id__in=selectedlist)
 
-            if models is None:
+            if not models:
                 messages.add_message(self.request, messages.ERROR,
                                      _('Impossível localizar as matérias selecionadas'))
                 return self.get(request, self.kwargs)
-            else:
-                for m in models:
-                    try:
-                        obj = None
-                        if isinstance(m, ExpedienteMateria):
-                            obj = RegistroLeitura.objects.filter(materia=m.materia, expediente=m).delete()
-                            obj = RegistroLeitura()
-                            obj.expediente = m
-                        elif isinstance(m, OrdemDia):
-                            obj = RegistroLeitura.objects.filter(materia=m.materia, ordem=m).delete()
-                            obj = RegistroLeitura()
-                            obj.ordem = m
-                        else:
-                            messages.add_message(self.request, messages.ERROR,
-                                                 _('Tipo de Pauta nao encontrado'))
-                            return self.get(request, self.kwargs)
 
-                        obj.materia = m.materia
-                        obj.observacao = request.POST['observacao']
-                        obj.user = self.request.user
-                        obj.ip = get_client_ip(self.request)
-                        obj.save()
+            materias = [m.materia for m in models]
+            RegistroLeitura.objects.filter(materia__in=materias).delete()
+            leituras = []
+            for m in models:
+                obj = None
+                if isinstance(m, ExpedienteMateria):
+                    obj = RegistroLeitura(expediente=m, materia=m.materia,
+                                          observacao=request.POST['observacao'],
+                                          user=self.request.user,
+                                          ip=get_client_ip(self.request))
+                elif isinstance(m, OrdemDia):
+                    obj = RegistroLeitura(ordem=m, materia=m.materia,
+                                          observacao=request.POST['observacao'],
+                                          user=self.request.user,
+                                          ip=get_client_ip(self.request))
+                leituras.append(obj)
 
-                    except Exception as e:
-                        messages.add_message(self.request, messages.ERROR,
-                                             _('Erro ao salvar registro de Leitura, por favor, refaça a operação'))
-                        return self.get(request, self.kwargs)
-                    else:
-                        m.resultado = "Matéria lida"
-                        m.votacao_aberta = False
-                        m.save()
+            RegistroLeitura.objects.bulk_create(leituras)
         else:
             messages.add_message(self.request, messages.ERROR, _('Nenhuma matéria selecionada para leitura em Bloco'))
             return self.get(request, self.kwargs)
@@ -4466,6 +4455,24 @@ class LeituraEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
         else:
             return reverse('sapl.sessao:expedientemateria_list',
                            kwargs={'pk': self.kwargs['pk']})
+
+
+class LeituraEmBlocoExpediente(LeituraEmBloco):
+    expediente = True
+    paginate_by = 100
+
+    def get_queryset(self):
+        return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
+                                                retiradapauta=None, tipo_votacao=LEITURA, registroleitura__materia=None)
+
+
+class LeituraEmBlocoOrdemDia(LeituraEmBloco):
+    expediente = False
+    paginate_by = 100
+
+    def get_queryset(self):
+        return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
+                                       retiradapauta=None, tipo_votacao=LEITURA, registroleitura__materia=None)
 
 
 class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
