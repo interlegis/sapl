@@ -419,12 +419,15 @@ class AuditLog(models.Model):
                                  db_index=True)
     timestamp = models.DateTimeField(verbose_name=_('timestamp'),
                                      db_index=True)
+    # DEPRECATED FIELD! TO BE REMOVED (EVENTUALLY)
     object = models.CharField(max_length=MAX_DATA_LENGTH,
                               blank=True,
                               verbose_name=_('object'))
+    data = JSONField(null=True, verbose_name=_('data'))
     object_id = models.PositiveIntegerField(verbose_name=_('object_id'),
                                             db_index=True)
-    model_name = models.CharField(max_length=100, verbose_name=_('model'),
+    model_name = models.CharField(max_length=100,
+                                  verbose_name=_('model'),
                                   db_index=True)
     app_name = models.CharField(max_length=100,
                                 verbose_name=_('app'),
@@ -433,7 +436,7 @@ class AuditLog(models.Model):
     class Meta:
         verbose_name = _('AuditLog')
         verbose_name_plural = _('AuditLogs')
-        ordering = ('-id',)
+        ordering = ('-id', '-timestamp')
 
     def __str__(self):
         return "[%s] %s %s.%s %s" % (self.timestamp,
