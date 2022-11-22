@@ -2281,6 +2281,12 @@ class PesquisarAuditLogView(FilterView):
         paginator = context["paginator"]
         page_obj = context["page_obj"]
 
+        qr = self.request.GET.copy()
+        if 'page' in qr:
+            del qr['page']
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        context['show_results'] = show_results_filter_set(qr)
+
         context.update({
             "page_range": make_pagination(
                 page_obj.number, paginator.num_pages
