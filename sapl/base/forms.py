@@ -21,7 +21,7 @@ import django_filters
 from haystack.forms import ModelSearchForm
 
 from sapl.audiencia.models import AudienciaPublica
-from sapl.base.models import Autor, TipoAutor, OperadorAutor
+from sapl.base.models import Autor, AuditLog, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Reuniao
 from sapl.crispy_layout_mixin import (form_actions, to_column, to_row,
                                       SaplFormHelper, SaplFormLayout)
@@ -739,6 +739,48 @@ class AutorFilterSet(django_filters.FilterSet):
             Fieldset(_('Pesquisa de Autor'),
                      row0,
                      form_actions(label='Pesquisar')))
+
+
+def get_username():
+    return [(u, u) for u in get_user_model().objects.all().order_by('username').values_list('username', flat=True)]
+
+
+def get_models():
+    return [(m, m) for m in AuditLog.objects.distinct('model_name').order_by('model_name').values_list('model_name', flat=True)]
+
+
+class AuditLogFilterSet(django_filters.FilterSet):
+    OPERATION_CHOICES = (
+        ('U', 'Atualizado'),
+        ('C', 'Criado'),
+        ('D', 'Excluído'),
+    )
+
+    username = django_filters.ChoiceFilter(choices=get_username(), label=_('Usuário'))
+    object_id = django_filters.NumberFilter(label=_('Id'))
+    operation = django_filters.ChoiceFilter(choices=OPERATION_CHOICES, label=_('Operação'))
+    model_name = django_filters.ChoiceFilter(choices=get_models, label=_('Tipo de Registro'))
+    timestamp = django_filters.DateRangeFilter(label=_('Período'))
+
+    class Meta:
+        model = AuditLog
+        fields = ['username', 'operation', 'model_name', 'timestamp', 'object_id']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        row0 = to_row([('username', 2),
+                       ('operation', 2),
+                       ('model_name', 4),
+                       ('object_id', 2),
+                       ('timestamp', 2)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Filtros'),
+                     row0,
+                     form_actions(label='Aplicar Filtro')))
 
 
 class OperadorAutorForm(ModelForm):

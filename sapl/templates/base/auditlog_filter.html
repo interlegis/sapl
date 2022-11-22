@@ -1,0 +1,88 @@
+{% extends "crud/list.html" %}
+{% load i18n common_tags %}
+{% load tz %}
+{% load crispy_forms_tags staticfiles %}
+
+{% block head_extra_css %}
+created {
+background-color: green;
+  color: #FFF;
+}
+
+deleted {
+  background-color: red;
+  color: #FFF;
+}
+{% endblock head_extra_css %}
+
+{% block base_content %}
+		{% crispy filter.form %}
+		<br>
+		{% if numero_res > 0 %}
+			{% if numero_res == 1 %}
+				<h3>Foi encontrado {{ numero_res }} resultado</h3>
+			{% else %}
+				<h3>Foram encontrados {{ numero_res }} resultados</h3>
+			{% endif %}
+			<table class="table table-striped table-hover">
+				<thead>
+					<tr>
+						<th>Data/Hora</th>
+						<th>Usuário</th>
+						<th>Operação</th>
+						<th>Registro</th>
+						<th>Id</th>
+						<th>&nbsp;</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for obj in page_obj %}
+						<tr class="background:{%if obj.operation == 'D' %}red{%else%}lightgray{%endif%}">
+							<td>{{ obj.timestamp|localtime|date:"d/m/Y, H:i:s" }}</td>
+							<td>{{ obj.username|default:"Não informado" }}</td>
+							<td>{{ obj.operation|desc_operation }}</td>
+							<td>{{ obj.model_name }}</td>
+							<td>{{obj.data.pk}}</td>
+							<td>
+								<strong>Atributos ({{obj.data.fields|length}})</strong><br/>
+								<hr/>
+								<ul>
+								{% for key, value in obj.data.fields.items %}
+									{% if forloop.counter == 11 %}
+										<div id="{{obj.id}}" style="display:none;">
+									{%endif%}
+										<li>
+											{{key}}: {{ value|default_if_none:""|obfuscate_value:key }}<br/>
+										</li>
+									{% if forloop.last and 	forloop.counter > 10 %}
+										</div>
+										<input class="btn btn-primary btn-sm" type="button" value="Expandir/Colapsar" onclick="toggleDetails({{obj.id}})"/>
+									{% endif %}
+								{% endfor %}
+								</ul>
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<font size="4"><p align="center">{{ NO_ENTRIES_MSG }}</p></font>
+		{% endif %}
+	<br/>
+	{% include 'paginacao.html'%}
+	<br /><br /><br />
+{% endblock base_content %}
+{% block extra_js %}
+  <script language="Javascript">
+	  function toggleDetails(id) {
+	    let curr = document.getElementById(id);
+	    if (curr.style.display == "none") {
+	    	document.getElementById(id).style.display = "block";
+	    }
+	    else {
+	    	document.getElementById(id).style.display = "none";
+	    }
+
+	  }
+  </script>
+{% endblock extra_js %}

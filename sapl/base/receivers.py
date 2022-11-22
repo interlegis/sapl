@@ -120,10 +120,15 @@ def audit_log_function(sender, **kwargs):
         model_name = instance.__class__.__name__
         app_name = instance._meta.app_label
         object_id = instance.id
-        data = serializers.serialize('json', [instance])
-
-        if len(data) > AuditLog.MAX_DATA_LENGTH:
-            data = data[:AuditLog.MAX_DATA_LENGTH]
+        try:
+            import json
+            # [1:-1] below removes the surrounding square brackets
+            str_data = serializers.serialize('json', [instance])[1:-1]
+            data = json.loads(str_data)
+        except:
+            # old version capped string at AuditLog.MAX_DATA_LENGTH
+            # so there can be invalid json fields in Prod.
+            data = None
 
         if user:
             username = user.username
@@ -136,7 +141,8 @@ def audit_log_function(sender, **kwargs):
                                 app_name=app_name,
                                 timestamp=timezone.now(),
                                 object_id=object_id,
-                                object=data)
+                                object='',
+                                data=data)
     except Exception as e:
         logger.error('Error saving auditing log object')
         logger.error(e)

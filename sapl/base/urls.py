@@ -15,7 +15,7 @@ from sapl.settings import MEDIA_URL, LOGOUT_REDIRECT_URL
 from .apps import AppConfig
 from .forms import LoginForm
 from .views import (LoginSapl, AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
-                    HelpTopicView, LogotipoView, RelatorioAtasView,
+                    HelpTopicView, LogotipoView, RelatorioAtasView, PesquisarAuditLogView,
                     RelatorioAudienciaView, RelatorioDataFimPrazoTramitacaoView, RelatorioHistoricoTramitacaoView,
                     RelatorioMateriasPorAnoAutorTipoView, RelatorioMateriasPorAutorView,
                     RelatorioMateriasTramitacaoView, RelatorioPresencaSessaoView, RelatorioReuniaoView, SaplSearchView,
@@ -178,6 +178,8 @@ urlpatterns = [
         {'next_page': LOGOUT_REDIRECT_URL}, name='logout'),
 
     url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
+
+    url(r'^sistema/auditlog/$', PesquisarAuditLogView.as_view(), name='pesquisar_auditlog'),
 
     # Folhas XSLT e extras referenciadas por documentos migrados do sapl 2.5
     url(r'^(sapl/)?XSLT/HTML/(?P<path>.*)$', RedirectView.as_view(

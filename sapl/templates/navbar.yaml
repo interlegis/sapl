@@ -97,6 +97,9 @@
     - title: {% trans 'Inconsistências de Dados' %}
       url: {% url 'sapl.base:lista_inconsistencias' %}
       check_permission: user.is_superuser
+    - title: {% trans 'Logs de Auditoria' %}
+      url: {% url 'sapl.base:pesquisar_auditlog' %}
+      check_permission: user.is_superuser
 
 {% comment %}
 <li class="nav__sub-item"><a class="nav__sub-link" href="#">Provedor LexML</a></li>
