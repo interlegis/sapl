@@ -22,7 +22,8 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
-from django.core.files.uploadedfile import UploadedFile
+from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile,\
+    TemporaryUploadedFile
 from django.core.mail import get_connection
 from django.db import models
 from django.db.models import Q
@@ -611,7 +612,12 @@ TIPOS_IMG_PERMITIDOS = (
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
     def restringe_tipos_de_arquivo(value):
-        if not os.path.splitext(value.path)[1][:1]:
+
+        filename = value.name if type(value) in (
+            InMemoryUploadedFile, TemporaryUploadedFile
+        ) else value.path
+
+        if not os.path.splitext(filename)[1][:1]:
             raise ValidationError(_(
                 'Não é possível fazer upload de arquivos sem extensão.'))
         try:
