@@ -726,6 +726,8 @@ class BlocoForm(ModelForm):
             )
         else:
             bloco.save()
+
+        bloco.partidos.set(self.cleaned_data['partidos'])
         return bloco
 
 
