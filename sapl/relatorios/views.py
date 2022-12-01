@@ -113,7 +113,7 @@ def get_materias(mats):
     for materia in mats:
         dic = {}
         dic['titulo'] = materia.tipo.sigla + " " + materia.tipo.descricao \
-            + " " + str(materia.numero) + "/" + str(materia.ano)
+                        + " " + str(materia.numero) + "/" + str(materia.ano)
         dic['txt_ementa'] = materia.ementa
 
         dic['nom_autor'] = ', '.join(
@@ -533,9 +533,9 @@ def get_sessao_plenaria(sessao, casa, user):
 
     # Lista da composicao da mesa diretora
     lst_mesa = []
-    for composicao in IntegranteMesa.objects.select_related('parlamentar', 'cargo')\
-                                            .filter(sessao_plenaria=sessao)\
-                                            .order_by('cargo_id'):
+    for composicao in IntegranteMesa.objects.select_related('parlamentar', 'cargo') \
+            .filter(sessao_plenaria=sessao) \
+            .order_by('cargo_id'):
         partido_sigla = Filiacao.objects.filter(
             parlamentar=composicao.parlamentar).first()
         sigla = '' if not partido_sigla else partido_sigla.partido.sigla
@@ -647,7 +647,7 @@ def get_sessao_plenaria(sessao, casa, user):
             materia=expediente_materia.materia).first()
         if numeracao:
             dic_expediente_materia["des_numeracao"] = (
-                str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
+                    str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
 
         autoria = materia.autoria_set.all()
         dic_expediente_materia['num_autores'] = 'Autores' if len(
@@ -691,8 +691,8 @@ def get_sessao_plenaria(sessao, casa, user):
     # Lista dos votos nominais das matérias do Expediente
     lst_expediente_materia_vot_nom = []
 
-    materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao, tipo_votacao=2)\
-                                                                   .order_by('-materia')
+    materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
+        .order_by('-materia')
 
     for mevn in materias_expediente_votacao_nominal:
         votos_materia = []
@@ -724,8 +724,8 @@ def get_sessao_plenaria(sessao, casa, user):
 
     # Lista presença na ordem do dia
     lst_presenca_ordem_dia = []
-    presenca_ordem_dia = PresencaOrdemDia.objects.filter(sessao_plenaria=sessao)\
-                                                 .order_by('parlamentar__nome_parlamentar')
+    presenca_ordem_dia = PresencaOrdemDia.objects.filter(sessao_plenaria=sessao) \
+        .order_by('parlamentar__nome_parlamentar')
     for parlamentar in [p.parlamentar for p in presenca_ordem_dia]:
         lst_presenca_ordem_dia.append({
             "nom_parlamentar": parlamentar.nome_parlamentar,
@@ -741,17 +741,17 @@ def get_sessao_plenaria(sessao, casa, user):
             "nom_resultado": '',
             "num_ordem": votacao.numero_ordem,
             "id_materia": (
-                materia.tipo.sigla + ' ' +
-                materia.tipo.descricao + ' ' +
-                str(materia.numero) + '/' +
-                str(materia.ano)),
+                    materia.tipo.sigla + ' ' +
+                    materia.tipo.descricao + ' ' +
+                    str(materia.numero) + '/' +
+                    str(materia.ano)),
             "des_numeracao": ' '
         }
 
         numeracao = materia.numeracao_set.first()
         if numeracao:
             dic_votacao["des_numeracao"] = (
-                str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
+                    str(numeracao.numero_materia) + '/' + str(numeracao.ano_materia))
 
         materia_em_tramitacao = materia.materiaemtramitacao_set.first()
         dic_votacao.update({
@@ -804,8 +804,8 @@ def get_sessao_plenaria(sessao, casa, user):
     # Lista dos votos nominais das matérias da Ordem do Dia
     lst_votacao_vot_nom = []
 
-    materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(sessao_plenaria=sessao, tipo_votacao=2)\
-                                                         .order_by('-materia')
+    materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
+        .order_by('-materia')
 
     for modvn in materias_ordem_dia_votacao_nominal:
         votos_materia_od = []
@@ -1015,10 +1015,10 @@ def get_protocolos(prots):
         ts = timezone.localtime(protocolo.timestamp)
         if protocolo.timestamp:
             dic['data'] = ts.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' + \
-                ts.strftime("%H:%m")
+                          ts.strftime("%H:%m")
         else:
             dic['data'] = protocolo.data.strftime("%d/%m/%Y") + ' - <b>Horário:</b>' \
-                + protocolo.hora.strftime("%H:%m")
+                          + protocolo.hora.strftime("%H:%m")
 
         dic['txt_assunto'] = protocolo.assunto_ementa
 
@@ -1146,7 +1146,7 @@ def get_etiqueta_protocolos(prots):
         for materia in MateriaLegislativa.objects.filter(
                 numero_protocolo=p.numero, ano=p.ano):
             dic['num_materia'] = materia.tipo.sigla + ' ' + \
-                str(materia.numero) + '/' + str(materia.ano)
+                                 str(materia.numero) + '/' + str(materia.ano)
 
         dic['natureza'] = ''
         if p.tipo_processo == 0:
@@ -1158,7 +1158,7 @@ def get_etiqueta_protocolos(prots):
         for documento in DocumentoAdministrativo.objects.filter(
                 protocolo=p):
             dic['num_documento'] = documento.tipo.sigla + ' ' + \
-                str(documento.numero) + '/' + str(documento.ano)
+                                   str(documento.numero) + '/' + str(documento.ano)
 
         dic['ident_processo'] = dic['num_materia'] or dic['num_documento']
 
@@ -1224,7 +1224,7 @@ def get_pauta_sessao(sessao, casa):
 
         dic_expediente_materia = {}
         dic_expediente_materia["tipo_materia"] = materia.tipo.sigla + \
-            ' - ' + materia.tipo.descricao
+                                                 ' - ' + materia.tipo.descricao
         dic_expediente_materia["num_ordem"] = str(
             expediente_materia.numero_ordem)
         dic_expediente_materia["id_materia"] = str(
@@ -1268,7 +1268,7 @@ def get_pauta_sessao(sessao, casa):
             id=votacao.materia.id).first()
         dic_votacao = {}
         dic_votacao["tipo_materia"] = materia.tipo.sigla + \
-            ' - ' + materia.tipo.descricao
+                                      ' - ' + materia.tipo.descricao
         dic_votacao["num_ordem"] = votacao.numero_ordem
         dic_votacao["id_materia"] = str(
             materia.numero) + "/" + str(materia.ano)
@@ -1692,6 +1692,35 @@ def etiqueta_materia_legislativa(request, pk):
 
     response = HttpResponse(content_type='application/pdf;')
     response['Content-Disposition'] = 'inline; filename=etiqueta.pdf'
+    response['Content-Transfer-Encoding'] = 'binary'
+    response.write(pdf_file)
+
+    return response
+
+
+def relatorio_materia_tramitacao(request, pk):
+    base_url = request.build_absolute_uri()
+    materia_legislativa = MateriaLegislativa.objects.get(pk=pk)
+    tramitacoes = Tramitacao.objects.filter(materia=materia_legislativa)
+    casa = CasaLegislativa.objects.first()
+    rodape = ' '.join(get_rodape(casa))
+
+    context = {}
+    context.update({'object': materia_legislativa})
+    context.update({'data': dt.today().strftime('%d/%m/%Y')})
+    context.update({'rodape': rodape})
+    header_context = {"casa": casa,
+                      'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+
+    html_template = render_to_string('crud/list.html', context)
+    html_header = render_to_string(
+        'relatorios/header_ata.html', header_context)
+
+    pdf_file = make_pdf(
+        base_url=base_url, main_template=html_template, header_template=html_header)
+
+    response = HttpResponse(content_type='application/pdf;')
+    response['Content-Disposition'] = 'inline; filename=relatorio.pdf'
     response['Content-Transfer-Encoding'] = 'binary'
     response.write(pdf_file)
 
