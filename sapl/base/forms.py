@@ -29,7 +29,7 @@ from sapl.materia.models import (DocumentoAcessorio, MateriaEmTramitacao,
                                  MateriaLegislativa, UnidadeTramitacao,
                                  StatusTramitacao)
 from sapl.norma.models import NormaJuridica, NormaEstatisticas
-from sapl.parlamentares.models import Partido, SessaoLegislativa,\
+from sapl.parlamentares.models import Partido, SessaoLegislativa, \
     Parlamentar, Votante
 from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.rules import SAPL_GROUP_AUTOR, SAPL_GROUP_VOTANTE
@@ -44,12 +44,10 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
 
 from .models import AppConfig, CasaLegislativa
 
-
 ACTION_CREATE_USERS_AUTOR_CHOICE = [
     ('A', _('Associar um usuário existente')),
     ('N', _('Autor sem Usuário de Acesso ao Sapl')),
 ]
-
 
 STATUS_USER_CHOICE = [
     ('R', _('Apenas retirar Perfil de Autor do Usuário que está sendo'
@@ -61,7 +59,6 @@ STATUS_USER_CHOICE = [
 
 
 class UserAdminForm(ModelForm):
-
     is_active = forms.TypedChoiceField(label=_('Usuário Ativo'),
                                        choices=YES_NO_CHOICES,
                                        coerce=lambda x: x == 'True')
@@ -155,11 +152,11 @@ class UserAdminForm(ModelForm):
 
         row_pwd += [
 
-            ('parlamentar', 6),
-            ('autor', 6),
-            ('groups', 12),
+                       ('parlamentar', 6),
+                       ('autor', 6),
+                       ('groups', 12),
 
-        ] + ([('user_permissions', 12)] if not self.granular is None else [])
+                   ] + ([('user_permissions', 12)] if not self.granular is None else [])
 
         row_pwd = to_row(row_pwd)
 
@@ -189,27 +186,27 @@ class UserAdminForm(ModelForm):
             self.fields['parlamentar'].initial = votante.parlamentar if votante else None
 
             self.fields['groups'].choices = [
-                (g.id, g) for g in self.instance.groups.exclude(
+                                                (g.id, g) for g in self.instance.groups.exclude(
                     name__in=['Autor', 'Votante']
                 ).order_by('name')
-            ] + [
-                (g.id, g) for g in Group.objects.exclude(
+                                            ] + [
+                                                (g.id, g) for g in Group.objects.exclude(
                     user=self.instance).exclude(
-                        name__in=['Autor', 'Votante']
+                    name__in=['Autor', 'Votante']
                 ).order_by('name')
-            ]
+                                            ]
 
             self.fields[
                 'user_permissions'].widget = forms.CheckboxSelectMultiple()
 
             if not self.granular is None:
                 self.fields['user_permissions'].choices = [
-                    (p.id, p) for p in self.instance.user_permissions.all(
+                                                              (p.id, p) for p in self.instance.user_permissions.all(
                     ).order_by('content_type__app_label',
                                'content_type__model',
                                'codename')
-                ] + [
-                    (p.id, p) for p in Permission.objects.filter(
+                                                          ] + [
+                                                              (p.id, p) for p in Permission.objects.filter(
                         content_type__app_label__in=list(
                             map(lambda x: x.split('.')[-1], settings.SAPL_APPS))
                     ).exclude(
@@ -217,7 +214,7 @@ class UserAdminForm(ModelForm):
                     ).order_by('content_type__app_label',
                                'content_type__model',
                                'codename')
-                ]
+                                                          ]
 
     def save(self, commit=True):
         if self.cleaned_data['new_password1']:
@@ -365,7 +362,7 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
         # existente
         terceiro_caso = Q(data_inicio__range=(
             data_inicio, data_fim), data_fim__gt=data_fim)
-        sessoes_existentes = SessaoLegislativa.objects.filter(primeiro_caso | segundo_caso | terceiro_caso).\
+        sessoes_existentes = SessaoLegislativa.objects.filter(primeiro_caso | segundo_caso | terceiro_caso). \
             exclude(pk=pk)
 
         if sessoes_existentes:
@@ -373,7 +370,7 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
                                   'inserida, favor verificar as Sessões existentes antes de criar uma '
                                   'nova Sessão Legislativa')
 
-        #sessoes_legislativas = SessaoLegislativa.objects.filter(legislatura=legislatura).exclude(pk=pk)
+        # sessoes_legislativas = SessaoLegislativa.objects.filter(legislatura=legislatura).exclude(pk=pk)
 
         # if sessoes_legislativas:
         #     numeracoes = [n.numero for n in sessoes_legislativas]
@@ -476,7 +473,6 @@ class SessaoLegislativaForm(FileFieldCheckMixin, ModelForm):
 
 
 class TipoAutorForm(ModelForm):
-
     class Meta:
         model = TipoAutor
         fields = ['descricao']
@@ -538,7 +534,7 @@ class AutorForm(ModelForm):
     q = forms.CharField(
         max_length=120, required=False,
         label='Pesquise o nome do Autor com o '
-        'tipo Selecionado e marque o escolhido.')
+              'tipo Selecionado e marque o escolhido.')
 
     autor_related = ChoiceWithoutValidationField(label='',
                                                  required=False,
@@ -586,7 +582,7 @@ class AutorForm(ModelForm):
                            to_column((Div(
                                Field('autor_related'),
                                css_class='radiogroup-autor-related hidden'),
-                               12)))
+                                      12)))
         operadores_select = to_row(
             [
                 ('operadores', 12)
@@ -599,29 +595,29 @@ class AutorForm(ModelForm):
         super(AutorForm, self).__init__(*args, **kwargs)
 
         self.fields['operadores'].choices = [
-            (
-                u.id,
-                u.username,
-                u
-            )
-            for u in get_user_model().objects.filter(
+                                                (
+                                                    u.id,
+                                                    u.username,
+                                                    u
+                                                )
+                                                for u in get_user_model().objects.filter(
                 operadorautor_set__autor=self.instance
             ).order_by('-is_active',
                        get_user_model().USERNAME_FIELD
                        ) if self.instance.id
-        ] + [
-            (
-                u.id,
-                u.username,
-                u
-            )
-            for u in get_user_model().objects.filter(
+                                            ] + [
+                                                (
+                                                    u.id,
+                                                    u.username,
+                                                    u
+                                                )
+                                                for u in get_user_model().objects.filter(
                 operadorautor_set__isnull=True,
                 is_active=True
             ).order_by('-is_active',
                        get_user_model().USERNAME_FIELD
                        )
-        ]
+                                            ]
 
         if self.instance.pk:
             if self.instance.autor_related:
@@ -742,11 +738,16 @@ class AutorFilterSet(django_filters.FilterSet):
 
 
 def get_username():
-    return [(u, u) for u in get_user_model().objects.all().order_by('username').values_list('username', flat=True)]
+    try:
+        return [(u, u) for u in
+                get_user_model().objects.all().order_by('username').values_list('username', flat=True)]
+    except:
+        return []
 
 
 def get_models():
-    return [(m, m) for m in AuditLog.objects.distinct('model_name').order_by('model_name').values_list('model_name', flat=True)]
+    return [(m, m) for m in
+            AuditLog.objects.distinct('model_name').order_by('model_name').values_list('model_name', flat=True)]
 
 
 class AuditLogFilterSet(django_filters.FilterSet):
@@ -784,13 +785,11 @@ class AuditLogFilterSet(django_filters.FilterSet):
 
 
 class OperadorAutorForm(ModelForm):
-
     class Meta:
         model = OperadorAutor
         fields = ['user', ]
 
     def __init__(self, *args, **kwargs):
-
         row = to_row([('user', 12)])
 
         self.helper = SaplFormHelper()
@@ -827,7 +826,6 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
         fields = ['tipo', 'materia__tipo', 'data']
 
     def __init__(self, *args, **kwargs):
-
         super(
             RelatorioDocumentosAcessoriosFilterSet, self
         ).__init__(*args, **kwargs)
@@ -867,7 +865,6 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
 
 
 class RelatorioAtasFilterSet(django_filters.FilterSet):
-
     class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
         fields = ['data_inicio']
@@ -918,7 +915,6 @@ def ultimo_ano_com_norma():
 
 
 class RelatorioNormasMesFilterSet(django_filters.FilterSet):
-
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
                                       choices=choice_anos_com_normas,
@@ -970,7 +966,6 @@ class RelatorioNormasMesFilterSet(django_filters.FilterSet):
 
 
 class EstatisticasAcessoNormasForm(Form):
-
     ano = forms.ChoiceField(required=True,
                             label='Ano de acesso',
                             choices=RANGE_ANOS,
@@ -1024,8 +1019,8 @@ class EstatisticasAcessoNormasForm(Form):
         )
         self.fields['ano'].choices = NormaEstatisticas.objects.order_by(
             '-ano').distinct().values_list('ano', 'ano') or [
-                (timezone.now().year, timezone.now().year)
-        ]
+                                         (timezone.now().year, timezone.now().year)
+                                     ]
 
     def clean(self):
         super(EstatisticasAcessoNormasForm, self).clean()
@@ -1034,7 +1029,6 @@ class EstatisticasAcessoNormasForm(Form):
 
 
 class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
-
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Norma',
                                       choices=choice_anos_com_normas,
@@ -1091,7 +1085,6 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
 
 
 class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
-
     class Meta(FilterOverridesMetaMixin):
         model = SessaoPlenaria
         fields = ['data_inicio',
@@ -1158,7 +1151,6 @@ class RelatorioPresencaSessaoFilterSet(django_filters.FilterSet):
 
 
 class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
-
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
     @property
@@ -1225,7 +1217,6 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
-
     ano = django_filters.ChoiceFilter(required=False,
                                       label='Ano da Matéria',
                                       choices=choice_anos_com_materias)
@@ -1372,7 +1363,6 @@ class RelatorioAudienciaFilterSet(django_filters.FilterSet):
 
 
 class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
-
     materia__ano = django_filters.ChoiceFilter(required=True,
                                                label='Ano da Matéria',
                                                choices=choice_anos_com_materias)
@@ -1433,12 +1423,11 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(_('Pesquisa de Matéria em Tramitação'),
                      row1, row2, row3, row4, row5,
-                     buttons,)
+                     buttons, )
         )
 
 
 class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
-
     ano = django_filters.ChoiceFilter(required=True,
                                       label='Ano da Matéria',
                                       choices=choice_anos_com_materias)
@@ -1478,7 +1467,6 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
 
 
 class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
-
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
     @property
@@ -1535,7 +1523,6 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
 
 
 class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
-
     class Meta:
 
         model = CasaLegislativa
@@ -1560,7 +1547,7 @@ class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
             # O campo fax foi ocultado porque não é utilizado.
             'fax': forms.HiddenInput(),
             # 'fax': forms.TextInput(attrs={'class': 'telefone'}),
-            'logotipo':  ImageThumbnailFileInput,
+            'logotipo': ImageThumbnailFileInput,
             'informacao_geral': forms.Textarea(
                 attrs={'id': 'texto-rico'})
         }
@@ -1690,18 +1677,15 @@ class ConfiguracoesAppForm(ModelForm):
 
 
 class RecuperarSenhaForm(GoogleRecapthaMixin, PasswordResetForm):
-
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
-
         kwargs['title_label'] = _('Insira o e-mail cadastrado com a sua conta')
         kwargs['action_label'] = _('Enviar')
 
         super().__init__(*args, **kwargs)
 
     def clean(self):
-
         super(RecuperarSenhaForm, self).clean()
 
         email_existente = get_user_model().objects.filter(
@@ -1825,7 +1809,6 @@ class AlterarSenhaForm(Form):
 
 
 class PartidoForm(FileFieldCheckMixin, ModelForm):
-
     class Meta:
         model = Partido
         exclude = []
@@ -1924,13 +1907,12 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
 
 
 class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
-
     autorianorma__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
     @property
     def qs(self):
         parent = super().qs
-        return parent.distinct().filter(autorianorma__primeiro_autor=True)\
+        return parent.distinct().filter(autorianorma__primeiro_autor=True) \
             .order_by('autorianorma__autor', '-autorianorma__primeiro_autor', 'tipo', '-ano', '-numero')
 
     class Meta(FilterOverridesMetaMixin):
