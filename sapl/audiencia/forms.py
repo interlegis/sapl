@@ -13,6 +13,7 @@ from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import timezone, FileFieldCheckMixin, validar_arquivo
 
+
 class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
     logger = logging.getLogger(__name__)
     data_atual = timezone.now()
@@ -53,7 +54,7 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
 
     class Meta:
         model = AudienciaPublica
-        fields = ['tipo', 'numero', 'nome',
+        fields = ['tipo', 'numero', 'ano', 'nome',
                   'tema', 'data', 'hora_inicio', 'hora_fim',
                   'observacao', 'audiencia_cancelada', 'parlamentar_autor', 'requerimento', 'url_audio',
                   'url_video', 'upload_pauta', 'upload_ata',
@@ -115,13 +116,13 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
                 raise ValidationError(msg)
 
         if not cleaned_data['numero']:
-            ultima_audiencia = AudienciaPublica.objects.all().order_by('numero').last()
+            ultima_audiencia = AudienciaPublica.objects.all().order_by('-ano', 'numero').last()
             if ultima_audiencia:
                 cleaned_data['numero'] = ultima_audiencia.numero + 1
             else:
                 cleaned_data['numero'] = 1
         else:
-            if AudienciaPublica.objects.filter(numero=cleaned_data['numero']).exclude(pk=self.instance.pk).exists():
+            if AudienciaPublica.objects.filter(numero=cleaned_data['numero'], ano=cleaned_data['ano']).exclude(pk=self.instance.pk).exists():
                 raise ValidationError(f"Já existe uma audiência com a numeração {cleaned_data['numero']}.")
 
         if self.cleaned_data['hora_inicio'] and self.cleaned_data['hora_fim']:

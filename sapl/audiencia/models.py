@@ -5,7 +5,7 @@ from model_utils import Choices
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Parlamentar)
 
-from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
+from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericRelation,
                         restringe_tipos_de_arquivo_txt, texto_upload_path,
                         OverwriteStorage)
 
@@ -39,7 +39,6 @@ class TipoAudienciaPublica(models.Model):
     tipo = models.CharField(
         max_length=1, verbose_name=_('Tipo de Audiência Pública'), choices=TIPO_AUDIENCIA_CHOICES, default='A')
 
-
     class Meta:
         verbose_name = _('Tipo de Audiência Pública')
         verbose_name_plural = _('Tipos de Audiência Pública')
@@ -62,6 +61,8 @@ class AudienciaPublica(models.Model):
                              blank=True,
                              verbose_name=_('Tipo de Audiência Pública'))
     numero = models.PositiveIntegerField(blank=True, verbose_name=_('Número'))
+    ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
+                                           choices=RANGE_ANOS)
     nome = models.CharField(
         max_length=100, verbose_name=_('Nome da Audiência Pública'))
     tema = models.CharField(
@@ -123,7 +124,7 @@ class AudienciaPublica(models.Model):
     class Meta:
         verbose_name = _('Audiência Pública')
         verbose_name_plural = _('Audiências Públicas')
-        ordering = ['nome', 'numero', 'tipo']
+        ordering = ['ano', 'numero', 'nome', 'tipo']
 
     def __str__(self):
         return self.nome
