@@ -1,7 +1,7 @@
 {% load i18n %}
 AudienciaPublica:
   {% trans 'Audiência Pública' %}:
-  - nome:10 numero
+  - nome:8 numero ano
   - tema
   {% trans 'Dados' %}:
   - tipo_materia numero_materia ano_materia
@@ -14,7 +14,7 @@ AudienciaPublica:
 
 AudienciaPublicaDetail:
   {% trans 'Audiência Pública' %}:
-  - nome:10 numero
+  - nome:10 numero ano
   - tema
   {% trans 'Dados' %}:
   - materia tipo
