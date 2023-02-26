@@ -2256,7 +2256,7 @@ class SaplSearchView(SearchView):
         return context
 
 
-class PesquisarAuditLogView(FilterView):
+class PesquisarAuditLogView(PermissionRequiredMixin, FilterView):
     model = AuditLog
     filterset_class = AuditLogFilterSet
     paginate_by = 20
