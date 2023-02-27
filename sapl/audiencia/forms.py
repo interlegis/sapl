@@ -99,14 +99,14 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
         try:
             datetime.strptime(cleaned_data["hora_inicio"], '%H:%M').time()
         except ValueError:
-            raise ValidationError(f"Formato de horário início inválido: {cleaned_data['hora_inicio']}")
+            raise ValidationError(f"Formato de horário de início inválido: {cleaned_data['hora_inicio']}")
 
         # valida hora fim
         if cleaned_data["hora_fim"]:
             try:
                 datetime.strptime(cleaned_data["hora_fim"], '%H:%M').time()
             except ValueError:
-                raise ValidationError(f"Formato de horário fim inválido: {cleaned_data['hora_fim']}")
+                raise ValidationError(f"Formato de horário de fim inválido: {cleaned_data['hora_fim']}")
 
         if materia and ano_materia and tipo_materia:
             try:
