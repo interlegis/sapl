@@ -1706,13 +1706,20 @@ def relatorio_materia_tramitacao(request, pk):
     rodape = ' '.join(get_rodape(casa))
 
     context = {}
-    context.update({'object': materia_legislativa})
+    context.update({'object': tramitacoes})
+    context.update({'materia': materia_legislativa})
+    context.update({'ano': materia_legislativa.ano})
+    context.update({'numero': materia_legislativa.numero})
+    context.update({'autor': materia_legislativa.autores.first()})
+    context.update({'tipo': materia_legislativa.tipo.descricao})
+    context.update({'rodape': rodape})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
     header_context = {"casa": casa,
                       'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
 
-    html_template = render_to_string('crud/list.html', context)
+    html_template = render_to_string(
+        'relatorios/relatorio_materia_tramitacao.html', context)
     html_header = render_to_string(
         'relatorios/header_ata.html', header_context)
 
