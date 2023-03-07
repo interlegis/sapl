@@ -32,7 +32,7 @@ class AudienciaCrud(Crud):
 
             for row in context['rows']:
                 audiencia_id = row[0][1].split('/')[-1]
-                tema = str(audiencia_materia[audiencia_id][1]) + '/' + str(audiencia_materia[audiencia_id][2])
+                tema = str(audiencia_materia[audiencia_id][1]).rjust(3, '0') + '/' + str(audiencia_materia[audiencia_id][2])
                 row[0] = (tema, row[0][1])
                 coluna_materia = row[3]                             # Se mudar a ordem de listagem, mudar aqui.
                 if coluna_materia[0]:

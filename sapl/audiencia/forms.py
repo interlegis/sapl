@@ -1,5 +1,7 @@
 import logging
 
+from datetime import datetime
+
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
@@ -86,6 +88,26 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
         parlamentar_autor = cleaned_data["parlamentar_autor"]
         requerimento = cleaned_data["requerimento"]
 
+        if cleaned_data["ano"] != cleaned_data["data"].year:
+            raise ValidationError(f"Ano da audiência ({cleaned_data['ano']}) difere "
+                                  f"do ano no campo data ({cleaned_data['data'].year})")
+
+        #
+        # TODO: converter hora_inicio e hora_fim para TimeField
+        #
+        # valida hora inicio
+        try:
+            datetime.strptime(cleaned_data["hora_inicio"], '%H:%M').time()
+        except ValueError:
+            raise ValidationError(f"Formato de horário de início inválido: {cleaned_data['hora_inicio']}")
+
+        # valida hora fim
+        if cleaned_data["hora_fim"]:
+            try:
+                datetime.strptime(cleaned_data["hora_fim"], '%H:%M').time()
+            except ValueError:
+                raise ValidationError(f"Formato de horário de fim inválido: {cleaned_data['hora_fim']}")
+
         if materia and ano_materia and tipo_materia:
             try:
                 self.logger.debug("Tentando obter MateriaLegislativa %s nº %s/%s." % (tipo_materia, materia, ano_materia))
@@ -123,7 +145,7 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
                 cleaned_data['numero'] = 1
         else:
             if AudienciaPublica.objects.filter(numero=cleaned_data['numero'], ano=cleaned_data['ano']).exclude(pk=self.instance.pk).exists():
-                raise ValidationError(f"Já existe uma audiência com a numeração {cleaned_data['numero']}.")
+                raise ValidationError(f"Já existe uma audiência pública com a numeração {str(cleaned_data['numero']).rjust(3, '0')}/{cleaned_data['ano']}.")
 
         if self.cleaned_data['hora_inicio'] and self.cleaned_data['hora_fim']:
             if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:
