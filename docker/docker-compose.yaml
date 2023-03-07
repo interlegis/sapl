@@ -25,7 +25,7 @@ services:
     labels:
         NAME: "solr"
     volumes:
-      - solr_data:/opt/solr/server/solr
+      - solr_data:/var/solr
       - solr_configsets:/opt/solr/server/solr/configsets
     ports:
       - "8983:8983"
