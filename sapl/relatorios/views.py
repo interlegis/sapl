@@ -1706,15 +1706,16 @@ def relatorio_materia_tramitacao(request, pk):
     rodape = ' '.join(get_rodape(casa))
 
     context = {}
-    context.update({'object': tramitacoes})
-    context.update({'materia': materia_legislativa})
-    context.update({'ano': materia_legislativa.ano})
-    context.update({'numero': materia_legislativa.numero})
-    context.update({'autor': materia_legislativa.autores.first()})
-    context.update({'tipo': materia_legislativa.tipo.descricao})
-    context.update({'rodape': rodape})
-    context.update({'data': dt.today().strftime('%d/%m/%Y')})
-    context.update({'rodape': rodape})
+    context.update(
+    {'object': tramitacoes,
+    'materia': materia_legislativa,
+    'ano': materia_legislativa.ano,
+    'numero': materia_legislativa.numero,
+    'autor': materia_legislativa.autores.first(),
+    'tipo': materia_legislativa.tipo.descricao,
+    'rodape': rodape,
+    'data': dt.today().strftime('%d/%m/%Y'),
+    'rodape': rodape})
     header_context = {"casa": casa,
                       'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
 
