@@ -20,7 +20,7 @@ const v = new Vue({ // eslint-disable-line
       parlamentares: [],
       visible_parlamentares: [],
       size_parlamentares: 0,
-      filter_ativo: false,
+      filter_ativo: true,
       filter_titular: ''
     }
   },
@@ -78,7 +78,7 @@ const v = new Vue({ // eslint-disable-line
 
     pesquisaChange (event) {
       this.is_pesquisa = !this.is_pesquisa
-      this.filter_ativo = false
+      this.filter_ativo = true
       if (this.is_pesquisa) {
         this.parlamentares = []
       } else {
