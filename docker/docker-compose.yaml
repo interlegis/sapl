@@ -32,7 +32,7 @@ services:
     networks:
       - sapl-net
   sapl:
-    image: interlegis/sapl:3.1.163-RC11
+    image: interlegis/sapl:3.1.163-RC12
 #    build:
 #      context: ../
 #      dockerfile: ./docker/Dockerfile
