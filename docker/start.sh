@@ -85,6 +85,21 @@ if [ "${USE_SOLR-False}" == "True" ] || [ "${USE_SOLR-False}" == "true" ]; then
         fi
 
         python3 solr_cli.py -u $SOLR_URL -c $SOLR_COLLECTION -s $NUM_SHARDS -rf $RF -ms $MAX_SHARDS_PER_NODE $ZK_EMBEDDED &
+
+        RANDOM_MINUTE_MIN=0
+        RANDOM_MINUTE_MAX=60
+        RANDOM_HOUR_MIN=0
+        RANDOM_HOUR_MAX=3
+
+        # Generate a random minute within the interval
+        RANDOM_MINUTE=$((RANDOM % ($RANDOM_MINUTE_MAX-$RANDOM_MINUTE_MIN+1) + $RANDOM_MINUTE_MIN))
+        RANDOM_HOUR=$((RANDOM % ($RANDOM_HOUR_MAX-$RANDOM_HOUR_MIN+1) + $RANDOM_HOUR_MIN))
+
+        # Add the cronjob to the crontab
+        echo "$RANDOM_MINUTE $RANDOM_HOUR * * * python3 solr_cli.py -u $SOLR_URL -c $SOLR_COLLECTION --update-index" >> /etc/cron.daily/rebuild_index_job
+
+        # Start the cron daemon
+        crond -f -L /dev/stdout
     else
         echo "Solr is offline, not possible to connect."
     fi

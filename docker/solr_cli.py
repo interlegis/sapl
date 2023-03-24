@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
+import datetime
 import logging
 import re
 import secrets
@@ -111,6 +112,8 @@ class SolrClient:
     DELETE_COLLECTION = "{}/solr/admin/collections?action=DELETE&name={}&wt=json"
     DELETE_DATA = "{}/solr/{}/update?commitWithin=1000&overwrite=true&wt=json"
     QUERY_DATA = "{}/solr/{}/select?q=*:*"
+    REBUILD_INDEX = "{}/solr/{}/dataimport?command=full-import&wt=json"
+    UPDATE_INDEX = "{}/solr/{}/dataimport?command=delta-import&wt=json"
 
     CONFIGSET_NAME = "sapl_configset"
 
@@ -243,6 +246,35 @@ class SolrClient:
             num_docs = self.get_num_docs(collection_name)
             print("Num docs: %s" % num_docs)
 
+    def update_index_last_day(self, collection_name):
+        date = (datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        now = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        req_url = self.UPDATE_INDEX.format(self.url, collection_name)
+        res = requests.post(req_url,
+                            data='<update><query>*:[%s TO %s]</query></update>' % date % now,
+                            headers={'Content-Type': 'application/xml'})
+        if not res.ok:
+            print("Error updating index for collection '%s'", collection_name)
+            print("Code {}: {}".format(res.status_code, res.text))
+        else:
+            print("Collection '%s' data updated successfully!" % collection_name)
+
+            num_docs = self.get_num_docs(collection_name)
+            print("Num docs: %s" % num_docs)
+
+    def rebuild_index(self, collection_name):
+        req_url = self.REBUILD_INDEX.format(self.url, collection_name)
+        res = requests.post(req_url)
+        if not res.ok:
+            print("Error rebuilding index for collection '%s'", collection_name)
+            print("Code {}: {}".format(res.status_code, res.text))
+        else:
+            print("Collection '%s' index rebuilt successfully!" % collection_name)
+
+            num_docs = self.get_num_docs(collection_name)
+            print("Num docs: %s" % num_docs)
+
 
 def setup_embedded_zk(solr_url):
     match = re.match(URL_PATTERN, solr_url)
@@ -277,9 +309,10 @@ if __name__ == '__main__':
                         help='Replication factor (default=1)', default=1)
     parser.add_argument('-ms', type=int, dest='max_shards_per_node', nargs='?',
                         help='Max shards per node (default=1)', default=1)
-
     parser.add_argument("--embedded_zk", default=False, action="store_true",
                         help="Embedded ZooKeeper")
+    parser.add_argument("--rebuild_index", default=False, action="store_true",)
+    parser.add_argument("--update_index", default=False, action="store_true",)
 
     try:
         args = parser.parse_args()
@@ -315,3 +348,12 @@ if __name__ == '__main__':
     if num_docs == 0:
         print("Performing a full reindex of '%s' collection..." % collection)
         p = subprocess.call(["python3", "manage.py", "rebuild_index", "--noinput"])
+
+    if args.rebuild_index:
+        print("Rebuilding index of '%s' collection..." % collection)
+        client.rebuild_index(collection)
+
+    if args.update_index:
+        print("Updating index of '%s' collection..." % collection)
+        client.update_index_last_day(collection)
+

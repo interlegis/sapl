@@ -27,6 +27,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends $BUILD_PACKAGES $RUN_PACKAGES && \
     fc-cache -fv && \
     pip3 install --no-cache-dir --upgrade pip setuptools && \
+    apt-get install cron -y && \
+    apk add --no-cache dcron && \
     rm -f /etc/nginx/conf.d/* && \
     pip install --no-cache-dir -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
     SUDO_FORCE_REMOVE=yes apt-get purge -y --auto-remove $BUILD_PACKAGES && \
@@ -71,3 +73,9 @@ EXPOSE 80/tcp 443/tcp
 VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 
 CMD ["/var/interlegis/sapl/start.sh"]
+
+COPY cronjob /etc/cron.d/rebuild_solr_index
+RUN chmod 0644 /etc/cron.d/rebuild_solr_index
+RUN crontab /etc/cron.d/rebuild_solr_index
+RUN touch /var/log/cron.log
+CMD cron && tail -f /var/log/cron.log
