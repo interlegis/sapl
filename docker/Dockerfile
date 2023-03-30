@@ -9,7 +9,8 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ENV BUILD_PACKAGES apt-utils apt-file libpq-dev graphviz-dev build-essential git pkg-config \
                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev \
-                   libcairo2-dev software-properties-common python3-setuptools python3-pip
+                   libcairo2-dev software-properties-common python3-setuptools python3-pip \
+                   cron
 
 ## NAO EH PRA TIRAR O vim DA LISTA DE COMANDOS INSTALADOS!!!
 ENV RUN_PACKAGES graphviz python3-lxml python3-magic postgresql-client python3-psycopg2 \
@@ -27,8 +28,6 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends $BUILD_PACKAGES $RUN_PACKAGES && \
     fc-cache -fv && \
     pip3 install --no-cache-dir --upgrade pip setuptools && \
-    apt-get install cron -y && \
-    apk add --no-cache dcron && \
     rm -f /etc/nginx/conf.d/* && \
     pip install --no-cache-dir -r /var/interlegis/sapl/requirements/dev-requirements.txt --upgrade setuptools && \
     SUDO_FORCE_REMOVE=yes apt-get purge -y --auto-remove $BUILD_PACKAGES && \
@@ -74,8 +73,8 @@ VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 
 CMD ["/var/interlegis/sapl/start.sh"]
 
-COPY cronjob /etc/cron.d/rebuild_solr_index
-RUN chmod 0644 /etc/cron.d/rebuild_solr_index
-RUN crontab /etc/cron.d/rebuild_solr_index
+COPY cronjob /etc/cron.d/update_solr_index
+RUN chmod 0644 /etc/cron.d/update_solr_index
+RUN crontab /etc/cron.d/update_solr_index
 RUN touch /var/log/cron.log
 CMD cron && tail -f /var/log/cron.log

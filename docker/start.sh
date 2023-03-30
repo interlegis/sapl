@@ -96,7 +96,7 @@ if [ "${USE_SOLR-False}" == "True" ] || [ "${USE_SOLR-False}" == "true" ]; then
         RANDOM_HOUR=$((RANDOM % ($RANDOM_HOUR_MAX-$RANDOM_HOUR_MIN+1) + $RANDOM_HOUR_MIN))
 
         # Add the cronjob to the crontab
-        echo "$RANDOM_MINUTE $RANDOM_HOUR * * * python3 solr_cli.py -u $SOLR_URL -c $SOLR_COLLECTION --update-index" >> /etc/cron.daily/rebuild_index_job
+        echo "$RANDOM_MINUTE $RANDOM_HOUR * * * python3 solr_cli.py -u $SOLR_URL -c $SOLR_COLLECTION --update-index" >> /etc/cron.daily/update_solr_index
 
         # Start the cron daemon
         crond -f -L /dev/stdout
