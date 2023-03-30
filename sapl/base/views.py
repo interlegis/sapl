@@ -43,12 +43,12 @@ from sapl.base.forms import (AutorForm, TipoAutorForm, AutorFilterSet, Recuperar
                              OperadorAutorForm, LoginForm, SaplSearchForm)
 from sapl.base.models import AuditLog, Autor, TipoAutor, OperadorAutor
 from sapl.comissoes.models import Comissao, Reuniao
-from sapl.crud.base import CrudAux, make_pagination, Crud,\
+from sapl.crud.base import CrudAux, make_pagination, Crud, \
     ListWithSearchForm, MasterDetailCrud
 from sapl.materia.models import (Anexada, Autoria, DocumentoAcessorio, MateriaEmTramitacao, MateriaLegislativa,
                                  Proposicao, StatusTramitacao, TipoDocumento, TipoMateriaLegislativa, UnidadeTramitacao,
                                  MateriaAssunto)
-from sapl.norma.models import NormaJuridica, TipoNormaJuridica,\
+from sapl.norma.models import NormaJuridica, TipoNormaJuridica, \
     NormaEstatisticas, ViewNormasEstatisticas
 from sapl.parlamentares.models import (
     Filiacao, Legislatura, Mandato, Parlamentar, SessaoLegislativa)
@@ -240,15 +240,15 @@ class AutorCrud(CrudAux):
                     url_base = full_url[:full_url.find('sistema') - 1]
 
                     mensagem = (
-                        "Este e-mail foi utilizado para fazer cadastro no " +
-                        "SAPL com o perfil de Autor. Agora você pode " +
-                        "criar/editar/enviar Proposições.\n" +
-                        "Seu nome de usuário é: " +
-                        self.request.POST['username'] + "\n"
-                        "Caso você não tenha feito este cadastro, por favor " +
-                        "ignore esta mensagem. Caso tenha, clique " +
-                        "no link abaixo\n" + url_base +
-                        reverse('sapl.base:confirmar_email', kwargs=kwargs))
+                            "Este e-mail foi utilizado para fazer cadastro no " +
+                            "SAPL com o perfil de Autor. Agora você pode " +
+                            "criar/editar/enviar Proposições.\n" +
+                            "Seu nome de usuário é: " +
+                            self.request.POST['username'] + "\n"
+                                                            "Caso você não tenha feito este cadastro, por favor " +
+                            "ignore esta mensagem. Caso tenha, clique " +
+                            "no link abaixo\n" + url_base +
+                            reverse('sapl.base:confirmar_email', kwargs=kwargs))
                     remetente = settings.EMAIL_SEND_USER
                     destinatario = [user.email]
                     send_mail(assunto, mensagem, remetente, destinatario,
@@ -399,7 +399,7 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
         if not data_final:
             data_final = "Data Final não definida"
         context['periodo'] = (
-            data_inicial + ' - ' + data_final
+                data_inicial + ' - ' + data_final
         )
 
         return context
@@ -424,8 +424,8 @@ class RelatorioAtasView(RelatorioMixin, FilterView):
 
         context['show_results'] = show_results_filter_set(qr)
         context['periodo'] = (
-            self.request.GET['data_inicio_0'] +
-            ' - ' + self.request.GET['data_inicio_1'])
+                self.request.GET['data_inicio_0'] +
+                ' - ' + self.request.GET['data_inicio_1'])
 
         return context
 
@@ -944,9 +944,9 @@ class RelatorioMateriasPorAnoAutorTipoView(RelatorioMixin, FilterView):
             'autor',
             'materia__tipo__sigla',
             'materia__tipo__descricao').annotate(
-                total=Count('materia__tipo')).order_by(
-                    'autor',
-                    'materia__tipo')
+            total=Count('materia__tipo')).order_by(
+            'autor',
+            'materia__tipo')
 
         autores_ids = set([i['autor'] for i in autorias])
 
@@ -1049,8 +1049,8 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
         else:
             context['autor'] = ''
         context['periodo'] = (
-            self.request.GET['data_apresentacao_0'] +
-            ' - ' + self.request.GET['data_apresentacao_1'])
+                self.request.GET['data_apresentacao_0'] +
+                ' - ' + self.request.GET['data_apresentacao_1'])
 
         return context
 
@@ -1170,12 +1170,12 @@ class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
             context['vigencia'] = 'Vigente'
             context['quant_vigente'] = len(context['object_list'])
             context['quant_nao_vigente'] = context['quant_total'] - \
-                context['quant_vigente']
+                                           context['quant_vigente']
         else:
             context['vigencia'] = 'Não vigente'
             context['quant_nao_vigente'] = len(context['object_list'])
             context['quant_vigente'] = context['quant_total'] - \
-                context['quant_nao_vigente']
+                                       context['quant_nao_vigente']
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -1686,7 +1686,7 @@ class ListarParlMandatosIntersecaoView(PermissionRequiredMixin, ListView):
 def parlamentares_duplicados():
     return [parlamentar for parlamentar in Parlamentar.objects.values(
         'nome_parlamentar').order_by('nome_parlamentar').annotate(count=Count(
-            'nome_parlamentar')).filter(count__gt=1)]
+        'nome_parlamentar')).filter(count__gt=1)]
 
 
 class ListarParlamentaresDuplicadosView(PermissionRequiredMixin, ListView):
@@ -1723,10 +1723,10 @@ def get_estatistica(request):
     datas = [
         materias.order_by(
             '-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)
-        .exclude(data_ultima_atualizacao__isnull=True).first(),
+            .exclude(data_ultima_atualizacao__isnull=True).first(),
         normas.order_by(
             '-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)
-        .exclude(data_ultima_atualizacao__isnull=True).first()
+            .exclude(data_ultima_atualizacao__isnull=True).first()
     ]
 
     max_data = max(datas) if datas[0] and datas[1] else next(
@@ -2075,7 +2075,8 @@ class AppConfigCrud(CrudAux):
                     except ValidationError as e:
                         form.add_error('receber_recibo_proposicao', e)
                         msg = _(
-                            "Não foi possível mudar a configuração porque a Proposição {} não possui texto original vinculado!".format(prop))
+                            "Não foi possível mudar a configuração porque a Proposição {} não possui texto original vinculado!".format(
+                                prop))
                         messages.error(self.request, msg)
                         return super().form_invalid(form)
             return super().form_valid(form)
@@ -2298,6 +2299,13 @@ class PesquisarAuditLogView(PermissionRequiredMixin, FilterView):
         return context
 
     def get(self, request, *args, **kwargs):
+        timefilter = request.GET.get('timestamp', None)
+
+        if not timefilter:
+            newgetrequest = request.GET.copy()
+            newgetrequest['timestamp'] = 'week'
+            request.GET = newgetrequest
+
         super(PesquisarAuditLogView, self).get(request)
 
         data = self.filterset.data
@@ -2361,7 +2369,6 @@ class LogotipoView(RedirectView):
 
 
 def filtro_campos(dicionario):
-
     chaves_desejadas = ['ementa',
                         'ano',
                         'numero',
@@ -2384,7 +2391,6 @@ def filtro_campos(dicionario):
 
 
 def pesquisa_textual(request):
-
     if 'q' not in request.GET:
         return JsonResponse({'total': 0,
                              'resultados': []})
@@ -2509,7 +2515,7 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
         else:
             context['autor'] = ''
         context['periodo'] = (
-            self.request.GET['data_0'] +
-            ' - ' + self.request.GET['data_1'])
+                self.request.GET['data_0'] +
+                ' - ' + self.request.GET['data_1'])
 
         return context
