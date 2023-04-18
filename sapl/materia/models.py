@@ -745,6 +745,7 @@ class Parecer(models.Model):
 
 
 class Proposicao(models.Model):
+
     autor = models.ForeignKey(
         Autor,
         null=True,

@@ -2,6 +2,7 @@ import re
 
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.utils.dateparse import parse_datetime as django_parse_datetime
 from django.utils.safestring import mark_safe
 from webpack_loader import utils
 
@@ -11,6 +12,7 @@ from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
 from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
+
 
 register = template.Library()
 
@@ -87,6 +89,7 @@ def format_user(user):
         return user.first_name + " " + user.last_name + " (" + user.username + ")"
     else:
         return user.username
+
 
 @register.filter
 def meta_model_value(instance, attr):
@@ -398,3 +401,7 @@ def dont_break_out(value):
     _safe = mark_safe(_safe)
     return _safe
 
+
+@register.filter(expects_localtime=True)
+def parse_datetime(value):
+    return django_parse_datetime(value)

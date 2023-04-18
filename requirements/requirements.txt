@@ -34,5 +34,7 @@ whitenoise==5.1.0
 kazoo==2.8.0
 django-prometheus==2.2.0
 
+asn1crypto==1.5.1
+
 git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped

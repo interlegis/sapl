@@ -49,6 +49,7 @@ class TipoAudienciaPublica(models.Model):
 
 
 class AudienciaPublica(models.Model):
+
     materia = models.ForeignKey(
         MateriaLegislativa,
         on_delete=models.PROTECT,

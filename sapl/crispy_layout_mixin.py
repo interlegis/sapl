@@ -4,6 +4,7 @@ from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.encoding import force_text
@@ -328,6 +329,21 @@ class CrispyLayoutFormMixin:
             verbose_name = ''
 
         return verbose_name, display
+
+    def widget__signs(self, obj, fieldname):
+        from sapl.base.models import Metadata
+        try:
+            md = Metadata.objects.get(
+                content_type=ContentType.objects.get_for_model(
+                    obj._meta.model),
+                object_id=obj.id,)
+            autores = md.metadata['signs'][fieldname]['autores']
+            t = template.loader.get_template('base/widget__signs.html')
+            rendered = str(t.render(context={'signs': autores}))
+        except Exception as e:
+            return '', ''
+
+        return 'Assinaturas Eletrônicas', rendered
 
     @property
     def layout_display(self):
