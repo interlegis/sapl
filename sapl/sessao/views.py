@@ -254,6 +254,14 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         # idUnica para cada materia
         idAutor = "autor" + str(i)
         idAutores = "autores" + str(i)
+        link_texto_original = ''
+        if materia.texto_original:
+            link_texto_original = f"""
+            <strong>
+                <a href="{materia.texto_original.url}" target="_blank">
+                    Texto original
+                </a>
+            </strong>"""
         title_materia = f"""<div onmouseover = "mostra_autores({idAutor}, {idAutores})" onmouseleave = "autor_unico({idAutor}, {idAutores})">
                                 <a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
                                 <b>Processo:</b> {numeracao}</br>
@@ -261,6 +269,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 <span id='{idAutores}' style="display: none"><b>Autor:</b> {todos_autores}</br></span>
                                 <b>Protocolo:</b> {num_protocolo}</br>
                                 <b>Turno:</b> {turno}</br>
+                                {link_texto_original}
                             </div>
                         """
         # Na linha abaixo, o segundo argumento é None para não colocar
