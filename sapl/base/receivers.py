@@ -368,8 +368,7 @@ def signed_files_extraction_function(sender, instance, **kwargs):
         signs_dict = {}
 
         for s in signs:
-            # or 'ICP' in s[1][1] and 'ICP' not in signs_dict[s[0]][1]:
-            if s[0] not in signs_dict:
+            if s[0] not in signs_dict or 'ICP' in s[1][1] and 'ICP' not in signs_dict[s[0]][1]:
                 signs_dict[s[0]] = s[1]
 
         signs = sorted(signs_dict.items(), key=lambda sign: (
