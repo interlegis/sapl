@@ -266,7 +266,7 @@ def signed_files_extraction_function(sender, instance, **kwargs):
         return signs
 
     def run_signed_name_and_date_extract(file):
-        signs = {}
+        signs = []
         fields = {}
         pdfdata = file.read()
 
