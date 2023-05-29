@@ -13,7 +13,7 @@
     <br /><br /><br /><br />
     <b>PARÂMETROS DE PESQUISA:<br /></b>
     &emsp;Ano: {{ ano }} <br />
-    &emsp;Período: {{ data_tramitacao }} <br />
+    &emsp;Período: {{ data_fim_prazo }} <br />
     &emsp;Tipo de matéria: {{ tipo }}<br />
     &emsp;Status de tramitação: {{ tramitacao__status }}<br />
     &emsp;Local de origem: {{ tramitacao__unidade_tramitacao_local }}<br />
@@ -32,12 +32,29 @@
           </tr>
         </thead>
         <tbody>
-          {% for materia in object_list %}
+          {% for materia_em_tramitacao in object_list %}
             <tr>
-              <td><a href="{% url 'sapl.materia:tramitacao_list' materia.pk %}">
-                {{materia.tipo.descricao}} - {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
-              </a></td>
-              <td>{{materia.ementa}}</td>
+              <td width="35%"><a href="{% url 'sapl.materia:tramitacao_list' materia_em_tramitacao.materia.pk %}">
+                {{materia_em_tramitacao.materia.tipo.descricao}} - {{materia_em_tramitacao.materia.tipo.sigla}} {{materia_em_tramitacao.materia.numero}}/{{materia_em_tramitacao.materia.ano}}
+              </a><br>
+              <small>
+              <strong>Data de Fim de Prazo:</strong> {{materia_em_tramitacao.tramitacao.data_fim_prazo}}
+              </small>
+            </td>
+              <td>
+                {{materia_em_tramitacao.materia.ementa}}
+
+                {% if not tramitacao__status or not tramitacao__unidade_tramitacao_destino %}
+                  <small>
+                    <br/>
+                    <strong>Local Atual: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.unidade_tramitacao_destino }}
+                    <br/>
+                    <strong>Status: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.status }}
+                    <br/>
+                    <strong>Texto da Ação: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.texto }}
+                  </small>
+                {% endif %}
+              </td>
             </tr>
           {% endfor %}
         </tbody>

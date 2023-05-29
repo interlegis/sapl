@@ -695,7 +695,7 @@ class RelatorioHistoricoTramitacaoView(RelatorioMixin, FilterView):
 
 
 class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
-    model = MateriaLegislativa
+    model = MateriaEmTramitacao
     filterset_class = RelatorioDataFimPrazoTramitacaoFilterSet
     template_name = 'base/RelatorioDataFimPrazoTramitacao_filter.html'
     relatorio = relatorio_fim_prazo_tramitacao
@@ -703,7 +703,8 @@ class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
     def get_context_data(self, **kwargs):
         context = super(RelatorioDataFimPrazoTramitacaoView,
                         self).get_context_data(**kwargs)
-        context['title'] = _('Relatório de Tramitações')
+        context['title'] = _(
+            'Relatório de tramitações em intervalo de data de fim de prazo.')
         if not self.filterset.form.is_valid():
             return context
         qr = self.request.GET.copy()
@@ -711,16 +712,16 @@ class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
 
         context['show_results'] = show_results_filter_set(qr)
 
-        context['data_tramitacao'] = (self.request.GET['tramitacao__data_fim_prazo_0'] + ' - ' +
-                                      self.request.GET['tramitacao__data_fim_prazo_1'])
+        context['data_fim_prazo'] = (self.request.GET['tramitacao__data_fim_prazo_0'] + ' - ' +
+                                     self.request.GET['tramitacao__data_fim_prazo_1'])
 
-        if self.request.GET['ano']:
-            context['ano'] = self.request.GET['ano']
+        if self.request.GET['materia__ano']:
+            context['ano'] = self.request.GET['materia__ano']
         else:
             context['ano'] = ''
 
-        if self.request.GET['tipo']:
-            tipo = self.request.GET['tipo']
+        if self.request.GET['materia__tipo']:
+            tipo = self.request.GET['materia__tipo']
             context['tipo'] = (
                 str(TipoMateriaLegislativa.objects.get(id=tipo)))
         else:

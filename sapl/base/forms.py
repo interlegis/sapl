@@ -152,11 +152,11 @@ class UserAdminForm(ModelForm):
 
         row_pwd += [
 
-                       ('parlamentar', 6),
-                       ('autor', 6),
-                       ('groups', 12),
+            ('parlamentar', 6),
+            ('autor', 6),
+            ('groups', 12),
 
-                   ] + ([('user_permissions', 12)] if not self.granular is None else [])
+        ] + ([('user_permissions', 12)] if not self.granular is None else [])
 
         row_pwd = to_row(row_pwd)
 
@@ -186,27 +186,28 @@ class UserAdminForm(ModelForm):
             self.fields['parlamentar'].initial = votante.parlamentar if votante else None
 
             self.fields['groups'].choices = [
-                                                (g.id, g) for g in self.instance.groups.exclude(
+                (g.id, g) for g in self.instance.groups.exclude(
                     name__in=['Autor', 'Votante']
                 ).order_by('name')
-                                            ] + [
-                                                (g.id, g) for g in Group.objects.exclude(
+            ] + [
+                (g.id, g) for g in Group.objects.exclude(
                     user=self.instance).exclude(
-                    name__in=['Autor', 'Votante']
+                    name__in=[
+                        'Autor', 'Votante']
                 ).order_by('name')
-                                            ]
+            ]
 
             self.fields[
                 'user_permissions'].widget = forms.CheckboxSelectMultiple()
 
             if not self.granular is None:
                 self.fields['user_permissions'].choices = [
-                                                              (p.id, p) for p in self.instance.user_permissions.all(
+                    (p.id, p) for p in self.instance.user_permissions.all(
                     ).order_by('content_type__app_label',
                                'content_type__model',
                                'codename')
-                                                          ] + [
-                                                              (p.id, p) for p in Permission.objects.filter(
+                ] + [
+                    (p.id, p) for p in Permission.objects.filter(
                         content_type__app_label__in=list(
                             map(lambda x: x.split('.')[-1], settings.SAPL_APPS))
                     ).exclude(
@@ -214,7 +215,7 @@ class UserAdminForm(ModelForm):
                     ).order_by('content_type__app_label',
                                'content_type__model',
                                'codename')
-                                                          ]
+                ]
 
     def save(self, commit=True):
         if self.cleaned_data['new_password1']:
@@ -582,7 +583,7 @@ class AutorForm(ModelForm):
                            to_column((Div(
                                Field('autor_related'),
                                css_class='radiogroup-autor-related hidden'),
-                                      12)))
+                               12)))
         operadores_select = to_row(
             [
                 ('operadores', 12)
@@ -595,29 +596,29 @@ class AutorForm(ModelForm):
         super(AutorForm, self).__init__(*args, **kwargs)
 
         self.fields['operadores'].choices = [
-                                                (
-                                                    u.id,
-                                                    u.username,
-                                                    u
-                                                )
-                                                for u in get_user_model().objects.filter(
+            (
+                u.id,
+                u.username,
+                u
+            )
+            for u in get_user_model().objects.filter(
                 operadorautor_set__autor=self.instance
             ).order_by('-is_active',
                        get_user_model().USERNAME_FIELD
                        ) if self.instance.id
-                                            ] + [
-                                                (
-                                                    u.id,
-                                                    u.username,
-                                                    u
-                                                )
-                                                for u in get_user_model().objects.filter(
+        ] + [
+            (
+                u.id,
+                u.username,
+                u
+            )
+            for u in get_user_model().objects.filter(
                 operadorautor_set__isnull=True,
                 is_active=True
             ).order_by('-is_active',
                        get_user_model().USERNAME_FIELD
                        )
-                                            ]
+        ]
 
         if self.instance.pk:
             if self.instance.autor_related:
@@ -757,15 +758,19 @@ class AuditLogFilterSet(django_filters.FilterSet):
         ('D', 'Excluído'),
     )
 
-    username = django_filters.ChoiceFilter(choices=get_username(), label=_('Usuário'))
+    username = django_filters.ChoiceFilter(
+        choices=get_username(), label=_('Usuário'))
     object_id = django_filters.NumberFilter(label=_('Id'))
-    operation = django_filters.ChoiceFilter(choices=OPERATION_CHOICES, label=_('Operação'))
-    model_name = django_filters.ChoiceFilter(choices=get_models, label=_('Tipo de Registro'))
+    operation = django_filters.ChoiceFilter(
+        choices=OPERATION_CHOICES, label=_('Operação'))
+    model_name = django_filters.ChoiceFilter(
+        choices=get_models, label=_('Tipo de Registro'))
     timestamp = django_filters.DateRangeFilter(label=_('Período'))
 
     class Meta:
         model = AuditLog
-        fields = ['username', 'operation', 'model_name', 'timestamp', 'object_id']
+        fields = ['username', 'operation',
+                  'model_name', 'timestamp', 'object_id']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1019,8 +1024,8 @@ class EstatisticasAcessoNormasForm(Form):
         )
         self.fields['ano'].choices = NormaEstatisticas.objects.order_by(
             '-ano').distinct().values_list('ano', 'ano') or [
-                                         (timezone.now().year, timezone.now().year)
-                                     ]
+            (timezone.now().year, timezone.now().year)
+        ]
 
     def clean(self):
         super(EstatisticasAcessoNormasForm, self).clean()
@@ -1217,47 +1222,49 @@ class RelatorioHistoricoTramitacaoFilterSet(django_filters.FilterSet):
 
 
 class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
-    ano = django_filters.ChoiceFilter(required=False,
-                                      label='Ano da Matéria',
-                                      choices=choice_anos_com_materias)
+    materia__ano = django_filters.ChoiceFilter(required=False,
+                                               label='Ano da Matéria',
+                                               choices=choice_anos_com_materias)
 
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
-        return parent.distinct().prefetch_related('tipo').order_by('-ano', 'tipo', 'numero')
+        return parent.distinct().prefetch_related('materia__tipo').order_by('tramitacao__data_fim_prazo', 'materia__tipo', 'materia__numero')
 
     class Meta(FilterOverridesMetaMixin):
-        model = MateriaLegislativa
-        fields = ['tipo', 'tramitacao__unidade_tramitacao_local',
+        model = MateriaEmTramitacao
+        fields = ['materia__tipo',
+                  'tramitacao__unidade_tramitacao_local',
                   'tramitacao__unidade_tramitacao_destino',
-                  'tramitacao__status', 'tramitacao__data_fim_prazo']
+                  'tramitacao__status',
+                  'tramitacao__data_fim_prazo']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioDataFimPrazoTramitacaoFilterSet, self).__init__(
             *args, **kwargs)
 
-        self.filters['tipo'].label = 'Tipo de Matéria'
+        self.filters['materia__tipo'].label = 'Tipo de Matéria'
         self.filters[
             'tramitacao__unidade_tramitacao_local'].label = 'Unidade Local (Origem)'
         self.filters['tramitacao__unidade_tramitacao_destino'].label = 'Unidade Destino'
         self.filters['tramitacao__status'].label = 'Status de tramitação'
 
-        row1 = to_row([('ano', 12)])
+        row1 = to_row([('materia__ano', 12)])
         row2 = to_row([('tramitacao__data_fim_prazo', 12)])
         row3 = to_row([('tramitacao__unidade_tramitacao_local', 6),
                        ('tramitacao__unidade_tramitacao_destino', 6)])
         row4 = to_row(
-            [('tipo', 6),
+            [('materia__tipo', 6),
              ('tramitacao__status', 6)])
 
         buttons = FormActions(
             *[
                 HTML('''
-                                                    <div class="form-check">
-                                                        <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
-                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
-                                                    </div>
-                                                ''')
+                                            <div class="form-check">
+                                                <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                                                <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                                            </div>
+                                        ''')
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
