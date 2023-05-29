@@ -52,6 +52,7 @@ AppConfig:
 
   {% trans 'Estatísticas de acesso' %}:
   - estatisticas_acesso_normas
+  - google_analytics_id_metrica
 
   {% trans 'Segurança' %}:
   - google_recaptcha_site_key google_recaptcha_secret_key

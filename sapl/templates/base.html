@@ -264,14 +264,6 @@
 
       {% block extra_js %}{% endblock extra_js %}
 
-
-      {% if not DEBUG %}
-        <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-        <script>
-          new window.VLibras.Widget('https://vlibras.gov.br/app');
-        </script>
-      {% endif %}
-
       <script type="text/javascript" >
         function inIframe () {
           try {
@@ -296,6 +288,27 @@
 
         });
       </script>
+
+
+
+    {% if not DEBUG %}
+      <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+      <script>
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+      </script>
+
+      {% if "google_analytics_id_metrica"|get_config_attr %}
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{"google_analytics_id_metrica"|get_config_attr}}"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '{{"google_analytics_id_metrica"|get_config_attr}}');
+        </script>
+        {% endif %}
+    {% endif %}
+
 
     {% endblock foot_js %}
 

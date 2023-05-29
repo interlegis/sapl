@@ -234,7 +234,8 @@ class AppConfig(models.Model):
         verbose_name=_('Mostrar brasão da Casa no painel?'))
 
     mostrar_voto = models.BooleanField(
-        verbose_name=_('Exibir voto do Parlamentar antes de encerrar a votação?'),
+        verbose_name=_(
+            'Exibir voto do Parlamentar antes de encerrar a votação?'),
         choices=YES_NO_CHOICES, default=False)
 
     # MÓDULO ESTATÍSTICAS DE ACESSO
@@ -257,6 +258,10 @@ class AppConfig(models.Model):
         max_length=256, default='')
     google_recaptcha_secret_key = models.CharField(
         verbose_name=_('Chave privada gerada pelo Google Recaptcha'),
+        max_length=256, default='')
+
+    google_analytics_id_metrica = models.CharField(
+        verbose_name=_('ID da Métrica do Google Analytics'),
         max_length=256, default='')
 
     class Meta:

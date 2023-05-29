@@ -1620,6 +1620,12 @@ class ConfiguracoesAppForm(ModelForm):
         max_length=256,
         required=False)
 
+    google_analytics_id_metrica = forms.CharField(
+        label=AppConfig._meta.get_field(
+            'google_analytics_id_metrica').verbose_name,
+        max_length=256,
+        required=False)
+
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
@@ -1648,8 +1654,10 @@ class ConfiguracoesAppForm(ModelForm):
                   'tramitacao_documento',
                   'google_recaptcha_site_key',
                   'google_recaptcha_secret_key',
+                  'google_analytics_id_metrica',
                   'sapl_as_sapn',
-                  'identificacao_de_documentos']
+                  'identificacao_de_documentos',
+                  ]
 
     def __init__(self, *args, **kwargs):
         super(ConfiguracoesAppForm, self).__init__(*args, **kwargs)
