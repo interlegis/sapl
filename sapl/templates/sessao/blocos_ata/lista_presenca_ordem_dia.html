@@ -5,7 +5,7 @@
 	{% if presenca_ordem %}
 	<strong>Lista de Presença na Ordem do Dia: </strong>
 		{% for p in presenca_ordem %}
-			{{p.nome_completo}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+			{{p.nome_parlamentar}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
 			{% if not forloop.last %} ; {% endif %}
 		{% endfor %}
 	{% endif %}

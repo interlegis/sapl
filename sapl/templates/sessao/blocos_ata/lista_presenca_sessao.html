@@ -5,7 +5,7 @@
     {% if presenca_sessao %}
       <strong>Lista de Presença na Sessão: </strong>
       {% for p in presenca_sessao %}
-          {{p.nome_completo}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+          {{p.nome_parlamentar}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
       {% if not forloop.last %} ; {% endif %}
       {% endfor %}
     {% endif %}  
@@ -14,7 +14,7 @@
     {% if justificativa_ausencia %}
       <strong>Justificativas de Ausências na Sessão: </strong>
       {% for j in justificativa_ausencia %}
-          {{j.parlamentar.nome_completo}} / {{ j.tipo_ausencia }}
+          {{j.parlamentar.nome_parlamentar}} / {{ j.tipo_ausencia }}
       {% if not forloop.last %} ; {% endif %}
       {% endfor %}
     {% endif %}
