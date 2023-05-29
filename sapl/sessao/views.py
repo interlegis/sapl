@@ -5191,7 +5191,7 @@ class CorrespondenciaCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['numero_ordem',
-                            ('documento__data', 'documento__interessado'), 'documento']
+                            ('documento__data', 'documento__interessado'), 'documento', 'documento__assunto']
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
