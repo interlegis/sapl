@@ -68,7 +68,8 @@ function set_rc_version {
 
 function commit_and_push {
    echo "committing..."
-   git add docker/docker-compose.yaml setup.py sapl/settings.py sapl/templates/base.html
+   git changelog --tag $FINAL_VERSION -x >> CHANGES.md
+   git add docker/docker-compose.yaml setup.py sapl/settings.py sapl/templates/base.html CHANGES.md
    git commit -m "Release: $FINAL_VERSION"
    git tag $FINAL_VERSION
 
