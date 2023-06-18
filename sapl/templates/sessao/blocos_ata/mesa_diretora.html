@@ -6,7 +6,7 @@
       <strong>Mesa Diretora: </strong>
       {% for m in mesa %}
         {{m.cargo}}:
-        {{m.parlamentar.nome_completo}} / {% if m.parlamentar|filiacao_data_filter:object.data_inicio %} {{ m.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %} 
+        {{m.parlamentar.nome_parlamentar}} / {% if m.parlamentar|filiacao_data_filter:object.data_inicio %} {{ m.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
         {% if not forloop.last %} ; {% endif %}
       {% endfor %}
     {% endif %}

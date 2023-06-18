@@ -5,7 +5,7 @@
 		{% if oradores_ordemdia %}
 			<strong>Oradores da Ordem do Dia: </strong>
 			{% for o in oradores_ordemdia %}
-				<b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_completo}} / {% if o.parlamentar|filiacao_data_filter:object.data_inicio %} {{ o.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+				<b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {% if o.parlamentar|filiacao_data_filter:object.data_inicio %} {{ o.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
 				{% if o.url_discurso %} - <b>URL Vídeo:</b> <a href={{o.url_discurso}}>{{o.url_discurso}}</a>  {% endif %}
 				{% if o.observacao %} - <b>Observação:</b> {{o.observacao}} {% endif %}
 				{% if not forloop.last %} ; {% endif %}
