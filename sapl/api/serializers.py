@@ -86,7 +86,7 @@ class ParlamentarSerializerPublic(SaplSerializerMixin):
 
     class Meta:
         model = Parlamentar
-        exclude = ["cpf", "rg", "fax",
+        exclude = ["cpf", "rg", "fax", "data_nascimento",
                    "endereco_residencia", "municipio_residencia",
                    "uf_residencia", "cep_residencia", "situacao_militar",
                    "telefone_residencia", "titulo_eleitor", "fax_residencia"]
