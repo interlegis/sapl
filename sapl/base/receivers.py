@@ -10,7 +10,7 @@ from django.core import serializers
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 from django.db.models.fields.files import FileField
 from django.db.models.signals import post_delete, post_save, \
-    post_migrate, pre_save
+    post_migrate, pre_save, pre_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.dispatch import receiver
 from django.utils import timezone
@@ -465,3 +465,8 @@ def signed_files_extraction_function(sender, instance, **kwargs):
 def signed_files_extraction_pre_save_signal(sender, instance, **kwargs):
 
     signed_files_extraction_function(sender, instance, **kwargs)
+
+
+@receiver(pre_migrate, dispatch_uid='disconnect_signals_pre_migrate')
+def disconnect_signals_pre_migrate(*args, **kwargs):
+    pre_save.disconnect(dispatch_uid='signed_files_extraction_pre_save_signal')
