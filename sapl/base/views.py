@@ -47,8 +47,7 @@ from sapl.parlamentares.models import (
     Filiacao, Legislatura, Mandato, Parlamentar)
 from sapl.protocoloadm.models import (Anexado, Protocolo)
 from sapl.relatorios.views import (relatorio_estatisticas_acesso_normas)
-from sapl.sessao.models import (
-    Bancada, SessaoPlenaria)
+from sapl.sessao.models import (Bancada, SessaoPlenaria)
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, google_recaptcha_configured, sapl_as_sapn,
