@@ -20,7 +20,7 @@ green_color='\033[0;32m'
 red_color='\033[0;31m'
 reset_color='\033[0m'
 
-LATEST_VERSION=$(git tag | egrep $VERSION_PATTERN | sort --version-sort | tail -1)
+LATEST_VERSION=$(git tag | egrep $VERSION_PATTERN | sort --version-sort -r | head -1)
 MAJOR_VERSION=$(echo $LATEST_VERSION | cut -d"-" -f1)
 MAJOR_TAG_CREATED=$(git tag | egrep $MAJOR_VERSION"$")
 
@@ -51,6 +51,7 @@ function change_files {
     sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
 
     sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
+    
 }
 
 function set_major_version {
@@ -91,8 +92,12 @@ prompt_yes_no() {
 
 function commit_and_push {
    echo -e "${green_color}Committing new release $FINAL_VERSION...${color_reset}"
-   git changelog --tag $FINAL_VERSION -x >> CHANGES.md
-   git add docker/docker-compose.yaml setup.py sapl/settings.py sapl/templates/base.html CHANGES.md
+   git add docker/docker-compose.yaml setup.py sapl/settings.py sapl/templates/base.html
+   git changelog --tag $FINAL_VERSION --prune-old -x > latest_changes.tmp
+   cat /tmp/latest_changes.md CHANGES.md > CHANGES.tmp
+   mv CHANGES.tmp CHANGES.md
+   git add CHANGES.md
+   rm latest_changes.tmp
 
    if prompt_yes_no "${green_color}Do you want to commit SAPL $FINAL_VERSION release locally?${reset_color}"; then
        git commit -m "Release: $FINAL_VERSION"
@@ -144,7 +149,7 @@ case "$1" in
        exit 0
       ;;
     --top)
-       git tag | sort --version-sort | tail "-$2"
+       git tag | sort --version-sort -r | head "-$2"
        exit 0
        ;;
 
