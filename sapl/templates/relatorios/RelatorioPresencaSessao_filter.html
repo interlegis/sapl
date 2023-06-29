@@ -33,6 +33,7 @@
           <th rowspan="2">Ativo?</th>
           <th colspan="2">Sessão</th>
           {% if exibir_ordem %} <th colspan="2">Ordem do Dia</th> {% endif %}
+          <th rowspan="2">Ausências Justificadas (Sessão)</th>
         </tr>
         <tr class="active">
           <th>(Qtd)</th>
@@ -55,6 +56,7 @@
               <td>{{p.ordemdia_count}}</td>
               <td>{{p.ordemdia_porc}}</td>
             {% endif %}
+            <td>{{p.ausencia_justificada_count}} ({{p.ausencia_justificadas_porc}}%)</td>
           </tr>
         {% endfor %}
       </tbody>
