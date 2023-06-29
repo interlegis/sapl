@@ -1928,6 +1928,11 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
         presenca_ordem = PresencaOrdemDia.objects.filter(
             **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
 
+        # Ausencias justificadas
+        ausencia_justificadas = JustificativaAusencia.objects.filter(
+            **param0, ausencia=2).values_list('parlamentar_id')\
+            .annotate(sessao_count=Count('id'))
+
         total_ordemdia = PresencaOrdemDia.objects.filter(
             **param0).distinct('sessao_plenaria__id').order_by('sessao_plenaria__id').count()
 
@@ -2009,10 +2014,32 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
                 self.logger.error(
                     F'user={username}. Erro ao obter PresencaOrdemDia para o parlamentar pk={p.id}. Definido como 0.')
                 ordemdia_count = 0
+            try:
+                self.logger.debug(
+                    F'user={username}. Tentando obter ausência justificada do parlamentar (pk={p.id}).')
+                ausencia_justificadas_count = ausencia_justificadas.get(parlamentar_id=p.id)[1]
+            except ObjectDoesNotExist as e:
+                self.logger.error(
+                    F'user={username}. Erro ao obter ausência do parlamentar (pk={p.id}). Definido como 0. {str(e)}')
+                ausencia_justificadas_count = 0
+
+            ausencia_count = total_sessao - sessao_count if total_sessao else 0
+            ausencia_porc = round(100 * (1 - sessao_count / total_sessao), 2) if total_sessao else 0
+            # # porcentagem do total de ausencias
+            # ausencia_justificadas_porc = round(100 * ausencias_justificadas_count / ausencia_count, 2)\
+            #     if ausencia_count else 0
+
+            # porcentagem do total de sessoes
+            ausencia_justificadas_porc = round(100 * ausencia_justificadas_count / total_sessao, 2) \
+                if total_sessao else 0
 
             parlamentar.update({
                 'sessao_count': sessao_count,
-                'ordemdia_count': ordemdia_count
+                'ordemdia_count': ordemdia_count,
+                'ausencia_count': ausencia_count,
+                'ausencia_porc': ausencia_porc,
+                'ausencia_justificada_count': ausencia_justificadas_count,
+                'ausencia_justificadas_porc': ausencia_justificadas_porc,
             })
 
             if total_sessao != 0:
