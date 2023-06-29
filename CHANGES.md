@@ -1,4 +1,11 @@
 
+3.1.163-RC14 / 2023-06-28
+=========================
+
+  * HOT-FIX: conserta changelog
+  * feat: Torna o campo Data Nascimento de Parlamentares sensivel (#3648)
+  * hot-fix: desconecta signal pre_save no migrate
+
 3.1.163-RC13 / 2023-06-18
 =========================
 
