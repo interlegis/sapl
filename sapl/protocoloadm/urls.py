@@ -27,7 +27,8 @@ from sapl.protocoloadm.views import (AcompanhamentoDocumentoView,
                                      TramitacaoEmLoteAdmView,
                                      apaga_protocolos_view,
                                      VinculoDocAdminMateriaCrud,
-                                     VinculoDocAdminMateriaEmLoteView)
+                                     VinculoDocAdminMateriaEmLoteView,
+                                     get_pdf_docacessorios)
 
 from .apps import AppConfig
 
@@ -51,6 +52,8 @@ urlpatterns_documento_administrativo = [
         name='anexado_em_lote'),
     url(r'^docadm/(?P<pk>\d+)/vinculo-em-lote', VinculoDocAdminMateriaEmLoteView.as_view(),
         name='vinculodocadminmateria_em_lote'),
+    url(r'^docadm/documentoacessorioadministrativo/pdf/(?P<pk>\d+)$', get_pdf_docacessorios,
+        name='merge_docacessorios')
 ]
 
 urlpatterns_protocolo = [

@@ -1,0 +1,12 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load common_tags %}
+
+{% block base_content %}
+  {{ block.super }}
+  <div style="display:flex;padding-left: 600px;padding-top: 10px;">
+    <div class="actions btn-group float-right" role="group">
+        <a href="{% url 'sapl.protocoloadm:merge_docacessorios' root_pk %}" class="btn btn-outline-primary">{% trans 'Baixar documentos como PDF único' %}</a>
+    </div>
+  </div>
+{% endblock base_content%}
