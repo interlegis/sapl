@@ -32,7 +32,6 @@ import sapl.norma.urls
 import sapl.painel.urls
 import sapl.parlamentares.urls
 import sapl.protocoloadm.urls
-import sapl.redireciona_urls.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
 
@@ -63,8 +62,6 @@ urlpatterns += [
 
     url(r'^favicon\.ico$', RedirectView.as_view(
         url='/static/sapl/img/favicon.ico', permanent=True)),
-
-    url(r'', include(sapl.redireciona_urls.urls)),
 
     path("robots.txt", TemplateView.as_view(
         template_name="robots.txt", content_type="text/plain")),
