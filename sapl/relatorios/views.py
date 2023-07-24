@@ -1760,8 +1760,14 @@ class RelatoriosListView(TemplateView):
 
 
 class RelatorioMixin:
+    # TODO: verificar se todos os relatorios de sistema/relatorios extendem esse Mixin
     def get(self, request, *args, **kwargs):
         super(RelatorioMixin, self).get(request)
+
+        # TODO: import as global
+        from sapl.utils import is_report_allowed
+        if not is_report_allowed(request):
+            raise Http404()
 
         is_relatorio = request.GET.get('relatorio')
         context = self.get_context_data(filter=self.filterset)

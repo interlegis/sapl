@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load common_tags %}
 {% load i18n crispy_forms_tags %}
 
 {% block base_content %}
@@ -12,72 +13,120 @@
       </tr>
     </thead>
     <tbody>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:materia_por_tramitacao' %}">Matérias em tramitação</a></td>
-          <td> Matérias Legislativas por Ano, Tipo, Local atual e Status da Tramitação informados. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:materia_por_autor' %}">Matérias por Autor</a></td>
-          <td> Listagem e totalização de matérias por autor, com filtros para tipo e período. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:materia_por_ano_autor_tipo' %}">Matérias por Ano, Autor e Tipo</a></td>
-          <td> Totalização anual de matérias agrupadas por autor e tipo. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:materia_por_ano_assunto' %}">Matérias por Ano, Assunto</a></td>
-          <td> Totalização de matérias agrupadas por ano e assunto. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:presenca_sessao' %}">Presença nas sessões</a></td>
-          <td>Presença dos parlamentares nas sessões plenárias.</td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:atas' %}">Atas</a></td>
-          <td> Atas de Sessão Plenária. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:historico_tramitacoes' %}">Histórico de tramitações de Matérias</a></td>
-          <td> Histórico de tramitações por período e local informados. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:data_fim_prazo_tramitacoes' %}">Matérias por prazos de Tramitação</a></td>
-          <td> Relatório de tramitações em intervalo de data de fim de prazo. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:reuniao' %}">Reunião de Comissão</a></td>
-          <td> Reunião de Comissão por data. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:audiencia' %}">Audiência Pública</a></td>
-          <td> Audiência Pública com o tipo. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:normas_por_mes' %}">Normas por mês</a></td>
-          <td> Normas publicadas por mês. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:normas_por_vigencia' %}">Normas por vigência</a></td>
-          <td> Normas vigentes ou não vigentes. </td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:historico_tramitacoes_adm' %}">Histórico de tramitações de documentos</a></td>
-          <td> Histórico de tramitações de documentos por período e local informados. </td>
-        </tr>
-        {% if estatisticas_acesso_normas %}
-          <tr>
-            <td><a href="{% url 'sapl.relatorios:estatisticas_acesso' %}">Estatísticas de acesso de Normas</a></td>
-            <td> Normas por acesso. </td>
-          </tr>
+        {% url 'sapl.relatorios:materia_por_tramitacao' as materia_por_tramitacao %}
+        {% if request|is_report_visible:materia_por_tramitacao %}
+            <tr>
+              <td><a href="{{ materia_por_tramitacao }}">Matérias em tramitação</a></td>
+              <td> Matérias Legislativas por Ano, Tipo, Local atual e Status da Tramitação informados. </td>
+            </tr>
         {% endif %}
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:relatorio_documentos_acessorios' %}"> Documentos Acessórios de Matérias Legislativas</a></td>
-          <td> Documentos Acessórios por tipo, período e tipo da Matéria Legislativa associada.</td>
-        </tr>
-        <tr>
-          <td><a href="{% url 'sapl.relatorios:normas_por_autor' %}"> Normas Por Autor</a></td>
-          <td> Listagem e totalização de normas por autor, com filtros para tipo e período.</td>
-        </tr>
+        {% url 'sapl.relatorios:materia_por_autor' as materia_por_autor %}
+        {% if request|is_report_visible:materia_por_autor %}
+            <tr>
+              <td><a href="{{ materia_por_autor }}">Matérias por Autor</a></td>
+              <td> Listagem e totalização de matérias por autor, com filtros para tipo e período. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:materia_por_ano_autor_tipo' as materia_por_ano_autor_tipo %}
+        {% if request|is_report_visible:materia_por_ano_autor_tipo %}
+            <tr>
+              <td><a href="{{ materia_por_ano_autor_tipo }}">Matérias por Ano, Autor e Tipo</a></td>
+              <td> Totalização anual de matérias agrupadas por autor e tipo. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:materia_por_ano_assunto' as materia_por_ano_assunto %}
+        {% if request|is_report_visible:materia_por_ano_assunto %}
+            <tr>
+              <td><a href="{{ materia_por_ano_assunto }}">Matérias por Ano, Assunto</a></td>
+              <td> Totalização de matérias agrupadas por ano e assunto. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:presenca_sessao' as presenca_sessao %}
+        {% if request|is_report_visible:presenca_sessao %}
+            <tr>
+              <td><a href="{{ presenca_sessao }}">Presença nas sessões</a></td>
+              <td>Presença dos parlamentares nas sessões plenárias.</td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:atas' as atas %}
+        {% if request|is_report_visible:atas %}
+            <tr>
+              <td><a href="{{ atas }}">Atas</a></td>
+              <td> Atas de Sessão Plenária. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:historico_tramitacoes' as historico_tramitacoes %}
+        {% if request|is_report_visible:historico_tramitacoes %}
+            <tr>
+              <td><a href="{{ historico_tramitacoes }}">Histórico de tramitações de Matérias</a></td>
+              <td> Histórico de tramitações por período e local informados. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:data_fim_prazo_tramitacoes' as data_fim_prazo_tramitacoes %}
+        {% if request|is_report_visible:data_fim_prazo_tramitacoes %}
+            <tr>
+              <td><a href="{{ data_fim_prazo_tramitacoes }}">Matérias por prazos de Tramitação</a></td>
+              <td> Relatório de tramitações em intervalo de data de fim de prazo. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:reuniao' as reuniao %}
+        {% if request|is_report_visible:reuniao %}
+            <tr>
+              <td><a href="{% url 'sapl.relatorios:reuniao' %}">Reunião de Comissão</a></td>
+              <td> Reunião de Comissão por data. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:audiencia' as audiencia %}
+        {% if request|is_report_visible:audiencia %}
+            <tr>
+              <td><a href="{{audiencia}}">Audiência Pública</a></td>
+              <td> Audiência Pública com o tipo. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:normas_por_mes' as normas_por_mes %}
+        {% if request|is_report_visible:normas_por_mes %}
+            <tr>
+              <td><a href="{{normas_por_mes}}">Normas por mês</a></td>
+              <td> Normas publicadas por mês. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:normas_por_vigencia' as normas_por_vigencia %}
+        {% if request|is_report_visible:normas_por_vigencia %}
+            <tr>
+              <td><a href="{{ normas_por_vigencia }}">Normas por vigência</a></td>
+              <td> Normas vigentes ou não vigentes. </td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:historico_tramitacoes_adm' as historico_tramitacoes_adm %}
+        {% if request|is_report_visible:historico_tramitacoes_adm %}
+            <tr>
+              <td><a href="{{historico_tramitacoes_adm}}">Histórico de tramitações de documentos</a></td>
+              <td> Histórico de tramitações de documentos por período e local informados. </td>
+            </tr>
+        {% endif %}
+        {% if estatisticas_acesso_normas %}
+            {% url 'sapl.relatorios:estatisticas_acesso' as estatisticas_acesso %}
+            {% if request|is_report_visible:estatisticas_acesso %}
+                  <tr>
+                    <td><a href="{{ estatisticas_acesso }}">Estatísticas de acesso de Normas</a></td>
+                    <td> Normas por acesso. </td>
+                  </tr>
+            {% endif %}
+        {% endif %}
+        {% url 'sapl.relatorios:relatorio_documentos_acessorios' as relatorio_documentos_acessorios %}
+        {% if request|is_report_visible:relatorio_documentos_acessorios %}
+            <tr>
+              <td><a href="{{ relatorio_documentos_acessorios }}"> Documentos Acessórios de Matérias Legislativas</a></td>
+              <td> Documentos Acessórios por tipo, período e tipo da Matéria Legislativa associada.</td>
+            </tr>
+        {% endif %}
+        {% url 'sapl.relatorios:normas_por_autor' as normas_por_autor %}
+        {% if request|is_report_visible:normas_por_autor %}
+            <tr>
+              <td><a href="{{ normas_por_autor }}"> Normas Por Autor</a></td>
+              <td> Listagem e totalização de normas por autor, com filtros para tipo e período.</td>
+            </tr>
+        {% endif %}
     </tbody>
   </table>
 </fieldset>

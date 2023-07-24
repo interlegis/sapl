@@ -11,8 +11,7 @@ from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposic
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
 from sapl.sessao.models import SessaoPlenaria
-from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
-
+from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO, is_report_allowed
 
 register = template.Library()
 
@@ -405,3 +404,8 @@ def dont_break_out(value):
 @register.filter(expects_localtime=True)
 def parse_datetime(value):
     return django_parse_datetime(value)
+
+
+@register.filter
+def is_report_visible(request, url_path=None):
+    return is_report_allowed(request, url_path)
