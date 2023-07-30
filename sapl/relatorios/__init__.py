@@ -1,1 +1,1 @@
-default_app_config = 'relatorios.apps.AppConfig'
+default_app_config = 'sapl.relatorios.apps.AppConfig'

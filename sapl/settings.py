@@ -63,6 +63,7 @@ SAPL_APPS = (
     'sapl.protocoloadm',
     'sapl.compilacao',
     'sapl.api',
+    'sapl.relatorios',
     'sapl.rules'
 )
 

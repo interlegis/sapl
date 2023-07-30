@@ -5,13 +5,16 @@ import re
 from datetime import datetime as dt, datetime
 
 import unidecode
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import FormMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Q, F
 from django.http import Http404, HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView, ListView, FormView
 from django_filters.views import FilterView
 from weasyprint import HTML, CSS
 
@@ -31,7 +34,8 @@ from sapl.relatorios.forms import RelatorioNormasPorAutorFilterSet, RelatorioHis
     RelatorioNormasVigenciaFilterSet, RelatorioNormasMesFilterSet, RelatorioMateriasPorAutorFilterSet, \
     RelatorioMateriasPorAnoAutorTipoFilterSet, RelatorioMateriasTramitacaoFilterSet, RelatorioAudienciaFilterSet, \
     RelatorioReuniaoFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet, RelatorioHistoricoTramitacaoFilterSet, \
-    RelatorioPresencaSessaoFilterSet, RelatorioAtasFilterSet, RelatorioDocumentosAcessoriosFilterSet
+    RelatorioPresencaSessaoFilterSet, RelatorioAtasFilterSet, RelatorioDocumentosAcessoriosFilterSet, \
+    ConfiguracaoRelatorioForm
 from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 IntegranteMesa, JustificativaAusencia,
                                 Orador, OradorExpediente,
@@ -51,12 +55,14 @@ from sapl.settings import MEDIA_URL
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
     num_materias_por_tipo, parlamentares_ativos
+from .models import RelatorioConfig
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
-from sapl.crud.base import make_pagination
+from sapl.crud.base import make_pagination, Crud
+from ..rules import RP_LIST, RP_DETAIL
 
 
 def get_kwargs_params(request, fields):
@@ -2727,3 +2733,11 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
                 ' - ' + self.request.GET['data_1'])
 
         return context
+
+
+class RelatorioConfigView(FormMixin, DetailView):
+    form_class = ConfiguracaoRelatorioForm
+    template_name = 'relatorios/configuracao.html'
+    permission_required = ('base.list_appconfig',)
+    logger = logging.getLogger(__name__)
+

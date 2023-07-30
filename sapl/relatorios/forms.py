@@ -309,7 +309,8 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
-        return parent.distinct().prefetch_related('materia__tipo').order_by('tramitacao__data_fim_prazo', 'materia__tipo', 'materia__numero')
+        return parent.distinct().prefetch_related('materia__tipo').order_by('tramitacao__data_fim_prazo',
+                                                                            'materia__tipo', 'materia__numero')
 
     class Meta(FilterOverridesMetaMixin):
         model = MateriaEmTramitacao
@@ -774,3 +775,12 @@ class RelatorioNormasVigenciaFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         return qs_override_django_filter(self)
+
+
+class ConfiguracaoRelatorioForm(forms.Form):
+    nome = forms.CharField(required=True,
+                           label="Nome",
+                           max_length=100)
+    url = forms.CharField(required=True,
+                          label="URL",
+                          max_length=200)

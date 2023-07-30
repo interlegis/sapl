@@ -14,6 +14,9 @@
   - title: {% trans 'Autores' %}
     url: sapl.base:autor_list
     css_class: btn btn-link
+  - title: {% trans 'Configuração de Relatórios' %}
+    url: sapl.relatorios:relatorio_config
+    css_class: btn btn-link
 {% if not sapl_as_sapn%}
 - title: {% trans 'Módulo Parlamentares' %}
   css_class: head_title

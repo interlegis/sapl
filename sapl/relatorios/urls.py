@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.conf.urls import include, url
 
 from .apps import AppConfig
 from .views import (relatorio_capa_processo,
@@ -11,7 +11,7 @@ from .views import (relatorio_capa_processo,
                     RelatorioMateriasTramitacaoView, RelatorioMateriaAnoAssuntoView, RelatorioHistoricoTramitacaoView,
                     RelatorioDataFimPrazoTramitacaoView, RelatorioPresencaSessaoView, RelatorioAtasView,
                     RelatorioReuniaoView, RelatorioAudienciaView, RelatorioHistoricoTramitacaoAdmView,
-                    RelatorioDocumentosAcessoriosView, RelatorioNormasPorAutorView)
+                    RelatorioDocumentosAcessoriosView, RelatorioNormasPorAutorView, RelatorioConfigView)
 from ..base.views import EstatisticasAcessoNormas
 
 app_name = AppConfig.name
@@ -51,7 +51,8 @@ urlpatterns = [
     url(r'^relatorios/(?P<pk>\d+)/materia-tramitacao$',
         relatorio_materia_tramitacao, name='relatorio_materia_tramitacao'),
 
-    # TODO mover estas telas para a app 'relatorios'
+    url(r'^sistema/relatorios/configuracao/',
+        RelatorioConfigView.as_view(), name='relatorio_config'),
     url(r'^sistema/relatorios/$',
         RelatoriosListView.as_view(), name='relatorios_list'),
     url(r'^sistema/relatorios/materia-por-autor$',
