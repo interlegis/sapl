@@ -780,6 +780,33 @@ class Proposicao(models.Model):
         verbose_name=_('Data de Devolução')
     )
 
+    usuario_envio = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário Responsável pelo Envio'),
+        on_delete=models.PROTECT,
+        related_name='proposicoes_enviadas',
+        blank=True,
+        null=True
+    )
+
+    usuario_recebimento = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário Responsável pelo Recebimento'),
+        on_delete=models.PROTECT,
+        related_name='proposicoes_recebidas',
+        blank=True,
+        null=True
+    )
+
+    usuario_devolucao = models.ForeignKey(
+        get_settings_auth_user_model(),
+        verbose_name=_('Usuário Responsável pela Devolução'),
+        on_delete=models.PROTECT,
+        related_name='proposicoes_devolvidas',
+        blank=True,
+        null=True
+    )
+
     descricao = models.TextField(verbose_name=_('Ementa'))
 
     justificativa_devolucao = models.CharField(
@@ -993,6 +1020,13 @@ class Proposicao(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
+        # atualiza o usuario baseado no status da proposição (que esta sendo calculado pela data)
+        if self.data_envio is not None and not self.usuario_envio:
+            self.usuario_envio = self.user
+        elif self.data_recebimento is not None and not self.usuario_recebimento:
+            self.usuario_recebimento = self.user
+        elif self.data_devolucao is not None and not self.usuario_devolucao:
+            self.usuario_devolucao = self.user
 
         if not self.pk and self.texto_original:
             texto_original = self.texto_original

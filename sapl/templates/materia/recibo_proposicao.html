@@ -50,8 +50,15 @@
       <td>Tipo de Proposição: <b>{{proposicao.tipo.descricao}}</b></td>
     </tr>
     <tr>
-      <td>Autor: <b>{{proposicao.autor}}</b></td>
-      <td>Enviada por: <b>{{ proposicao.user|format_user }}</b></td>
+        <td>Autor: <b>{{ proposicao.autor }}</b></td>
+        <td>Enviada por:
+            {# TODO remover condicional apos migrar as acoes para os devidos campos#}
+            {% if proposicao.usuario_envio %}
+                <b>{{ proposicao.usuario_envio|format_user }}</b>
+            {% else %}
+                <b>{{ proposicao.user }}</b>
+            {% endif %}
+        </td>
     </tr>
     <tr>
       <td>Descrição: <b>{{proposicao.descricao}}</b></td>
