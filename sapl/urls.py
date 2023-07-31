@@ -34,6 +34,7 @@ import sapl.parlamentares.urls
 import sapl.protocoloadm.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
+import sapl.configuracao_impressao.urls
 
 urlpatterns = []
 
@@ -52,6 +53,7 @@ urlpatterns += [
     url(r'', include(sapl.compilacao.urls)),
     url(r'', include(sapl.relatorios.urls)),
     url(r'', include(sapl.audiencia.urls)),
+    url(r'', include(sapl.configuracao_impressao.urls)),
 
     #    name='sapl_index'),
     # must come at the end
