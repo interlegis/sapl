@@ -17,7 +17,7 @@ django-ratelimit==3.0.1
 easy-thumbnails==2.5
 python-decouple==3.1
 psycopg2-binary==2.8.6
-pyyaml==5.4
+pyyaml==6.0.1
 pytz==2019.3
 python-magic==0.4.15
 unipath==1.1
