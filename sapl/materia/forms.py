@@ -2,7 +2,7 @@ import logging
 import os
 
 from crispy_forms.bootstrap import Alert, InlineRadios
-from crispy_forms.layout import (Button, Field, Fieldset, HTML, Layout, Row)
+from crispy_forms.layout import (Button, Field, Fieldset, HTML, Layout, Row, Div)
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -1120,22 +1120,38 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
+            Div(
             Fieldset(_('Pesquisa Básica'),
-                     row1, row2),
-
-            Fieldset(_('Como listar os resultados da pesquisa'),
-                     row8
-                     ),
-            Fieldset(_('Origem externa'),
-                     row10, row11
-                     ),
-            Fieldset(_('Pesquisa Avançada'),
-                     row3,
+                     row1, row2,
                      HTML(autor_label),
                      HTML(autor_modal),
-                     row4, row6, row7, row9,
-                     form_actions(label=_('Pesquisar')))
-        )
+                     row4,
+                     ),
+            Button('btn_pesquisa_avancada', 'Pesquisa Avançada >>>',
+                   css_id='btn_pesquisa_avancada_id',
+                   css_class='btn btn-dark',
+                   onClick="pesquisaAvancada()",
+                   style='margin-bottom: 2vh;font-weight: bold'
+                   ),
+            Fieldset(_('Como listar os resultados da pesquisa'),
+                     row8,
+                     css_class='pesquisa_avancada',
+                     style='display: none;',
+                     ),
+            Fieldset(_('Origem externa'),
+                     row10, row11,
+                     css_class='pesquisa_avancada',
+                     style='display: none;',
+                     ),
+            Fieldset(_('Mais Opções de Pesquisa...'),
+                     row3,
+                     row6, row7, row9,
+                     css_class='pesquisa_avancada',
+                     style='display: none;'
+                     ),
+            form_actions(label=_('Pesquisar')),
+            )
+         )
 
     @property
     def qs(self):

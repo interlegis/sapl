@@ -200,3 +200,20 @@
     {% endblock detail_content %}
   {% block table_content %}
   {% endblock table_content %}
+  {% block extra_js %}
+
+  <script type="text/javascript" >
+
+  function pesquisaAvancada(){
+     $('.pesquisa_avancada').toggle();
+
+     var id_btn = "#btn_pesquisa_avancada_id";
+     if ($(id_btn).val().endsWith('>>>')){
+       $(id_btn).val($(id_btn).val().replace('>>>', '<<<'))
+     }else{
+       $(id_btn).val($(id_btn).val().replace('<<<', '>>>'))
+     }
+  };
+  </script>
+  {% endblock extra_js %}
+
