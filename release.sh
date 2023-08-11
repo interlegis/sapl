@@ -93,11 +93,11 @@ prompt_yes_no() {
 function commit_and_push {
    echo -e "${green_color}Committing new release $FINAL_VERSION...${color_reset}"
    git add docker/docker-compose.yaml setup.py sapl/settings.py sapl/templates/base.html
-   git changelog --tag $FINAL_VERSION --prune-old -x > latest_changes.tmp
-   cat /tmp/latest_changes.md CHANGES.md > CHANGES.tmp
+   git changelog --tag $FINAL_VERSION --prune-old -x > latest_changes.md
+   cat latest_changes.md CHANGES.md > CHANGES.tmp
    mv CHANGES.tmp CHANGES.md
    git add CHANGES.md
-   rm latest_changes.tmp
+   rm latest_changes.md
 
    if prompt_yes_no "${green_color}Do you want to commit SAPL $FINAL_VERSION release locally?${reset_color}"; then
        git commit -m "Release: $FINAL_VERSION"
