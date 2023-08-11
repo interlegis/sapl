@@ -1,4 +1,20 @@
 
+3.1.163-RC15 / 2023-08-11
+=========================
+
+  * HOT-FIX: conserta geração de CHANGES.md
+  * fix: Cria novos campos para o model proposicao para salvar o usuario responsavel por cada acao (#3660)
+  * Simplificação da tela de pesquisa de Matéria Legislativa (#3662)
+  * bump pyyaml
+  * Adiciona controle de visibilidade no módulo de relatorios
+  * Adiciona coluna de justificativa de ausência (#3657)
+  * Adiciona coluna de justificativa de ausência
+  * Conserta lógica para embutir SAPL em iframe (#3653)
+  * Move relatorios para app de relatorios (#3656)
+  * Remove redirect de URLs (#3652)
+  * Hot-fix: endpoint do prometheus endpoint URL
+  * feat: Adiciona funcionalidade de baixar lista de documentos acessorios de um documento administrativo (#3650)
+
 3.1.163-RC14 / 2023-06-28
 =========================
 
