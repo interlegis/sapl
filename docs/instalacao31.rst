@@ -108,7 +108,7 @@ Instalação e configuração das dependências do projeto
 
    https://www.linhadecomando.com/so-linux/linux-instalando-o-locale-pt_br-utf-8
 
-   Depois que executar, reinicie o WSL
+   Depois que executar, reinicie o WSL com o comando ``wsl --shutdown`` no powershell
 
 * **Configurar Postgresql**::
 
