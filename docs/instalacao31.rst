@@ -104,7 +104,7 @@ Instalação e configuração das dependências do projeto
 
     pip install -r /var/interlegis/sapl/requirements/dev-requirements.txt
 
-* Para evitar erro ``ERROR:  invalid locale name: "pt_BR.UTF-8"`` quando executar o ultimo comando do passo abaixo, executar este procedimento.::
+* Para evitar erro ``ERROR:  invalid locale name: "pt_BR.UTF-8"`` quando executar o ultimo comando do passo abaixo, no UBUNTU 18.04, executar os procedimentos que está neste link.::
 
    https://www.linhadecomando.com/so-linux/linux-instalando-o-locale-pt_br-utf-8
 
