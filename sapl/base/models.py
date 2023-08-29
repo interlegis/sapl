@@ -190,6 +190,13 @@ class AppConfig(models.Model):
         verbose_name=_(
             'Tramitar matérias anexadas junto com as matérias principais?'),
         choices=YES_NO_CHOICES, default=True)
+    ordem_sequencia_regimental = models.BooleanField(
+        verbose_name=_(
+            'Ordem da Matéria pela Sequência Regimental?'),
+        choices=YES_NO_CHOICES, default=False,
+        help_text=_('Ao utilizar a opção SIM, na tela de pesquisa da Matéria Legislativa, '
+                    'a ordem será da Sequencia Regimental, que foi, definido no cadastro de '
+                    'Tipo de Matéria Legislativa. Se informado NÃO, a ordem será Alfabética da Sigla.'))
 
     # MÓDULO NORMAS JURÍDICAS
     # MÓDULO TEXTOS ARTICULADOS

@@ -36,7 +36,7 @@ AppConfig:
   - sequencia_numeracao_proposicao receber_recibo_proposicao proposicao_incorporacao_obrigatoria escolher_numero_materia_proposicao
 
   {% trans 'Módulo Matéria Legislativa' %}:
-  - tramitacao_origem_fixa:7 tramitacao_materia
+  - tramitacao_origem_fixa:5 tramitacao_materia:4 ordem_sequencia_regimental
 
   # {% trans 'Módulo Normas Jurídicas' %}:
   {% trans 'Módulo Textos Articulados' %}:

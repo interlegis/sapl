@@ -1004,6 +1004,7 @@ class ConfiguracoesAppForm(ModelForm):
                   'escolher_numero_materia_proposicao',
                   'tramitacao_origem_fixa',
                   'tramitacao_materia',
+                  'ordem_sequencia_regimental',
                   'tramitacao_documento',
                   'google_recaptcha_site_key',
                   'google_recaptcha_secret_key',
