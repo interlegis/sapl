@@ -1392,7 +1392,7 @@ class TextEditView(CompMixin, TemplateView):
         return r
 
     def nota_alteracao(self, dispositivo, lista_ta_publicado):
-        if dispositivo.ta_publicado_id:
+        if dispositivo.ta_publicado_id and dispositivo.dispositivo_atualizador:
             d = dispositivo.dispositivo_atualizador.dispositivo_pai
 
             if d.auto_inserido:
