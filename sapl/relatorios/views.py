@@ -2171,6 +2171,12 @@ class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
         else:
             context['tipo'] = ''
 
+        if self.request.GET['materia__autores']:
+            autor = int(self.request.GET['materia__autores'])
+            context['materia__autor'] = (str(Autor.objects.get(id=autor)))
+        else:
+            context['materia__autor'] = ''
+
         if self.request.GET['tramitacao__status']:
             tramitacao_status = self.request.GET['tramitacao__status']
             context['tramitacao__status'] = (
@@ -2629,6 +2635,7 @@ class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
         context['ano'] = self.request.GET['ano']
 
         return context
+
 
 class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
     model = DocumentoAdministrativo
