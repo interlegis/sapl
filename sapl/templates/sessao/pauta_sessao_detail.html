@@ -23,7 +23,7 @@
         {% for c in correspondencias %}
             <tr>
               <td>
-                <strong>({{c.tipo}})</strong> <strong>{{c.epigrafe}}</strong><br>
+                <strong>({{c.tipo}})</strong> <strong><a target="_blank" href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' c.id %}">{{c.epigrafe}}</a></strong><br>
 								<strong>Data: </strong>{{c.data}}{% if c.interessado %} - <strong>Interessado: </strong>{{c.interessado}}{% endif %}<br>
                 <strong>Assunto:</strong> {{c.assunto}}
               </td>
@@ -59,7 +59,7 @@
 						<tr>
 							<td style="width:20%;">
 								{{m.numero}} -
-								<a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.titulo}}</a><br/>
+								<a target="_blank" href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.titulo}}</a><br/>
 								<b>Processo</b>: {{ m.processo }}<br/>
 								<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 							</td>
@@ -84,7 +84,7 @@
 					<tr>
 						<td style="width:20%;">
 							{{m.numero}} -
-							<a href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.titulo}}</a><br/>
+							<a target="_blank" href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.titulo}}</a><br/>
 							<b>Processo</b>: {{ m.processo }}<br/>
 							<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
 						</td>
@@ -100,4 +100,5 @@
  			<strong>Não existem Matérias de Ordem do Dia para essa Sessão Plenária</strong>
 		{% endif %}
 	</fieldset>
+	
 {% endblock base_content %}
