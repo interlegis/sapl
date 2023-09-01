@@ -305,6 +305,10 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
     materia__ano = django_filters.ChoiceFilter(required=False,
                                                label='Ano da Matéria',
                                                choices=choice_anos_com_materias)
+    # materia__autores = django_filters.CharFilter(widget=forms.HiddenInput())
+    materia__autores = django_filters.ModelChoiceFilter(
+        label='Autor da Matéria',
+        queryset=Autor.objects.all(), field_name='materia__autores')
 
     @property
     def qs(self):
@@ -317,7 +321,8 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
                   'tramitacao__unidade_tramitacao_local',
                   'tramitacao__unidade_tramitacao_destino',
                   'tramitacao__status',
-                  'tramitacao__data_fim_prazo']
+                  'tramitacao__data_fim_prazo',
+                  'materia__autores']
 
     def __init__(self, *args, **kwargs):
         super(RelatorioDataFimPrazoTramitacaoFilterSet, self).__init__(
@@ -328,6 +333,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
             'tramitacao__unidade_tramitacao_local'].label = 'Unidade Local (Origem)'
         self.filters['tramitacao__unidade_tramitacao_destino'].label = 'Unidade Destino'
         self.filters['tramitacao__status'].label = 'Status de tramitação'
+        self.filters['materia__autores'].label = 'Autor da Matéria'
 
         row1 = to_row([('materia__ano', 12)])
         row2 = to_row([('tramitacao__data_fim_prazo', 12)])
@@ -336,6 +342,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         row4 = to_row(
             [('materia__tipo', 6),
              ('tramitacao__status', 6)])
+        row5 = to_row([('materia__autores', 12)])
 
         buttons = FormActions(
             *[
@@ -355,7 +362,7 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
             Fieldset(_('Tramitações'),
-                     row1, row2, row3, row4,
+                     row1, row2, row3, row4, row5,
                      buttons, )
         )
 
