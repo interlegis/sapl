@@ -17,7 +17,8 @@
     &emsp;Tipo de matéria: {{ tipo }}<br />
     &emsp;Status de tramitação: {{ tramitacao__status }}<br />
     &emsp;Local de origem: {{ tramitacao__unidade_tramitacao_local }}<br />
-    &emsp;Local de destino: {{ tramitacao__unidade_tramitacao_destino }}<br /><br /><br />
+    &emsp;Local de destino: {{ tramitacao__unidade_tramitacao_destino }}<br />
+    &emsp;Autor: {{ materia__autor }}<br /><br /><br />
     {% if object_list %}
       {% if object_list|length == 1 %}
         <tr><td><h3 style="text-align: left;">Foi encontrada 1 matéria com esses parâmetros.</h3></td></tr><br><br>
