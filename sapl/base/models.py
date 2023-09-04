@@ -41,8 +41,8 @@ ASSINATURA_ATA_CHOICES = (
 )
 
 ORDENACAO_PESQUISA_MATERIA = (
-    ('A', _('Alfabetica pela Sigla')),
-    ('R', _('Sequencia Regimental')),
+    ('S', _('Alfabética por Sigla')),
+    ('R', _('Sequência Regimental')),
 )
 
 
@@ -198,8 +198,8 @@ class AppConfig(models.Model):
     ordenacao_pesquisa_materia = models.CharField(
         max_length=1,
         verbose_name=_(
-            'Ordem de Pesquisa da Matéria?'),
-        choices=ORDENACAO_PESQUISA_MATERIA, default='A')
+            'Ordenação de Pesquisa da Matéria?'),
+        choices=ORDENACAO_PESQUISA_MATERIA, default='S')
 
     # MÓDULO NORMAS JURÍDICAS
     # MÓDULO TEXTOS ARTICULADOS
