@@ -58,6 +58,7 @@ fieldset {
 
 
 table {
+    table-layout: fixed;
     max-width: 520px;
 }
 table.grayTable {
@@ -69,6 +70,10 @@ table.grayTable {
 table.grayTable td, table.grayTable th {
     border: 1px solid #000000;
     padding: 5px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    text-align: justify;
+    vertical-align: top;
 }
 table.grayTable tbody td {
     font-size: 10px;

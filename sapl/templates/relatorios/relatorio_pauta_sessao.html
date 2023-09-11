@@ -6,12 +6,17 @@
 
 {% block content %}
   <style>
+    table {
+      width:100%;
+      table-layout: fixed;
+    }
     table.grayTable tbody td {
       font-size: 10px;
       max-width: 80px;
       overflow-wrap: break-word;
       word-wrap: break-word;
-      text-align: initial;
+      text-align: justify;
+      vertical-align: top;
     }
   </style>
     <h2 class="gray-title">Identificação Básica</h2>
@@ -19,7 +24,7 @@
         {{ b }}<br/>
     {% endfor %}
     <h2 class="gray-title">Correspondências</h2>
-    <table class="grayTable">
+    <table style="table grayTable">
         <tbody>
             {% for c in correspondencias%}
                 <tr>
