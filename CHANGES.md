@@ -1,4 +1,13 @@
 
+3.1.163-RC16 / 2023-09-13
+=========================
+
+  * Conserta bug em relatórios com emenda longa. (#3674)
+  * fix: restring acesso ao prometheus metrics para apenas ips locais/invalidos (#3668)
+  * feat: adiciona filtro de autor no relatorio de tramitacao com data fim de prazo (#3671)
+  * fix: verifica se existe dispositivo atualizador ao tentar montar nota alteracao (#3669)
+  * Revert "Remove redirect de URLs (#3652)"
+
 3.1.163-RC15 / 2023-08-11
 =========================
 
