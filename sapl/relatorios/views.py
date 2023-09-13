@@ -1380,6 +1380,26 @@ def resumo_ata_pdf(request, pk):
 
     sessao_plenaria = SessaoPlenaria.objects.get(pk=pk)
 
+    dict_ord_template = {
+        'cont_mult': 'conteudo_multimidia.html',
+        'correspondencia': 'correspondencias.html',
+        'exp': 'expedientes.html',
+        'id_basica': 'identificacao_basica.html',
+        'lista_p': 'lista_presenca_sessao.html',
+        'lista_p_o_d': 'lista_presenca_ordem_dia.html',
+        'mat_exp': 'materias_expediente.html',
+        'v_n_mat_exp': 'votos_nominais_materias_expediente.html',
+        'mat_o_d': 'materias_ordem_dia.html',
+        'v_n_mat_o_d': 'votos_nominais_materias_ordem_dia.html',
+        'mesa_d': 'mesa_diretora.html',
+        'oradores_exped': 'oradores_expediente.html',
+        'oradores_o_d': 'oradores_ordemdia.html',
+        'oradores_expli': 'oradores_explicacoes.html',
+        'ocorr_sessao': 'ocorrencias_da_sessao.html',
+        'cons_finais': 'consideracoes_finais.html'
+    }
+    ordenacao = ResumoOrdenacao.objects.get_or_create()[0]
+
     context = {}
     context.update(get_identificacao_basica(sessao_plenaria))
     context.update(get_mesa_diretora(sessao_plenaria))
@@ -1398,6 +1418,44 @@ def resumo_ata_pdf(request, pk):
     context.update({'object': sessao_plenaria})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
+    try:
+        context.update({
+            'primeiro_ordenacao': dict_ord_template[ordenacao.primeiro],
+            'segundo_ordenacao': dict_ord_template[ordenacao.segundo],
+            'terceiro_ordenacao': dict_ord_template[ordenacao.terceiro],
+            'quarto_ordenacao': dict_ord_template[ordenacao.quarto],
+            'quinto_ordenacao': dict_ord_template[ordenacao.quinto],
+            'sexto_ordenacao': dict_ord_template[ordenacao.sexto],
+            'setimo_ordenacao': dict_ord_template[ordenacao.setimo],
+            'oitavo_ordenacao': dict_ord_template[ordenacao.oitavo],
+            'nono_ordenacao': dict_ord_template[ordenacao.nono],
+            'decimo_ordenacao': dict_ord_template[ordenacao.decimo],
+            'decimo_primeiro_ordenacao': dict_ord_template[ordenacao.decimo_primeiro],
+            'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
+            'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
+            'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto],
+            'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto],
+            'decimo_sexto_ordenacao': dict_ord_template[ordenacao.decimo_sexto]
+        })
+    except KeyError as e:
+        context.update({
+            'primeiro_ordenacao': 'identificacao_basica.html',
+            'segundo_ordenacao': 'conteudo_multimidia.html',
+            'terceiro_ordenacao': 'mesa_diretora.html',
+            'quarto_ordenacao': 'lista_presenca_sessao.html',
+            'quinto_ordenacao': 'correspondencias.html',
+            'sexto_ordenacao': 'expedientes.html',
+            'setimo_ordenacao': 'materias_expediente.html',
+            'oitavo_ordenacao': 'votos_nominais_materias_expediente.html',
+            'nono_ordenacao': 'oradores_expediente.html',
+            'decimo_ordenacao': 'lista_presenca_ordem_dia.html',
+            'decimo_primeiro_ordenacao': 'materias_ordem_dia.html',
+            'decimo_segundo_ordenacao': 'votos_nominais_materias_ordem_dia.html',
+            'decimo_terceiro_ordenacao': 'oradores_ordemdia.html',
+            'decimo_quarto_ordenacao': 'oradores_explicacoes.html',
+            'decimo_quinto_ordenacao': 'ocorrencias_da_sessao.html',
+            'decimo_sexto_ordenacao': 'consideracoes_finais.html'
+        })
     header_context = {"casa": casa,
                       'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
 
