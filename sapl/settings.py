@@ -41,7 +41,7 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
-SAPL_VERSION = '3.1.163-RC7'
+SAPL_VERSION = '3.1.163-RC16'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -93,6 +93,8 @@ INSTALLED_APPS = (
 
     'webpack_loader',
 
+    'django_prometheus',
+
 ) + SAPL_APPS
 
 # FTS = Full Text Search
@@ -123,15 +125,18 @@ HAYSTACK_CONNECTIONS = {
 }
 
 MIDDLEWARE = [
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'sapl.endpoint_restriction_middleware.EndpointRestrictionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)

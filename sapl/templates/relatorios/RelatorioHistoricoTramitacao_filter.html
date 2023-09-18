@@ -8,14 +8,14 @@
     {% crispy filter.form %}
   {% else %}
     <div class="actions btn-group float-right" role="group">
-      <a href="{% url 'sapl.base:data_fim_prazo_tramitacoes' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+      <a href="{% url 'sapl.relatorios:historico_tramitacoes' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
     </div>
     <br /><br /><br /><br />
     <b>PARÂMETROS DE PESQUISA:<br /></b>
-    &emsp;Ano: {{ ano }} <br />
     &emsp;Período: {{ data_tramitacao }} <br />
     &emsp;Tipo de matéria: {{ tipo }}<br />
-    &emsp;Status de tramitação: {{ tramitacao__status }}<br />
+    &emsp;Autor: {{ autoria__autor }}<br />
+    &emsp;Status atual: {{ tramitacao__status }}<br />
     &emsp;Local de origem: {{ tramitacao__unidade_tramitacao_local }}<br />
     &emsp;Local de destino: {{ tramitacao__unidade_tramitacao_destino }}<br /><br /><br />
     {% if object_list %}
@@ -37,13 +37,13 @@
               <td><a href="{% url 'sapl.materia:tramitacao_list' materia.pk %}">
                 {{materia.tipo.descricao}} - {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
               </a></td>
-              <td>{{materia.ementa}}</td>
+              <td>{{materia.ementa}}<br>{{materia.observacao}}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     {% else %}
-      <tr><td><h3 style="text-align: left;">Nenhuma matéria encontrada com esses parâmetros.</h3></td></tr><br><br>
+    <tr><td><h3 style="text-align: left;">Nenhuma matéria encontrada com esses parâmetros.</h3></td></tr><br><br>
     {% endif %}
   {% endif %}
 {% endblock base_content %}

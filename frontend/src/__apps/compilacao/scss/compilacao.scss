@@ -444,6 +444,14 @@ a:link:after, a:visited:after {
     .texto_n_estruturado{
       margin-top: 0.3333em;
       font-size: 1.15em;
+
+      .dtxt {
+        display: inline;
+
+        & > :not(table):first-child {
+          display: inline !important;
+        }
+      }
     }
 
 

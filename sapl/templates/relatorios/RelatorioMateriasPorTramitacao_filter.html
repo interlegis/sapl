@@ -9,7 +9,7 @@
 
   {% if filter_url %}
     <div class="actions btn-group float-right" role="group">
-      <a href="{% url 'sapl.base:materia_por_tramitacao' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+      <a href="{% url 'sapl.relatorios:materia_por_tramitacao' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
     </div>
     <br /><br /><br /><br />
     <b>PARÂMETROS DE PESQUISA:<br /></b>
@@ -72,6 +72,8 @@
       {% endfor %}
     </table>
   {% endif %}
-  {% include 'paginacao.html' %}
+  {% if page.object_list  %}
+    {% include "paginacao.html" %}
+  {% endif %}
   <br/>
 {% endblock base_content %}

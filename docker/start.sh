@@ -114,6 +114,9 @@ if [ $lack_pwd -eq 0 ]; then
    # return -1
 fi
 
+# Backfilling AuditLog's JSON field
+time ./manage.py backfill_auditlog &
+
 echo "-------------------------------------"
 echo "| ███████╗ █████╗ ██████╗ ██╗       |"
 echo "| ██╔════╝██╔══██╗██╔══██╗██║       |"

@@ -233,6 +233,11 @@ class AppConfig(models.Model):
         default=False,
         verbose_name=_('Mostrar brasão da Casa no painel?'))
 
+    mostrar_voto = models.BooleanField(
+        verbose_name=_(
+            'Exibir voto do Parlamentar antes de encerrar a votação?'),
+        choices=YES_NO_CHOICES, default=False)
+
     # MÓDULO ESTATÍSTICAS DE ACESSO
     estatisticas_acesso_normas = models.CharField(
         max_length=1,
@@ -253,6 +258,10 @@ class AppConfig(models.Model):
         max_length=256, default='')
     google_recaptcha_secret_key = models.CharField(
         verbose_name=_('Chave privada gerada pelo Google Recaptcha'),
+        max_length=256, default='')
+
+    google_analytics_id_metrica = models.CharField(
+        verbose_name=_('ID da Métrica do Google Analytics'),
         max_length=256, default='')
 
     class Meta:
@@ -415,12 +424,15 @@ class AuditLog(models.Model):
                                  db_index=True)
     timestamp = models.DateTimeField(verbose_name=_('timestamp'),
                                      db_index=True)
+    # DEPRECATED FIELD! TO BE REMOVED (EVENTUALLY)
     object = models.CharField(max_length=MAX_DATA_LENGTH,
                               blank=True,
                               verbose_name=_('object'))
+    data = JSONField(null=True, verbose_name=_('data'))
     object_id = models.PositiveIntegerField(verbose_name=_('object_id'),
                                             db_index=True)
-    model_name = models.CharField(max_length=100, verbose_name=_('model'),
+    model_name = models.CharField(max_length=100,
+                                  verbose_name=_('model'),
                                   db_index=True)
     app_name = models.CharField(max_length=100,
                                 verbose_name=_('app'),
@@ -429,7 +441,7 @@ class AuditLog(models.Model):
     class Meta:
         verbose_name = _('AuditLog')
         verbose_name_plural = _('AuditLogs')
-        ordering = ('-id',)
+        ordering = ('-id', '-timestamp')
 
     def __str__(self):
         return "[%s] %s %s.%s %s" % (self.timestamp,

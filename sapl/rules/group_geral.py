@@ -110,7 +110,7 @@ rules_group_geral = {
          __base__ + ['lock_unlock_textoarticulado'], set()),
 
         # estes tres models são complexos e a principio apenas o admin tem perm
-        (compilacao.TipoDispositivo, [], set()),
+        (compilacao.TipoDispositivo, __listdetailchange__, __perms_publicas__),
         (compilacao.TipoDispositivoRelationship, [], set()),
         (compilacao.PerfilEstruturalTextoArticulado, [], set()),
 

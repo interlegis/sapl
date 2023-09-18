@@ -19,8 +19,8 @@ class AudienciaCrud(Crud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = [ 'nome', 'tipo', 'materia', 'data']
-        ordering = '-data', 'nome', 'numero', 'tipo'
+        list_field_names = ['numero', 'nome', 'tipo', 'materia', 'data']
+        ordering = '-ano', '-numero', '-data', 'nome', 'tipo'
 
     class ListView(Crud.ListView):
         paginate_by = 10
@@ -28,20 +28,20 @@ class AudienciaCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            audiencia_materia = { str(a.id): (a.materia, a.numero) for a in context['object_list'] }
+            audiencia_materia = {str(a.id): (a.materia, a.numero, a.ano) for a in context['object_list']}
 
             for row in context['rows']:
                 audiencia_id = row[0][1].split('/')[-1]
-                tema = str(audiencia_materia[audiencia_id][1]) + ' - ' + row[0][0]
+                tema = str(audiencia_materia[audiencia_id][1]).rjust(3, '0') + '/' + str(audiencia_materia[audiencia_id][2])
                 row[0] = (tema, row[0][1])
-                coluna_materia = row[2]                             # Se mudar a ordem de listagem, mudar aqui.
+                coluna_materia = row[3]                             # Se mudar a ordem de listagem, mudar aqui.
                 if coluna_materia[0]:
                     materia = audiencia_materia[audiencia_id][0]
                     if materia is not None:
                         url_materia = reverse('sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
                     else:
                         url_materia = None
-                    row[2] = (coluna_materia[0], url_materia)       # Se mudar a ordem de listagem, mudar aqui.
+                    row[3] = (coluna_materia[0], url_materia)       # Se mudar a ordem de listagem, mudar aqui.
             return context
 
     class CreateView(Crud.CreateView):

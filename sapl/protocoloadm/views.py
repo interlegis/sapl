@@ -1,9 +1,13 @@
+import os
+import time
 from datetime import datetime
 import logging
+from io import BytesIO
 from random import choice
 import re
 from string import ascii_letters, digits
 
+from PyPDF4 import PdfFileMerger
 from braces.views import FormValidMessageMixin
 from django.conf import settings
 from django.contrib import messages
@@ -16,7 +20,7 @@ from django.db import transaction
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -43,7 +47,7 @@ from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
-                        google_recaptcha_configured)
+                        google_recaptcha_configured, get_tempfile_dir)
 
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
                     AnularProtocoloAdmForm, compara_tramitacoes_doc,
@@ -58,7 +62,7 @@ from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, Anexado
 from .models import (Anexado, AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
-
+from ..settings import MEDIA_ROOT
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -116,6 +120,71 @@ def doc_texto_integral(request, pk):
                 'inline; filename="%s"' % arquivo.name.split('/')[-1])
             return response
     raise Http404
+
+
+def get_pdf_docacessorios(request, pk):
+    documento_administrativo = get_object_or_404(DocumentoAdministrativo, pk=pk)
+    logger = logging.getLogger(__name__)
+    username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
+    try:
+        external_name, data = create_pdf_docacessorios(documento_administrativo)
+        logger.info(
+            "user= {}. Gerou o pdf compilado de documento acessorios".format(username))
+    except FileNotFoundError:
+        logger.error("user= {}.Não há arquivos cadastrados".format(username))
+        msg = _('Não há arquivos cadastrados nesses documentos acessórios.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+    except Exception as e:
+        logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
+                     .format(username, str(e)))
+        msg = _('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
+    if not data:
+        msg = _('Não há nenhum documento acessório PDF cadastrado.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
+    response = HttpResponse(data, content_type='application/pdf')
+    response['Content-Disposition'] = ('attachment; filename="%s"'
+                                       % external_name)
+    return response
+
+
+def create_pdf_docacessorios(docadministrativo):
+    """
+        Creates a unified in memory PDF file
+    """
+    logger = logging.getLogger(__name__)
+    docs = docadministrativo.documentoacessorioadministrativo_set. \
+        all().values_list('arquivo', flat=True)
+    if not docs:
+        return None, None
+
+    docs_path = [os.path.join(MEDIA_ROOT, i)
+                 for i in docs if i.lower().endswith('pdf')]
+    if not docs_path:
+        raise FileNotFoundError(
+            "Não há arquivos PDF cadastrados em documentos acessorios.")
+    logger.info("Gerando compilado PDF de documentos acessorios com {} documentos"
+                .format(docs_path))
+
+    merger = PdfFileMerger()
+    for f in docs_path:
+        merger.append(fileobj=f)
+
+    data = BytesIO()
+    merger.write(data)
+    merger.close()
+
+    external_name = "docadm_{}_{}_docacessorios.pdf".format(
+        docadministrativo.numero, docadministrativo.ano)
+    return external_name, data.getvalue()
 
 
 class AcompanhamentoConfirmarView(TemplateView):

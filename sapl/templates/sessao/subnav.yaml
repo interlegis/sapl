@@ -32,6 +32,9 @@
     - title: {% trans 'Votação em Bloco' %}
       url: votacao_bloco_expediente
       check_permission: sessao.add_sessaoplenaria
+    - title: {% trans 'Leitura em Bloco' %}
+      url: leitura_bloco_expediente
+      check_permission: sessao.add_sessaoplenaria
     - title: {% trans 'Copiar Matérias para Sessão Posterior' %}
       url: transf_mat_exp
       check_permission: sessao.add_sessaoplenaria
@@ -47,6 +50,9 @@
       url: oradorordemdia_list
     - title: {% trans 'Votação em Bloco' %}
       url: votacao_bloco_ordemdia
+      check_permission: sessao.add_sessaoplenaria
+    - title: {% trans 'Leitura em Bloco' %}
+      url: leitura_bloco_ordem_dia
       check_permission: sessao.add_sessaoplenaria
     - title: {% trans 'Copiar Matérias para Sessão Posterior' %}
       url: transf_mat_ordemdia

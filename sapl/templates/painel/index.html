@@ -281,11 +281,12 @@
               var presentes_list = data["presentes"];
 
               if (data["status_painel"] == true) {
+                  mostrar_voto = data["mostrar_voto"];
                   presentes.append('<table id="parlamentares_list">');
                   $.each(presentes_list, function (index, parlamentar) {
 
 
-                    if (parlamentar.voto == 'Voto Informado'){
+                    if (parlamentar.voto == 'Voto Informado' && mostrar_voto == false){
                       $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
                           parlamentar.nome +
                           '</td> <td style="padding-right:20px; color:yellow">' +

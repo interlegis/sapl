@@ -86,7 +86,7 @@ class ParlamentarSerializerPublic(SaplSerializerMixin):
 
     class Meta:
         model = Parlamentar
-        exclude = ["cpf", "rg", "fax",
+        exclude = ["cpf", "rg", "fax", "data_nascimento",
                    "endereco_residencia", "municipio_residencia",
                    "uf_residencia", "cep_residencia", "situacao_militar",
                    "telefone_residencia", "titulo_eleitor", "fax_residencia"]
@@ -104,6 +104,7 @@ class ParlamentarSerializerVerbose(SaplSerializerMixin):
             import os
             if not obj.fotografia or not os.path.exists(obj.fotografia.path):
                 return thumbnail_url
+            self.logger.warning(f"Iniciando cropping da imagem {obj.fotografia}")
             thumbnail_url = get_backend().get_thumbnail_url(
                 obj.fotografia,
                 {
@@ -113,6 +114,7 @@ class ParlamentarSerializerVerbose(SaplSerializerMixin):
                     'detail': True,
                 }
             )
+            self.logger.warning(f"Cropping da imagem {obj.fotografia} realizado com sucesso")
         except Exception as e:
             self.logger.error(e)
             self.logger.error('erro processando arquivo: %s' %

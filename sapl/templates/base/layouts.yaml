@@ -48,10 +48,11 @@ AppConfig:
   {% trans 'Módulo Painel' %}:
   - cronometro_discurso cronometro_aparte
   - cronometro_ordem cronometro_consideracoes
-  - mostrar_brasao_painel
+  - mostrar_brasao_painel mostrar_voto
 
   {% trans 'Estatísticas de acesso' %}:
   - estatisticas_acesso_normas
+  - google_analytics_id_metrica
 
   {% trans 'Segurança' %}:
   - google_recaptcha_site_key google_recaptcha_secret_key

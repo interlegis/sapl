@@ -7,18 +7,19 @@
 <h2>Fim de Prazo de Tramitações</h2>
 
     <b>PARÂMETROS DE PESQUISA:<br /></b>
-    &emsp;Período: {{ data_tramitacao }} <br />
+    &emsp;Período: {{ data_fim_prazo }} <br />
     &emsp;Tipo de matéria: {{ tipo }}<br />
     &emsp;Status atual: {{ tramitacao__status }}<br />
     &emsp;Local de origem: {{ tramitacao__unidade_tramitacao_local }}<br />
-    &emsp;Local de destino: {{ tramitacao__unidade_tramitacao_destino }}<br /><br /><br />
+    &emsp;Local de destino: {{ tramitacao__unidade_tramitacao_destino }}<br />
+    &emsp;Autor: {{ materia__autor }}<br /><br /><br />
     {% if object_list %}
       {% if object_list|length == 1 %}
         <tr><td><h3 style="text-align: left;">Foi encontrada 1 matéria com esses parâmetros.</h3></td></tr><br><br>
       {% else %}
         <tr><td><h3 style="text-align: left;">Foram encontradas {{object_list|length}} matérias com esses parâmetros.</h3></td></tr><br><br>
       {% endif %}
-      <table class="table table-bordered table-hover">
+      <table class="table table-bordered table-hover" border=1>
         <thead class="thead-default" >
           <tr class="active">
             <th>Matéria</th>
@@ -26,12 +27,29 @@
           </tr>
         </thead>
         <tbody>
-          {% for materia in object_list %}
+          {% for materia_em_tramitacao in object_list %}
             <tr>
+              <td width="35%"><a href="{% url 'sapl.materia:tramitacao_list' materia_em_tramitacao.materia.pk %}">
+                {{materia_em_tramitacao.materia.tipo.descricao}} - {{materia_em_tramitacao.materia.tipo.sigla}} {{materia_em_tramitacao.materia.numero}}/{{materia_em_tramitacao.materia.ano}}
+              </a><br>
+              <small>
+              <strong>Data de Fim de Prazo:</strong> {{materia_em_tramitacao.tramitacao.data_fim_prazo}}
+              </small>
+            </td>
               <td>
-                {{materia.tipo.descricao}} - {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
+                {{materia_em_tramitacao.materia.ementa}}
+
+                {% if not tramitacao__status or not tramitacao__unidade_tramitacao_destino %}
+                  <small>
+                    <br/>
+                    <strong>Local Atual: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.unidade_tramitacao_destino }}
+                    <br/>
+                    <strong>Status: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.status }}
+                    <br/>
+                    <strong>Texto da Ação: </strong>{{ materia_em_tramitacao.materia.tramitacao_set.first.texto }}
+                  </small>
+                {% endif %}
               </td>
-              <td>{{materia.ementa}}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -39,4 +57,4 @@
     {% else %}
       <tr><td><h3 style="text-align: left;">Nenhuma matéria encontrada com esses parâmetros.</h3></td></tr><br><br>
     {% endif %}
-{% endblock content %} 
+{% endblock content %}

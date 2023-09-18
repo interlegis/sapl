@@ -25,14 +25,14 @@ services:
     labels:
         NAME: "solr"
     volumes:
-      - solr_data:/opt/solr/server/solr
+      - solr_data:/var/solr
       - solr_configsets:/opt/solr/server/solr/configsets
     ports:
       - "8983:8983"
     networks:
       - sapl-net
   sapl:
-    image: interlegis/sapl:3.1.163-RC7
+    image: interlegis/sapl:3.1.163-RC16
 #    build:
 #      context: ../
 #      dockerfile: ./docker/Dockerfile

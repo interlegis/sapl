@@ -237,7 +237,8 @@ class OAIServer:
             return None
 
     def oai_query(self, offset=0, batch_size=10, from_=None, until=None, identifier=None):
-        from_ = timezone.make_aware(from_)  # convert from naive to timezone aware datetime
+        if from_:
+            from_ = timezone.make_aware(from_)  # convert from naive to timezone aware datetime
         esfera = self.get_esfera_federacao()
         offset = 0 if offset < 0 else offset
         batch_size = 10 if batch_size < 0 else batch_size

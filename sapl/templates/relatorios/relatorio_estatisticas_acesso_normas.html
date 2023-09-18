@@ -44,7 +44,12 @@
             <table class="table table-bordered">
               <thead class="thead-default">
                 <tr>
-                  <th colspan=3><h3>Mês: {{ mes }}</h3></th>
+                  <th colspan=3>
+                    <h3>Mês: {{ mes }}</h3>
+                    <center>
+                      <h5>Um total de acessos {{normas_count_mes|lookup:mes}} nas {{normas|length}} mais acessadas.</h5>
+                    </center>
+                  </th>
                 </tr>
                 <tr class="active">
                   <th>Posição</th>

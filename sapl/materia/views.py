@@ -1260,10 +1260,13 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
     ordering = ['-data_hora']
     paginate_by = 10
     model = HistoricoProposicao
-    permission_required = ('materia.detail_proposicao_enviada',
-                           'materia.detail_proposicao_devolvida',
-                           'materia.detail_proposicao_incorporada'
-                           )
+    permission_required = (
+            'materia.list_historicoproposicao',
+            'materia.add_historicoproposicao',
+            'materia.change_historicoproposicao',
+            'materia.delete_historicoproposicao',
+            'materia.detail_historicoproposicao',
+    )
 
     def get_queryset(self):
         qs = super().get_queryset()

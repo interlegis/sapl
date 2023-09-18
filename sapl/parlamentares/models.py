@@ -227,6 +227,8 @@ class Parlamentar(models.Model):
         max_length=10, blank=True, verbose_name=_('Nº Gabinete'))
     telefone = models.CharField(
         max_length=50, blank=True, verbose_name=_('Telefone'))
+    telefone_celular = models.CharField(
+        max_length=50, blank=True, verbose_name=_('Telefone Celular'))
     fax = models.CharField(
         max_length=50, blank=True, verbose_name=_('Fax'))
     endereco_residencia = models.CharField(

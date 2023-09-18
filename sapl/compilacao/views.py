@@ -59,8 +59,35 @@ TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
 TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = CrudAux.build(VeiculoPublicacao, 'veiculo_publicacao')
-TipoDispositivoCrud = CrudAux.build(
-    TipoDispositivo, 'tipo_dispositivo')
+
+
+class TipoDispositivoCrud(CrudAux):
+    model = TipoDispositivo
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ('nome', )
+
+        @property
+        def delete_url(self):
+            return ''
+
+        @property
+        def create_url(self):
+            return ''
+
+    class CreateView(CrudAux.CreateView):
+        def has_permission(self):
+            return False
+
+    class DeleteView(CrudAux.DeleteView):
+        def has_permission(self):
+            return False
+
+    class UpdateView(CrudAux.UpdateView):
+        layout_key = 'TipoDispositivoUpdate'
+
+    class ListView(CrudAux.ListView):
+        paginate_by = 100
 
 
 def choice_models_in_extenal_views():
@@ -1365,7 +1392,7 @@ class TextEditView(CompMixin, TemplateView):
         return r
 
     def nota_alteracao(self, dispositivo, lista_ta_publicado):
-        if dispositivo.ta_publicado_id:
+        if dispositivo.ta_publicado_id and dispositivo.dispositivo_atualizador:
             d = dispositivo.dispositivo_atualizador.dispositivo_pai
 
             if d.auto_inserido:

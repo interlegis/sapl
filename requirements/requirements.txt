@@ -17,20 +17,24 @@ django-ratelimit==3.0.1
 easy-thumbnails==2.5
 python-decouple==3.1
 psycopg2-binary==2.8.6
-pyyaml==5.4
+pyyaml==6.0.1
 pytz==2019.3
 python-magic==0.4.15
 unipath==1.1
 WeasyPrint==51
-Pillow==9.0.1
+Pillow==9.3.0
 gunicorn==19.9.0
 more-itertools==8.2.0
 pysolr==3.6.0
 PyPDF4==1.27.0
-pyoai==2.5.0
+#pyoai==2.5.1
+git+https://github.com/infrae/pyoai@5ff2f15e869869e70d8139e4c37b7832854d7049
 Unidecode==1.1.1
 whitenoise==5.1.0
 kazoo==2.8.0
+django-prometheus==2.2.0
+
+asn1crypto==1.5.1
 
 git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped

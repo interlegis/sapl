@@ -22,7 +22,8 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
-from django.core.files.uploadedfile import UploadedFile
+from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile,\
+    TemporaryUploadedFile
 from django.core.mail import get_connection
 from django.db import models
 from django.db.models import Q
@@ -611,7 +612,12 @@ TIPOS_IMG_PERMITIDOS = (
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
 
     def restringe_tipos_de_arquivo(value):
-        if not os.path.splitext(value.path)[1][:1]:
+
+        filename = value.name if type(value) in (
+            InMemoryUploadedFile, TemporaryUploadedFile
+        ) else value.path
+
+        if not os.path.splitext(filename)[1][:1]:
             raise ValidationError(_(
                 'Não é possível fazer upload de arquivos sem extensão.'))
         try:
@@ -1210,3 +1216,77 @@ class GoogleRecapthaMixin:
                 _('Ocorreu um erro na validação do reCAPTCHA.'))
 
         return cd
+
+
+# TODO: cache this map and invalidate on each update
+def get_report_urls_map():
+    from django.urls import get_resolver
+    from django.urls.base import reverse
+
+    # TODO: avoid URLs with params now, but need to incorporate in the future
+    SKIPLIST = ['relatorio_sessao_plenaria',
+                'relatorio_etiqueta_protocolo',
+                'resumo_ata_pdf',
+                'resumo_ata_pdf',
+                'relatorio_sessao_plenaria_pdf',
+                'etiqueta_materia_legislativa',
+                'relatorio_materia_tramitacao']
+
+    NAMESPACE = 'sapl.relatorios:'
+    URL_PATTERN = 'sapl.relatorios.urls'
+
+    url_map = {}
+    for url in get_resolver(URL_PATTERN).url_patterns:
+        if url.name in SKIPLIST:
+            continue
+        dst_url = reverse(f"{NAMESPACE}{url.name}")
+        url_map[dst_url] = {"name": url.name,
+                            "public": True,
+                            "internal": True}  #TODO: get permissions from AppConfig and fine grained permissions
+    return url_map
+
+
+def is_report_allowed(request, url_path=None):
+    from sapl.utils import get_report_urls_map # TODO: import global
+    url_map = get_report_urls_map()  # TODO: cache this!!! Globally
+
+    path = url_path if url_path else request.path
+    authenticated = True if request.user.is_authenticated else False
+
+    if path in url_map.keys():
+        path_metadata = url_map[path]
+        if not authenticated and path_metadata['public']:
+            return True
+        elif authenticated and path_metadata['internal']:
+            return True
+        else:
+            return False
+    # default
+    return True
+
+
+def get_path_to_name_report_map():
+    return {'/relatorios/materia': '',
+            '/relatorios/capa-processo': '',
+            '/relatorios/ordem-dia': '',
+            '/relatorios/relatorio-documento-administrativo': '',
+            '/relatorios/espelho': '',
+            '/relatorios/protocolo': '',
+            '/sistema/relatorios/': '',
+            '/sistema/relatorios/materia-por-autor': 'Matérias por Autor',
+            '/sistema/relatorios/relatorio-por-mes': 'Normas por mês',
+            '/sistema/relatorios/relatorio-por-vigencia': 'Normas por vigência',
+            '/sistema/relatorios/estatisticas-acesso': '',
+            '/sistema/relatorios/materia-por-ano-autor-tipo': 'Matérias por Ano, Autor e Tipo',
+            '/sistema/relatorios/materia-por-tramitacao': 'Matérias em tramitação',
+            '/sistema/relatorios/materia-por-assunto': 'Matérias por Ano, Assunto',
+            '/sistema/relatorios/historico-tramitacoes': 'Histórico de tramitações de Matérias',
+            '/sistema/relatorios/data-fim-prazo-tramitacoes': 'Matérias por prazos de Tramitação',
+            '/sistema/relatorios/presenca': 'Presença nas sessões',
+            '/sistema/relatorios/atas': 'Atas',
+            '/sistema/relatorios/reuniao': 'Reunião de Comissão',
+            '/sistema/relatorios/audiencia': 'Audiência Pública',
+            '/sistema/relatorios/historico-tramitacoesadm': 'Histórico de tramitações de documentos',
+            '/sistema/relatorios/documentos_acessorios': 'Documentos Acessórios de Matérias Legislativas',
+            '/sistema/relatorios/normas-por-autor': 'Normas Por Autor'
+    }

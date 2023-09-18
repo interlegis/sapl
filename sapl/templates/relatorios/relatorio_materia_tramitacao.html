@@ -1,0 +1,38 @@
+{% extends "relatorios/base_relatorio.html" %}
+{% load i18n %}
+{% load common_tags %}
+{% load static %}
+
+{% block content %}
+
+
+<h2>Histórico de Tramitações da Matéria: {{ numero }}/{{ ano }}</h2>
+
+    Tipo de matéria: {{ tipo }}<br />
+    Autor: {{ autor }}<br />
+
+    <table class="grayTable">
+        {% for tramitacao in object%}
+        {% if forloop.first %}
+            <thead>
+                <tr>
+                    <th>Data Tramitacação</th>
+                    <th>Unidade Local</th>
+                    <th>Unidade Destino</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+        {% endif %}
+                <tr>
+                    <td >{{tramitacao.data_tramitacao}}</td>
+                    <td >{{tramitacao.unidade_tramitacao_local}}</td>
+                    <td >{{tramitacao.unidade_tramitacao_destino}}</td>
+                    <td >{{tramitacao.status}}</td>
+                </tr>
+        {% if forloop.last %}
+        </tbody>
+        {% endif %}
+        {% endfor %}
+        </table>
+{% endblock content %}

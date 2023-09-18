@@ -71,6 +71,9 @@ Orientações gerais sobre o GitHub
 ===================================
    `Instruções para GitHub <https://github.com/interlegis/sapl/blob/3.1.x/docs/howtogit.rst>`_
 
+Suporte ao utilizadores
+===================================
+   `Sala do Discord "Somos Interlegis" sobre SAPL  <https://discord.gg/fzXSbhZbcy>`_
 
 
 Perguntas Frequentes

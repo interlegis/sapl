@@ -1,6 +1,6 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags common_tags %}
 
 {% block base_content %}
   {% if not ano %}
@@ -22,7 +22,12 @@
           <table class="table table-bordered table-hover" style="width:100%; margin-bottom: 30px;">
             <thead class="thead-default" >
                 <tr>
-                  <th colspan=3><h3 style="text-align:center;">Mês: {{ mes }}</h3></th>
+                  <th colspan=3>
+                    <h3 style="text-align:center;">Mês: {{ mes }}</h3>
+                    <center>
+                      <h5>Um total de acessos {{normas_count_mes|lookup:mes}} nas {{normas|length}} mais acessadas.</h5>
+                    </center>
+                  </th>
                 </tr>
                 <tr class="active">
                   <th>Posição</th>
@@ -70,9 +75,13 @@
         $('#id_mais_acessadas').val('5')
         $('#id_mais_acessadas')[0].options[2].setAttribute('disabled', true)
         $('#id_mais_acessadas')[0].options[3].setAttribute('disabled', true)
+        $('#id_mais_acessadas')[0].options[4].setAttribute('disabled', true)
+        $('#id_mais_acessadas')[0].options[5].setAttribute('disabled', true)
       } else {
         $('#id_mais_acessadas')[0].options[2].removeAttribute('disabled')
         $('#id_mais_acessadas')[0].options[3].removeAttribute('disabled')
+        $('#id_mais_acessadas')[0].options[4].removeAttribute('disabled')
+        $('#id_mais_acessadas')[0].options[5].removeAttribute('disabled')
       }
 
       //$('#id_mais_acessadas').prop('disabled', event.currentTarget.selectedOptions[0].value === '')
