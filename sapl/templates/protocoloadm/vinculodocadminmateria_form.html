@@ -1,0 +1,38 @@
+{% extends "crud/form.html" %}
+{% load i18n %}
+
+{% block extra_js %}
+  <script language="Javascript">
+    // document.getElementById("id_observacao").readOnly = true;
+
+    function recuperar_materia() {
+      var tipo_materia = $("#id_tipo").val()
+      var numero_materia = $("#id_numero").val()
+      var ano_materia = $("#id_ano").val()
+
+      if (tipo_materia && numero_materia && ano_materia){
+        $.get("/sessao/recuperar-materia",
+          { tipo_materia: tipo_materia, numero_materia: numero_materia, ano_materia: ano_materia },
+          function(data, status) {
+            if ($(".ementa-materia").length === 0){
+              $("#div_id_tipo").closest('.row').after($('<div class="row"/>').append($('<div class="col-12"/>').append(
+                $('<div class="alert alert-info ementa-materia"/>').html(data.ementa)
+              )))
+            }
+            else {
+                $('.ementa-materia').html(data.ementa)
+            }
+        });
+      }
+    }
+    var fields = ["#id_tipo", "#id_numero", "#id_ano"];
+    for (i = 0; i < fields.length; i++){
+        $(fields[i]).change(function() {
+            recuperar_materia();
+        });
+    }
+    recuperar_materia();
+    $(document).ready( function() {
+    });
+  </script>
+{% endblock %}

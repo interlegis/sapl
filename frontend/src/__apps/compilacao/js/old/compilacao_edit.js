@@ -62,8 +62,8 @@ window.DispositivoEdit = function () {
     const obj_click = (event.target.classList.contains('dpt-link')
       ? event.target
       : (event.target.parentElement.classList.contains('dpt-link')
-        ? event.target.parentElement
-        : null))
+          ? event.target.parentElement
+          : null))
 
     if (obj_click && obj_click.getAttribute('href') && obj_click.getAttribute('href').length > 0) { return }
 
@@ -245,7 +245,7 @@ window.DispositivoEdit = function () {
         if (editortype !== 'construct') {
           dpt_form.html(data)
           if (editortype === 'tinymce') {
-            window.initTextRichEditor()
+            window.initTextRichEditor(null, false, false)
           }
           // OptionalCustomFrontEnd().init()
         }
@@ -431,9 +431,9 @@ window.DispositivoEdit = function () {
 
     const form_data = {
       csrfmiddlewaretoken: this.csrfmiddlewaretoken.value,
-      texto: texto,
-      texto_atualizador: texto_atualizador,
-      visibilidade: visibilidade,
+      texto,
+      texto_atualizador,
+      visibilidade,
       formtype: 'get_form_base'
     }
 

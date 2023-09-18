@@ -34,6 +34,8 @@
                 string-set: title content();
             }
         }
+        {% block head_extra_css %}
+        {% endblock head_extra_css %}
     </style>
     <link rel="stylesheet" href="{% static '/sapl/css/relatorio.css'%}">
 </head>
@@ -42,6 +44,6 @@
 
     {% block content %}
 
-    {% endblock content %} 
-    
+    {% endblock content %}
+
 </body>

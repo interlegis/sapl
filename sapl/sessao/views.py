@@ -1,8 +1,8 @@
-
 from collections import OrderedDict
 from datetime import datetime
-from re import sub
+import json
 import logging
+from re import sub
 
 from django.conf import settings
 from django.contrib import messages
@@ -13,9 +13,11 @@ from django.db.models import Max, Q
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.urls import reverse
+from django.urls.base import reverse_lazy
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -24,6 +26,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
+import pytz
 
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
@@ -35,8 +38,13 @@ from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
+from sapl.protocoloadm.models import TipoDocumentoAdministrativo, \
+    DocumentoAdministrativo
 from sapl.sessao.apps import AppConfig
-from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm
+from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm, \
+    CorrespondenciaForm, CorrespondenciaEmLoteFilterSet
+from sapl.sessao.models import Correspondencia
+from sapl.settings import TIME_ZONE
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
@@ -53,7 +61,6 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
                      ORDENACAO_RESUMO, RegistroLeitura)
-
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
@@ -133,14 +140,20 @@ def verifica_votacoes_abertas(request, pk):
                 v.__str__()))
         username = request.user.username
         logger.info('user=' + username + '. Já existem votações ou leituras abertas nas seguintes Sessões: ' +
-                    ', '.join(msg_abertas) + '. Para abrir '
-                    'outra, termine ou feche as votações ou leituras abertas.')
+                    ', '.join(msg_abertas) + '. Estas votações ou leituras foram fechadas.')
         msg = _('Já existem votações ou leituras abertas nas seguintes Sessões: ' +
-                ', '.join(msg_abertas) + '. Para abrir '
-                'outra, termine ou feche as votações ou leituras abertas.')
+                ', '.join(msg_abertas) + '. Estas votações ou leituras foram fechadas.')
         messages.add_message(request, messages.INFO, msg)
 
-        return False
+        for sessao in votacoes_abertas:
+            ordens = sessao.ordemdia_set.filter(votacao_aberta=True)
+            expediente = sessao.expedientemateria_set.filter(votacao_aberta=True)
+            for o in ordens:
+                o.votacao_aberta = False
+                o.save()
+            for e in expediente:
+                e.votacao_aberta = False
+                e.save()
 
     return True
 
@@ -153,7 +166,8 @@ def verifica_sessao_iniciada(request, spk, is_leitura=False):
         username = request.user.username
         aux_text = 'leitura' if is_leitura else 'votação'
         logger.info('user=' + username + '. Não é possível abrir matérias para {}. '
-                    'Esta SessaoPlenaria (id={}) não foi iniciada ou está finalizada.'.format(aux_text, spk))
+                                         'Esta SessaoPlenaria (id={}) não foi iniciada ou está finalizada.'.format(
+            aux_text, spk))
         msg = _('Não é possível abrir matérias para {}. '
                 'Esta Sessão Plenária não foi iniciada ou está finalizada.'
                 ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.'.format(aux_text))
@@ -227,25 +241,33 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
         sessao_plenaria = SessaoPlenaria.objects.get(id=pk)
         data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
-        tramitacao = Tramitacao.objects\
-                               .select_related('materia', 'status', 'materia__tipo')\
-                               .filter(materia=materia, turno__isnull=False, data_tramitacao__lte=data_sessao)\
-                               .exclude(turno__exact='')\
-                               .order_by('-data_tramitacao', '-id')\
-                               .first()
+        tramitacao = Tramitacao.objects \
+            .select_related('materia', 'status', 'materia__tipo') \
+            .filter(materia=materia, turno__isnull=False, data_tramitacao__lte=data_sessao) \
+            .exclude(turno__exact='') \
+            .order_by('-data_tramitacao', '-id') \
+            .first()
         turno = '-'
         if tramitacao:
             for t in Tramitacao.TURNO_CHOICES:
                 if t[0] == tramitacao.turno:
                     turno = t[1]
                     break
-        materia_em_tramitacao = MateriaEmTramitacao.objects\
-                                                   .select_related("materia", "tramitacao")\
-                                                   .filter(materia=materia)\
-                                                   .first()
+        materia_em_tramitacao = MateriaEmTramitacao.objects \
+            .select_related("materia", "tramitacao") \
+            .filter(materia=materia) \
+            .first()
         # idUnica para cada materia
         idAutor = "autor" + str(i)
         idAutores = "autores" + str(i)
+        link_texto_original = ''
+        if materia.texto_original:
+            link_texto_original = f"""
+            <strong>
+                <a href="{materia.texto_original.url}" target="_blank">
+                    Texto original
+                </a>
+            </strong>"""
         title_materia = f"""<div onmouseover = "mostra_autores({idAutor}, {idAutores})" onmouseleave = "autor_unico({idAutor}, {idAutores})">
                                 <a id={obj.materia.id} href={url_materia}>{row[1][0]}</a></br>
                                 <b>Processo:</b> {numeracao}</br>
@@ -253,6 +275,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 <span id='{idAutores}' style="display: none"><b>Autor:</b> {todos_autores}</br></span>
                                 <b>Protocolo:</b> {num_protocolo}</br>
                                 <b>Turno:</b> {turno}</br>
+                                {link_texto_original}
                             </div>
                         """
         # Na linha abaixo, o segundo argumento é None para não colocar
@@ -266,8 +289,8 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         exist_leitura = obj.registroleitura_set.filter(
             materia=obj.materia).exists()
 
-        if (obj.tipo_votacao != 4 and not exist_resultado and not exist_retirada) or\
-                (obj.tipo_votacao == 4 and not exist_leitura):
+        if (obj.tipo_votacao != LEITURA and not exist_resultado and not exist_retirada) or \
+                (obj.tipo_votacao == LEITURA and not exist_leitura):
             if obj.votacao_aberta:
                 url = ''
                 if is_expediente:
@@ -478,11 +501,11 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'mid': obj.materia_id})
 
                 resultado = (
-                    '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
-                        url,
-                        context.get('page', 1),
-                        resultado_descricao,
-                        resultado_observacao))
+                        '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
+                    url,
+                    context.get('page', 1),
+                    resultado_descricao,
+                    resultado_observacao))
             else:
 
                 if obj.tipo_votacao == NOMINAL:
@@ -493,7 +516,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                            '?&materia=expediente'
+                              '?&materia=expediente'
                     else:
                         url = reverse(
                             'sapl.sessao:votacao_nominal_transparencia',
@@ -501,7 +524,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                            '?&materia=ordem'
+                              '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
                                  (url,
@@ -516,7 +539,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                            '?&materia=expediente'
+                              '?&materia=expediente'
                     else:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
@@ -524,7 +547,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                            '?&materia=ordem'
+                              '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
                                  (url,
@@ -679,8 +702,8 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             exp = ExpedienteMateria.objects.filter(sessao_plenaria=sessao)
             numero_ordem = exp.last().numero_ordem if exp.exists() else 0
             for num_ordem, expediente in enumerate(
-                ExpedienteMateria.objects.filter(id__in=marcadas),
-                numero_ordem + 1
+                    ExpedienteMateria.objects.filter(id__in=marcadas),
+                    numero_ordem + 1
             ):
                 lista_expediente.append(
                     ExpedienteMateria(
@@ -700,7 +723,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
             o = OrdemDia.objects.filter(sessao_plenaria=sessao)
             numero_ordem = o.last().numero_ordem if o.exists() else 0
             for num_ordem, ordemdia in enumerate(
-                OrdemDia.objects.filter(id__in=marcadas), numero_ordem + 1
+                    OrdemDia.objects.filter(id__in=marcadas), numero_ordem + 1
             ):
                 lista_ordemdia.append(
                     OrdemDia(
@@ -770,7 +793,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['numero_ordem', 'materia',
-                            ('materia__ementa', '', 'observacao'),
+                            ('materia__ementa', '', 'tramitacao', 'observacao'),
                             'resultado']
 
     class CreateView(MasterDetailCrud.CreateView):
@@ -786,9 +809,9 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = OrdemDia.objects.filter(
                 sessao_plenaria=self.kwargs['pk']).aggregate(
-                    Max('numero_ordem'))['numero_ordem__max']
+                Max('numero_ordem'))['numero_ordem__max']
             self.initial['numero_ordem'] = (
-                max_numero_ordem if max_numero_ordem else 0) + 1
+                                               max_numero_ordem if max_numero_ordem else 0) + 1
             return self.initial
 
         def get_success_url(self):
@@ -806,6 +829,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             context["tipo_materia_salvo"] = self.object.materia.tipo.id
             context["numero_materia_salvo"] = self.object.materia.numero
             context["ano_materia_salvo"] = self.object.materia.ano
+            context["tramitacao_salvo"] = None if not self.object.tramitacao else self.object.tramitacao.id
 
             return context
 
@@ -816,6 +840,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
             initial['numero_ordem'] = self.object.numero_ordem
+            initial['tramitacao'] = None if not self.object.tramitacao else self.object.tramitacao.id
 
             return initial
 
@@ -852,6 +877,33 @@ def recuperar_materia(request):
                                  'indexacao': materia.indexacao})
     except ObjectDoesNotExist:
         response = JsonResponse({'ementa': '', 'id': 0, 'indexacao': ''})
+
+    return response
+
+
+def recuperar_tramitacao(request):
+    tipo = request.GET['tipo_materia']
+    numero = request.GET['numero_materia']
+    ano = request.GET['ano_materia']
+
+    try:
+        materia = MateriaLegislativa.objects.get(tipo_id=tipo,
+                                                 ano=ano,
+                                                 numero=numero)
+        tramitacao = {}
+        for obj in materia.tramitacao_set.all():
+            tramitacao[obj.id] = {
+                'status': obj.status.descricao,
+                'texto': obj.texto,
+                'data_tramitacao': obj.data_tramitacao.strftime('%d/%m/%Y'),
+                'unidade_tramitacao_local': str(obj.unidade_tramitacao_local),
+                'unidade_tramitacao_destino': str(obj.unidade_tramitacao_destino)
+
+            }
+
+        response = JsonResponse(tramitacao)
+    except ObjectDoesNotExist:
+        response = JsonResponse({'id': 0})
 
     return response
 
@@ -900,9 +952,9 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 pk=self.kwargs['pk']).data_inicio.strftime('%d/%m/%Y')
             max_numero_ordem = ExpedienteMateria.objects.filter(
                 sessao_plenaria=self.kwargs['pk']).aggregate(
-                    Max('numero_ordem'))['numero_ordem__max']
+                Max('numero_ordem'))['numero_ordem__max']
             initial['numero_ordem'] = (
-                max_numero_ordem if max_numero_ordem else 0) + 1
+                                          max_numero_ordem if max_numero_ordem else 0) + 1
             return initial
 
         def get_success_url(self):
@@ -920,6 +972,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             context["tipo_materia_salvo"] = self.object.materia.tipo.id
             context["numero_materia_salvo"] = self.object.materia.numero
             context["ano_materia_salvo"] = self.object.materia.ano
+            context["tramitacao_salvo"] = self.object.tramitacao.id if self.object.tramitacao is not None else ''
 
             return context
 
@@ -930,6 +983,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             initial['numero_materia'] = self.object.materia.numero
             initial['ano_materia'] = self.object.materia.ano
             initial['numero_ordem'] = self.object.numero_ordem
+            initial['tramitacao'] = self.object.tramitacao.id if self.object.tramitacao is not None else ''
 
             return initial
 
@@ -1287,7 +1341,7 @@ class SessaoCrud(Crud):
 
                 username = self.request.user.username
                 self.logger.error('user=' + username + '. Cadastre alguma legislatura antes de adicionar '
-                                  'uma sessão plenária!')
+                                                       'uma sessão plenária!')
 
                 messages.add_message(self.request, messages.ERROR, msg)
                 return {}
@@ -1380,7 +1434,7 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+                       + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1436,7 +1490,7 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
 
             username = self.request.user.username
             self.logger.error('user=' + username + '. Você precisa primeiro configurar os cronômetros'
-                              ' nas Configurações da Aplicação')
+                                                   ' nas Configurações da Aplicação')
             msg = _(
                 'Você precisa primeiro configurar os cronômetros \
                 nas Configurações da Aplicação')
@@ -1495,7 +1549,7 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+                       + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1757,7 +1811,7 @@ def insere_parlamentar_composicao(request):
     username = request.user.username
     if request.user.has_perm(
             '%s.add_%s' % (
-                AppConfig.label, IntegranteMesa._meta.model_name)):
+                    AppConfig.label, IntegranteMesa._meta.model_name)):
 
         composicao = IntegranteMesa()
 
@@ -1790,8 +1844,9 @@ def insere_parlamentar_composicao(request):
                 cargo_id=composicao.cargo.id).exists()
 
             if parlamentar_ja_inserido:
-                logger.debug("user=" + username + ". Parlamentar (id={}) já inserido na sessao_plenaria(id={}) e cargo(ìd={})."
-                             .format(request.POST['parlamentar'], composicao.sessao_plenaria.id, composicao.cargo.id))
+                logger.debug(
+                    "user=" + username + ". Parlamentar (id={}) já inserido na sessao_plenaria(id={}) e cargo(ìd={})."
+                    .format(request.POST['parlamentar'], composicao.sessao_plenaria.id, composicao.cargo.id))
                 return JsonResponse({'msg': ('Parlamentar já inserido!', 0)})
 
             composicao.save()
@@ -1818,8 +1873,8 @@ def remove_parlamentar_composicao(request):
     logger = logging.getLogger(__name__)
     username = request.user.username
     if request.POST and request.user.has_perm(
-        '%s.delete_%s' % (
-            AppConfig.label, IntegranteMesa._meta.model_name)):
+            '%s.delete_%s' % (
+                    AppConfig.label, IntegranteMesa._meta.model_name)):
 
         if 'composicao_mesa' in request.POST:
             try:
@@ -1875,7 +1930,8 @@ class ResumoOrdenacaoView(PermissionRequiredMixin, FormView):
             'decimo_segundo': self.get_tupla(ordenacao.decimo_segundo),
             'decimo_terceiro': self.get_tupla(ordenacao.decimo_terceiro),
             'decimo_quarto': self.get_tupla(ordenacao.decimo_quarto),
-            'decimo_quinto': self.get_tupla(ordenacao.decimo_quinto)
+            'decimo_quinto': self.get_tupla(ordenacao.decimo_quinto),
+            'decimo_sexto': self.get_tupla(ordenacao.decimo_sexto)
         }
 
         return initial
@@ -1942,7 +1998,6 @@ def get_mesa_diretora(sessao_plenaria):
 
 
 def get_presenca_sessao(sessao_plenaria):
-
     parlamentares_sessao = [p.parlamentar for p in SessaoPlenariaPresenca.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
     ).order_by('parlamentar__nome_parlamentar').distinct()]
@@ -1953,6 +2008,37 @@ def get_presenca_sessao(sessao_plenaria):
 
     return ({'presenca_sessao': parlamentares_sessao,
              'justificativa_ausencia': ausentes_sessao})
+
+
+def get_correspondencias(sessao_plenaria, user):
+    qs = sessao_plenaria.correspondencia_set.all()
+
+    is_anon = user.is_anonymous
+    is_ostensivo = AppsAppConfig.attr(
+        'documentos_administrativos') == 'O'
+
+    if is_anon and not is_ostensivo:
+        qs = qs.none()
+
+    if is_anon:
+        qs = qs.filter(documento__restrito=False)
+
+    results = []
+    for c in qs:
+        d = c.documento
+        results.append(
+            {
+                'id': d.id,
+                'tipo': c.get_tipo_display(),
+                'epigrafe': str(d),
+                'data': d.data.strftime('%d/%m/%Y'),
+                'interessado': d.interessado,
+                'assunto': d.assunto,
+                'restrito': d.restrito,
+                'is_ostensivo': is_ostensivo
+            }
+        )
+    return {'correspondencias': results}
 
 
 def get_expedientes(sessao_plenaria):
@@ -1972,7 +2058,8 @@ def get_materias_expediente(sessao_plenaria):
     for m in ExpedienteMateria.objects.select_related("materia").filter(sessao_plenaria_id=sessao_plenaria.id):
         tramitacao = ''
         data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
-        for aux_tramitacao in Tramitacao.objects.filter(materia=m.materia, data_tramitacao__lte=data_sessao).order_by('-data_tramitacao', '-id'):
+        for aux_tramitacao in Tramitacao.objects.filter(materia=m.materia, data_tramitacao__lte=data_sessao).order_by(
+                '-data_tramitacao', '-id'):
             if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
@@ -2097,15 +2184,17 @@ def get_assinaturas(sessao_plenaria):
 
     return context
 
+
 def get_assinaturas_presidente(sessao_plenaria):
     mesa_dia = get_mesa_diretora(sessao_plenaria)['mesa']
 
-    presidente_dia =  [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']
-    presidente_dia = presidente_dia[0] if presidente_dia  else '' 
+    presidente_dia = [m['parlamentar']
+                      for m in mesa_dia if m['cargo'].descricao == 'Presidente']
+    presidente_dia = presidente_dia[0] if presidente_dia else ''
 
     context = {}
     assinatura_presidente = [
-            {'parlamentar': presidente_dia, 'cargo': "Presidente"}]
+        {'parlamentar': presidente_dia, 'cargo': "Presidente"}]
     context.update({'assinatura_mesa': assinatura_presidente})
 
     return context
@@ -2116,7 +2205,8 @@ def get_materias_ordem_do_dia(sessao_plenaria):
     for o in OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id):
         tramitacao = ''
         data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
-        for aux_tramitacao in Tramitacao.objects.filter(materia=o.materia, data_tramitacao__lte=data_sessao).order_by('-data_tramitacao', '-id'):
+        for aux_tramitacao in Tramitacao.objects.filter(materia=o.materia, data_tramitacao__lte=data_sessao).order_by(
+                '-data_tramitacao', '-id'):
             if aux_tramitacao.turno:
                 tramitacao = aux_tramitacao
                 break
@@ -2257,8 +2347,8 @@ class ResumoView(DetailView):
 
         # Votos de Votação Nominal de Matérias Expediente
         votacoes = []
-        for mevn in ExpedienteMateria.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2)\
-                                             .order_by('-materia'):
+        for mevn in ExpedienteMateria.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2) \
+                .order_by('-materia'):
             votos_materia = []
             titulo_materia = mevn.materia
             registro = RegistroVotacao.objects.filter(expediente=mevn)
@@ -2285,6 +2375,9 @@ class ResumoView(DetailView):
         # =====================================================================
         # Presença Sessão
         context.update(get_presenca_sessao(self.object))
+        # =====================================================================
+        # Correspondências
+        context.update(get_correspondencias(self.object, self.request.user))
         # =====================================================================
         # Expedientes
         context.update(get_expedientes(self.object))
@@ -2336,9 +2429,10 @@ class ResumoView(DetailView):
         # Indica a ordem com a qual o template será renderizado
         dict_ord_template = {
             'cont_mult': 'conteudo_multimidia.html',
+            'correspondencia': 'correspondencias.html',
             'exp': 'expedientes.html',
             'id_basica': 'identificacao_basica.html',
-            'lista_p': 'lista_presenca.html',
+            'lista_p': 'lista_presenca_sessao.html',
             'lista_p_o_d': 'lista_presenca_ordem_dia.html',
             'mat_exp': 'materias_expediente.html',
             'v_n_mat_exp': 'votos_nominais_materias_expediente.html',
@@ -2369,27 +2463,29 @@ class ResumoView(DetailView):
                 'decimo_segundo_ordenacao': dict_ord_template[ordenacao.decimo_segundo],
                 'decimo_terceiro_ordenacao': dict_ord_template[ordenacao.decimo_terceiro],
                 'decimo_quarto_ordenacao': dict_ord_template[ordenacao.decimo_quarto],
-                'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto]
+                'decimo_quinto_ordenacao': dict_ord_template[ordenacao.decimo_quinto],
+                'decimo_sexto_ordenacao': dict_ord_template[ordenacao.decimo_sexto]
             })
         except KeyError as e:
             self.logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
-                              "configuração de ordenação. Utilizando ordenação padrão.")
+                                                      "configuração de ordenação. Utilizando ordenação padrão.")
             context.update({
                 'primeiro_ordenacao': 'identificacao_basica.html',
                 'segundo_ordenacao': 'conteudo_multimidia.html',
                 'terceiro_ordenacao': 'mesa_diretora.html',
-                'quarto_ordenacao': 'lista_presenca.html',
-                'quinto_ordenacao': 'expedientes.html',
-                'sexto_ordenacao': 'materias_expediente.html',
-                'setimo_ordenacao': 'votos_nominais_materias_expediente.html',
-                'oitavo_ordenacao': 'oradores_expediente.html',
-                'nono_ordenacao': 'lista_presenca_ordem_dia.html',
-                'decimo_ordenacao': 'materias_ordem_dia.html',
-                'decimo_primeiro_ordenacao': 'votos_nominais_materias_ordem_dia.html',
-                'decimo_segundo_ordenacao': 'oradores_ordemdia.html',
-                'decimo_terceiro_ordenacao': 'oradores_explicacoes.html',
-                'decimo_quarto_ordenacao': 'ocorrencias_da_sessao.html',
-                'decimo_quinto_ordenacao': 'consideracoes_finais.html'
+                'quarto_ordenacao': 'lista_presenca_sessao.html',
+                'quinto_ordenacao': 'correspondencias.html',
+                'sexto_ordenacao': 'expedientes.html',
+                'setimo_ordenacao': 'materias_expediente.html',
+                'oitavo_ordenacao': 'votos_nominais_materias_expediente.html',
+                'nono_ordenacao': 'oradores_expediente.html',
+                'decimo_ordenacao': 'lista_presenca_ordem_dia.html',
+                'decimo_primeiro_ordenacao': 'materias_ordem_dia.html',
+                'decimo_segundo_ordenacao': 'votos_nominais_materias_ordem_dia.html',
+                'decimo_terceiro_ordenacao': 'oradores_ordemdia.html',
+                'decimo_quarto_ordenacao': 'oradores_explicacoes.html',
+                'decimo_quinto_ordenacao': 'ocorrencias_da_sessao.html',
+                'decimo_sexto_ordenacao': 'consideracoes_finais.html'
             })
 
         sessao = context['object']
@@ -2445,7 +2541,6 @@ class ExpedienteView(FormMixin, DetailView):
             list_conteudo = request.POST.getlist('conteudo')
 
             for tipo, conteudo in zip(list_tipo, list_conteudo):
-
                 ExpedienteSessao.objects.filter(
                     sessao_plenaria_id=self.object.id,
                     tipo_id=tipo).delete()
@@ -2458,8 +2553,9 @@ class ExpedienteView(FormMixin, DetailView):
 
                 msg = _('Registro salvo com sucesso')
                 messages.add_message(self.request, messages.SUCCESS, msg)
-                self.logger.info('user=' + username + '. ExpedienteSessao(sessao_plenaria_id={} e tipo_id={}) salvo com sucesso.'
-                                 .format(self.object.id, tipo))
+                self.logger.info(
+                    'user=' + username + '. ExpedienteSessao(sessao_plenaria_id={} e tipo_id={}) salvo com sucesso.'
+                    .format(self.object.id, tipo))
 
             return self.form_valid(form)
         else:
@@ -2544,7 +2640,8 @@ class OcorrenciaSessaoView(FormMixin, DetailView):
 
         username = self.request.user.username
         self.logger.info(
-            'user=' + username + '. OcorrenciaSessao de sessao_plenaria_id={} atualizada com sucesso.'.format(self.object.id))
+            'user=' + username + '. OcorrenciaSessao de sessao_plenaria_id={} atualizada com sucesso.'.format(
+                self.object.id))
 
     @method_decorator(permission_required('sessao.add_ocorrenciasessao'))
     def post(self, request, *args, **kwargs):
@@ -2612,7 +2709,8 @@ class ConsideracoesFinaisView(FormMixin, DetailView):
 
         username = self.request.user.username
         self.logger.info(
-            'user=' + username + '. consideracoesFinais de sessao_plenaria_id={} atualizada com sucesso.'.format(self.object.id))
+            'user=' + username + '. consideracoesFinais de sessao_plenaria_id={} atualizada com sucesso.'.format(
+                self.object.id))
 
     @method_decorator(permission_required('sessao.add_consideracoesfinais'))
     def post(self, request, *args, **kwargs):
@@ -2636,7 +2734,6 @@ class ConsideracoesFinaisView(FormMixin, DetailView):
 
 
 class VotacaoEditView(SessaoPermissionMixin):
-
     '''
         Votação Simbólica e Secreta
     '''
@@ -2651,7 +2748,7 @@ class VotacaoEditView(SessaoPermissionMixin):
         materia_id = kwargs['mid']
         ordem_id = kwargs['oid']
 
-        if(int(request.POST['anular_votacao']) == 1):
+        if (int(request.POST['anular_votacao']) == 1):
             RegistroVotacao.objects.filter(ordem_id=ordem_id).delete()
 
             ordem = OrdemDia.objects.get(id=ordem_id)
@@ -2687,7 +2784,7 @@ class VotacaoEditView(SessaoPermissionMixin):
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
-            votacao.tipo_resultado_votacao_id}
+                votacao.tipo_resultado_votacao_id}
         context.update({'votacao_titulo': titulo,
                         'votacao': votacao_existente,
                         'tipos': self.get_tipos_votacao()})
@@ -2709,7 +2806,6 @@ class VotacaoEditView(SessaoPermissionMixin):
 
 
 class VotacaoView(SessaoPermissionMixin):
-
     """
         Votação Simbólica e Secreta
     """
@@ -2830,7 +2926,8 @@ class VotacaoView(SessaoPermissionMixin):
                 except Exception as e:
                     username = request.user.username
                     self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
-                                      'e da ordem de id={}. '.format(materia_id, ordem_id) + str(e))
+                                                           'e da ordem de id={}. '.format(materia_id, ordem_id) + str(
+                        e))
                     return self.form_invalid(form)
                 else:
                     ordem = OrdemDia.objects.get(id=ordem_id)
@@ -3043,7 +3140,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             # Caso todas as opções sejam 'Não votou', fecha a votação
             if nao_votou == len(request.POST.getlist('voto_parlamentar')):
                 self.logger.error('user=' + username + '. Não é possível finalizar a votação sem '
-                                  'nenhum voto')
+                                                       'nenhum voto')
                 form.add_error(None, 'Não é possível finalizar a votação sem '
                                      'nenhum voto')
                 return self.form_invalid(form)
@@ -3201,7 +3298,8 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
 
             if not ordem or not votacao:
                 self.logger.error(
-                    'user=' + username + '. Objeto OrdemDia com id={} ou RegistroVotacao de OrdemDia não existe.'.format(ordem_id))
+                    'user=' + username + '. Objeto OrdemDia com id={} ou RegistroVotacao de OrdemDia não existe.'.format(
+                        ordem_id))
                 raise Http404()
 
             materia = ordem.materia
@@ -3289,7 +3387,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                     'user=' + username + '. Objeto ExpedienteMateria com id={} não existe.'.format(expediente_id))
                 raise Http404()
 
-        if(int(request.POST['anular_votacao']) == 1):
+        if (int(request.POST['anular_votacao']) == 1):
             fechar_votacao_materia(materia_votacao)
 
         return self.form_valid(form)
@@ -3365,7 +3463,7 @@ class VotacaoNominalTransparenciaDetailView(TemplateView):
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
-            votacao.tipo_resultado_votacao_id}
+                votacao.tipo_resultado_votacao_id}
         context.update({'resultado_votacao': votacao_existente,
                         'tipos': self.get_tipos_votacao()})
 
@@ -3405,7 +3503,7 @@ class VotacaoNominalExpedienteDetailView(DetailView):
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
-            votacao.tipo_resultado_votacao_id}
+                votacao.tipo_resultado_votacao_id}
         context.update({'votacao': votacao_existente,
                         'tipos': self.get_tipos_votacao()})
 
@@ -3453,7 +3551,7 @@ class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
-            votacao.tipo_resultado_votacao_id}
+                votacao.tipo_resultado_votacao_id}
         context.update({'resultado_votacao': votacao_existente,
                         'tipos': self.get_tipos_votacao()})
 
@@ -3465,7 +3563,6 @@ class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
 
 
 class VotacaoExpedienteView(SessaoPermissionMixin):
-
     """
         Votação Simbólica e Secreta
     """
@@ -3618,7 +3715,6 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
 
 
 class VotacaoExpedienteEditView(SessaoPermissionMixin):
-
     """
         Votação Simbólica e Secreta
     """
@@ -3670,7 +3766,7 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
             '&nbsp;', ' ', strip_tags(votacao.observacao)),
             'resultado': votacao.tipo_resultado_votacao.nome,
             'tipo_resultado':
-            votacao.tipo_resultado_votacao_id}
+                votacao.tipo_resultado_votacao_id}
         context.update({'votacao_titulo': titulo,
                         'votacao': votacao_existente})
 
@@ -3719,7 +3815,8 @@ class PautaSessaoView(TemplateView):
     template_name = "sessao/pauta_inexistente.html"
 
     def get(self, request, *args, **kwargs):
-        sessao = SessaoPlenaria.objects.filter(publicar_pauta = True).order_by("-data_inicio").first()
+        sessao = SessaoPlenaria.objects.filter(
+            publicar_pauta=True).order_by("-data_inicio").first()
 
         if not sessao:
             return self.render_to_response({})
@@ -3771,9 +3868,12 @@ class PautaSessaoDetailView(DetailView):
 
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
-            data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
-            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt = data_hora_sessao).order_by(
-                '-data_tramitacao', '-id').first()
+            data_hora_sessao = datetime.strptime(
+                data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
+            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(
+                data_hora_sessao).astimezone(pytz.utc)
+            ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
+                '-data_tramitacao', '-id').first() if m.tramitacao is None else m.tramitacao
             numeracao = m.materia.numeracao_set.first()
 
             materias_expediente.append({
@@ -3789,11 +3889,37 @@ class PautaSessaoDetailView(DetailView):
                 'autor': [str(x.autor) for x in m.materia.autoria_set.select_related('autor').all()]
             })
         context.update({'materia_expediente': materias_expediente})
+
+        # =====================================================================
+        # Correspondencias
+        correspondencias = []
+        qs = self.object.correspondencia_set.all()
+        is_anon = request.user.is_anonymous
+        is_ostensivo = AppsAppConfig.attr('documentos_administrativos') == 'O'
+        if is_anon and not is_ostensivo:
+            qs = qs.none()
+        elif is_anon:
+            qs = qs.filter(documento__restrito=False)
+        for c in qs:
+            d = c.documento
+            correspondencias.append(
+                {
+                    'id': d.id,
+                    'tipo': c.get_tipo_display(),
+                    'epigrafe': str(d),
+                    'data': d.data.strftime('%d/%m/%Y'),
+                    'interessado': d.interessado,
+                    'assunto': d.assunto,
+                    'restrito': d.restrito,
+                    'is_ostensivo': is_ostensivo
+                }
+            )
+        context.update({'correspondencias': correspondencias})
         # =====================================================================
         # Expedientes
         expedientes = []
-        for e in ExpedienteSessao.objects.select_related("tipo").filter(sessao_plenaria_id=self.object.id)\
-                                                                .order_by('tipo__ordenacao'):
+        for e in ExpedienteSessao.objects.select_related("tipo").filter(sessao_plenaria_id=self.object.id) \
+                .order_by('tipo__ordenacao'):
             conteudo = e.conteudo
             from sapl.relatorios.views import is_empty
             if not is_empty(conteudo):
@@ -3825,9 +3951,12 @@ class PautaSessaoDetailView(DetailView):
 
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
-            data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
-            ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lt = data_hora_sessao).order_by(
-                '-data_tramitacao', '-id').first()
+            data_hora_sessao = datetime.strptime(
+                data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
+            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(
+                data_hora_sessao).astimezone(pytz.utc)
+            ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
+                '-data_tramitacao', '-id').first() if o.tramitacao is None else o.tramitacao
             numeracao = o.materia.numeracao_set.first()
 
             materias_ordem.append({
@@ -3933,7 +4062,7 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
         qs = kwargs.get('queryset')
-        qs = qs.filter(publicar_pauta = True)
+        qs = qs.filter(publicar_pauta=True)
         kwargs['queryset'] = qs
         return kwargs
 
@@ -3962,17 +4091,18 @@ def verifica_materia_sessao_plenaria_ajax(request):
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
         is_materia_presente_any_sessao = ExpedienteMateria.objects.filter(
-             materia=id_materia_selecionada
+            materia=id_materia_selecionada
         ).exists()
     elif tipo_materia_sessao == MATERIAS_ORDEMDIA:
         is_materia_presente = OrdemDia.objects.filter(
             sessao_plenaria=pk_sessao_plenaria, materia=id_materia_selecionada
         ).exists()
         is_materia_presente_any_sessao = OrdemDia.objects.filter(
-             materia=id_materia_selecionada
+            materia=id_materia_selecionada
         ).exists()
 
-    return JsonResponse({'is_materia_presente': is_materia_presente, 'is_materia_presente_any_sessao': is_materia_presente_any_sessao})
+    return JsonResponse(
+        {'is_materia_presente': is_materia_presente, 'is_materia_presente_any_sessao': is_materia_presente_any_sessao})
 
 
 class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
@@ -4119,7 +4249,7 @@ class AdicionarVariasMateriasOrdemDia(AdicionarVariasMateriasExpediente):
                         MateriaLegislativa.objects.get(id=m))
                 messages.add_message(request, messages.ERROR, msg)
                 self.logger.error('user=' + username + '. Formulário Inválido. Você esqueceu de selecionar '
-                                  'o tipo de votação de MateriaLegislativa com id={}'.format(m))
+                                                       'o tipo de votação de MateriaLegislativa com id={}'.format(m))
 
                 return self.get(request, self.kwargs)
 
@@ -4218,7 +4348,6 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
         @property
         def layout_display(self):
-
             layout = super().layout_display
 
             if self.object.ausencia == 2:
@@ -4237,7 +4366,6 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
         layout_key = None
 
         def get_context_data_old(self, **kwargs):
-
             context = super().get_context_data(**kwargs)
 
             presencas = SessaoPlenariaPresenca.objects.filter(
@@ -4273,7 +4401,6 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
                            kwargs={'pk': self.kwargs['pk']})
 
     class UpdateView(MasterDetailCrud.UpdateView):
-
         form_class = JustificativaAusenciaForm
         layout_key = None
 
@@ -4284,6 +4411,97 @@ class JustificativaAusenciaCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
+
+
+class LeituraEmBloco(PermissionRequiredForAppCrudMixin, ListView):
+    template_name = 'sessao/leitura/leitura_bloco.html'
+    app_label = AppConfig.label
+    expediente = True
+    paginate_by = 100
+
+    def get_queryset(self):
+        return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
+                                                retiradapauta=None, tipo_votacao=LEITURA, registroleitura__materia=None)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pk'] = self.kwargs['pk']
+        context['root_pk'] = self.kwargs['pk']
+        if not verifica_sessao_iniciada(self.request, self.kwargs['pk']):
+            context['sessao_iniciada'] = False
+            return context
+        context['sessao_iniciada'] = True
+        context['turno_choices'] = Tramitacao.TURNO_CHOICES
+        context['title'] = SessaoPlenaria.objects.get(id=self.kwargs['pk'])
+        if self.expediente:
+            context['expediente'] = True
+        else:
+            context['expediente'] = False
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if 'marcadas_4' in request.POST:
+            models = None
+            selectedlist = request.POST.getlist('marcadas_4')
+            if request.POST['origem'] == 'ordem':
+                models = OrdemDia.objects.filter(id__in=selectedlist)
+            elif request.POST['origem'] == 'expediente':
+                models = ExpedienteMateria.objects.filter(id__in=selectedlist)
+
+            if not models:
+                messages.add_message(self.request, messages.ERROR,
+                                     _('Impossível localizar as matérias selecionadas'))
+                return self.get(request, self.kwargs)
+
+            materias = [m.materia for m in models]
+            RegistroLeitura.objects.filter(materia__in=materias).delete()
+            leituras = []
+            for m in models:
+                obj = None
+                if isinstance(m, ExpedienteMateria):
+                    obj = RegistroLeitura(expediente=m, materia=m.materia,
+                                          observacao=request.POST['observacao'],
+                                          user=self.request.user,
+                                          ip=get_client_ip(self.request))
+                elif isinstance(m, OrdemDia):
+                    obj = RegistroLeitura(ordem=m, materia=m.materia,
+                                          observacao=request.POST['observacao'],
+                                          user=self.request.user,
+                                          ip=get_client_ip(self.request))
+                leituras.append(obj)
+
+            RegistroLeitura.objects.bulk_create(leituras)
+        else:
+            messages.add_message(self.request, messages.ERROR, _('Nenhuma matéria selecionada para leitura em Bloco'))
+            return self.get(request, self.kwargs)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        if self.request.POST['origem'] == 'ordem':
+            return reverse('sapl.sessao:ordemdia_list',
+                           kwargs={'pk': self.kwargs['pk']})
+        else:
+            return reverse('sapl.sessao:expedientemateria_list',
+                           kwargs={'pk': self.kwargs['pk']})
+
+
+class LeituraEmBlocoExpediente(LeituraEmBloco):
+    expediente = True
+    paginate_by = 100
+
+    def get_queryset(self):
+        return ExpedienteMateria.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
+                                                retiradapauta=None, tipo_votacao=LEITURA, registroleitura__materia=None)
+
+
+class LeituraEmBlocoOrdemDia(LeituraEmBloco):
+    expediente = False
+    paginate_by = 100
+
+    def get_queryset(self):
+        return OrdemDia.objects.filter(sessao_plenaria_id=self.kwargs['pk'],
+                                       retiradapauta=None, tipo_votacao=LEITURA, registroleitura__materia=None)
 
 
 class VotacaoEmBlocoExpediente(PermissionRequiredForAppCrudMixin, ListView):
@@ -4325,7 +4543,6 @@ class VotacaoEmBlocoOrdemDia(VotacaoEmBlocoExpediente):
 
 
 class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateView):
-
     """
         Votação Simbólica
     """
@@ -4421,8 +4638,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                         except Exception as e:
                             username = request.user.username
                             self.logger.error('user=' + username + '. Problemas ao salvar '
-                                              'RegistroVotacao da materia de id={} '
-                                              'e da ordem de id={}. '
+                                                                   'RegistroVotacao da materia de id={} '
+                                                                   'e da ordem de id={}. '
                                               .format(ordem.materia.id, ordem.id) + str(e))
                             return self.form_invalid(form, context)
                         else:
@@ -4453,8 +4670,10 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             votacao.save()
                         except Exception as e:
                             username = request.user.username
-                            self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
-                                              'e da ordem de id={}. '.format(expediente.materia.id, expediente.id) + str(e))
+                            self.logger.error(
+                                'user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
+                                                     'e da ordem de id={}. '.format(expediente.materia.id,
+                                                                                    expediente.id) + str(e))
                             return self.form_invalid(form, context)
                         else:
                             expediente.resultado = resultado.nome
@@ -4618,7 +4837,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
             if form.is_valid():
                 if form.cleaned_data['resultado_votacao'] == None:
                     form.add_error(None, 'Não é possível finalizar a votação sem '
-                                   'nenhum resultado da votação.')
+                                         'nenhum resultado da votação.')
                     return self.form_invalid(form, context)
 
                 qtde_votos = (int(request.POST['votos_sim']) +
@@ -4629,9 +4848,9 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                 # Caso todas as opções sejam 'Não votou', fecha a votação
                 if int(request.POST['nao_votou']) == qtde_votos:
                     self.logger.error('user=' + username + '. Não é possível finalizar a votação sem '
-                                      'nenhum voto.')
+                                                           'nenhum voto.')
                     form.add_error(None, 'Não é possível finalizar a votação sem '
-                                   'nenhum voto.')
+                                         'nenhum voto.')
                     return self.form_invalid(form, context)
 
                 if request.POST['origem'] == 'ordem':
@@ -4963,3 +5182,244 @@ def retirar_leitura(request, pk, iso, oid):
     ordem_expediente.votacao_aberta = False
     ordem_expediente.save()
     return HttpResponseRedirect(succ_url)
+
+
+def recuperar_documento(request):
+    tipo = request.GET['tipo_documento']
+    numero = request.GET['numero_documento']
+    ano = request.GET['ano_documento']
+
+    is_ostensivo = AppsAppConfig.attr('documentos_administrativos') == 'O'
+
+    qs = DocumentoAdministrativo.objects.order_by('-id')
+    qs = qs.filter(tipo_id=tipo, ano=ano, numero=numero)
+
+    is_anon = request.user.is_anonymous
+    is_restrito = qs.filter(restrito=True).exists()
+    if is_anon and not is_ostensivo or is_anon and is_restrito or not qs.exists():
+        return JsonResponse({'detail': 'Documento administrativo não encontrado.'})
+
+    d = qs.first()
+    return JsonResponse(
+        {
+            'id': d.id,
+            'epigrafe': str(d),
+            'data': d.data.strftime('%d/%m/%Y'),
+            'assunto': d.assunto,
+            'restrito': d.restrito,
+            'is_ostensivo': is_ostensivo
+        }
+    )
+
+
+class CorrespondenciaCrud(MasterDetailCrud):
+    model = Correspondencia
+    parent_field = 'sessao_plenaria'
+    help_topic = 'sessaoplenaria_correspondencia'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['numero_ordem',
+                            ('documento__data', 'documento__interessado'), 'documento', 'documento__assunto']
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            s = SessaoPlenaria.objects.get(pk=context['root_pk'])
+            context.update({
+                'subnav_template_name': 'sessao/subnav-solene.yaml'
+                if s.tipo.nome == "Solene" else 'sessao/subnav.yaml'})
+
+            return context
+
+        @property
+        def verbose_name(self):
+            return _('Correspondência')
+
+        @property
+        def verbose_name_plural(self):
+            return _('Correspondências')
+
+        @property
+        def title(self):
+            return self.object.sessao_plenaria
+
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_queryset(self):
+            qs = super().get_queryset()
+
+            is_anon = self.request.user.is_anonymous
+            is_ostensivo = AppsAppConfig.attr(
+                'documentos_administrativos') == 'O'
+
+            if is_anon and not is_ostensivo:
+                return qs.none()
+
+            if is_anon:
+                return qs.filter(documento__restrito=False)
+
+            return qs
+
+        def hook_header_numero_ordem(self, *args, **kwargs):
+            return force_text(_('Ordem / Tipo')) if not self.request.user.is_anonymous else force_text(_('Tipo'))
+
+        def hook_numero_ordem(self, obj, ss, url):
+            if not self.request.user.is_anonymous:
+                return f'{obj.numero_ordem} - {obj.get_tipo_display()}', url
+            else:
+                return f'{obj.get_tipo_display()}', url
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = CorrespondenciaForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            max_numero_ordem = Correspondencia.objects.filter(
+                sessao_plenaria=self.kwargs['pk']).aggregate(
+                Max('numero_ordem'))['numero_ordem__max']
+            initial['numero_ordem'] = (
+                                          max_numero_ordem if max_numero_ordem else 0) + 1
+
+            return initial
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = CorrespondenciaForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.object.documento
+            return context
+
+        def get_initial(self):
+            initial = super().get_initial()
+            initial['tipo_documento'] = self.object.documento.tipo.id
+            initial['numero_documento'] = self.object.documento.numero
+            initial['ano_documento'] = self.object.documento.ano
+
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'CorrespondenciaDetail'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.object.sessao_plenaria
+            return context
+
+        def hook_header_sessao_plenaria(self, *args, **kwargs):
+            return _('Sessão Plenária')
+
+        def hook_documento(self, obj, verbose_name=None, field_display=None):
+            d = obj.documento
+            url = reverse(
+                'sapl.protocoloadm:documentoadministrativo_detail',
+                kwargs={'pk': d.id}
+            )
+            return (
+                verbose_name,
+                f'<a href="{url}">{d}</a><br>{d.assunto}'
+            )
+
+        def get_object(self, queryset=None):
+
+            obj = super().get_object(queryset=queryset)
+
+            is_anon = self.request.user.is_anonymous
+            is_ostensivo = AppsAppConfig.attr(
+                'documentos_administrativos') == 'O'
+
+            if is_anon and not is_ostensivo:
+                raise Http404()
+
+            if is_anon and obj.documento.restrito:
+                raise Http404()
+
+            return obj
+
+
+class CorrespondenciaEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = CorrespondenciaEmLoteFilterSet
+    template_name = 'sessao/em_lote/correspondencia.html'
+    permission_required = ('sessao.add_correspondencia',)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(sessao_plenaria_id=self.kwargs['pk'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        s = SessaoPlenaria.objects.get(pk=self.kwargs['pk'])
+
+        context['root_pk'] = self.kwargs['pk']
+        context['title'] = _(
+            'Correspondencias em Lote <small>({})</small>').format(s)
+
+        # Verifica se os campos foram preenchidos
+        msg = None
+        if not self.request.GET.get('tipo', " "):
+            msg = _('Por favor, selecione um tipo de documento administrativo.')
+            messages.add_message(self.request, messages.ERROR, msg)
+
+        if not self.request.GET.get('data_0', " ") or not self.request.GET.get('data_1', " "):
+            msg = _('Por favor, preencha as datas.')
+            messages.add_message(self.request, messages.ERROR, msg)
+
+        if msg:
+            return context
+
+        qr = self.request.GET.copy()
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].order_by(
+                'numero', '-ano')
+            sessao_plenaria = SessaoPlenaria.objects.get(
+                pk=self.kwargs['pk'])
+            not_list = [self.kwargs['pk']] + \
+                       [m for m in sessao_plenaria.correspondencias.values_list(
+                           'id', flat=True)]
+            context['object_list'] = context['object_list'].exclude(
+                pk__in=not_list)
+
+        context['numero_res'] = len(context['object_list'])
+
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcados = request.POST.getlist('documento_id')
+
+        if len(marcados) == 0:
+            msg = _('Nenhum documento foi selecionado.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        sessao_plenaria = SessaoPlenaria.objects.get(pk=kwargs['pk'])
+
+        max_numero_ordem = Correspondencia.objects.filter(
+            sessao_plenaria=self.kwargs['pk']).aggregate(
+            Max('numero_ordem'))['numero_ordem__max'] or 0
+
+        for documento in DocumentoAdministrativo.objects.filter(
+                id__in=marcados
+        ).values_list('id', flat=True):
+            max_numero_ordem += 1
+            c = Correspondencia()
+            c.numero_ordem = max_numero_ordem
+            c.sessao_plenaria = sessao_plenaria
+            c.documento_id = documento
+            c.tipo = request.POST.get('tipo')
+            c.save()
+
+        msg = _('Correspondencias adicionadas.')
+        messages.add_message(request, messages.SUCCESS, msg)
+
+        success_url = reverse('sapl.sessao:correspondencia_list',
+                              kwargs={'pk': kwargs['pk']})
+        return HttpResponseRedirect(success_url)

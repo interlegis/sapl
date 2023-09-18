@@ -6,6 +6,7 @@ CargoMesa:
 Legislatura:
   {% trans 'Legislatura' %}:
   - numero data_eleicao  data_inicio  data_fim
+  - observacao
 
 Coligacao:
   {% trans 'Coligação' %}:
@@ -38,7 +39,7 @@ Parlamentar:
   - situacao_militar  profissao
   - endereco_web
   - email
-  - numero_gab_parlamentar  telefone
+  - numero_gab_parlamentar  telefone telefone_celular
   - endereco_residencia  cep_residencia
   - municipio_residencia  uf_residencia
   - telefone_residencia
@@ -55,7 +56,7 @@ ParlamentarUpdate:
   - situacao_militar  profissao
   - endereco_web
   - email
-  - numero_gab_parlamentar  telefone
+  - numero_gab_parlamentar  telefone telefone_celular
   - endereco_residencia  cep_residencia
   - municipio_residencia  uf_residencia
   - telefone_residencia
@@ -72,7 +73,7 @@ ParlamentarCreate:
   - situacao_militar  profissao
   - endereco_web
   - email
-  - numero_gab_parlamentar  telefone
+  - numero_gab_parlamentar  telefone telefone_celular
   - endereco_residencia  cep_residencia
   - municipio_residencia
   - telefone_residencia

@@ -40,7 +40,7 @@
               {% if p.anulado %}<strong><font color="red">&nbsp;&nbsp;** NULO **</font></strong>{% endif %}
               </br>
               <strong>Assunto:</strong> {{ p.assunto_ementa|default_if_none:"Não informado"}}</br>
-            {% if p.timestamp%}
+            {% if p.timestamp %}
               <strong>Data Protocolo:</strong> {{ p.timestamp|localtime|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ p.timestamp|localtime|date:"G:i:s" }}</br>
             {% else %}
               <strong>Data Protocolo:</strong> {{ p.data|date:"d/m/Y"|default_if_none:"Não informado" }} - Horário: {{ p.hora|date:"G:i:s" }} - {% if not p.timestamp %}  Informado Manualmente por: {{p.user_data_hora_manual}}{% endif %}</br>

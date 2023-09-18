@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction
 from django.db.models import F, Q
 from django.db.models.aggregates import Max
 from django.db.models.deletion import PROTECT
@@ -12,7 +12,6 @@ from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
-import reversion
 
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
                                    int_to_roman)
@@ -20,7 +19,6 @@ from sapl.utils import YES_NO_CHOICES, get_settings_auth_user_model,\
     texto_upload_path, restringe_tipos_de_arquivo_img
 
 
-@reversion.register()
 class TimestampedMixin(models.Model):
     created = models.DateTimeField(
         verbose_name=_('created'),
@@ -32,7 +30,6 @@ class TimestampedMixin(models.Model):
         abstract = True
 
 
-@reversion.register()
 class BaseModel(models.Model):
 
     class Meta:
@@ -87,7 +84,6 @@ class BaseModel(models.Model):
             update_fields=update_fields)
 
 
-@reversion.register()
 class PerfilEstruturalTextoArticulado(BaseModel):
     sigla = models.CharField(
         max_length=10, unique=True, verbose_name=_('Sigla'))
@@ -121,7 +117,6 @@ class PerfilEstruturalTextoArticulado(BaseModel):
         return parents
 
 
-@reversion.register()
 class TipoTextoArticulado(models.Model):
     sigla = models.CharField(max_length=3, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
@@ -190,7 +185,6 @@ PRIVACIDADE_STATUS = (
 )
 
 
-@reversion.register()
 class TextoArticulado(TimestampedMixin):
     data = models.DateField(
         blank=True,
@@ -475,48 +469,44 @@ class TextoArticulado(TimestampedMixin):
 
         view_integracao = view_integracao[0]
 
-        ta = TextoArticulado.update_or_create(view_integracao, obj)
+        origem = self
+        destino = TextoArticulado.update_or_create(view_integracao, obj)
 
-        dispositivos = Dispositivo.objects.filter(ta=self).order_by('ordem')
+        dispositivos = Dispositivo.objects.filter(ta=origem).order_by('ordem')
 
-        map_ids = {}
-        for d in dispositivos:
-            id_old = d.id
+        with transaction.atomic():
+            map_ids = {}
+            for d in dispositivos:
+                id_old = d.id
 
-            # TODO
-            # validar isso: é o suficiente para pegar apenas o texto válido?
-            # exemplo:
-            #  quando uma matéria for alterada por uma emenda
-            #  ao usar esta função para gerar uma norma deve vir apenas
-            #  o texto válido, compilado...
-            if d.dispositivo_subsequente:
-                continue
+                if d.dispositivo_subsequente:
+                    continue
 
-            d.id = None
-            d.inicio_vigencia = ta.data
-            d.fim_vigencia = None
-            d.inicio_eficacia = ta.data
-            d.fim_eficacia = None
-            d.publicacao = None
-            d.ta = ta
-            d.ta_publicado = None
-            d.dispositivo_subsequente = None
-            d.dispositivo_substituido = None
-            d.dispositivo_vigencia = None
-            d.dispositivo_atualizador = None
-            d.save()
-            map_ids[id_old] = d.id
+                d.id = None
+                d.inicio_vigencia = destino.data
+                d.fim_vigencia = None
+                d.inicio_eficacia = destino.data
+                d.fim_eficacia = None
+                d.publicacao = None
+                d.ta = destino
+                d.ta_publicado = None
+                d.dispositivo_subsequente = None
+                d.dispositivo_substituido = None
+                d.dispositivo_vigencia = None
+                d.dispositivo_atualizador = None
+                d.save()
+                map_ids[id_old] = d.id
 
-        dispositivos = Dispositivo.objects.filter(ta=ta).order_by('ordem')
+            dispositivos = Dispositivo.objects.filter(
+                ta=destino).order_by('ordem')
 
-        for d in dispositivos:
-            if not d.dispositivo_pai:
-                continue
+            for d in dispositivos:
+                if not d.dispositivo_pai:
+                    continue
 
-            d.dispositivo_pai_id = map_ids[d.dispositivo_pai_id]
-            d.save()
-
-        return ta
+                d.dispositivo_pai_id = map_ids[d.dispositivo_pai_id]
+                d.save()
+        return destino
 
     def reagrupar_ordem_de_dispositivos(self):
 
@@ -568,7 +558,6 @@ class TextoArticulado(TimestampedMixin):
             update(dpk)
 
 
-@reversion.register()
 class TipoNota(models.Model):
     sigla = models.CharField(
         max_length=10, unique=True, verbose_name=_('Sigla'))
@@ -585,7 +574,6 @@ class TipoNota(models.Model):
         return '%s: %s' % (self.sigla, self.nome)
 
 
-@reversion.register()
 class TipoVide(models.Model):
     sigla = models.CharField(
         max_length=10, unique=True, verbose_name=_('Sigla'))
@@ -600,7 +588,6 @@ class TipoVide(models.Model):
         return '%s: %s' % (self.sigla, self.nome)
 
 
-@reversion.register()
 class TipoDispositivo(BaseModel):
     """
     - no attributo rotulo_prefixo_texto, caso haja um ';' (ponto e vírgula), e
@@ -810,7 +797,6 @@ class TipoDispositivo(BaseModel):
         return False
 
 
-@reversion.register()
 class TipoDispositivoRelationship(BaseModel):
     pai = models.ForeignKey(
         TipoDispositivo,
@@ -859,7 +845,6 @@ class TipoDispositivoRelationship(BaseModel):
             self.filho_permitido.nome if self.filho_permitido else '')
 
 
-@reversion.register()
 class TipoPublicacao(models.Model):
     sigla = models.CharField(
         max_length=10, unique=True, verbose_name=_('Sigla'))
@@ -874,7 +859,6 @@ class TipoPublicacao(models.Model):
         return self.nome
 
 
-@reversion.register()
 class VeiculoPublicacao(models.Model):
     sigla = models.CharField(
         max_length=10, unique=True, verbose_name=_('Sigla'))
@@ -889,12 +873,11 @@ class VeiculoPublicacao(models.Model):
         return '%s: %s' % (self.sigla, self.nome)
 
 
-@reversion.register()
 class Publicacao(TimestampedMixin):
     ta = models.ForeignKey(
         TextoArticulado,
         verbose_name=_('Texto Articulado'),
-        on_delete=models.PROTECT
+        on_delete=models.CASCADE
     )
 
     veiculo_publicacao = models.ForeignKey(
@@ -969,7 +952,6 @@ def imagem_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath='')
 
 
-@reversion.register()
 class Dispositivo(BaseModel, TimestampedMixin):
     TEXTO_PADRAO_DISPOSITIVO_REVOGADO = force_text(_('(Revogado)'))
     INTERVALO_ORDEM = 1000
@@ -1104,7 +1086,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         null=True,
         default=None,
         verbose_name=_('Publicação'),
-        on_delete=models.PROTECT
+        on_delete=models.SET_NULL,
     )
 
     ta = models.ForeignKey(
@@ -1116,7 +1098,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
     ta_publicado = models.ForeignKey(
         TextoArticulado,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
         default=None,
@@ -1151,7 +1133,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=None,
         related_name='dispositivos_filhos_set',
         verbose_name=_('Dispositivo Pai'),
-        on_delete=models.PROTECT
+        on_delete=models.CASCADE,
     )
 
     dispositivo_raiz = models.ForeignKey(
@@ -1161,7 +1143,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=None,
         related_name='nodes',
         verbose_name=_('Dispositivo Raiz'),
-        on_delete=models.PROTECT
+        on_delete=models.CASCADE,
     )
 
     dispositivo_vigencia = models.ForeignKey(
@@ -1181,7 +1163,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         default=None,
         related_name='dispositivos_alterados_set',
         verbose_name=_('Dispositivo Atualizador'),
-        on_delete=models.PROTECT
+        on_delete=models.SET_NULL,
     )
 
     contagem_continua = models.BooleanField(
@@ -1911,7 +1893,6 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 ordem_bloco_atualizador=count)
 
 
-@reversion.register()
 class Vide(TimestampedMixin):
     texto = models.TextField(verbose_name=_('Texto do Vide'))
 
@@ -1958,7 +1939,6 @@ NOTAS_PUBLICIDADE_CHOICES = (
 )
 
 
-@reversion.register()
 class Nota(TimestampedMixin):
 
     NPRIV = 1

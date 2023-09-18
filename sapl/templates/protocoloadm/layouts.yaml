@@ -5,11 +5,11 @@ TipoDocumentoAdministrativo:
 
 DocumentoAdministrativo:
   {% trans 'Identificação Básica' %}:
-  - tipo 
+  - tipo
   - numero complemento ano
-  - data  protocolo 
+  - data  protocolo
   - assunto
-  - interessado autor tramitacao
+  - interessado autor tramitacao:2
   - texto_integral|urlize
   - documento_anexado_set__documento_principal|m2m_urlize_for_detail
   - documento_principal_set__documento_anexado|m2m_urlize_for_detail
@@ -33,7 +33,7 @@ TramitacaoAdministrativo:
   {% trans 'Tramitação' %}:
   - data_tramitacao  unidade_tramitacao_local
   - unidade_tramitacao_destino data_encaminhamento  data_fim_prazo
-  - status urgente 
+  - status urgente
   - texto
 
 Anexado:
@@ -62,3 +62,13 @@ Protocolo:
   - assunto_ementa
   - autor
   - observacao
+
+VinculoDocAdminMateria:
+  {% trans 'Matéria Vinculada' %}:
+  - tipo numero ano
+  - data_anexacao  data_desanexacao
+
+VinculoDocAdminMateriaDetail:
+  {% trans 'Matéria Vinculada' %}:
+  - materia|fk_urlize_for_detail data_anexacao:3 data_desanexacao:3
+  - documento

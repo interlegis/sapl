@@ -1,0 +1,23 @@
+{% load common_tags%}
+
+{% for nome, data in signs %}
+  {% if forloop.first %}
+    <div class="col d-flex align-items-center">
+      <div class="box-assinatura-eletronica">
+          <ul class="sigs px-0">
+  {% endif %}
+          <li class="sig">
+            <span class="sig-nome">
+              {{nome}}
+            </span>
+            <small class="sig-data">
+                (Assinado em: {{data.0|parse_datetime|date:"DATETIME_FORMAT" }} -
+                <small>{{data.1}}</small>)
+            </small>
+          </li>
+  {% if forloop.last %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+{% endfor %}

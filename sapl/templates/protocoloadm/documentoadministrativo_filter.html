@@ -37,7 +37,7 @@
           {% if request.user.is_anonymous and not d.restrito or not request.user.is_anonymous%}
           <tr>
             <td>
-              <strong><a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' d.id %}">{{d.tipo.sigla}} {{d.numero}}{%if d.complemento %}-{{d.complemento}}{% endif %}/{{d.ano}} - {{d.tipo}}</strong></a></br>
+              <a href="{% url 'sapl.protocoloadm:documentoadministrativo_detail' d.id %}"><strong>{{d}}</strong></a></br>
                 <strong>Interessado:</strong>&nbsp;{{ d.interessado|default_if_none:"Não informado"}}
                 </br>
               <strong>Assunto:</strong>&nbsp;{{ d.assunto|safe }}
@@ -108,7 +108,7 @@
         $("#id_ano").removeClass("select-error");
         document.getElementById("error-ano").remove();
       }
-      
+
     }
   }
 

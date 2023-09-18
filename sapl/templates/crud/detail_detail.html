@@ -64,6 +64,18 @@
     {% endfor %}
   {% endblock detail_content %}
 
+  {% if view.openapi_url %}
+  <div class="container justify-content-end d-flex">
+    <div class="actions btn-group" role="group">
+      <a href="{{ view.openapi_url }}" class="btn btn-sm btn-info py-0">
+        <small class="text-white">
+          {% trans 'OpenAPI' %}
+        </small>
+      </a>
+    </div>
+  </div>
+{% endif %}
+
   <div class="actions btn-group mb-3" role="group">
     {% if view.detail_set_create_url %}
     <a href="{{ view.detail_set_create_url }}" class="btn btn-outline-primary">
@@ -74,7 +86,7 @@
   </div>
 
   <div class="clearfix"></div>
-  
+
   <div class="container-table">
     {% if not rows %}
       <p>{{ NO_ENTRIES_MSG }}</p>

@@ -1,5 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load tz %}
 {% load crispy_forms_tags common_tags%}
 {% load webpack_static from webpack_loader %}
 
@@ -65,8 +66,10 @@
                    </br>
                 {% endif %}
                 {% if m.numero_protocolo %}
-                    <strong>Protocolo: </strong>{{m.numero_protocolo}}/{{m.ano}} &nbsp;&nbsp; <strong>Data Entrada:</strong> {{m.data_entrada_protocolo|default_if_none:"" }} </br>
-
+                    <strong>Protocolo: </strong>{{m.numero_protocolo}}/{{m.ano}}, <strong>Data Protocolo: </strong>
+                    {{ m.data_entrada_protocolo|localtime|date:"d/m/Y"|default_if_none:"Não informado" }} -
+                    <strong>Horário:</strong> {{ m.data_entrada_protocolo|localtime|date:"G:i:s" }}
+                   </br>
                 {% endif %}
                 {% if m.autoria_set.all %}
                   <strong>Autor:</strong>
@@ -120,6 +123,16 @@
                         {{ a.materia_principal }}&nbsp;
                     </a>
                     <strong>Data Anexação:</strong> {{a.data_anexacao}}
+                    {% if a.materia_principal.autoria_set.all %}
+                    <strong>Autor(es):</strong>
+                            {% for ab in a.materia_principal.autoria_set.all %}
+                                {% if not forloop.first %}
+                                    ,&nbsp;{{ab.autor}}
+                                {% else %}
+                                     &nbsp;{{ab.autor}}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
                     </br>
                     {% endfor %}
                   {% endif %}
@@ -130,6 +143,16 @@
                         {{ anexada.materia_anexada }}&nbsp;
                     </a>
                     <strong>Data Anexação:</strong> {{anexada.data_anexacao}}
+                    {% if anexada.materia_anexada.autoria_set.exists %}
+                    <strong>Autor(es):</strong>
+                            {% for a in anexada.materia_anexada.autoria_set.all %}
+                                {% if not forloop.first %}
+                                    ,&nbsp;{{a.autor}}
+                                {% else %}
+                                     &nbsp;{{a.autor}}
+                                {% endif %}
+                            {% endfor %}
+                    {% endif %}
                     </br>
                     {% endfor %}
                   {% endif %}
@@ -177,3 +200,20 @@
     {% endblock detail_content %}
   {% block table_content %}
   {% endblock table_content %}
+  {% block extra_js %}
+
+  <script type="text/javascript" >
+
+  function pesquisaAvancada(){
+     $('.pesquisa_avancada').toggle();
+
+     var id_btn = "#btn_pesquisa_avancada_id";
+     if ($(id_btn).val().endsWith('>>>')){
+       $(id_btn).val($(id_btn).val().replace('>>>', '<<<'))
+     }else{
+       $(id_btn).val($(id_btn).val().replace('<<<', '>>>'))
+     }
+  };
+  </script>
+  {% endblock extra_js %}
+

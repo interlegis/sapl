@@ -1,9 +1,13 @@
+import os
+import time
 from datetime import datetime
 import logging
+from io import BytesIO
 from random import choice
 import re
 from string import ascii_letters, digits
 
+from PyPDF4 import PdfFileMerger
 from braces.views import FormValidMessageMixin
 from django.conf import settings
 from django.contrib import messages
@@ -16,7 +20,7 @@ from django.db import transaction
 from django.db.models import Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -35,12 +39,15 @@ from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa, UnidadeTramitacao
 from sapl.materia.views import gerar_pdf_impressos
 from sapl.parlamentares.models import Legislatura, Parlamentar
-from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo
+from sapl.protocoloadm.forms import VinculoDocAdminMateriaForm,\
+    VinculoDocAdminMateriaEmLoteFilterSet
+from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo,\
+    VinculoDocAdminMateria
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
-                        google_recaptcha_configured)
+                        google_recaptcha_configured, get_tempfile_dir)
 
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
                     AnularProtocoloAdmForm, compara_tramitacoes_doc,
@@ -55,7 +62,7 @@ from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, Anexado
 from .models import (Anexado, AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
-
+from ..settings import MEDIA_ROOT
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -113,6 +120,71 @@ def doc_texto_integral(request, pk):
                 'inline; filename="%s"' % arquivo.name.split('/')[-1])
             return response
     raise Http404
+
+
+def get_pdf_docacessorios(request, pk):
+    documento_administrativo = get_object_or_404(DocumentoAdministrativo, pk=pk)
+    logger = logging.getLogger(__name__)
+    username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
+    try:
+        external_name, data = create_pdf_docacessorios(documento_administrativo)
+        logger.info(
+            "user= {}. Gerou o pdf compilado de documento acessorios".format(username))
+    except FileNotFoundError:
+        logger.error("user= {}.Não há arquivos cadastrados".format(username))
+        msg = _('Não há arquivos cadastrados nesses documentos acessórios.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+    except Exception as e:
+        logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
+                     .format(username, str(e)))
+        msg = _('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
+    if not data:
+        msg = _('Não há nenhum documento acessório PDF cadastrado.')
+        messages.add_message(request, messages.ERROR, msg)
+        return redirect(reverse('sapl.materia:documentoacessorio_list',
+                                kwargs={'pk': pk}))
+
+    response = HttpResponse(data, content_type='application/pdf')
+    response['Content-Disposition'] = ('attachment; filename="%s"'
+                                       % external_name)
+    return response
+
+
+def create_pdf_docacessorios(docadministrativo):
+    """
+        Creates a unified in memory PDF file
+    """
+    logger = logging.getLogger(__name__)
+    docs = docadministrativo.documentoacessorioadministrativo_set. \
+        all().values_list('arquivo', flat=True)
+    if not docs:
+        return None, None
+
+    docs_path = [os.path.join(MEDIA_ROOT, i)
+                 for i in docs if i.lower().endswith('pdf')]
+    if not docs_path:
+        raise FileNotFoundError(
+            "Não há arquivos PDF cadastrados em documentos acessorios.")
+    logger.info("Gerando compilado PDF de documentos acessorios com {} documentos"
+                .format(docs_path))
+
+    merger = PdfFileMerger()
+    for f in docs_path:
+        merger.append(fileobj=f)
+
+    data = BytesIO()
+    merger.write(data)
+    merger.close()
+
+    external_name = "docadm_{}_{}_docacessorios.pdf".format(
+        docadministrativo.numero, docadministrativo.ano)
+    return external_name, data.getvalue()
 
 
 class AcompanhamentoConfirmarView(TemplateView):
@@ -1126,7 +1198,7 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
             context['object_list'] = []
         else:
             context['temp_object_list'] = context['object_list'].order_by(
-            'numero', '-ano')
+                'numero', '-ano')
             context['object_list'] = []
             for obj in context['temp_object_list']:
                 if not obj.pk == int(context['root_pk']):
@@ -1155,7 +1227,6 @@ class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
 
                         if not ciclico:
                             context['object_list'].append(obj)
-        
 
         context['numero_res'] = len(context['object_list'])
 
@@ -1299,7 +1370,6 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['ultima_edicao'] = tz.localize(datetime.now())
 
             return initial
-
 
     class ListView(DocumentoAdministrativoMixin, MasterDetailCrud.ListView):
 
@@ -1751,3 +1821,154 @@ def apaga_protocolos_view(request):
             return JsonResponse({'type': 'success', 'msg': ''})
         else:
             return JsonResponse({'type': 'error', 'msg': 'Senha Incorreta'})
+
+
+class VinculoDocAdminMateriaCrud(MasterDetailCrud):
+    model = VinculoDocAdminMateria
+    parent_field = 'documento'
+    help_topic = 'vinculodocadminmateria'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        list_field_names = ['data_anexacao', ('materia', 'materia__ementa')]
+
+        @property
+        def verbose_name(self):
+            return _('Vinculo')
+
+        @property
+        def verbose_name_plural(self):
+            return _('Vinculos')
+
+        @property
+        def title(self):
+            return self.object.documento.epigrafe
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = VinculoDocAdminMateriaForm
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = VinculoDocAdminMateriaForm
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.object.documento
+            return context
+
+        def get_initial(self):
+            initial = super(UpdateView, self).get_initial()
+            initial['tipo'] = self.object.materia.tipo.id
+            initial['numero'] = self.object.materia.numero
+            initial['ano'] = self.object.materia.ano
+            return initial
+
+    class DetailView(MasterDetailCrud.DetailView):
+
+        @property
+        def layout_key(self):
+            return 'VinculoDocAdminMateriaDetail'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = self.object.documento.epigrafe
+            return context
+
+
+class VinculoDocAdminMateriaEmLoteView(PermissionRequiredMixin, FilterView):
+    filterset_class = VinculoDocAdminMateriaEmLoteFilterSet
+    template_name = 'protocoloadm/em_lote/vinculodocadminmateria.html'
+    permission_required = ('protocoloadm.add_documentoadministrativo',)
+
+    def get_context_data(self, **kwargs):
+        context = super(VinculoDocAdminMateriaEmLoteView,
+                        self).get_context_data(**kwargs)
+
+        context['root_pk'] = self.kwargs['pk']
+
+        context['subnav_template_name'] = 'protocoloadm/subnav.yaml'
+
+        context['title'] = _('Matérias Vinculadas em Lote')
+
+        # Verifica se os campos foram preenchidos
+        if not self.request.GET.get('tipo', " "):
+            msg = _('Por favor, selecione um tipo de matéria.')
+            messages.add_message(self.request, messages.ERROR, msg)
+
+            if not self.request.GET.get('data_apresentacao_0', " ") or not self.request.GET.get('data_apresentacao_1', " "):
+                msg = _('Por favor, preencha as datas.')
+                messages.add_message(self.request, messages.ERROR, msg)
+
+            return context
+
+        if not self.request.GET.get('data_apresentacao_0', " ") or not self.request.GET.get('data_apresentacao_1', " "):
+            msg = _('Por favor, preencha as datas.')
+            messages.add_message(self.request, messages.ERROR, msg)
+            return context
+
+        qr = self.request.GET.copy()
+        if not len(qr):
+            context['object_list'] = []
+        else:
+            context['object_list'] = context['object_list'].order_by(
+                'numero', '-ano')
+            documento = DocumentoAdministrativo.objects.get(
+                pk=self.kwargs['pk'])
+            not_list = [self.kwargs['pk']] + \
+                [m for m in documento.materiasvinculadas.values_list(
+                    'id', flat=True)]
+            context['object_list'] = context['object_list'].exclude(
+                pk__in=not_list)
+
+        context['numero_res'] = len(context['object_list'])
+
+        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+
+        context['show_results'] = show_results_filter_set(qr)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        marcadas = request.POST.getlist('materia_id')
+
+        data_anexacao = datetime.strptime(
+            request.POST['data_anexacao'], "%d/%m/%Y").date()
+
+        if request.POST['data_desanexacao'] == '':
+            data_desanexacao = None
+            v_data_desanexacao = data_anexacao
+        else:
+            data_desanexacao = datetime.strptime(
+                request.POST['data_desanexacao'], "%d/%m/%Y").date()
+            v_data_desanexacao = data_desanexacao
+
+        if len(marcadas) == 0:
+            msg = _('Nenhuma máteria foi selecionada.')
+            messages.add_message(request, messages.ERROR, msg)
+
+            if data_anexacao > v_data_desanexacao:
+                msg = _('Data de anexação posterior à data de desanexação.')
+                messages.add_message(request, messages.ERROR, msg)
+
+            return self.get(request, self.kwargs)
+
+        if data_anexacao > v_data_desanexacao:
+            msg = _('Data de anexação posterior à data de desanexação.')
+            messages.add_message(request, messages.ERROR, msg)
+            return self.get(request, self.kwargs)
+
+        documento = DocumentoAdministrativo.objects.get(pk=kwargs['pk'])
+        for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
+
+            v = VinculoDocAdminMateria()
+            v.documento = documento
+            v.materia = materia
+            v.data_anexacao = data_anexacao
+            v.data_desanexacao = data_desanexacao
+            v.save()
+
+        msg = _('Matéria(s) vinculadas(s).')
+        messages.add_message(request, messages.SUCCESS, msg)
+
+        success_url = reverse('sapl.protocoloadm:vinculodocadminmateria_list',
+                              kwargs={'pk': kwargs['pk']})
+        return HttpResponseRedirect(success_url)

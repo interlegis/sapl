@@ -1,5 +1,7 @@
 import logging
 
+from datetime import datetime
+
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
@@ -12,6 +14,7 @@ from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, SaplFormLayou
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
 from sapl.utils import timezone, FileFieldCheckMixin, validar_arquivo
+
 
 class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
     logger = logging.getLogger(__name__)
@@ -53,7 +56,7 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
 
     class Meta:
         model = AudienciaPublica
-        fields = ['tipo', 'numero', 'nome',
+        fields = ['tipo', 'numero', 'ano', 'nome',
                   'tema', 'data', 'hora_inicio', 'hora_fim',
                   'observacao', 'audiencia_cancelada', 'parlamentar_autor', 'requerimento', 'url_audio',
                   'url_video', 'upload_pauta', 'upload_ata',
@@ -85,6 +88,26 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
         parlamentar_autor = cleaned_data["parlamentar_autor"]
         requerimento = cleaned_data["requerimento"]
 
+        if cleaned_data["ano"] != cleaned_data["data"].year:
+            raise ValidationError(f"Ano da audiência ({cleaned_data['ano']}) difere "
+                                  f"do ano no campo data ({cleaned_data['data'].year})")
+
+        #
+        # TODO: converter hora_inicio e hora_fim para TimeField
+        #
+        # valida hora inicio
+        try:
+            datetime.strptime(cleaned_data["hora_inicio"], '%H:%M').time()
+        except ValueError:
+            raise ValidationError(f"Formato de horário de início inválido: {cleaned_data['hora_inicio']}")
+
+        # valida hora fim
+        if cleaned_data["hora_fim"]:
+            try:
+                datetime.strptime(cleaned_data["hora_fim"], '%H:%M').time()
+            except ValueError:
+                raise ValidationError(f"Formato de horário de fim inválido: {cleaned_data['hora_fim']}")
+
         if materia and ano_materia and tipo_materia:
             try:
                 self.logger.debug("Tentando obter MateriaLegislativa %s nº %s/%s." % (tipo_materia, materia, ano_materia))
@@ -115,14 +138,14 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
                 raise ValidationError(msg)
 
         if not cleaned_data['numero']:
-            ultima_audiencia = AudienciaPublica.objects.all().order_by('numero').last()
+            ultima_audiencia = AudienciaPublica.objects.all().order_by('ano', 'numero').last()
             if ultima_audiencia:
                 cleaned_data['numero'] = ultima_audiencia.numero + 1
             else:
                 cleaned_data['numero'] = 1
         else:
-            if AudienciaPublica.objects.filter(numero=cleaned_data['numero']).exclude(pk=self.instance.pk).exists():
-                raise ValidationError(f"Já existe uma audiência com a numeração {cleaned_data['numero']}.")
+            if AudienciaPublica.objects.filter(numero=cleaned_data['numero'], ano=cleaned_data['ano']).exclude(pk=self.instance.pk).exists():
+                raise ValidationError(f"Já existe uma audiência pública com a numeração {str(cleaned_data['numero']).rjust(3, '0')}/{cleaned_data['ano']}.")
 
         if self.cleaned_data['hora_inicio'] and self.cleaned_data['hora_fim']:
             if self.cleaned_data['hora_fim'] < self.cleaned_data['hora_inicio']:

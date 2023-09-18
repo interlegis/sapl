@@ -1,0 +1,38 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+  {% if not show_results %}
+    {% crispy filter.form %}
+  {% endif %}
+
+  {% if show_results %}
+    <div class="actions btn-group float-right" role="group">
+      <a href="{% url 'sapl.relatorios:reuniao' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
+    </div>
+    <br /><br /><br /><br />
+    {% if object_list|length > 0 %}
+      <table class="table table-bordered table-hover">
+        <thead class="thead-default" >
+          <tr class="active">
+            <th>Comissao</th>
+            <th>Nome</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for reuniao in object_list %}
+            <tr>
+              <td><a href="{% url 'sapl.comissoes:reuniao_detail' reuniao.pk %}">
+                {{reuniao.comissao}}
+              </a></td>
+              <td>{{reuniao.nome}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <font size="5"><p align="center">Nenhum reunião foi encontrada!</p></font>
+    {% endif %}
+  {% endif %}
+{% endblock base_content %}

@@ -1,150 +1,138 @@
-const each = require("lodash/fp/each");
-const path = require("path");
-const shell = require('shelljs');
+const HOST_NAME = 'localhost'
+const dotenv = require('dotenv')
 
-const MomentLocalesPlugin = require("moment-locales-webpack-plugin");
-const BundleTrackerPlugin = require("webpack-bundle-tracker");
-const CompressionPlugin = require("compression-webpack-plugin");
-const CopyPlugin = require("copy-webpack-plugin");
+const path = require('path')
+const fs = require('fs')
 
-class RelativeBundleTrackerPlugin extends BundleTrackerPlugin {
-  convertPathChunks(chunks) {
-    each(
-      each((chunk) => {
-        chunk.path = path.relative(this.options.path, chunk.path);
-      })
-    )(chunks);
-  }
+const BundleTrackerPlugin = require('webpack-bundle-tracker')
+const CompressionPlugin = require('compression-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+const MomentLocalesPlugin = require('moment-locales-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
-  writeOutput(compiler, contents) {
-    if (contents.status === "done") {
-      this.convertPathChunks(contents.chunks);
-    }
-    super.writeOutput(compiler, contents);
-  }
-}
-
-const dotenv = require("dotenv");
 dotenv.config({
-  path: "./sapl/.env",
-});
-
-var HOST_NAME = "localhost";
+  path: './sapl/.env'
+})
 
 module.exports = {
   runtimeCompiler: true,
   publicPath:
-    process.env.NODE_ENV === "production"
-      ? "/static/sapl/frontend"
+    process.env.NODE_ENV === 'production'
+      ? '/static/sapl/frontend'
       : `http://${HOST_NAME}:8080/`,
-  outputDir: "./sapl/static/sapl/frontend",
+  outputDir: './sapl/static/sapl/frontend',
+
+  productionSourceMap: false,
+  css: {
+    sourceMap: true
+  },
+  devServer: {
+    port: '8080',
+    hot: true,
+    https: false,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
+    static: {
+      directory: path.join(__dirname, 'frontend', 'src', 'assets'),
+      publicPath: ''
+      // path.join(__dirname + '/frontend/', 'src', 'assets'),
+    }
+  },
 
   chainWebpack: (config) => {
-    config.plugins.delete("html");
-    config.plugins.delete("preload");
-    config.plugins.delete("prefetch");
+    config.plugins.delete('html')
+    config.plugins.delete('preload')
+    config.plugins.delete('prefetch')
 
-    config.resolve.alias.set("@", path.join(__dirname + "/frontend/", "src"));
-
-    config.plugin("copy").use(CopyPlugin, [
-      [
-        {
-          from: path.join(__dirname + "/frontend/", "public"),
-          to: ".",
-        },
-
-        {
-          from:  path.join(__dirname, "/node_modules/tinymce/skins"),
-          to: "js/skins/[path][name].[ext]",
-        },
-      ],
-    ]);
+    config.resolve.alias.set('@', path.join(__dirname, 'frontend', 'src'))
+    config.resolve.alias.set('__STATIC__', 'static')
 
     config
-      .plugin("RelativeBundleTrackerPlugin")
-      .use(RelativeBundleTrackerPlugin, [
+      .plugin('BundleTrackerPlugin')
+      .use(BundleTrackerPlugin, [
         {
-          path: ".",
+          path: '.',
           filename: `./frontend/${
-            process.env.DEBUG === "True" &&
-            process.env.NODE_ENV !== "production"
-              ? "dev-"
-              : ""
-          }webpack-stats.json`,
-        },
-      ]);
+            process.env.DEBUG === 'True' &&
+            process.env.NODE_ENV !== 'production'
+              ? 'dev-'
+              : ''
+          }webpack-stats.json`
+        }
+      ])
 
-    config.plugin("MomentLocalesPlugin").use(MomentLocalesPlugin, [
+    config.plugin('provide').use(require('webpack').ProvidePlugin, [
       {
-        localesToKeep: ["pt-BR"],
-      },
-    ]);
+        $: 'jquery',
+        jquery: 'jquery',
+        'window.jQuery': 'jquery',
+        jQuery: 'jquery',
+        _: 'lodash'
+      }
+    ])
 
-    config.resolve.alias.set("__STATIC__", "static");
-
-    config.devServer
-      .public("")
-      .port(8080)
-      .hot(true)
-      .watchOptions({
-        poll: true,
-      })
-      .watchContentBase(true)
-      .https(false)
-      .headers({
-        "Access-Control-Allow-Origin": "*",
-      })
-      .contentBase([
-        path.join(__dirname + "/frontend/", "public"),
-        path.join(__dirname + "/frontend/", "src", "assets"),
-      ]);
-
-    config.plugin("provide").use(require("webpack/lib/ProvidePlugin"), [
+    config.plugin('MomentLocalesPlugin').use(MomentLocalesPlugin, [
       {
-        $: "jquery",
-        jquery: "jquery",
-        "window.jQuery": "jquery",
-        jQuery: "jquery",
-        _: "lodash",
-      },
-    ]);
+        localesToKeep: ['pt-BR']
+      }
+    ])
 
-    if (process.env.NODE_ENV === "production") {
-      config.optimization.minimizer("terser").tap((args) => {
-        args[0].terserOptions.compress.drop_console = true;
-        args[0].extractComments = true;
-        args[0].cache = true;
-        return args;
-      });
+    config.plugin('copy').use(CopyPlugin, [
+      {
+        patterns: [
+          {
+            from: path.join(__dirname, 'frontend', 'src', 'assets'),
+            to: '.'
+          },
+          {
+            from: path.join(__dirname, 'node_modules/tinymce/skins'),
+            to: 'js/skins/[path][name][ext]'
+          }
+        ]
+      }
+    ])
 
-      config.plugin("CompressionPlugin").use(CompressionPlugin, [{}]);
+    if (process.env.NODE_ENV === 'production') {
+      fs.unlink('frontend/dev-webpack-stats.json', function (err) {
+        if (err && err.code !== 'ENOENT') {
+          console.error('Error occurred while trying to remove file')
+        }
+      })
 
-      shell.rm('frontend/dev-webpack-stats.json')
+      config
+        .plugin('CompressionPlugin')
+        .use(CompressionPlugin, [{}])
 
-    } else {
-      config.devtool("source-map");
+      config
+        .optimization
+        .minimizer('terser')
+        .use(TerserPlugin, [{
+          extractComments: true,
+          minify: TerserPlugin.uglifyJsMinify
+        }])
     }
 
-    config.entryPoints.delete("app");
+    config.entryPoints.delete('app')
 
     config
-      .entry("global")
-      .add("./frontend/src/__global/main.js")
-      .end();
+      .entry('global')
+      .add('./frontend/src/__global/main.js')
+      .end()
 
     config
-      .entry("compilacao")
-      .add("./frontend/src/__apps/compilacao/main.js")
-      .end();
+      .entry('parlamentar')
+      .add('./frontend/src/__apps/parlamentar/main.js')
+      .end()
 
     config
-      .entry("painel")
-      .add("./frontend/src/__apps/painel/main.js")
-      .end();
+      .entry('painel')
+      .add('./frontend/src/__apps/painel/main.js')
+      .end()
 
     config
-      .entry("parlamentar")
-      .add("./frontend/src/__apps/parlamentar/main.js")
-      .end();
-  },
-};
+      .entry('compilacao')
+      .add('./frontend/src/__apps/compilacao/main.js')
+      .end()
+  }
+}

@@ -1,8 +1,0 @@
-# ZODB version 3.7.4
-ZODB==5.3.0
-PyYAML
-Unipath
-GitPython
-pyaml
-python-magic
-ipython

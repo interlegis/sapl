@@ -54,7 +54,7 @@
                                 <tr>
                                     <td>
                                         <input type="checkbox" name="documento_id" value="{{documento.id}}" {% if check %} checked {% endif %}/>
-                                        <a href="{% url 'sapl_index' %}docadm/{{documento.pk}}">{{documento.tipo.sigla}} {{documento.numero}}/{{documento.ano}} - {{documento.tipo.descricao}}</a>                                        
+                                        <a href="{% url 'sapl.base:sapl_index' %}docadm/{{documento.pk}}">{{documento.tipo.sigla}} {{documento.numero}}/{{documento.ano}} - {{documento.tipo.descricao}}</a>
                                     </td>
                                 </tr>
                             {% endfor %}

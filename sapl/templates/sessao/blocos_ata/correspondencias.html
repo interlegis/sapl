@@ -1,0 +1,13 @@
+{% if correspondencias %}
+<fieldset>
+  <p align="justify">
+    <strong>Correspondências:</strong>
+    {% for c in correspondencias %}
+        <strong>{{forloop.counter}})</strong> {{c.tipo}} -
+        <strong>{{c.epigrafe}}</strong> -
+        {% if c.interessado %}Interessado: {{c.interessado}} - {% endif %}
+        Assunto: {{c.assunto}};
+    {% endfor %}
+  </p>
+</fieldset>
+{% endif %}

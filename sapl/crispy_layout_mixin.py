@@ -4,8 +4,10 @@ from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _
 import yaml
 
@@ -38,7 +40,7 @@ def form_actions(more=[Div(css_class='clearfix')],
                  label=_('Salvar'), name='salvar',
                  css_class='float-right', disabled=True):
 
-    if disabled:
+    if disabled and force_text(label) != 'Pesquisar':
         doubleclick = 'this.form.submit();this.disabled=true;'
     else:
         doubleclick = 'return true;'
@@ -169,7 +171,7 @@ def get_field_display(obj, fieldname):
         display = '<div class="dont-break-out">{}</div>'.format(display)
     else:
         display = str(value)
-    return verbose_name, display
+    return verbose_name, display or '&nbsp;'
 
 
 class CrispyLayoutFormMixin:
@@ -256,21 +258,30 @@ class CrispyLayoutFormMixin:
         if '|' in fieldname:
             fieldname, func = tuple(fieldname.split('|'))
 
+        try:
+            verbose_name, field_display = get_field_display(obj, fieldname)
+        except:
+            verbose_name, field_display = '', ''
+
         if func:
-            verbose_name, text = getattr(self, func)(obj, fieldname)
-        else:
-            hook_fieldname = 'hook_%s' % fieldname
-            if hasattr(self, hook_fieldname):
-                verbose_name, text = getattr(
+            verbose_name, field_display = getattr(self, func)(obj, fieldname)
+
+        hook_fieldname = 'hook_%s' % fieldname
+        if hasattr(self, hook_fieldname):
+            try:
+                verbose_name, field_display = getattr(
+                    self, hook_fieldname)(obj, verbose_name=verbose_name, field_display=field_display)
+            except:
+                verbose_name, field_display = getattr(
                     self, hook_fieldname)(obj)
-            else:
-                verbose_name, text = get_field_display(obj, fieldname)
+        elif not func:
+            verbose_name, field_display = get_field_display(obj, fieldname)
 
         return {
             'id': fieldname,
             'span': span,
             'verbose_name': verbose_name,
-            'text': text,
+            'text': field_display,
         }
 
     def fk_urlize_for_detail(self, obj, fieldname):
@@ -318,6 +329,21 @@ class CrispyLayoutFormMixin:
             verbose_name = ''
 
         return verbose_name, display
+
+    def widget__signs(self, obj, fieldname):
+        from sapl.base.models import Metadata
+        try:
+            md = Metadata.objects.get(
+                content_type=ContentType.objects.get_for_model(
+                    obj._meta.model),
+                object_id=obj.id,)
+            autores = md.metadata['signs'][fieldname]['autores']
+            t = template.loader.get_template('base/widget__signs.html')
+            rendered = str(t.render(context={'signs': autores}))
+        except Exception as e:
+            return '', ''
+
+        return 'Assinaturas Eletrônicas', rendered
 
     @property
     def layout_display(self):

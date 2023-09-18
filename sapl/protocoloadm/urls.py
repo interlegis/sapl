@@ -25,7 +25,10 @@ from sapl.protocoloadm.views import (AcompanhamentoDocumentoView,
                                      AnexadoCrud, DocumentoAnexadoEmLoteView,
                                      PrimeiraTramitacaoEmLoteAdmView,
                                      TramitacaoEmLoteAdmView,
-                                     apaga_protocolos_view)
+                                     apaga_protocolos_view,
+                                     VinculoDocAdminMateriaCrud,
+                                     VinculoDocAdminMateriaEmLoteView,
+                                     get_pdf_docacessorios)
 
 from .apps import AppConfig
 
@@ -34,18 +37,23 @@ app_name = AppConfig.name
 urlpatterns_documento_administrativo = [
     url(r'^docadm/',
         include(DocumentoAdministrativoCrud.get_urls() +
-                AnexadoCrud.get_urls() + 
+                AnexadoCrud.get_urls() +
                 TramitacaoAdmCrud.get_urls() +
-                DocumentoAcessorioAdministrativoCrud.get_urls())),
+                DocumentoAcessorioAdministrativoCrud.get_urls() +
+                VinculoDocAdminMateriaCrud.get_urls())),
 
     url(r'^docadm/pesq-doc-adm',
         PesquisarDocumentoAdministrativoView.as_view(), name='pesq_doc_adm'),
 
     url(r'^docadm/texto_integral/(?P<pk>\d+)$', doc_texto_integral,
         name='doc_texto_integral'),
-    
+
     url(r'^docadm/(?P<pk>\d+)/anexado_em_lote', DocumentoAnexadoEmLoteView.as_view(),
         name='anexado_em_lote'),
+    url(r'^docadm/(?P<pk>\d+)/vinculo-em-lote', VinculoDocAdminMateriaEmLoteView.as_view(),
+        name='vinculodocadminmateria_em_lote'),
+    url(r'^docadm/documentoacessorioadministrativo/pdf/(?P<pk>\d+)$', get_pdf_docacessorios,
+        name='merge_docacessorios')
 ]
 
 urlpatterns_protocolo = [
@@ -119,12 +127,6 @@ urlpatterns_sistema = [
         include(TipoDocumentoAdministrativoCrud.get_urls())),
     url(r'^sistema/status-tramitacao-adm/',
         include(StatusTramitacaoAdministrativoCrud.get_urls())),
-
-    # FIXME: Usado para pesquisar autor- SOLUÇÃO-foi transformado em api/autor
-    # Melhor forma de fazer?
-    # Deve mudar de app?
-    # url(r'^protocoloadm/pesquisar-autor',
-    #    pesquisa_autores, name='pesquisar_autor'),
 ]
 
 urlpatterns = (urlpatterns_documento_administrativo +

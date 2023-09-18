@@ -12,5 +12,6 @@ rules_group_administrativo = {
         (protocoloadm.Anexado, __base__, set()),
         (protocoloadm.DocumentoAcessorioAdministrativo, __base__, set()),
         (protocoloadm.TramitacaoAdministrativo, __base__, set()),
+        (protocoloadm.VinculoDocAdminMateria, __base__, set())
     ]
 }

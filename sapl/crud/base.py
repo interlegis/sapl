@@ -25,7 +25,7 @@ from django.views.generic.list import MultipleObjectMixin
 from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
-                                  RP_LIST)
+                        RP_LIST)
 from sapl.utils import normalize
 
 logger = logging.getLogger(settings.BASE_DIR.name)
@@ -77,6 +77,7 @@ def make_pagination(index, num_pages):
                         None, num_pages - 1, num_pages]
             head = from_to(1, PAGINATION_LENGTH - len(tail) - 1)
         return head + [None] + tail
+
 
 """
 variáveis do crud:
@@ -360,6 +361,13 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
                 if self.request.user.has_perm(
                     self.permission(RP_DELETE)) else ''
 
+    @property
+    def openapi_url(self):
+        obj = self.crud if hasattr(self, 'crud') else self
+        o = self.object
+        url = f'/api/{o._meta.app_label}/{o._meta.model_name}/{o.id}'
+        return url
+
     def get_template_names(self):
         names = super(CrudBaseMixin, self).get_template_names()
         names.append("crud/%s.html" %
@@ -421,14 +429,20 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             m = f.related_model
                     except:
                         f = None
-                hook = 'hook_header_{}'.format(''.join(fn))
-                if hasattr(self, hook):
-                    header = getattr(self, hook)()
-                    s.append(header)
-                elif f:
-                    s.append(force_text(f.verbose_name))
+                if f:
+                    hook = 'hook_header_{}'.format(''.join(fn))
+                    if hasattr(self, hook):
+                        header = getattr(self, hook)()
+                        s.append(force_text(header))
+                    else:
+                        s.append(force_text(f.verbose_name))
+                else:
+                    hook = 'hook_header_{}'.format(''.join(fn))
+                    if hasattr(self, hook):
+                        header = getattr(self, hook)()
+                        s.append(header)
 
-            s = ' / '.join(s)
+            s = ' / '.join(filter(lambda x: x, s))
             r.append(s)
         return r
 
@@ -1111,12 +1125,15 @@ class MasterDetailCrud(Crud):
                 root_pk = self.kwargs['pk'] if 'pkk' not in self.request.GET\
                     else self.request.GET['pkk']
             kwargs.setdefault('root_pk', root_pk)
+
+            title = '%s <small>(%s)</small>' % (
+                self.object,
+                parent_object
+            ) if parent_object else ''
             context = super(CrudBaseMixin, self).get_context_data(**kwargs)
 
-            if parent_object:
-                context['title'] = '%s <small>(%s)</small>' % (
-                    self.object, parent_object)
-
+            if 'title' not in context and title:
+                context['title'] = title
             return context
 
     class ListView(Crud.ListView):

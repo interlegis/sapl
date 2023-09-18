@@ -10,11 +10,11 @@ window.refreshDatePicker = function () {
 }
 
 window.getCookie = function (name) {
-  var cookieValue = null
+  let cookieValue = null
   if (document.cookie && document.cookie !== '') {
-    var cookies = document.cookie.split(';')
-    for (var i = 0; i < cookies.length; i++) {
-      var cookie = $.trim(cookies[i])
+    const cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = $.trim(cookies[i])
       if (cookie.substring(0, name.length + 1) === name + '=') {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
         break
@@ -26,7 +26,7 @@ window.getCookie = function (name) {
 
 window.autorModal = function () {
   $(function () {
-    var dialog = $('#modal_autor').dialog({
+    const dialog = $('#modal_autor').dialog({
       autoOpen: false,
       modal: true,
       width: 500,
@@ -65,12 +65,11 @@ window.autorModal = function () {
     })
 
     $('#pesquisar').click(function () {
-      var name_in_query = $('#q').val()
-      // var q_0 = "q_0=nome__icontains"
-      // var q_1 = name_in_query
-      // query = q_1
-
-      $.get('/api/autor?q=' + name_in_query, function (data) {
+      const json_data = {
+        q: $('#q').val()
+        // get_all: true
+      }
+      $.get('/api/base/autor', json_data, function (data) {
         $('#div-resultado')
           .children()
           .remove()
@@ -82,15 +81,15 @@ window.autorModal = function () {
           return
         }
 
-        var select = $(
+        const select = $(
           '<select id="resultados" style="min-width: 90%; max-width:90%;" size="5"/>'
         )
 
         data.results.forEach(function (item) {
           select.append(
             $('<option>')
-              .attr('value', item.value)
-              .text(item.text)
+              .attr('value', item.id)
+              .text(item.nome)
           )
         })
 

@@ -3,6 +3,32 @@
 {% load common_tags %}
 {% load static %}
 
+{% block head_extra_css %}
+  @page {
+    margin-left: 1.5cm;
+    margin-right: 1.5cm;
+  }
+  table {
+    border-collapse: collapse;
+    font-size: 10pt;
+    margin-bottom: 30px
+  }
+  td, th {
+    border: 1px solid black;
+    padding: 5px;
+    vertical-align: middle;
+  }
+  th {
+    text-align: center;
+    padding: 10px 3px;
+  }
+  td:nth-child(1), td:nth-child(2) {
+    text-align: center;
+  }
+
+{% endblock head_extra_css %}
+
+
 {% block content %}
   <h2>Estatísticas de acesso de normas</h2>
 
@@ -15,30 +41,41 @@
     {% else %}
       {% for mes, normas in normas_mes.items %}
         <div style="overflow:auto; ">
-          <table class="table table-bordered table-hover" style="margin-bottom: 0px;">
-            <thead class="thead-default">
-              <tr>
-                <th><h3 style="text-align:center;">Mês: {{ mes }}</h3></th>
-              </tr>
-            </thead>
-          </table>
-            <table class="table table-bordered table-hover" style="width:100%; margin-bottom: 30px;">
-              <thead class="thead-default" >
+            <table class="table table-bordered">
+              <thead class="thead-default">
+                <tr>
+                  <th colspan=3>
+                    <h3>Mês: {{ mes }}</h3>
+                    <center>
+                      <h5>Um total de acessos {{normas_count_mes|lookup:mes}} nas {{normas|length}} mais acessadas.</h5>
+                    </center>
+                  </th>
+                </tr>
                 <tr class="active">
-                  <th>Norma</th>
-                  <th>Ementa</th>
+                  <th>Posição</th>
                   <th>Acessos</th>
+                  <th>Norma</th>
                 </tr>
               </thead>
               <tbody>
                 {% for n in normas %}
-                  {% if n.1 > 0 %}
+                  {% if n.norma_count > 0 %}
                     <tr>
+                      <td>{{n.mais_acessadas}}º</td>
+                      <td>{{n.norma_count}}</td>
                       <td>
-                        {{n.0.tipo.descricao}} - {{n.0.tipo.sigla}} {{n.0.numero}}/{{n.0.ano}}
+                        <strong>
+                          {{n.norma_tipo_descricao}} nº {{n.norma_numero}}, de {{n.norma_data}}
+                        </strong>
+                        <br>{{n.norma_ementa}}
+                        {% if n.norma_observacao %}
+                        <small>
+                          <i>
+                            <br><strong>Observações:</strong> {{n.norma_observacao}}
+                          </i>
+                        </small>
+                        {% endif %}
                       </td>
-                      <td>{{n.0.ementa}}<br>{{n.0.observacao}}</td>
-                      <td>{{n.1}}</td>
                     </tr>
                   {% endif %}
                 {% endfor %}
@@ -47,4 +84,4 @@
         </div>
       {% endfor %}
     {% endif %}
-{% endblock content %} 
+{% endblock content %}

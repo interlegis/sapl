@@ -1,0 +1,22 @@
+{% if correspondencias %}
+<fieldset>
+  <legend>Correspondências</legend>
+    <table class="table">
+        {% for c in correspondencias %}
+            <tr>
+              <td>
+                <strong>{{c.epigrafe}}</strong><br>
+                <strong>Data: </strong>{{c.data}}
+                {% if c.interessado %}
+                   - <strong>Interessado:</strong> {{c.interessado}}<br>
+                {% else %}
+                -
+                {% endif %}
+                <strong>Assunto: </strong>{{c.assunto}}
+              </td>
+            </tr>
+        {% endfor %}
+    </table>
+</fieldset>
+<br /><br /><br />
+{% endif %}

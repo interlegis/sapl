@@ -41,7 +41,7 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
-SAPL_VERSION = '3.1.162'
+SAPL_VERSION = '3.1.163-RC16'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -88,13 +88,12 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'image_cropping',
 
-    'reversion',
-    'reversion_compare',
-
     'haystack',
-    'speedinfo',
+    'django.contrib.postgres',
 
     'webpack_loader',
+
+    'django_prometheus',
 
 ) + SAPL_APPS
 
@@ -126,16 +125,18 @@ HAYSTACK_CONNECTIONS = {
 }
 
 MIDDLEWARE = [
-    'reversion.middleware.RevisionMiddleware',
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'sapl.endpoint_restriction_middleware.EndpointRestrictionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
@@ -148,6 +149,7 @@ REST_FRAMEWORK = {
     "UNICODE_JSON": False,
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.MultiPartParser"
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
@@ -160,7 +162,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ),
 
-    'DEFAULT_SCHEMA_CLASS': 'sapl.api.core.schema.Schema',
+    'DEFAULT_SCHEMA_CLASS': 'sapl.api.schema.Schema',
 
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
 
@@ -168,6 +170,13 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
+}
+
+DRFAUTOAPI = {
+    'DEFAULT_SERIALIZER_MODULE': 'sapl.api.serializers',
+    'DEFAULT_FILTER_MODULE': 'sapl.api.forms',
+    'GLOBAL_SERIALIZER_MIXIN': 'sapl.api.serializers.SaplSerializerMixin',
+    'GLOBAL_FILTERSET_MIXIN': 'sapl.api.forms.SaplFilterSetMixin'
 }
 
 SPECTACULAR_SETTINGS = {
@@ -178,8 +187,7 @@ SPECTACULAR_SETTINGS = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'speedinfo.backends.proxy_cache',
-        'CACHE_BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
     }
 }
@@ -320,7 +328,8 @@ FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
-LOGGING_CONSOLE_VERBOSE = config('LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
+LOGGING_CONSOLE_VERBOSE = config(
+    'LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
 
 LOGGING = {
     'version': 1,
@@ -371,7 +380,7 @@ LOGGING = {
             'propagate': True,
         },
         'django': {
-            'handlers': ['applogfile'],
+            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
             'level': 'ERROR',
             'propagate': True,
         },

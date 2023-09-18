@@ -1,5 +1,5 @@
     <h2 class="gray-title">Expedientes</h2>
     {% for expediente in lst_expedientes%}
             <h3>{{expediente.nom_expediente}}</h3>
-            <p style="margin-bottom: 1cm">{{expediente.txt_expediente|safe}}</p>
+            <div style="margin-bottom: 1cm">{{expediente.txt_expediente|safe}}</div>
     {% endfor%}

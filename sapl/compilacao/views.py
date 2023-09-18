@@ -6,6 +6,7 @@ import sys
 from braces.views import FormMessagesMixin
 from bs4 import BeautifulSoup
 from django import forms
+from django.apps.registry import apps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -58,8 +59,35 @@ TipoNotaCrud = CrudAux.build(TipoNota, 'tipo_nota')
 TipoVideCrud = CrudAux.build(TipoVide, 'tipo_vide')
 TipoPublicacaoCrud = CrudAux.build(TipoPublicacao, 'tipo_publicacao')
 VeiculoPublicacaoCrud = CrudAux.build(VeiculoPublicacao, 'veiculo_publicacao')
-TipoDispositivoCrud = CrudAux.build(
-    TipoDispositivo, 'tipo_dispositivo')
+
+
+class TipoDispositivoCrud(CrudAux):
+    model = TipoDispositivo
+
+    class BaseMixin(CrudAux.BaseMixin):
+        list_field_names = ('nome', )
+
+        @property
+        def delete_url(self):
+            return ''
+
+        @property
+        def create_url(self):
+            return ''
+
+    class CreateView(CrudAux.CreateView):
+        def has_permission(self):
+            return False
+
+    class DeleteView(CrudAux.DeleteView):
+        def has_permission(self):
+            return False
+
+    class UpdateView(CrudAux.UpdateView):
+        layout_key = 'TipoDispositivoUpdate'
+
+    class ListView(CrudAux.ListView):
+        paginate_by = 100
 
 
 def choice_models_in_extenal_views():
@@ -1110,7 +1138,44 @@ class TextEditView(CompMixin, TemplateView):
         self.object = self.ta
         return self.object.has_edit_permission(self.request)
 
+    def importar_texto_materia(self, request, *args, **kwargs):
+        rd = redirect(to=reverse_lazy(
+            'sapl.compilacao:ta_text_edit', kwargs={
+                'ta_id': self.object.id}))
+
+        if self.object.dispositivos_set.count() > 1:
+            messages.error(
+                request,
+                _('Este Texto Articulado possui conteúdo, '
+                  'para fazer a importação você deve deixar '
+                  'apenas uma única Articulação inicial.'))
+            return rd
+
+        materia = self.materia_da_norma_deste_texto_articulado()
+        if not materia:
+            messages.error(
+                request,
+                _('A Norma [{}] não está vinculada a nenhuma matéria.'.format(self.object.content_object)))
+            return rd
+
+        self.object.dispositivos_set.all().delete()
+
+        ta_materia = materia.texto_articulado.first()
+
+        try:
+            ta_materia.clone_for(self.object.content_object)
+            #TextoArticulado.clone(ta_materia, self.object)
+        except Exception as e:
+            messages.error(
+                request,
+                _('Ocorreu erro na importação e o procedimento foi cancelado!'))
+
+        return rd
+
     def get(self, request, *args, **kwargs):
+
+        if 'importar_texto_materia' in request.GET:
+            return self.importar_texto_materia(request, *args, **kwargs)
 
         if self.object.editing_locked:
             if 'unlock' not in request.GET:
@@ -1327,7 +1392,7 @@ class TextEditView(CompMixin, TemplateView):
         return r
 
     def nota_alteracao(self, dispositivo, lista_ta_publicado):
-        if dispositivo.ta_publicado_id:
+        if dispositivo.ta_publicado_id and dispositivo.dispositivo_atualizador:
             d = dispositivo.dispositivo_atualizador.dispositivo_pai
 
             if d.auto_inserido:
@@ -1347,6 +1412,16 @@ class TextEditView(CompMixin, TemplateView):
                     d, ta_publicado)
 
         return ''
+
+    def materia_da_norma_deste_texto_articulado(self):
+        NormaJuridica = apps.get_model(
+            'norma', 'NormaJuridica')
+        ta = self.ta
+
+        if isinstance(ta.content_object, NormaJuridica) and\
+                ta.content_object.materia:
+            return ta.content_object.materia
+        return None
 
     def runBase(self):
         result = Dispositivo.objects.filter(ta_id=self.kwargs['ta_id'])

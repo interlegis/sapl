@@ -49,7 +49,7 @@
 {% block extra_js %}
 	{% if perms|get_add_perm:view %}
 		<script language="JavaScript">
-			initTextRichEditor(null);
+			initTextRichEditor(null, false, true);
 		</script>
 	<!-- Se nao tiver permissao, o texto rico fica readonly -->
 	{% else %}

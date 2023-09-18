@@ -41,5 +41,5 @@ def sapl_as_sapn(request):
         'sapl_as_sapn': sapl_as_sapn_utils(),
         'nome_sistema': _('Sistema de Apoio ao Processo Legislativo')
         if not sapl_as_sapn_utils()
-        else _('Sistema de Apoio a Publicação de Normas')
+        else _('Sistema de Apoio à Publicação de Leis e Normas')
     }

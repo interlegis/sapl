@@ -4,7 +4,6 @@ from django.template import defaultfilters
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
 from sapl.base.models import Autor
 from sapl.compilacao.models import TextoArticulado
@@ -16,7 +15,6 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         OverwriteStorage)
 
 
-@reversion.register()
 class AssuntoNorma(models.Model):
     assunto = models.CharField(max_length=50, verbose_name=_('Assunto'))
     descricao = models.CharField(
@@ -31,7 +29,6 @@ class AssuntoNorma(models.Model):
         return self.assunto
 
 
-@reversion.register()
 class TipoNormaJuridica(models.Model):
     # TODO transform into Domain Model and use an FK for the field
     EQUIVALENTE_LEXML_CHOICES = ((name, name) for name in
@@ -120,12 +117,12 @@ class NormaJuridicaManager(models.Manager):
             if not count:
                 ta.dispositivos_set.filter(
                     dispositivo_pai__isnull=False).delete()
+                ta.publicacao_set.all().delete()
                 ta.delete()
 
         return qs
 
 
-@reversion.register()
 class NormaJuridica(models.Model):
 
     objects = NormaJuridicaManager()
@@ -150,7 +147,9 @@ class NormaJuridica(models.Model):
         verbose_name=_('Tipo da Norma Jurídica'))
     materia = models.ForeignKey(
         MateriaLegislativa, blank=True, null=True,
-        on_delete=models.PROTECT, verbose_name=_('Matéria'))
+        on_delete=models.PROTECT,
+        verbose_name=_('Matéria'),
+        related_name='normajuridica_set')
     orgao = models.ForeignKey(
         Orgao, blank=True, null=True,
         on_delete=models.PROTECT, verbose_name=_('Órgão'))
@@ -308,7 +307,41 @@ class NormaEstatisticas(models.Model):
             'usuario': self.usuario, 'norma': self.norma}
 
 
-@reversion.register()
+class ViewNormasEstatisticas(models.Model):
+    mais_acessadas = models.PositiveSmallIntegerField(
+        verbose_name=_('Mais Acessadas'))
+    ano_est = models.PositiveSmallIntegerField(
+        verbose_name=_('Ano do Registro de Acesso'))
+    mes_est = models.PositiveSmallIntegerField(
+        verbose_name=_('Mês do Registro de Acesso'))
+
+    norma_id = models.BigIntegerField(verbose_name=_('Id da Norma'))
+    norma_count = models.PositiveSmallIntegerField(
+        verbose_name=_('Mês do Registro de Acesso'))
+
+    norma_numero = models.CharField(
+        max_length=8, verbose_name=_('Número da Norma'))
+
+    norma_ano = models.PositiveSmallIntegerField(
+        verbose_name=_('Ano da Norma'))
+    norma_ementa = models.TextField(verbose_name=_('Ementa'))
+    norma_observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
+
+    norma_tipo_sigla = models.CharField(
+        max_length=3,
+        verbose_name=_('Sigla do Tipo da Norma'))
+
+    norma_tipo_descricao = models.CharField(
+        max_length=50, verbose_name=_('Descrição do Tipo da Norma'))
+
+    norma_data = models.DateField(verbose_name=_('Data da Norma'))
+
+    class Meta:
+        managed = False
+        db_table = "norma_viewnormasestatisticas"
+
+
 class AutoriaNorma(models.Model):
     autor = models.ForeignKey(Autor,
                               verbose_name=_('Autor'),
@@ -331,7 +364,6 @@ class AutoriaNorma(models.Model):
             'autor': self.autor, 'norma': self.norma}
 
 
-@reversion.register()
 class LegislacaoCitada(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     norma = models.ForeignKey(NormaJuridica, on_delete=models.CASCADE)
@@ -369,7 +401,6 @@ class LegislacaoCitada(models.Model):
         return str(self.norma)
 
 
-@reversion.register()
 class TipoVinculoNormaJuridica(models.Model):
     sigla = models.CharField(
         max_length=1, blank=True, verbose_name=_('Sigla'))
@@ -390,7 +421,6 @@ class TipoVinculoNormaJuridica(models.Model):
         return self.descricao_ativa
 
 
-@reversion.register()
 class NormaRelacionada(models.Model):
     norma_principal = models.ForeignKey(
         NormaJuridica,
@@ -406,6 +436,11 @@ class NormaRelacionada(models.Model):
         TipoVinculoNormaJuridica,
         on_delete=models.PROTECT,
         verbose_name=_('Tipo de Vínculo'))
+    resumo = models.TextField(
+        blank=True,
+        default="",
+        verbose_name=_('Resumo'),
+    )
 
     class Meta:
         verbose_name = _('Norma Relacionada')
@@ -419,7 +454,6 @@ class NormaRelacionada(models.Model):
             'norma_relacionada': str(self.norma_relacionada)}
 
 
-@reversion.register()
 class AnexoNormaJuridica(models.Model):
     norma = models.ForeignKey(
         NormaJuridica,

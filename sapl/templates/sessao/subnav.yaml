@@ -21,14 +21,19 @@
 
 - title: {% trans 'Expedientes' %}
   children:
+    - title: {% trans 'Correspondências' %}
+      url: correspondencia_list
     - title: {% trans 'Expediente Diversos' %}
       url: expediente
-    - title: {% trans 'Matérias Expediente' %}
+    - title: {% trans 'Matérias do Expediente' %}
       url: expedientemateria_list
     - title: {% trans 'Oradores do Expediente' %}
       url: oradorexpediente_list
     - title: {% trans 'Votação em Bloco' %}
       url: votacao_bloco_expediente
+      check_permission: sessao.add_sessaoplenaria
+    - title: {% trans 'Leitura em Bloco' %}
+      url: leitura_bloco_expediente
       check_permission: sessao.add_sessaoplenaria
     - title: {% trans 'Copiar Matérias para Sessão Posterior' %}
       url: transf_mat_exp
@@ -37,14 +42,17 @@
 
 - title: {% trans 'Ordem do Dia' %}
   children:
-    - title: {% trans 'Matérias Ordem do Dia' %}
+    - title: {% trans 'Matérias da Ordem do Dia' %}
       url: ordemdia_list
-    - title: {% trans 'Presença Ordem do Dia' %}
+    - title: {% trans 'Presença na Ordem do Dia' %}
       url: presencaordemdia
     - title: {% trans 'Oradores da Ordem do Dia' %}
       url: oradorordemdia_list
     - title: {% trans 'Votação em Bloco' %}
       url: votacao_bloco_ordemdia
+      check_permission: sessao.add_sessaoplenaria
+    - title: {% trans 'Leitura em Bloco' %}
+      url: leitura_bloco_ordem_dia
       check_permission: sessao.add_sessaoplenaria
     - title: {% trans 'Copiar Matérias para Sessão Posterior' %}
       url: transf_mat_ordemdia

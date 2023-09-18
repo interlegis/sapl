@@ -1,4 +1,3 @@
-import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
@@ -10,7 +9,6 @@ from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         OverwriteStorage)
 
 
-@reversion.register()
 class TipoComissao(models.Model):
     NATUREZA_CHOICES = Choices(('T', 'temporaria', _('Temporária')),
                                ('P', 'permanente', _('Permanente')))
@@ -32,7 +30,6 @@ class TipoComissao(models.Model):
         return self.nome
 
 
-@reversion.register()
 class Comissao(models.Model):
     tipo = models.ForeignKey(TipoComissao,
                              on_delete=models.PROTECT,
@@ -99,7 +96,6 @@ class Comissao(models.Model):
         return self.sigla + ' - ' + self.nome
 
 
-@reversion.register()
 class Periodo(models.Model):  # PeriodoCompComissao
     data_inicio = models.DateField(verbose_name=_('Data Início'))
     data_fim = models.DateField(
@@ -120,7 +116,6 @@ class Periodo(models.Model):  # PeriodoCompComissao
             return '-'
 
 
-@reversion.register()
 class CargoComissao(models.Model):
     id_ordenacao = models.PositiveIntegerField(
         blank=True, null=True, verbose_name=_('Posição na Ordenação'),
@@ -139,7 +134,6 @@ class CargoComissao(models.Model):
         return self.nome
 
 
-@reversion.register()
 class Composicao(models.Model):  # IGNORE
     comissao = models.ForeignKey(Comissao,
                                  on_delete=models.CASCADE,
@@ -157,7 +151,6 @@ class Composicao(models.Model):  # IGNORE
         return '%s: %s' % (self.comissao.sigla, self.periodo)
 
 
-@reversion.register()
 class Participacao(models.Model):  # ComposicaoComissao
     composicao = models.ForeignKey(Composicao,
                                    related_name='participacao_set',
@@ -177,11 +170,10 @@ class Participacao(models.Model):  # ComposicaoComissao
     data_desligamento = models.DateField(blank=True,
                                          null=True,
                                          verbose_name=_('Data Desligamento'))
-    motivo_desligamento = models.CharField(
-        max_length=150, blank=True,
-        verbose_name=_('Motivo Desligamento'))
-    observacao = models.CharField(
-        max_length=150, blank=True, verbose_name=_('Observação'))
+    motivo_desligamento = models.TextField(
+        blank=True, verbose_name=_('Motivo Desligamento'))
+    observacao = models.TextField(
+        blank=True, verbose_name=_('Observação'))
 
     class Meta:
         verbose_name = _('Participação em Comissão')
@@ -266,7 +258,7 @@ class Reuniao(models.Model):
     class Meta:
         verbose_name = _('Reunião de Comissão')
         verbose_name_plural = _('Reuniões de Comissão')
-        ordering = ('numero', 'comissao')
+        ordering = ('-data', '-nome')
 
     def __str__(self):
         return self.nome
@@ -315,7 +307,6 @@ class Reuniao(models.Model):
                                  update_fields=update_fields)
 
 
-@reversion.register()
 class DocumentoAcessorio(models.Model):
     reuniao = models.ForeignKey(Reuniao,
                                 related_name='documentoacessorio_set',

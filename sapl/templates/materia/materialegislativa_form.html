@@ -20,14 +20,6 @@
     }
     $("#id_tipo, #id_ano").change(recuperar_numero_ano);
 
-    function compare(a, b) {
-      if (a.text < b.text)
-        return -1;
-      if (a.text > b.text)
-        return 1;
-      return 0;
-    }
-
     var modal_estilos = 'display: block;'
       +'width: 85%; max-width: 600px;'
       +'background: #fff; padding: 15px;'
@@ -56,7 +48,7 @@
       let ano = $("select#id_ano.select").val();
       let data_apresentacao = $("input#id_data_apresentacao.dateinput").val();
       let ano_apresentacao = data_apresentacao.substr(data_apresentacao.length - 4);
-    
+
       if (ano && ano_apresentacao && ano_apresentacao != ano){
         $('#fundo_modal').fadeIn();
       }
@@ -72,19 +64,20 @@
         if (tipo_selecionado !== undefined && tipo_selecionado !== null){
           var json_data = {
             tipo : tipo_selecionado,
-            data_relativa : $("#id_data_apresentacao").val()
-          }
-          $.getJSON("/api/autor/possiveis", json_data, function(data) {
-            if (data) {
-              var results = data.sort(compare);
-              if (results.length > 1) {
+            data_relativa : $("#id_data_apresentacao").val(),
+            o: 'nome',
+            get_all: true
+         }
+         $.getJSON("{% url 'sapl.api:autor-possiveis' %}", json_data, function(data){
+             if (data) {
+              if (data.length > 1) {
                 $("#id_autor").append("<option>-----</option>");
               }
-              $.each(results, function(idx, obj) {
+              $.each(data, function(idx, obj) {
                 $("#id_autor")
                   .append($("<option></option>")
-                  .attr("value", obj.value)
-                  .text(obj.text));
+                  .attr("value", obj.id)
+                  .text(obj.nome));
               });
               $("#id_autor").val(autor_selecionado);
             }

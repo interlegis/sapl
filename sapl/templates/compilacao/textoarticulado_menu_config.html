@@ -6,6 +6,7 @@
     <i class="fas fa-cog"></i>
   </a>
   <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-item"><a href="{% url 'sapl.compilacao:ta_edit' object.pk %}">{% trans 'Editar Metadados do Texto Articulado' %}</a></li>
 
     {% if perms.compilacao.list_tipotextoarticulado %}<li class="dropdown-item"><a href="{% url 'sapl.compilacao:tipotextoarticulado_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoTextoArticulado'%}</a></li>{% endif %}
     {% if perms.compilacao.list_tipo_publicacao %}<li class="dropdown-item"><a href="{% url 'sapl.compilacao:tipopublicacao_list' %}">{%model_verbose_name_plural 'sapl.compilacao.models.TipoPublicacao'%}</a></li>{% endif %}

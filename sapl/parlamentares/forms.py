@@ -1,7 +1,6 @@
 from datetime import timedelta
 import logging
 
-from sapl.crispy_layout_mixin import SaplFormHelper
 from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib.auth import get_user_model
@@ -13,14 +12,15 @@ from django.db.models import Q
 from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 from floppyforms.widgets import ClearableFileInput
 from image_cropping.widgets import CropWidget, ImageCropWidget
-from sapl.utils import FileFieldCheckMixin
 
 from sapl.base.models import Autor, TipoAutor
+from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
-import django_filters
+from sapl.utils import FileFieldCheckMixin
 
 from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
@@ -161,6 +161,10 @@ class LegislaturaForm(ModelForm):
         model = Legislatura
         exclude = []
 
+        widgets = {
+            'observacao': forms.Textarea(
+                attrs={'id': 'texto-rico'})}
+
     def clean(self):
         data = super(LegislaturaForm, self).clean()
 
@@ -253,7 +257,8 @@ class ParlamentarFilterSet(django_filters.FilterSet):
 
 
 class ColigacaoFilterSet(django_filters.FilterSet):
-    nome = django_filters.CharFilter(label=_('Nome da Coligação'), lookup_expr='icontains')
+    nome = django_filters.CharFilter(
+        label=_('Nome da Coligação'), lookup_expr='icontains')
 
     class Meta:
         model = Coligacao
@@ -316,7 +321,8 @@ class ParlamentarCreateForm(ParlamentarForm):
             return self.cleaned_data
 
         cleaned_data = self.cleaned_data
-        parlamentar = Parlamentar.objects.filter(nome_parlamentar=cleaned_data['nome_parlamentar']).exists()
+        parlamentar = Parlamentar.objects.filter(
+            nome_parlamentar=cleaned_data['nome_parlamentar']).exists()
 
         if parlamentar:
             self.logger.error('Parlamentar já cadastrado.')
@@ -537,9 +543,11 @@ class FrenteParlamentarForm(ModelForm):
             return self.cleaned_data
 
         if cd['cargo'].cargo_unico:
-            frente_parlamentar = FrenteParlamentar.objects.filter(frente=cd['frente'], cargo=cd['cargo'])
+            frente_parlamentar = FrenteParlamentar.objects.filter(
+                frente=cd['frente'], cargo=cd['cargo'])
             if frente_parlamentar and not frente_parlamentar[0].parlamentar == cd['parlamentar']:
-                raise ValidationError(_("Cargo único já ocupado por outro parlamentar."))
+                raise ValidationError(
+                    _("Cargo único já ocupado por outro parlamentar."))
 
         return cd
 
@@ -669,11 +677,15 @@ class VincularParlamentarForm(forms.Form):
         data_expedicao_diploma = cleaned_data['data_expedicao_diploma']
 
         if parlamentar.mandato_set.filter(legislatura=legislatura):
-            self.logger.error('Parlamentar já está vinculado a legislatura informada.')
-            raise ValidationError(_('Parlamentar já está vinculado a legislatura informada.'))
+            self.logger.error(
+                'Parlamentar já está vinculado a legislatura informada.')
+            raise ValidationError(
+                _('Parlamentar já está vinculado a legislatura informada.'))
         elif data_expedicao_diploma and legislatura.data_inicio <= data_expedicao_diploma:
-            self.logger.error('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.')
-            raise ValidationError(_('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.'))
+            self.logger.error(
+                'Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.')
+            raise ValidationError(
+                _('Data da Expedição do Diploma deve ser anterior a data de início da Legislatura.'))
 
         return cleaned_data
 
@@ -714,6 +726,8 @@ class BlocoForm(ModelForm):
             )
         else:
             bloco.save()
+
+        bloco.partidos.set(self.cleaned_data['partidos'])
         return bloco
 
 
@@ -736,8 +750,10 @@ class BlocoMembroForm(ModelForm):
         if cd['cargo'].cargo_unico \
                 and BlocoMembro.objects.filter(bloco=cd['bloco'], cargo=cd['cargo'], data_saida__isnull=True)\
                                        .exclude(pk=self.instance.pk).exists():
-            raise ValidationError(_("Cargo único já ocupado por outro membro."))
+            raise ValidationError(
+                _("Cargo único já ocupado por outro membro."))
         elif not cd['data_saida'] and BlocoMembro.objects.filter(parlamentar=cd['parlamentar'], data_saida__isnull=True).exists():
-            raise ValidationError(_("Parlamentar já é membro do bloco parlamentar."))
+            raise ValidationError(
+                _("Parlamentar já é membro do bloco parlamentar."))
 
         return cd

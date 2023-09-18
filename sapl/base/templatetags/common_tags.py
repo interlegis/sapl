@@ -2,6 +2,7 @@ import re
 
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.utils.dateparse import parse_datetime as django_parse_datetime
 from django.utils.safestring import mark_safe
 from webpack_loader import utils
 
@@ -10,7 +11,7 @@ from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposic
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
 from sapl.sessao.models import SessaoPlenaria
-from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO
+from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO, is_report_allowed
 
 register = template.Library()
 
@@ -27,6 +28,17 @@ def get_class(class_string):
 @register.simple_tag
 def define(arg):
     return arg
+
+
+@register.simple_tag
+def describe_operation(value):
+    if value == "C":
+        return "Criar"
+    elif value == "D":
+        return "Apagar"
+    elif value == "U":
+        return "Atualizar"
+    return ""
 
 
 @register.simple_tag
@@ -51,12 +63,32 @@ def model_verbose_name_plural(class_name):
     model = get_class(class_name)
     return model._meta.verbose_name_plural
 
+
+@register.filter
+def obfuscate_value(value, key):
+    if key in ["hash", "google_recaptcha_secret_key", "password", "google_recaptcha_site_key", "hash_code"]:
+        return "***************"
+    return value
+
+
+@register.filter
+def desc_operation(value):
+    if value == "C":
+        return "Criado"
+    elif value == "D":
+        return "Excluido"
+    elif value == "U":
+        return "Atualizado"
+    return ""
+
+
 @register.filter
 def format_user(user):
     if user.first_name:
         return user.first_name + " " + user.last_name + " (" + user.username + ")"
     else:
         return user.username
+
 
 @register.filter
 def meta_model_value(instance, attr):
@@ -368,3 +400,12 @@ def dont_break_out(value):
     _safe = mark_safe(_safe)
     return _safe
 
+
+@register.filter(expects_localtime=True)
+def parse_datetime(value):
+    return django_parse_datetime(value)
+
+
+@register.filter
+def is_report_visible(request, url_path=None):
+    return is_report_allowed(request, url_path)

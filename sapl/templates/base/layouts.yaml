@@ -13,56 +13,51 @@ CasaLegislativa:
 UserDetail:
   {% trans 'Usuário' %}:
   - usuario username:3 is_active:2
-  - auth_token votante_set__parlamentar|m2m_urlize_for_detail operadorautor_set__autor|m2m_urlize_for_detail
-  - groups
+  - votante_set__parlamentar|m2m_urlize_for_detail operadorautor_set__autor|m2m_urlize_for_detail
+  - groups auth_token:5
   - user_permissions
 
 AppConfig:
 
   {% trans 'Configurações Gerais' %}:
-  - esfera_federacao documentos_administrativos sapl_as_sapn
+  - esfera_federacao sapl_as_sapn
 
   #{% trans 'Módulo Parlamentares' %}:
-
   #{% trans 'Módulo Mesa Diretora' %}:
-
   #{% trans 'Módulo Comissões' %}:
-
   #{% trans 'Módulo Bancadas Parlamentares' %}:
 
-  # {% trans 'Módulo Normas Jurídicas' %}:
+  {% trans 'Módulo Administrativo' %}:
+  - documentos_administrativos tramitacao_documento
+  - protocolo_manual sequencia_numeracao_protocolo inicio_numeracao_protocolo
+  - identificacao_de_documentos
 
   {% trans 'Módulo Proposições' %}:
-  - sequencia_numeracao_proposicao sequencia_numeracao_protocolo inicio_numeracao_protocolo
-  - protocolo_manual receber_recibo_proposicao
-  - proposicao_incorporacao_obrigatoria escolher_numero_materia_proposicao
+  - sequencia_numeracao_proposicao receber_recibo_proposicao proposicao_incorporacao_obrigatoria escolher_numero_materia_proposicao
 
   {% trans 'Módulo Matéria Legislativa' %}:
-  - tramitacao_materia tramitacao_documento
+  - tramitacao_origem_fixa:7 tramitacao_materia
 
+  # {% trans 'Módulo Normas Jurídicas' %}:
   {% trans 'Módulo Textos Articulados' %}:
   - texto_articulado_proposicao texto_articulado_materia texto_articulado_norma
 
-  #{% trans 'Módulo Sessão Plenária' %}:
-
-  #{% trans 'Módulo LexML' %}:
-
-  #{% trans 'Módulo Administrativo' %}:
-
-
-  {% trans 'Estatísticas de acesso' %}:
-  - estatisticas_acesso_normas
-
-  {% trans 'Assinaturas' %}:
+  {% trans 'Módulo Sessão Plenária' %}:
   - assinatura_ata
 
   {% trans 'Módulo Painel' %}:
   - cronometro_discurso cronometro_aparte
   - cronometro_ordem cronometro_consideracoes
-  - mostrar_brasao_painel
+  - mostrar_brasao_painel mostrar_voto
+
+  {% trans 'Estatísticas de acesso' %}:
+  - estatisticas_acesso_normas
+  - google_analytics_id_metrica
 
   {% trans 'Segurança' %}:
   - google_recaptcha_site_key google_recaptcha_secret_key
+
+  #{% trans 'Módulo LexML' %}:
 
 TipoAutor:
   {% trans 'Tipo Autor' %}:

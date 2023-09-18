@@ -17,7 +17,7 @@
           { tipo_materia: tipo_materia, numero_materia: numero_materia, ano_materia: ano_materia },
           function(data, status) {
             if ($(".ementa-materia").length === 0){
-              $("#div_id_tipo_materia").closest('.row').after($('<div class="row"/>').append($('<div class="col-xs-12"/>').append(
+              $("#div_id_tipo_materia").closest('.row').after($('<div class="row"/>').append($('<div class="col-12"/>').append(
                 $('<div class="alert alert-info ementa-materia"/>').html(data.ementa)
               )))
             }
@@ -54,11 +54,64 @@
       }
     }
 
+    function recuperar_tramitacao() {
+        let tipo_materia = $("#id_tipo_materia").val()
+        let numero_materia = $("#id_numero_materia").val()
+        let ano_materia = $("#id_ano_materia").val()
+        let tramitacao_salvo = "{{ tramitacao_salvo }}"
+
+        if (tipo_materia && numero_materia && ano_materia) {
+            $.get("/sessao/recuperar-tramitacao",
+              { tipo_materia: tipo_materia, numero_materia: numero_materia, ano_materia: ano_materia },
+              function(data, status) {
+                if (status == 'success') {
+                    $('#id_tramitacao_select').off('change')
+                    $('#id_tramitacao_select').find('option').remove()
+                    $('#id_tramitacao_select').append('<option value="">Selecione uma opção..</option>');
+                    for (const property in data) {
+                        console.log(tramitacao_salvo + "===" + property)
+                        const option = $(`<option value="${property}">${data[property].data_tramitacao} - ${data[property].status}</option>`)
+                        option[0].data = data[property]
+                        $('#id_tramitacao_select').append(option)
+                        if (property == tramitacao_salvo) {
+                            $("#id_tramitacao_select option[value='"+ property +"']").attr("selected", "selected");
+                        }
+                    }
+                    $('#id_tramitacao_select').on('change', function(event) {
+                      const option = event.currentTarget.selectedOptions[0]
+
+                      if (option.data === undefined)
+                        return
+
+                      const html_alert = `Data da Tramitação: ${option.data.data_tramitacao}<br>
+                                          De: <strong>${option.data.unidade_tramitacao_local}</strong> - Para: <strong>${option.data.unidade_tramitacao_destino}</strong><br>
+                                          Status Atual: ${option.data.status}<br>
+                                          Texto da Ação: ${option.data.texto}`
+
+                      if ($(".tramitacao-materia").length === 0){
+                        $("#id_tramitacao_select").closest('.row').after($('<div class="row"/>').append($('<div class="col-12"/>').append(
+                          $('<div class="alert alert-info w-100 tramitacao-materia"/>').html(html_alert)
+                        )))
+                      }
+                      else {
+                        $('.tramitacao-materia').html(html_alert)
+                      }
+
+                    }).trigger('change')
+                }
+              });
+        }
+    }
+
     var fields = ["#id_tipo_materia", "#id_numero_materia", "#id_ano_materia"];
     for (i = 0; i < fields.length; i++){
-      $(fields[i]).change(recuperar_materia)
+      $(fields[i]).change(function() {
+          recuperar_materia();
+          recuperar_tramitacao();
+      });
     }
-    recuperar_materia()
+    recuperar_materia();
+    recuperar_tramitacao();
 
     var modal_estilos = 'display: block; width: 85%; max-width: 600px; background: #fff; padding: 15px; border-radius: 5px;'
       +'-webkit-box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75); -moz-box-shadow: 0px 6px 14px -2px rgba(0, 0, 0, 0.75);'

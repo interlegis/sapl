@@ -1,3 +1,5 @@
+from django.contrib.contenttypes import models as contenttypes
+
 from sapl.audiencia import models as audiencia
 from sapl.base import models as base
 from sapl.comissoes import models as comissoes
@@ -10,6 +12,7 @@ from sapl.protocoloadm import models as protocoloadm
 from sapl.rules import SAPL_GROUP_GERAL, RP_ADD, __base__, __perms_publicas__, \
     __listdetailchange__
 from sapl.sessao import models as sessao
+
 
 rules_group_geral = {
     'group': SAPL_GROUP_GERAL,
@@ -25,6 +28,7 @@ rules_group_geral = {
         (base.Autor, __base__, __perms_publicas__),
         (base.OperadorAutor, __base__, __perms_publicas__),
         (base.AuditLog, __base__, set()),
+        (base.Metadata, __base__, set()),
 
         (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),
         (protocoloadm.TipoDocumentoAdministrativo, __base__, set()),
@@ -106,12 +110,15 @@ rules_group_geral = {
          __base__ + ['lock_unlock_textoarticulado'], set()),
 
         # estes tres models são complexos e a principio apenas o admin tem perm
-        (compilacao.TipoDispositivo, [], set()),
+        (compilacao.TipoDispositivo, __listdetailchange__, __perms_publicas__),
         (compilacao.TipoDispositivoRelationship, [], set()),
         (compilacao.PerfilEstruturalTextoArticulado, [], set()),
 
         (audiencia.AudienciaPublica, __base__, __perms_publicas__),
         (audiencia.TipoAudienciaPublica, __base__, __perms_publicas__),
+
+        # permite consulta anônima pela api a lista de contenttypes
+        (contenttypes.ContentType, [], __perms_publicas__),
 
     ]
 }

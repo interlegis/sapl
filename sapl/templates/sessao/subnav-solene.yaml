@@ -17,6 +17,8 @@
 
 - title: {% trans 'Expedientes' %}
   children:
+    - title: {% trans 'Correspondências' %}
+      url: correspondencia_list
     - title: {% trans 'Expediente Diversos' %}
       url: expediente
     - title: {% trans 'Oradores do Expediente' %}

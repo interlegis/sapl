@@ -1,17 +1,19 @@
+import re
+
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
-import reversion
 
-from sapl.base.models import Autor
-from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao
+from sapl.base.models import Autor, AppConfig as SaplAppConfig
+from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao,\
+    MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
                         get_settings_auth_user_model,
                         OverwriteStorage)
 
 
-@reversion.register()
 class TipoDocumentoAdministrativo(models.Model):
     sigla = models.CharField(max_length=5, verbose_name=_('Sigla'))
     descricao = models.CharField(max_length=50, verbose_name=_('Descrição'))
@@ -50,7 +52,6 @@ def texto_upload_path(instance, filename):
 """
 
 
-@reversion.register()
 class Protocolo(models.Model):
     numero = models.PositiveIntegerField(
         blank=False,
@@ -91,7 +92,8 @@ class Protocolo(models.Model):
         blank=True
     )
     de_proposicao = models.BooleanField(default=False)
-    # Não foi utilizado auto_now_add=True em timestamp porque ele usa datetime.now que não é timezone aware.
+    # Não foi utilizado auto_now_add=True em timestamp porque ele usa
+    # datetime.now que não é timezone aware.
     timestamp = models.DateTimeField(
         null=True,
         blank=True,
@@ -152,7 +154,6 @@ class Protocolo(models.Model):
         }
 
 
-@reversion.register()
 class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, on_delete=models.PROTECT,
@@ -160,7 +161,7 @@ class DocumentoAdministrativo(models.Model):
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
 
     complemento = models.CharField(max_length=10, blank=True,
-        verbose_name=_('Complemento'))
+                                   verbose_name=_('Complemento'))
 
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
@@ -214,6 +215,17 @@ class DocumentoAdministrativo(models.Model):
         )
     )
 
+    materiasvinculadas = models.ManyToManyField(
+        MateriaLegislativa,
+        blank=True,
+        through='VinculoDocAdminMateria',
+        related_name='docadmvinculados',
+        through_fields=(
+            'documento',
+            'materia'
+        )
+    )
+
     user = models.ForeignKey(
         get_settings_auth_user_model(),
         verbose_name=_('Usuário'),
@@ -235,12 +247,72 @@ class DocumentoAdministrativo(models.Model):
     class Meta:
         verbose_name = _('Documento Administrativo')
         verbose_name_plural = _('Documentos Administrativos')
-        ordering = ('id',)
+        ordering = ('ano', 'numero', 'id',)
+
+    @classmethod
+    def mask_to_str(cls, values, mask):
+        erro = set()
+        pattern = '({[^{}]+}|{[ /.-]*})'
+        campos_escolhidos = re.findall(pattern, mask)
+        campos_permitidos = {
+            '{.}', '{/}', '{-}',
+            '{sigla}',
+            '{nome}',
+            '{numero}',
+            '{ano}',
+            '{complemento}',
+            '{assunto}',
+        }
+        condicionais = {
+            '{.}': '.',
+            '{/}': '/',
+            '{-}': '-',
+        }
+
+        erro = set(campos_escolhidos) - campos_permitidos
+
+        if erro:
+            mask = '{sigla} Nº {numero}/{ano}{-}{complemento} - {nome}'
+            campos_escolhidos = re.findall(pattern, mask)
+
+        for i, k in enumerate(campos_escolhidos):
+            if k in values.keys():
+                if i > 0 and campos_escolhidos[i - 1] in condicionais:
+                    mask = mask.replace(
+                        campos_escolhidos[i - 1],
+                        condicionais[campos_escolhidos[i - 1]]if values[k] else '', 1)
+                mask = mask.replace(k, values[k], 1)
+            elif k in condicionais:
+                if i > 0 and campos_escolhidos[i - 1] in condicionais:
+                    mask = mask.replace(
+                        campos_escolhidos[i - 1],
+                        '', 1)
+                if i + 1 == len(campos_escolhidos):
+                    mask = mask.replace(k, '', 1)
+
+        return mask, erro
+
+    @cached_property
+    def _identificacao_de_documento(self):
+        mask = SaplAppConfig.attr('identificacao_de_documentos')
+
+        values = {
+            '{sigla}': self.tipo.sigla,
+            '{nome}': self.tipo.descricao,
+            '{numero}': f'{self.numero:0>3}',
+            '{ano}': f'{self.ano}',
+            '{complemento}': self.complemento,
+            '{assunto}': self.assunto
+        }
+
+        return DocumentoAdministrativo.mask_to_str(values, mask)[0]
 
     def __str__(self):
-        return _('%(tipo)s - %(assunto)s') % {
-            'tipo': self.tipo, 'assunto': self.assunto
-        }
+        return self._identificacao_de_documento
+
+    @property
+    def epigrafe(self):
+        return str(self)
 
     def delete(self, using=None, keep_parents=False):
         texto_integral = self.texto_integral
@@ -269,7 +341,6 @@ class DocumentoAdministrativo(models.Model):
                                  update_fields=update_fields)
 
 
-@reversion.register()
 class DocumentoAcessorioAdministrativo(models.Model):
     documento = models.ForeignKey(DocumentoAdministrativo,
                                   on_delete=models.PROTECT)
@@ -327,7 +398,6 @@ class DocumentoAcessorioAdministrativo(models.Model):
                                  update_fields=update_fields)
 
 
-@reversion.register()
 class StatusTramitacaoAdministrativo(models.Model):
     INDICADOR_CHOICES = Choices(
         ('F', 'fim', _('Fim')),
@@ -351,7 +421,6 @@ class StatusTramitacaoAdministrativo(models.Model):
         return self.descricao
 
 
-@reversion.register()
 class TramitacaoAdministrativo(models.Model):
     status = models.ForeignKey(
         StatusTramitacaoAdministrativo,
@@ -405,7 +474,6 @@ class TramitacaoAdministrativo(models.Model):
         }
 
 
-@reversion.register()
 class Anexado(models.Model):
     documento_principal = models.ForeignKey(
         DocumentoAdministrativo, related_name='documento_principal_set',
@@ -436,7 +504,36 @@ class Anexado(models.Model):
         }
 
 
-@reversion.register()
+class VinculoDocAdminMateria(models.Model):
+    documento = models.ForeignKey(
+        DocumentoAdministrativo, related_name='materialegislativa_vinculada_set',
+        on_delete=models.CASCADE,
+        verbose_name=_('Documento Administrativo')
+    )
+    materia = models.ForeignKey(
+        MateriaLegislativa, related_name='documentoadministrativo_vinculado_set',
+        on_delete=models.CASCADE,
+        verbose_name=_('Matéria Legislativa')
+    )
+    data_anexacao = models.DateField(verbose_name=_('Data Anexação'))
+    data_desanexacao = models.DateField(
+        blank=True, null=True, verbose_name=_('Data Desanexação')
+    )
+
+    class Meta:
+        verbose_name = _(
+            'Vinculo entre Documento Administrativo e Matéria Legislativa')
+        verbose_name_plural = _(
+            'Vinculos entre Documento Administrativo e Matéria Legislativa')
+        ordering = ('id',)
+        unique_together = (
+            ('documento', 'materia'),
+        )
+
+    def __str__(self):
+        return f'Vinculo: {self.documento} - {self.materia}'
+
+
 class AcompanhamentoDocumento(models.Model):
     usuario = models.CharField(max_length=50)
     documento = models.ForeignKey(

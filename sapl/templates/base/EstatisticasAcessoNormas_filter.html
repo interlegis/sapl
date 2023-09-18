@@ -1,6 +1,6 @@
 {% extends "crud/list.html" %}
 {% load i18n %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags common_tags %}
 
 {% block base_content %}
   {% if not ano %}
@@ -19,30 +19,41 @@
     {% else %}
       {% for mes, normas in normas_mes.items %}
         <div style="overflow:auto; ">
-          <table class="table table-bordered table-hover" style="margin-bottom: 0px;">
-            <thead class="thead-default">
-              <tr>
-                <th><h3 style="text-align:center;">Mês: {{ mes }}</h3></th>
-              </tr>
-            </thead>
-          </table>
-            <table class="table table-bordered table-hover" style="width:100%; margin-bottom: 30px;">
-              <thead class="thead-default" >
+          <table class="table table-bordered table-hover" style="width:100%; margin-bottom: 30px;">
+            <thead class="thead-default" >
+                <tr>
+                  <th colspan=3>
+                    <h3 style="text-align:center;">Mês: {{ mes }}</h3>
+                    <center>
+                      <h5>Um total de acessos {{normas_count_mes|lookup:mes}} nas {{normas|length}} mais acessadas.</h5>
+                    </center>
+                  </th>
+                </tr>
                 <tr class="active">
-                  <th>Norma</th>
-                  <th>Ementa</th>
+                  <th>Posição</th>
                   <th>Acessos</th>
+                  <th>Norma</th>
                 </tr>
               </thead>
               <tbody>
                 {% for n in normas %}
-                  {% if n.1 > 0 %}
+                  {% if n.norma_count > 0 %}
                     <tr>
-                      <td><a href="{% url 'sapl.norma:normajuridica_detail' n.0.pk %}">
-                        {{n.0.tipo.descricao}} - {{n.0.tipo.sigla}} {{n.0.numero}}/{{n.0.ano}}
-                      </a></td>
-                      <td>{{n.0.ementa}}<br>{{n.0.observacao}}</td>
-                      <td>{{n.1}}</td>
+                      <td align="center">{{n.mais_acessadas}}º</td>
+                      <td align="center">{{n.norma_count}}</td>
+                      <td>
+                        <a href="{% url 'sapl.norma:normajuridica_detail' n.norma_id %}">
+                          {{n.norma_tipo_descricao}} nº {{n.norma_numero}}, de {{n.norma_data}}
+                        </a>
+                        <br>{{n.norma_ementa}}
+                        {% if n.norma_observacao %}
+                        <small>
+                          <i>
+                            <br><strong>Observações:</strong> {{n.norma_observacao}}
+                          </i>
+                        </small>
+                        {% endif %}
+                      </td>
                     </tr>
                   {% endif %}
                 {% endfor %}
@@ -53,3 +64,31 @@
     {% endif %}
   {% endif %}
 {% endblock base_content %}
+
+{% block extra_js %}
+
+<script type="text/javascript">
+
+  $(document).ready(function(){
+    $('#id_mes').change(function(event) {
+      if (event.currentTarget.selectedOptions[0].value === '') {
+        $('#id_mais_acessadas').val('5')
+        $('#id_mais_acessadas')[0].options[2].setAttribute('disabled', true)
+        $('#id_mais_acessadas')[0].options[3].setAttribute('disabled', true)
+        $('#id_mais_acessadas')[0].options[4].setAttribute('disabled', true)
+        $('#id_mais_acessadas')[0].options[5].setAttribute('disabled', true)
+      } else {
+        $('#id_mais_acessadas')[0].options[2].removeAttribute('disabled')
+        $('#id_mais_acessadas')[0].options[3].removeAttribute('disabled')
+        $('#id_mais_acessadas')[0].options[4].removeAttribute('disabled')
+        $('#id_mais_acessadas')[0].options[5].removeAttribute('disabled')
+      }
+
+      //$('#id_mais_acessadas').prop('disabled', event.currentTarget.selectedOptions[0].value === '')
+    }).trigger('change')
+
+  })
+</script>
+{% endblock extra_js %}
+
+

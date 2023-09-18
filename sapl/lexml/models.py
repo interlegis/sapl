@@ -1,9 +1,7 @@
-import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
-@reversion.register()
 class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
     id_provedor = models.PositiveIntegerField(verbose_name=_('Id do provedor'))
     nome = models.CharField(max_length=255, verbose_name=_('Nome do provedor'))
@@ -38,7 +36,6 @@ class LexmlProvedor(models.Model):  # LexmlRegistroProvedor
         return self.nome
 
 
-@reversion.register()
 class LexmlPublicador(models.Model):
     id_publicador = models.PositiveIntegerField(
         verbose_name=_('Id do publicador'))

@@ -65,11 +65,13 @@ NormaRelacionada:
   - orgao tipo:4 numero:3 ano:2
   - tipo_vinculo
   - ementa
+  - resumo
 
 NormaRelacionadaDetail:
   {% trans 'Norma Relacionada' %}:
   - norma_relacionada
   - tipo_vinculo
+  - resumo
 
 AutoriaNorma:
   {% trans 'Autoria' %}:
