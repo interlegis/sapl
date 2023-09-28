@@ -1,14 +1,15 @@
 {% load common_tags %}
-
-<fieldset>
-    <p align="justify">
-	{% if oradores_explicacoes %}
-    	<strong>Oradores das Explicações Pessoais: </strong>
-		{% for o in oradores_explicacoes %}
-	        <b>{{o.numero_ordem}}</b> - {{o.parlamentar.nome_parlamentar}} / {% if o.parlamentar|filiacao_data_filter:object.data_inicio %} {{ o.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
-				{% if o.observacao %} - {{o.observacao}} {% endif %}
-			{% if not forloop.last %} ; {% endif %}
-		{% endfor %}
-	{% endif %}
-    </p>
-</fieldset>
+{% if oradores_explicacoes %}
+    <fieldset>
+        <p style="text-align: justify;margin-top: 0">
+            <strong>Oradores das Explicações Pessoais: </strong>
+            {% for o in oradores_explicacoes %}
+                <b>{{ o.numero_ordem }}</b> - {{ o.parlamentar.nome_parlamentar }} /
+                {% if o.parlamentar|filiacao_data_filter:object.data_inicio %}
+                    {{ o.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+                {% if o.observacao %} - {{ o.observacao }} {% endif %}
+                {% if not forloop.last %} ; {% endif %}
+            {% endfor %}
+        </p>
+    </fieldset>
+{% endif %}

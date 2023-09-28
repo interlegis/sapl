@@ -1,7 +1,7 @@
 {% load common_tags %}
-
+{% if presenca_sessao or justificativa_ausencia %}
 <fieldset>
-  <p align="justify">
+  <p align="justify" style="margin-top: 0">
     {% if presenca_sessao %}
       <strong>Lista de Presença na Sessão: </strong>
       {% for p in presenca_sessao %}
@@ -10,7 +10,7 @@
       {% endfor %}
     {% endif %}  
   </p>
-  <p align="justify">
+  <p align="justify" style="margin: 0">
     {% if justificativa_ausencia %}
       <strong>Justificativas de Ausências na Sessão: </strong>
       {% for j in justificativa_ausencia %}
@@ -20,3 +20,4 @@
     {% endif %}
   </p>
 </fieldset>
+{% endif %}
