@@ -1,8 +1,8 @@
-<fieldset>
-	<p align="justify">
-		{% if object.consideracoesfinais.conteudo %}
-			<strong>Considerações Finais: </strong>
-			{{object.consideracoesfinais.conteudo|striptags|safe}}
-		{% endif %}
-	</p>
-</fieldset>
+{% if object.consideracoesfinais.conteudo %}
+    <fieldset>
+        <p style="text-align: justify;margin-top: 0">
+                <strong>Considerações Finais: </strong>
+                {{object.consideracoesfinais.conteudo|striptags|safe}}
+        </p>
+    </fieldset>
+{% endif %}

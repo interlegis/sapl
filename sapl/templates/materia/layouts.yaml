@@ -86,7 +86,8 @@ Orgao:
 
 Relatoria:
   {% trans 'Relatoria' %}:
-  - comissao
+  - comissao|fk_urlize_for_detail
+  - materia|fk_urlize_for_detail
   - data_designacao_relator data_destituicao_relator
   - parlamentar tipo_fim_relatoria
 
