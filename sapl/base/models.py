@@ -40,6 +40,11 @@ ASSINATURA_ATA_CHOICES = (
     ('T', _('Todos os Parlamentares Presentes na Sessão')),
 )
 
+ORDENACAO_PESQUISA_MATERIA = (
+    ('S', _('Alfabética por Sigla')),
+    ('R', _('Sequência Regimental')),
+)
+
 
 class CasaLegislativa(models.Model):
     # TODO ajustar todos os max_length !!!!
@@ -190,6 +195,11 @@ class AppConfig(models.Model):
         verbose_name=_(
             'Tramitar matérias anexadas junto com as matérias principais?'),
         choices=YES_NO_CHOICES, default=True)
+    ordenacao_pesquisa_materia = models.CharField(
+        max_length=1,
+        verbose_name=_(
+            'Ordenação de Pesquisa da Matéria?'),
+        choices=ORDENACAO_PESQUISA_MATERIA, default='S')
 
     # MÓDULO NORMAS JURÍDICAS
     # MÓDULO TEXTOS ARTICULADOS
