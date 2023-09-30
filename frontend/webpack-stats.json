@@ -3,777 +3,777 @@
   "assets": {
     "audio/ring.mp3": {
       "name": "audio/ring.mp3",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/audio/ring.mp3",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/audio/ring.mp3",
       "publicPath": "/static/sapl/frontend/audio/ring.mp3"
     },
     "css/chunk-vendors.299c587b.css": {
       "name": "css/chunk-vendors.299c587b.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/chunk-vendors.299c587b.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/chunk-vendors.299c587b.css",
       "publicPath": "/static/sapl/frontend/css/chunk-vendors.299c587b.css"
     },
     "css/chunk-vendors.299c587b.css.gz": {
       "name": "css/chunk-vendors.299c587b.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/chunk-vendors.299c587b.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/chunk-vendors.299c587b.css.gz",
       "publicPath": "/static/sapl/frontend/css/chunk-vendors.299c587b.css.gz"
     },
     "css/compilacao.0baf3580.css": {
       "name": "css/compilacao.0baf3580.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/compilacao.0baf3580.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/compilacao.0baf3580.css",
       "publicPath": "/static/sapl/frontend/css/compilacao.0baf3580.css"
     },
     "css/compilacao.0baf3580.css.gz": {
       "name": "css/compilacao.0baf3580.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/compilacao.0baf3580.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/compilacao.0baf3580.css.gz",
       "publicPath": "/static/sapl/frontend/css/compilacao.0baf3580.css.gz"
     },
     "css/global.45591136.css": {
       "name": "css/global.45591136.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/global.45591136.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/global.45591136.css",
       "publicPath": "/static/sapl/frontend/css/global.45591136.css"
     },
     "css/global.45591136.css.gz": {
       "name": "css/global.45591136.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/global.45591136.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/global.45591136.css.gz",
       "publicPath": "/static/sapl/frontend/css/global.45591136.css.gz"
     },
     "css/painel.e2b9504e.css": {
       "name": "css/painel.e2b9504e.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/painel.e2b9504e.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/painel.e2b9504e.css",
       "publicPath": "/static/sapl/frontend/css/painel.e2b9504e.css"
     },
     "css/painel.e2b9504e.css.gz": {
       "name": "css/painel.e2b9504e.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/painel.e2b9504e.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/painel.e2b9504e.css.gz",
       "publicPath": "/static/sapl/frontend/css/painel.e2b9504e.css.gz"
     },
     "css/parlamentar.cd5dc5a8.css": {
       "name": "css/parlamentar.cd5dc5a8.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/css/parlamentar.cd5dc5a8.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/css/parlamentar.cd5dc5a8.css",
       "publicPath": "/static/sapl/frontend/css/parlamentar.cd5dc5a8.css"
     },
     "fonts/fa-brands-400.9a905705.ttf": {
       "name": "fonts/fa-brands-400.9a905705.ttf",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.9a905705.ttf",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.9a905705.ttf",
       "publicPath": "/static/sapl/frontend/fonts/fa-brands-400.9a905705.ttf"
     },
     "fonts/fa-brands-400.9a905705.ttf.gz": {
       "name": "fonts/fa-brands-400.9a905705.ttf.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.9a905705.ttf.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.9a905705.ttf.gz",
       "publicPath": "/static/sapl/frontend/fonts/fa-brands-400.9a905705.ttf.gz"
     },
     "fonts/fa-brands-400.b6033b54.woff2": {
       "name": "fonts/fa-brands-400.b6033b54.woff2",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.b6033b54.woff2",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-brands-400.b6033b54.woff2",
       "publicPath": "/static/sapl/frontend/fonts/fa-brands-400.b6033b54.woff2"
     },
     "fonts/fa-regular-400.3580b4a9.woff2": {
       "name": "fonts/fa-regular-400.3580b4a9.woff2",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.3580b4a9.woff2",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.3580b4a9.woff2",
       "publicPath": "/static/sapl/frontend/fonts/fa-regular-400.3580b4a9.woff2"
     },
     "fonts/fa-regular-400.67a0fb74.ttf": {
       "name": "fonts/fa-regular-400.67a0fb74.ttf",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.67a0fb74.ttf",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.67a0fb74.ttf",
       "publicPath": "/static/sapl/frontend/fonts/fa-regular-400.67a0fb74.ttf"
     },
     "fonts/fa-regular-400.67a0fb74.ttf.gz": {
       "name": "fonts/fa-regular-400.67a0fb74.ttf.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.67a0fb74.ttf.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-regular-400.67a0fb74.ttf.gz",
       "publicPath": "/static/sapl/frontend/fonts/fa-regular-400.67a0fb74.ttf.gz"
     },
     "fonts/fa-solid-900.6a8db53d.ttf": {
       "name": "fonts/fa-solid-900.6a8db53d.ttf",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-solid-900.6a8db53d.ttf",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-solid-900.6a8db53d.ttf",
       "publicPath": "/static/sapl/frontend/fonts/fa-solid-900.6a8db53d.ttf"
     },
     "fonts/fa-solid-900.6a8db53d.ttf.gz": {
       "name": "fonts/fa-solid-900.6a8db53d.ttf.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-solid-900.6a8db53d.ttf.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-solid-900.6a8db53d.ttf.gz",
       "publicPath": "/static/sapl/frontend/fonts/fa-solid-900.6a8db53d.ttf.gz"
     },
     "fonts/fa-solid-900.fd0b155c.woff2": {
       "name": "fonts/fa-solid-900.fd0b155c.woff2",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-solid-900.fd0b155c.woff2",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-solid-900.fd0b155c.woff2",
       "publicPath": "/static/sapl/frontend/fonts/fa-solid-900.fd0b155c.woff2"
     },
     "fonts/fa-v4compatibility.e4efb16c.ttf": {
       "name": "fonts/fa-v4compatibility.e4efb16c.ttf",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-v4compatibility.e4efb16c.ttf",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-v4compatibility.e4efb16c.ttf",
       "publicPath": "/static/sapl/frontend/fonts/fa-v4compatibility.e4efb16c.ttf"
     },
     "fonts/fa-v4compatibility.e4efb16c.ttf.gz": {
       "name": "fonts/fa-v4compatibility.e4efb16c.ttf.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/fonts/fa-v4compatibility.e4efb16c.ttf.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/fonts/fa-v4compatibility.e4efb16c.ttf.gz",
       "publicPath": "/static/sapl/frontend/fonts/fa-v4compatibility.e4efb16c.ttf.gz"
     },
     "img/arrow.png": {
       "name": "img/arrow.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/arrow.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/arrow.png",
       "publicPath": "/static/sapl/frontend/img/arrow.png"
     },
     "img/authenticated.png": {
       "name": "img/authenticated.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/authenticated.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/authenticated.png",
       "publicPath": "/static/sapl/frontend/img/authenticated.png"
     },
     "img/avatar.png": {
       "name": "img/avatar.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/avatar.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/avatar.png",
       "publicPath": "/static/sapl/frontend/img/avatar.png"
     },
     "img/beta.png": {
       "name": "img/beta.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/beta.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/beta.png",
       "publicPath": "/static/sapl/frontend/img/beta.png"
     },
     "img/bg.png": {
       "name": "img/bg.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/bg.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/bg.png",
       "publicPath": "/static/sapl/frontend/img/bg.png"
     },
     "img/brasao_transp.gif": {
       "name": "img/brasao_transp.gif",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/brasao_transp.gif",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/brasao_transp.gif",
       "publicPath": "/static/sapl/frontend/img/brasao_transp.gif"
     },
     "img/down_arrow_select.jpg": {
       "name": "img/down_arrow_select.jpg",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg",
       "publicPath": "/static/sapl/frontend/img/down_arrow_select.jpg"
     },
     "img/down_arrow_select.jpg.gz": {
       "name": "img/down_arrow_select.jpg.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/down_arrow_select.jpg.gz",
       "publicPath": "/static/sapl/frontend/img/down_arrow_select.jpg.gz"
     },
     "img/etiqueta.png": {
       "name": "img/etiqueta.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/etiqueta.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/etiqueta.png",
       "publicPath": "/static/sapl/frontend/img/etiqueta.png"
     },
     "img/favicon.ico": {
       "name": "img/favicon.ico",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/favicon.ico",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/favicon.ico",
       "publicPath": "/static/sapl/frontend/img/favicon.ico"
     },
     "img/file.png": {
       "name": "img/file.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/file.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/file.png",
       "publicPath": "/static/sapl/frontend/img/file.png"
     },
     "img/hand-note.png": {
       "name": "img/hand-note.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/hand-note.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/hand-note.png",
       "publicPath": "/static/sapl/frontend/img/hand-note.png"
     },
     "img/icon_comissoes.png": {
       "name": "img/icon_comissoes.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_comissoes.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_comissoes.png",
       "publicPath": "/static/sapl/frontend/img/icon_comissoes.png"
     },
     "img/icon_delete_white.png": {
       "name": "img/icon_delete_white.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_delete_white.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_delete_white.png",
       "publicPath": "/static/sapl/frontend/img/icon_delete_white.png"
     },
     "img/icon_materia_legislativa.png": {
       "name": "img/icon_materia_legislativa.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_materia_legislativa.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_materia_legislativa.png",
       "publicPath": "/static/sapl/frontend/img/icon_materia_legislativa.png"
     },
     "img/icon_mesa_diretora.png": {
       "name": "img/icon_mesa_diretora.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_mesa_diretora.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_mesa_diretora.png",
       "publicPath": "/static/sapl/frontend/img/icon_mesa_diretora.png"
     },
     "img/icon_normas_juridicas_destaque.png": {
       "name": "img/icon_normas_juridicas_destaque.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_normas_juridicas_destaque.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_normas_juridicas_destaque.png",
       "publicPath": "/static/sapl/frontend/img/icon_normas_juridicas_destaque.png"
     },
     "img/icon_normas_juridicas.png": {
       "name": "img/icon_normas_juridicas.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_normas_juridicas.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_normas_juridicas.png",
       "publicPath": "/static/sapl/frontend/img/icon_normas_juridicas.png"
     },
     "img/icon_parlamentares.png": {
       "name": "img/icon_parlamentares.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_parlamentares.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_parlamentares.png",
       "publicPath": "/static/sapl/frontend/img/icon_parlamentares.png"
     },
     "img/icon_pautas.png": {
       "name": "img/icon_pautas.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_pautas.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_pautas.png",
       "publicPath": "/static/sapl/frontend/img/icon_pautas.png"
     },
     "img/icon_plenarias.png": {
       "name": "img/icon_plenarias.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_plenarias.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_plenarias.png",
       "publicPath": "/static/sapl/frontend/img/icon_plenarias.png"
     },
     "img/icon_relatorios.png": {
       "name": "img/icon_relatorios.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_relatorios.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_relatorios.png",
       "publicPath": "/static/sapl/frontend/img/icon_relatorios.png"
     },
     "img/icon_save_white.png": {
       "name": "img/icon_save_white.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/icon_save_white.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/icon_save_white.png",
       "publicPath": "/static/sapl/frontend/img/icon_save_white.png"
     },
     "img/lexml.gif": {
       "name": "img/lexml.gif",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/lexml.gif",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/lexml.gif",
       "publicPath": "/static/sapl/frontend/img/lexml.gif"
     },
     "img/logo_cc.png": {
       "name": "img/logo_cc.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/logo_cc.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/logo_cc.png",
       "publicPath": "/static/sapl/frontend/img/logo_cc.png"
     },
     "img/logo_interlegis.png": {
       "name": "img/logo_interlegis.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/logo_interlegis.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/logo_interlegis.png",
       "publicPath": "/static/sapl/frontend/img/logo_interlegis.png"
     },
     "img/logo.png": {
       "name": "img/logo.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/logo.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/logo.png",
       "publicPath": "/static/sapl/frontend/img/logo.png"
     },
     "img/manual.png": {
       "name": "img/manual.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/manual.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/manual.png",
       "publicPath": "/static/sapl/frontend/img/manual.png"
     },
     "img/pdflogo.png": {
       "name": "img/pdflogo.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/pdflogo.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/pdflogo.png",
       "publicPath": "/static/sapl/frontend/img/pdflogo.png"
     },
     "img/perfil.png": {
       "name": "img/perfil.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/perfil.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/perfil.png",
       "publicPath": "/static/sapl/frontend/img/perfil.png"
     },
     "img/search-gray.png": {
       "name": "img/search-gray.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/search-gray.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/search-gray.png",
       "publicPath": "/static/sapl/frontend/img/search-gray.png"
     },
     "img/search.png": {
       "name": "img/search.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/search.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/search.png",
       "publicPath": "/static/sapl/frontend/img/search.png"
     },
     "img/user.png": {
       "name": "img/user.png",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/img/user.png",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/img/user.png",
       "publicPath": "/static/sapl/frontend/img/user.png"
     },
     "js/chunk-vendors.5e41c7a6.js": {
       "name": "js/chunk-vendors.5e41c7a6.js",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js",
       "publicPath": "/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js"
     },
     "js/chunk-vendors.5e41c7a6.js.gz": {
       "name": "js/chunk-vendors.5e41c7a6.js.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.gz",
       "publicPath": "/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.gz"
     },
     "js/chunk-vendors.5e41c7a6.js.LICENSE.txt": {
       "name": "js/chunk-vendors.5e41c7a6.js.LICENSE.txt",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.LICENSE.txt",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.LICENSE.txt",
       "publicPath": "/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.LICENSE.txt"
     },
     "js/chunk-vendors.5e41c7a6.js.LICENSE.txt.gz": {
       "name": "js/chunk-vendors.5e41c7a6.js.LICENSE.txt.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.LICENSE.txt.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.LICENSE.txt.gz",
       "publicPath": "/static/sapl/frontend/js/chunk-vendors.5e41c7a6.js.LICENSE.txt.gz"
     },
-    "js/compilacao.5675a825.js": {
-      "name": "js/compilacao.5675a825.js",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/compilacao.5675a825.js",
-      "publicPath": "/static/sapl/frontend/js/compilacao.5675a825.js"
+    "js/compilacao.57574b17.js": {
+      "name": "js/compilacao.57574b17.js",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/compilacao.57574b17.js",
+      "publicPath": "/static/sapl/frontend/js/compilacao.57574b17.js"
     },
-    "js/compilacao.5675a825.js.gz": {
-      "name": "js/compilacao.5675a825.js.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/compilacao.5675a825.js.gz",
-      "publicPath": "/static/sapl/frontend/js/compilacao.5675a825.js.gz"
+    "js/compilacao.57574b17.js.gz": {
+      "name": "js/compilacao.57574b17.js.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/compilacao.57574b17.js.gz",
+      "publicPath": "/static/sapl/frontend/js/compilacao.57574b17.js.gz"
     },
-    "js/global.e2479f09.js": {
-      "name": "js/global.e2479f09.js",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/global.e2479f09.js",
-      "publicPath": "/static/sapl/frontend/js/global.e2479f09.js"
+    "js/global.2f5aff92.js": {
+      "name": "js/global.2f5aff92.js",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/global.2f5aff92.js",
+      "publicPath": "/static/sapl/frontend/js/global.2f5aff92.js"
     },
-    "js/global.e2479f09.js.gz": {
-      "name": "js/global.e2479f09.js.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/global.e2479f09.js.gz",
-      "publicPath": "/static/sapl/frontend/js/global.e2479f09.js.gz"
+    "js/global.2f5aff92.js.gz": {
+      "name": "js/global.2f5aff92.js.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/global.2f5aff92.js.gz",
+      "publicPath": "/static/sapl/frontend/js/global.2f5aff92.js.gz"
     },
-    "js/global.e2479f09.js.LICENSE.txt": {
-      "name": "js/global.e2479f09.js.LICENSE.txt",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/global.e2479f09.js.LICENSE.txt",
-      "publicPath": "/static/sapl/frontend/js/global.e2479f09.js.LICENSE.txt"
+    "js/global.2f5aff92.js.LICENSE.txt": {
+      "name": "js/global.2f5aff92.js.LICENSE.txt",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/global.2f5aff92.js.LICENSE.txt",
+      "publicPath": "/static/sapl/frontend/js/global.2f5aff92.js.LICENSE.txt"
     },
-    "js/painel.02063a4f.js": {
-      "name": "js/painel.02063a4f.js",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/painel.02063a4f.js",
-      "publicPath": "/static/sapl/frontend/js/painel.02063a4f.js"
+    "js/painel.aa1df64a.js": {
+      "name": "js/painel.aa1df64a.js",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/painel.aa1df64a.js",
+      "publicPath": "/static/sapl/frontend/js/painel.aa1df64a.js"
     },
-    "js/painel.02063a4f.js.gz": {
-      "name": "js/painel.02063a4f.js.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/painel.02063a4f.js.gz",
-      "publicPath": "/static/sapl/frontend/js/painel.02063a4f.js.gz"
+    "js/painel.aa1df64a.js.gz": {
+      "name": "js/painel.aa1df64a.js.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/painel.aa1df64a.js.gz",
+      "publicPath": "/static/sapl/frontend/js/painel.aa1df64a.js.gz"
     },
-    "js/parlamentar.841cc48b.js": {
-      "name": "js/parlamentar.841cc48b.js",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/parlamentar.841cc48b.js",
-      "publicPath": "/static/sapl/frontend/js/parlamentar.841cc48b.js"
+    "js/parlamentar.ff54f426.js": {
+      "name": "js/parlamentar.ff54f426.js",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/parlamentar.ff54f426.js",
+      "publicPath": "/static/sapl/frontend/js/parlamentar.ff54f426.js"
     },
-    "js/parlamentar.841cc48b.js.gz": {
-      "name": "js/parlamentar.841cc48b.js.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/parlamentar.841cc48b.js.gz",
-      "publicPath": "/static/sapl/frontend/js/parlamentar.841cc48b.js.gz"
+    "js/parlamentar.ff54f426.js.gz": {
+      "name": "js/parlamentar.ff54f426.js.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/parlamentar.ff54f426.js.gz",
+      "publicPath": "/static/sapl/frontend/js/parlamentar.ff54f426.js.gz"
     },
     "js/skins/content/dark/content.css": {
       "name": "js/skins/content/dark/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.css"
     },
     "js/skins/content/dark/content.css.gz": {
       "name": "js/skins/content/dark/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.css.gz"
     },
     "js/skins/content/dark/content.min.css": {
       "name": "js/skins/content/dark/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.min.css"
     },
     "js/skins/content/dark/content.min.css.gz": {
       "name": "js/skins/content/dark/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/dark/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/dark/content.min.css.gz"
     },
     "js/skins/content/default/content.css": {
       "name": "js/skins/content/default/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/default/content.css"
     },
     "js/skins/content/default/content.css.gz": {
       "name": "js/skins/content/default/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/default/content.css.gz"
     },
     "js/skins/content/default/content.min.css": {
       "name": "js/skins/content/default/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/default/content.min.css"
     },
     "js/skins/content/default/content.min.css.gz": {
       "name": "js/skins/content/default/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/default/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/default/content.min.css.gz"
     },
     "js/skins/content/document/content.css": {
       "name": "js/skins/content/document/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/document/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/document/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/document/content.css"
     },
     "js/skins/content/document/content.css.gz": {
       "name": "js/skins/content/document/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/document/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/document/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/document/content.css.gz"
     },
     "js/skins/content/document/content.min.css": {
       "name": "js/skins/content/document/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/document/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/document/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/document/content.min.css"
     },
     "js/skins/content/document/content.min.css.gz": {
       "name": "js/skins/content/document/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/document/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/document/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/document/content.min.css.gz"
     },
     "js/skins/content/tinymce-5-dark/content.css": {
       "name": "js/skins/content/tinymce-5-dark/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.css"
     },
     "js/skins/content/tinymce-5-dark/content.css.gz": {
       "name": "js/skins/content/tinymce-5-dark/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.css.gz"
     },
     "js/skins/content/tinymce-5-dark/content.min.css": {
       "name": "js/skins/content/tinymce-5-dark/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.min.css"
     },
     "js/skins/content/tinymce-5-dark/content.min.css.gz": {
       "name": "js/skins/content/tinymce-5-dark/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/tinymce-5-dark/content.min.css.gz"
     },
     "js/skins/content/tinymce-5/content.css": {
       "name": "js/skins/content/tinymce-5/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/tinymce-5/content.css"
     },
     "js/skins/content/tinymce-5/content.css.gz": {
       "name": "js/skins/content/tinymce-5/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/tinymce-5/content.css.gz"
     },
     "js/skins/content/tinymce-5/content.min.css": {
       "name": "js/skins/content/tinymce-5/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/tinymce-5/content.min.css"
     },
     "js/skins/content/tinymce-5/content.min.css.gz": {
       "name": "js/skins/content/tinymce-5/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/tinymce-5/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/tinymce-5/content.min.css.gz"
     },
     "js/skins/content/writer/content.css": {
       "name": "js/skins/content/writer/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/writer/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/writer/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/writer/content.css"
     },
     "js/skins/content/writer/content.css.gz": {
       "name": "js/skins/content/writer/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/writer/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/writer/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/writer/content.css.gz"
     },
     "js/skins/content/writer/content.min.css": {
       "name": "js/skins/content/writer/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/writer/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/writer/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/content/writer/content.min.css"
     },
     "js/skins/content/writer/content.min.css.gz": {
       "name": "js/skins/content/writer/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/content/writer/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/content/writer/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/content/writer/content.min.css.gz"
     },
     "js/skins/ui/oxide-dark/content.css": {
       "name": "js/skins/ui/oxide-dark/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.css"
     },
     "js/skins/ui/oxide-dark/content.css.gz": {
       "name": "js/skins/ui/oxide-dark/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.css.gz"
     },
     "js/skins/ui/oxide-dark/content.inline.css": {
       "name": "js/skins/ui/oxide-dark/content.inline.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.css"
     },
     "js/skins/ui/oxide-dark/content.inline.css.gz": {
       "name": "js/skins/ui/oxide-dark/content.inline.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.css.gz"
     },
     "js/skins/ui/oxide-dark/content.inline.min.css": {
       "name": "js/skins/ui/oxide-dark/content.inline.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.min.css"
     },
     "js/skins/ui/oxide-dark/content.inline.min.css.gz": {
       "name": "js/skins/ui/oxide-dark/content.inline.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.inline.min.css.gz"
     },
     "js/skins/ui/oxide-dark/content.min.css": {
       "name": "js/skins/ui/oxide-dark/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.min.css"
     },
     "js/skins/ui/oxide-dark/content.min.css.gz": {
       "name": "js/skins/ui/oxide-dark/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/content.min.css.gz"
     },
     "js/skins/ui/oxide-dark/skin.css": {
       "name": "js/skins/ui/oxide-dark/skin.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.css"
     },
     "js/skins/ui/oxide-dark/skin.css.gz": {
       "name": "js/skins/ui/oxide-dark/skin.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.css.gz"
     },
     "js/skins/ui/oxide-dark/skin.min.css": {
       "name": "js/skins/ui/oxide-dark/skin.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css"
     },
     "js/skins/ui/oxide-dark/skin.min.css.gz": {
       "name": "js/skins/ui/oxide-dark/skin.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.min.css.gz"
     },
     "js/skins/ui/oxide-dark/skin.shadowdom.css": {
       "name": "js/skins/ui/oxide-dark/skin.shadowdom.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css"
     },
     "js/skins/ui/oxide-dark/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/oxide-dark/skin.shadowdom.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.css.gz"
     },
     "js/skins/ui/oxide-dark/skin.shadowdom.min.css": {
       "name": "js/skins/ui/oxide-dark/skin.shadowdom.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css"
     },
     "js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz": {
       "name": "js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide-dark/skin.shadowdom.min.css.gz"
     },
     "js/skins/ui/oxide/content.css": {
       "name": "js/skins/ui/oxide/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.css"
     },
     "js/skins/ui/oxide/content.css.gz": {
       "name": "js/skins/ui/oxide/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.css.gz"
     },
     "js/skins/ui/oxide/content.inline.css": {
       "name": "js/skins/ui/oxide/content.inline.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.css"
     },
     "js/skins/ui/oxide/content.inline.css.gz": {
       "name": "js/skins/ui/oxide/content.inline.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.css.gz"
     },
     "js/skins/ui/oxide/content.inline.min.css": {
       "name": "js/skins/ui/oxide/content.inline.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css"
     },
     "js/skins/ui/oxide/content.inline.min.css.gz": {
       "name": "js/skins/ui/oxide/content.inline.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.inline.min.css.gz"
     },
     "js/skins/ui/oxide/content.min.css": {
       "name": "js/skins/ui/oxide/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.min.css"
     },
     "js/skins/ui/oxide/content.min.css.gz": {
       "name": "js/skins/ui/oxide/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/content.min.css.gz"
     },
     "js/skins/ui/oxide/skin.css": {
       "name": "js/skins/ui/oxide/skin.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.css"
     },
     "js/skins/ui/oxide/skin.css.gz": {
       "name": "js/skins/ui/oxide/skin.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.css.gz"
     },
     "js/skins/ui/oxide/skin.min.css": {
       "name": "js/skins/ui/oxide/skin.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.min.css"
     },
     "js/skins/ui/oxide/skin.min.css.gz": {
       "name": "js/skins/ui/oxide/skin.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.min.css.gz"
     },
     "js/skins/ui/oxide/skin.shadowdom.css": {
       "name": "js/skins/ui/oxide/skin.shadowdom.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.css"
     },
     "js/skins/ui/oxide/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/oxide/skin.shadowdom.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.css.gz"
     },
     "js/skins/ui/oxide/skin.shadowdom.min.css": {
       "name": "js/skins/ui/oxide/skin.shadowdom.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.min.css"
     },
     "js/skins/ui/oxide/skin.shadowdom.min.css.gz": {
       "name": "js/skins/ui/oxide/skin.shadowdom.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/oxide/skin.shadowdom.min.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/content.css": {
       "name": "js/skins/ui/tinymce-5-dark/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css"
     },
     "js/skins/ui/tinymce-5-dark/content.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/content.inline.css": {
       "name": "js/skins/ui/tinymce-5-dark/content.inline.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css"
     },
     "js/skins/ui/tinymce-5-dark/content.inline.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/content.inline.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/content.inline.min.css": {
       "name": "js/skins/ui/tinymce-5-dark/content.inline.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css"
     },
     "js/skins/ui/tinymce-5-dark/content.inline.min.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.inline.min.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/content.min.css": {
       "name": "js/skins/ui/tinymce-5-dark/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css"
     },
     "js/skins/ui/tinymce-5-dark/content.min.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/content.min.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/skin.css": {
       "name": "js/skins/ui/tinymce-5-dark/skin.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css"
     },
     "js/skins/ui/tinymce-5-dark/skin.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/skin.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/skin.min.css": {
       "name": "js/skins/ui/tinymce-5-dark/skin.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css"
     },
     "js/skins/ui/tinymce-5-dark/skin.min.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/skin.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.min.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/skin.shadowdom.css": {
       "name": "js/skins/ui/tinymce-5-dark/skin.shadowdom.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.css"
     },
     "js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.css.gz"
     },
     "js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css": {
       "name": "js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css"
     },
     "js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz": {
       "name": "js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5-dark/skin.shadowdom.min.css.gz"
     },
     "js/skins/ui/tinymce-5/content.css": {
       "name": "js/skins/ui/tinymce-5/content.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.css"
     },
     "js/skins/ui/tinymce-5/content.css.gz": {
       "name": "js/skins/ui/tinymce-5/content.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.css.gz"
     },
     "js/skins/ui/tinymce-5/content.inline.css": {
       "name": "js/skins/ui/tinymce-5/content.inline.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.css"
     },
     "js/skins/ui/tinymce-5/content.inline.css.gz": {
       "name": "js/skins/ui/tinymce-5/content.inline.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.css.gz"
     },
     "js/skins/ui/tinymce-5/content.inline.min.css": {
       "name": "js/skins/ui/tinymce-5/content.inline.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.min.css"
     },
     "js/skins/ui/tinymce-5/content.inline.min.css.gz": {
       "name": "js/skins/ui/tinymce-5/content.inline.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.inline.min.css.gz"
     },
     "js/skins/ui/tinymce-5/content.min.css": {
       "name": "js/skins/ui/tinymce-5/content.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css"
     },
     "js/skins/ui/tinymce-5/content.min.css.gz": {
       "name": "js/skins/ui/tinymce-5/content.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/content.min.css.gz"
     },
     "js/skins/ui/tinymce-5/skin.css": {
       "name": "js/skins/ui/tinymce-5/skin.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css"
     },
     "js/skins/ui/tinymce-5/skin.css.gz": {
       "name": "js/skins/ui/tinymce-5/skin.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.css.gz"
     },
     "js/skins/ui/tinymce-5/skin.min.css": {
       "name": "js/skins/ui/tinymce-5/skin.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css"
     },
     "js/skins/ui/tinymce-5/skin.min.css.gz": {
       "name": "js/skins/ui/tinymce-5/skin.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.min.css.gz"
     },
     "js/skins/ui/tinymce-5/skin.shadowdom.css": {
       "name": "js/skins/ui/tinymce-5/skin.shadowdom.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.css"
     },
     "js/skins/ui/tinymce-5/skin.shadowdom.css.gz": {
       "name": "js/skins/ui/tinymce-5/skin.shadowdom.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.css.gz"
     },
     "js/skins/ui/tinymce-5/skin.shadowdom.min.css": {
       "name": "js/skins/ui/tinymce-5/skin.shadowdom.min.css",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.min.css",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.min.css",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.min.css"
     },
     "js/skins/ui/tinymce-5/skin.shadowdom.min.css.gz": {
       "name": "js/skins/ui/tinymce-5/skin.shadowdom.min.css.gz",
-      "path": "/var/interlegis/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.min.css.gz",
+      "path": "/Users/eribeiro/projects/sapl/sapl/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.min.css.gz",
       "publicPath": "/static/sapl/frontend/js/skins/ui/tinymce-5/skin.shadowdom.min.css.gz"
     }
   },
@@ -782,25 +782,25 @@
       "css/chunk-vendors.299c587b.css",
       "js/chunk-vendors.5e41c7a6.js",
       "css/compilacao.0baf3580.css",
-      "js/compilacao.5675a825.js"
+      "js/compilacao.57574b17.js"
     ],
     "global": [
       "css/chunk-vendors.299c587b.css",
       "js/chunk-vendors.5e41c7a6.js",
       "css/global.45591136.css",
-      "js/global.e2479f09.js"
+      "js/global.2f5aff92.js"
     ],
     "painel": [
       "css/chunk-vendors.299c587b.css",
       "js/chunk-vendors.5e41c7a6.js",
       "css/painel.e2b9504e.css",
-      "js/painel.02063a4f.js"
+      "js/painel.aa1df64a.js"
     ],
     "parlamentar": [
       "css/chunk-vendors.299c587b.css",
       "js/chunk-vendors.5e41c7a6.js",
       "css/parlamentar.cd5dc5a8.css",
-      "js/parlamentar.841cc48b.js"
+      "js/parlamentar.ff54f426.js"
     ]
   },
   "publicPath": "/static/sapl/frontend/"
