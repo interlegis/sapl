@@ -1,4 +1,18 @@
 
+3.1.163-RC17 / 2023-09-30
+=========================
+
+  * Update frontend assets
+  * No resultado da pesquisa de Matéria Legislativa, ordenar pela Sequencia Regimental ou Alfabética da Sigla (#3673)
+  * feat: exibe lista de parlamentares ativos por default (#3635)
+  * fix: corrige espacamento no resumo da ata (#3681)
+  * fix: altera nome do presidente no pdf de impressao da pauta de sessao para utilizar o nome_parlamentar (#3678)
+  * feat: add link para materia e comissao na view detail da relatoria (#3682)
+  * feat: adiciona link para correspondencias na pauta de sessao (#3683)
+  * feat: altera exibicao de materias em tramitacao na comissao (#3684)
+  * Implementa ordenação na impressão PDF da Ata Eletrônica (#3677)
+  * fix: corrige render de texto rico no resumo de sessão (#3679)
+
 3.1.163-RC16 / 2023-09-13
 =========================
 
