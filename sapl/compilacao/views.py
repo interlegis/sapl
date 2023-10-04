@@ -1133,6 +1133,7 @@ class DispositivoView(TextView):
 
 class TextEditView(CompMixin, TemplateView):
     template_name = 'compilacao/text_edit.html'
+    logger = logging.getLogger(__name__)
 
     def has_permission(self):
         self.object = self.ta
@@ -1189,6 +1190,13 @@ class TextEditView(CompMixin, TemplateView):
                 # TODO - implementar logging de ação de usuário
                 self.object.editing_locked = False
                 self.object.privacidade = STATUS_TA_EDITION
+                valid, error_msg = valida_html(self.object.ementa)
+                if not valid:
+                    messages.error(
+                        request, _('Texto mal formado %s', error_msg))
+                    return redirect(to=reverse_lazy(
+                        'sapl.compilacao:ta_text', kwargs={
+                            'ta_id': self.object.id}))
                 self.object.save()
                 messages.success(request, _(
                     'Texto Articulado desbloqueado com sucesso.'))
@@ -1219,11 +1227,25 @@ class TextEditView(CompMixin, TemplateView):
                 if 'lock' in request.GET:
                     self.object.editing_locked = True
                     self.object.privacidade = STATUS_TA_PUBLIC
+                    valid, error_msg = valida_html(self.object.ementa)
+                    if not valid:
+                        messages.error(
+                            request, _('Texto mal formado %s', error_msg))
+                        return redirect(to=reverse_lazy(
+                            'sapl.compilacao:ta_text_notificacoes', kwargs={
+                                'ta_id': self.object.id}))
                     self.object.save()
                     messages.success(request, _(
                         'Texto Articulado publicado com sucesso.'))
                 else:
                     self.object.temp_check_migrations = True
+                    valid, error_msg = valida_html(self.object.ementa)
+                    if not valid:
+                        messages.error(
+                            request, _('Texto mal formado %s', error_msg))
+                        return redirect(to=reverse_lazy(
+                            'sapl.compilacao:ta_text_notificacoes', kwargs={
+                                'ta_id': self.object.id}))
                     self.object.save()
                     messages.success(request, _(
                         'Texto Articulado Checado...'))
@@ -1456,6 +1478,9 @@ class TextEditView(CompMixin, TemplateView):
             e.inicio_vigencia = ta.data
             e.inicio_eficacia = ta.data
             e.texto = ta.ementa
+            valid, error_msg = valida_html(d.texto)
+            if not valid:
+                pass # TODO: mensagem de erro?
             e.dispositivo_pai = a
             e.save()
 
@@ -3111,6 +3136,9 @@ class DispositivoDinamicEditView(
 
             d_texto = d.texto
             d.texto = texto.strip()
+            valid, error_msg = valida_html(d.texto)
+            if not valid:
+                pass # TODO: mensagem de erro?
             d.texto_atualizador = texto_atualizador.strip()
 
             d.visibilidade = not visibilidade or visibilidade == 'True'
@@ -3608,3 +3636,17 @@ class TextNotificacoesView(CompMixin, ListView, FormView):
             type_notificacoes = [type_notificacoes, ]
 
         return self.get_notificacoes(result, type_notificacoes)
+
+
+def valida_html(html):
+    import logging
+    from lxml import etree
+    from io import StringIO
+    logger = logging.getLogger(__name__)
+    try:
+        if len(html.strip()) > 0:
+            etree.parse(StringIO(html), etree.HTMLParser(recover=False))
+        return True, None
+    except Exception as e:
+        logger.error("HTML mal formado %s (%s)", html, str(e))
+        return False, str(e)
