@@ -21,7 +21,7 @@ from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
 from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 PresencaOrdemDia, RegistroVotacao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
-                                VotoParlamentar, RegistroLeitura)
+                                VotoParlamentar, RegistroLeitura, OradorOrdemDia)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
 
 from .models import Cronometro
@@ -359,27 +359,34 @@ def get_materia_aberta(pk):
 
 
 def get_presentes(pk, response, materia):
-    if type(materia) == OrdemDia:
-        presentes = PresencaOrdemDia.objects.filter(
-            sessao_plenaria_id=pk)
+    ModelPresenca = None
+    if isinstance(materia, OrdemDia):
+        ModelPresenca = PresencaOrdemDia
     else:
-        presentes = SessaoPlenariaPresenca.objects.filter(
+        ModelPresenca = SessaoPlenariaPresenca
+
+    presentes = ModelPresenca.objects.filter(
             sessao_plenaria_id=pk)
     
     sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
-    oradores = OradorExpediente.objects.filter(
-        sessao_plenaria_id=pk).order_by('numero_ordem')
+    
+    ModelOrador = None
+    if  isinstance(materia, ExpedienteMateria):
+        ModelOrador = OradorExpediente
+    elif isinstance(materia, OrdemDia):
+        ModelOrador = OradorOrdemDia
+    oradores = ModelOrador.objects.filter(
+            sessao_plenaria_id=pk).order_by('numero_ordem')
 
     oradores_list = []
     for o in oradores:
-
         oradores_list.append(
             {
                 'nome': o.parlamentar.nome_parlamentar,
                 'numero': o.numero_ordem
-            })
+            })        
 
     presentes_list = []
     for p in presentes:
