@@ -1,4 +1,4 @@
     <h2 class="gray-title">Considerações Finais</h2>
     {% for c in lst_consideracoes%}
-            <p>{{c|safe}}</p>
+            <p>{{c|striptags|safe}}</p>
     {% endfor %}
