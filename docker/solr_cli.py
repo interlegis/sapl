@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import argparse
+import datetime
 import logging
 import re
 import secrets
@@ -277,9 +278,10 @@ if __name__ == '__main__':
                         help='Replication factor (default=1)', default=1)
     parser.add_argument('-ms', type=int, dest='max_shards_per_node', nargs='?',
                         help='Max shards per node (default=1)', default=1)
-
     parser.add_argument("--embedded_zk", default=False, action="store_true",
                         help="Embedded ZooKeeper")
+    parser.add_argument("--rebuild_index", default=False, action="store_true",)
+    parser.add_argument("--update_index", default=False, action="store_true",)
 
     try:
         args = parser.parse_args()
@@ -315,3 +317,12 @@ if __name__ == '__main__':
     if num_docs == 0:
         print("Performing a full reindex of '%s' collection..." % collection)
         p = subprocess.call(["python3", "manage.py", "rebuild_index", "--noinput"])
+
+    if args.rebuild_index:
+        print("Rebuilding index of '%s' collection..." % collection)
+        p = subprocess.call(["python3", "manage.py", "rebuild_index", "--noinput"])
+
+    if args.update_index:
+        print("Updating index of '%s' collection..." % collection)
+        p = subprocess.call(["python3", "manage.py", "update_index", "--noinput"])
+

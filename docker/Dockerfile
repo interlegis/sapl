@@ -9,7 +9,8 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ENV BUILD_PACKAGES apt-utils apt-file libpq-dev graphviz-dev build-essential git pkg-config \
                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev \
-                   libcairo2-dev software-properties-common python3-setuptools python3-pip
+                   libcairo2-dev software-properties-common python3-setuptools python3-pip \
+                   cron
 
 ## NAO EH PRA TIRAR O vim DA LISTA DE COMANDOS INSTALADOS!!!
 ENV RUN_PACKAGES graphviz python3-lxml python3-magic postgresql-client python3-psycopg2 \
@@ -71,3 +72,9 @@ EXPOSE 80/tcp 443/tcp
 VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
 
 CMD ["/var/interlegis/sapl/start.sh"]
+
+COPY cronjob /etc/cron.d/update_solr_index
+RUN chmod 0644 /etc/cron.d/update_solr_index
+RUN crontab /etc/cron.d/update_solr_index
+RUN touch /var/log/cron.log
+CMD cron && tail -f /var/log/cron.log
