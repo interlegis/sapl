@@ -2213,7 +2213,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         if o.tipo_votacao == 2:
             for voto in VotoParlamentar.objects.filter(ordem=o.id):
                 voto_nominal.append(
-                    (voto.parlamentar.nome_completo, voto.voto))
+                    (voto.parlamentar.nome_parlamentar, voto.voto))
 
         voto = RegistroVotacao.objects.filter(ordem=o.id).last()
         if voto:
