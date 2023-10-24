@@ -1,13 +1,13 @@
-<fieldset>
-    <p align="justify">
-	{% if expedientes %}
-        <strong>Expedientes: </strong> 
-        {% for e in expedientes %}
-            {% if e.conteudo %}
-                <b>{{e.tipo}}</b>:
-                {{e.conteudo|striptags|safe}}
-            {% endif %}
-        {% endfor %}
-	{% endif %}
-	</p>
-</fieldset>
+{% if expedientes %}
+    <fieldset>
+        <p style="text-align: justify;margin-top: 0">
+            <strong>Expedientes: </strong>
+            {% for e in expedientes %}
+                {% if e.conteudo %}
+                    <b>{{ e.tipo }}</b>:
+                    {{ e.conteudo|striptags|safe }}
+                {% endif %}
+            {% endfor %}
+        </p>
+    </fieldset>
+{% endif %}

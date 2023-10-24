@@ -478,11 +478,14 @@ class CargoMesa(models.Model):
         max_length=50, verbose_name=_('Cargo na Mesa'))
     unico = models.BooleanField(
         choices=YES_NO_CHOICES, verbose_name=_('Cargo Único'), default=True)
+    id_ordenacao = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name=_('Posição na Ordenação'),
+    )
 
     class Meta:
         verbose_name = _('Cargo na Mesa')
         verbose_name_plural = _('Cargos na Mesa')
-        ordering = ('unico', 'descricao')
+        ordering = ['id_ordenacao', 'unico', 'descricao']
 
     def __str__(self):
         return self.descricao

@@ -695,7 +695,9 @@ class TipoFimRelatoria(models.Model):
 
 
 class Relatoria(models.Model):
-    materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
+    materia = models.ForeignKey(MateriaLegislativa,
+                                on_delete=models.CASCADE,
+                                verbose_name=_('Matéria'))
     parlamentar = models.ForeignKey(Parlamentar,
                                     on_delete=models.CASCADE,
                                     verbose_name=_('Parlamentar'))

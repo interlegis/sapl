@@ -2136,7 +2136,9 @@ class MateriaLegislativaPesquisaView(FilterView):
             qs = qs.filter(materiaassunto__isnull=True)
 
         if 'o' in self.request.GET and not self.request.GET['o']:
-            qs = qs.order_by('-ano', 'tipo__sigla', '-numero')
+            args = ['-ano', 'tipo__sequencia_regimental', '-numero'] if BaseAppConfig.attr('ordenacao_pesquisa_materia') == 'R' else ['-ano', 'tipo__sigla', '-numero']
+ 
+            qs = qs.order_by(*args)
 
         kwargs.update({
             'queryset': qs,

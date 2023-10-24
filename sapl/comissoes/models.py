@@ -122,7 +122,7 @@ class CargoComissao(models.Model):
     )
     nome = models.CharField(max_length=50, verbose_name=_('Nome do Cargo'))
     unico = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Único'), default=True
+        choices=YES_NO_CHOICES, verbose_name=_('Cargo Único'), default=True
     )
 
     class Meta:

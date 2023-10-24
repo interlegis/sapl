@@ -1,7 +1,7 @@
 {% load i18n %}
 CargoMesa:
   {% trans 'Cargo na Mesa'%}:
-  - descricao:10  unico
+  - descricao:7  id_ordenacao:3 unico:2
 
 Legislatura:
   {% trans 'Legislatura' %}:

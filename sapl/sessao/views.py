@@ -1753,7 +1753,7 @@ def atualizar_mesa(request):
 
     # Atualiza os componentes da view após a mudança
     composicao_mesa = IntegranteMesa.objects.filter(
-        sessao_plenaria=sessao.id).order_by('cargo_id')
+        sessao_plenaria=sessao.id).order_by('cargo__id_ordenacao', 'cargo_id')
 
     cargos_ocupados = [m.cargo for m in composicao_mesa]
     cargos = CargoMesa.objects.all()
