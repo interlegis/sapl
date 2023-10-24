@@ -1,40 +1,40 @@
-<fieldset>
-  	<p align="justify">
-	{% if materia_expediente %}
-		<strong>Matérias do Expediente: </strong> 
-		{% for m in materia_expediente %}
-			<b>{{m.numero}} - {{m.titulo}}</b>,
-			{{m.ementa|safe}}
-		    {% if m.observacao %} - Obs.: {{m.observacao}} {% endif %}
-			Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }},
-			{% if m.numero_protocolo %}
-				Número de Protocolo: {{ m.numero_protocolo }},
-			{% endif %}
-			{% if m.numero_processo %}
-				Processo: {{ m.numero_processo }},
-			{% endif %}
-			{% if m.turno %}
-				Turno: {{m.turno}},
-			{% endif %}
-			{% if m.tipo_votacao %}
-				Tipo: {{m.tipo_votacao}},
-				{% if m.tipo_votacao != 'Leitura' %}
-					Sim: {{ m.voto_sim }},
-					Não: {{ m.voto_nao }},
-					Abstenções: {{m.voto_abstencoes}},
-				{% endif %}
-			{% endif %}
-			Resultado:</b> 	{{m.resultado}}
-			{% if m.resultado_observacao %} - Obs.: {{m.resultado_observacao}} {% endif %}
-			{% if m.voto_nominal %}
-				<b>Votos Nominais :</b>
-				{% for voto in m.voto_nominal %}
-					{{voto.0}} - {{voto.1}}
-					{% if not forloop.last %} ; {% endif %}
-				{% endfor %}
-			{% endif %}
-			;
-		{% endfor %}
-	{% endif %}
-	</p>
-</fieldset>
+{% if materia_expediente %}
+    <fieldset>
+        <p align="justify" style="margin-top: 0">
+            <strong>Matérias do Expediente: </strong>
+            {% for m in materia_expediente %}
+                <b>{{ m.numero }} - {{ m.titulo }}</b>,
+                {{ m.ementa|safe }}
+                {% if m.observacao %} - Obs.: {{ m.observacao }} {% endif %}
+                Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }},
+                {% if m.numero_protocolo %}
+                    Número de Protocolo: {{ m.numero_protocolo }},
+                {% endif %}
+                {% if m.numero_processo %}
+                    Processo: {{ m.numero_processo }},
+                {% endif %}
+                {% if m.turno %}
+                    Turno: {{ m.turno }},
+                {% endif %}
+                {% if m.tipo_votacao %}
+                    Tipo: {{ m.tipo_votacao }},
+                    {% if m.tipo_votacao != 'Leitura' %}
+                        Sim: {{ m.voto_sim }},
+                        Não: {{ m.voto_nao }},
+                        Abstenções: {{ m.voto_abstencoes }},
+                    {% endif %}
+                {% endif %}
+                Resultado:</b>    {{ m.resultado }}
+                {% if m.resultado_observacao %} - Obs.: {{ m.resultado_observacao }} {% endif %}
+                {% if m.voto_nominal %}
+                    <b>Votos Nominais :</b>
+                    {% for voto in m.voto_nominal %}
+                        {{ voto.0 }} - {{ voto.1 }}
+                        {% if not forloop.last %} ; {% endif %}
+                    {% endfor %}
+                {% endif %}
+                ;
+            {% endfor %}
+        </p>
+    </fieldset>
+{% endif %}

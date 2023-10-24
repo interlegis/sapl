@@ -1,4 +1,5 @@
 {% extends "crud/detail.html" %}
+{% load common_tags %}
 {% load i18n %}
 {% load crispy_forms_tags %}
 {% block actions %} {% endblock %}
@@ -11,23 +12,44 @@
 
 {% block detail_content %}
 	<fieldset>
-		<legend>{{ comissao }}</legend>
-		<b>Há {{ qtde }} matéria(s) em tramitação nesta unidade.</b> <br><br>
-		{% for materia_em_tramitacao in page_obj %}
-			<b><a href="{% url 'sapl.materia:materialegislativa_detail' materia_em_tramitacao.materia.id %}">
-				{{ materia_em_tramitacao.materia.tipo.sigla }} {{ materia_em_tramitacao.materia.numero }}
-				{{ materia_em_tramitacao.materia.ano }} - {{ materia_em_tramitacao.materia.tipo }}
-			</b></a><br>
-			{{ materia_em_tramitacao.materia }}<br>
-			<b>Autor: </b>{{ materia_em_tramitacao.materia.autoria_set.first.autor.nome }}<br>
-			<b>Situação: </b>{{ materia_em_tramitacao.tramitacao.status.descricao }}<br>
-			<b>Data Fim Prazo da Última Tramitação: </b>
-			{% if materia_em_tramitacao.tramitacao.data_fim_prazo %}
-				{{ materia_em_tramitacao.tramitacao.data_fim_prazo }}
-			{% else %}
-				Não definida.
-			{% endif %}<br>
-			<br>
-		{% endfor %}
+        <legend>{{ comissao }}</legend>
+        <b>Há {{ qtde }} matéria(s) em tramitação nesta unidade.</b> <br><br>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Matéria</th>
+                <th>Ementa</th>
+                <th>Situação</th>
+                <th>Data Fim Prazo da Última Tramitação</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for materia_em_tramitacao in page_obj %}
+                <tr>
+                    <td style="width: 20%">
+                        <a href="{% url 'sapl.materia:materialegislativa_detail' materia_em_tramitacao.materia.id %}">
+                            {{ materia_em_tramitacao.materia.tipo.sigla }} {{ materia_em_tramitacao.materia.numero }}
+                            {{ materia_em_tramitacao.materia.ano }} - {{ materia_em_tramitacao.materia.tipo }}
+                        </a><br>
+                        {{ materia_em_tramitacao.materia }}<br>
+                        <b>Autor:</b>{{ materia_em_tramitacao.materia.autoria_set.first.autor.nome }}
+                    </td>
+                    <td style="width: 60%">
+                        {{ materia_em_tramitacao.materia.ementa|dont_break_out }}
+                    </td>
+                    <td>
+                        {{ materia_em_tramitacao.tramitacao.status.descricao|linebreaksbr|safe }}
+                    </td>
+                    <td>
+                        {% if materia_em_tramitacao.tramitacao.data_fim_prazo %}
+                            {{ materia_em_tramitacao.tramitacao.data_fim_prazo }}
+                        {% else %}
+                            Não definida.
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
 	</fieldset>
 {% endblock detail_content %}

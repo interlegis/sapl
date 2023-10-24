@@ -1038,7 +1038,7 @@ class MesaDiretoraView(FormView):
             '-data_inicio').first() if sessao_atual else None
 
         composicao_mesa = ComposicaoMesa.objects.select_related('cargo', 'parlamentar').filter(
-            mesa_diretora=mesa_diretora).order_by('cargo_id')
+            mesa_diretora=mesa_diretora).order_by('cargo__id_ordenacao', 'cargo_id')
 
         cargos_ocupados = [m.cargo for m in composicao_mesa]
         cargos = CargoMesa.objects.all()
