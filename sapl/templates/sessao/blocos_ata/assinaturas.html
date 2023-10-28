@@ -5,13 +5,13 @@
 			</br></br>
 			{% for p in assinatura_mesa %}
 		  	<div class="col-md-6">___________________________________________ </br>
-					<b>{{p.cargo}}: </b> {{p.parlamentar.nome_completo}} / {% if p.parlamentar|filiacao_data_filter:object.data_inicio %} {{ p.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+					<b>{{p.cargo}}: </b> {{p.parlamentar.nome_parlamentar}} / {% if p.parlamentar|filiacao_data_filter:object.data_inicio %} {{ p.parlamentar|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
 					</br></br></br>
 		  	</div>
 		  {% endfor %}
 		  {% for p in assinatura_presentes %}
 		  	<div class="col-md-6">___________________________________________ </br>
-				{{p.nome_completo}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
+				{{p.nome_parlamentar}} / {% if p|filiacao_data_filter:object.data_inicio %} {{ p|filiacao_data_filter:object.data_inicio }} {% else %} Sem partido {% endif %}
 				</br></br></br>
 		  	</div>
 		  {% endfor %}
