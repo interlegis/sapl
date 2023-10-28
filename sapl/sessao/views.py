@@ -4425,8 +4425,14 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, ListView):
             selectedlist = request.POST.getlist('marcadas_4')
             if request.POST['origem'] == 'ordem':
                 models = OrdemDia.objects.filter(id__in=selectedlist)
+                presenca_model = PresencaOrdemDia
             elif request.POST['origem'] == 'expediente':
                 models = ExpedienteMateria.objects.filter(id__in=selectedlist)
+                presenca_model = SessaoPlenariaPresenca
+
+            if (not verifica_presenca(request, presenca_model, self.kwargs['pk'], True) or
+                    not verifica_sessao_iniciada(request, self.kwargs['pk'], True)):
+                return self.get(request, self.kwargs)
 
             if not models:
                 messages.add_message(self.request, messages.ERROR,
