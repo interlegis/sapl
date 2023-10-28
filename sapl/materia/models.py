@@ -624,7 +624,7 @@ class Numeracao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         verbose_name=_('Tipo de Matéria'))
     numero_materia = models.CharField(max_length=5,
                                       verbose_name=_('Número'))
