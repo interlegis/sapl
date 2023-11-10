@@ -1591,6 +1591,46 @@ class DocumentoAcessorioCrud(MasterDetailCrud):
             context = super(UpdateView, self).get_context_data(**kwargs)
             return context
 
+    class ListView(MasterDetailCrud.ListView):
+
+        def get_queryset(self):
+            qs = super(MasterDetailCrud.ListView, self).get_queryset()
+            kwargs = {self.crud.parent_field: self.kwargs['pk']}
+            exibir_restritos = 'materia.change_documentoacessorio' in self.request.user.get_all_permissions()
+            if 'o' in self.request.GET:
+                o = self.request.GET['o']
+                indice_field = abs(int(o)) - 1
+                if '-' in o:
+                    order_by = '-' + self.list_field_names[indice_field]
+                else:
+                    order_by = self.list_field_names[indice_field]
+                if exibir_restritos:
+                    return qs.filter(**kwargs).order_by(order_by, '-data', '-id')
+                else:
+                    return qs.filter(**kwargs).order_by('restrito', order_by, '-data', '-id')
+
+            if exibir_restritos:
+               return qs.filter(**kwargs).order_by('-data', '-id')
+            else:
+               return qs.filter(**kwargs).order_by('restrito', '-data', '-id')
+
+    class DetailView(MasterDetailCrud.DetailView):
+        layout_key = 'DocumentoAcessorioAdministrativo'
+        template_name = "materia/documentoacessorio_detail.html"
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['AppConfig'] = sapl.base.models.AppConfig.objects.all().last()
+            context['user'] = self.request.user
+
+            doc = DocumentoAcessorio.objects.get(
+                pk=self.kwargs['pk']
+            )
+            context['object'] = doc
+            if doc.restrito and not 'materia.change_documentoacessorio' in self.request.user.get_all_permissions():
+                context['title'] = 'Documento Restrito'
+            return context
+
 
 class AutoriaCrud(MasterDetailCrud):
     model = Autoria
@@ -2872,13 +2912,15 @@ class TipoMateriaCrud(CrudAux):
             return fv
 
 
-def create_zip_docacessorios(materia):
+def create_zip_docacessorios(materia, excluir_restritos):
     """
         Creates in memory zip files
     """
     logger = logging.getLogger(__name__)
     docs = materia.documentoacessorio_set. \
         all().values_list('arquivo', flat=True)
+    if excluir_restritos:
+        docs = docs.filter(restrito=False)
     if not docs:
         return None, None
 
@@ -2908,10 +2950,14 @@ def create_zip_docacessorios(materia):
 def get_zip_docacessorios(request, pk):
     logger = logging.getLogger(__name__)
     username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
+    if request.user.is_anonymous or not 'protocoloadm.change_documentoacessorioadministrativo' in request.user.get_all_permissions():
+        excluir_restritos = True
+    else:
+        excluir_restritos = False
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
     data = None
     try:
-        external_name, data = create_zip_docacessorios(materia)
+        external_name, data = create_zip_docacessorios(materia, excluir_restritos)
         logger.info(
             "user= {}. Gerou o zip compilado de documento acessorios".format(username))
     except FileNotFoundError:
@@ -2940,13 +2986,15 @@ def get_zip_docacessorios(request, pk):
     return response
 
 
-def create_pdf_docacessorios(materia):
+def create_pdf_docacessorios(materia,excluir_restritos):
     """
         Creates a unified in memory PDF file
     """
     logger = logging.getLogger(__name__)
     docs = materia.documentoacessorio_set. \
         all().values_list('arquivo', flat=True)
+    if excluir_restritos:
+        docs = docs.filter(restrito=False)
     if not docs:
         return None, None
 
@@ -2981,8 +3029,12 @@ def get_pdf_docacessorios(request, pk):
     materia = get_object_or_404(MateriaLegislativa, pk=pk)
     logger = logging.getLogger(__name__)
     username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
+    if request.user.is_anonymous or not 'protocoloadm.change_documentoacessorioadministrativo' in request.user.get_all_permissions():
+        excluir_restritos = True
+    else:
+        excluir_restritos = False
     try:
-        external_name, data = create_pdf_docacessorios(materia)
+        external_name, data = create_pdf_docacessorios(materia, excluir_restritos)
         logger.info(
             "user= {}. Gerou o pdf compilado de documento acessorios".format(username))
     except FileNotFoundError:
