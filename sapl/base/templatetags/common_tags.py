@@ -409,3 +409,8 @@ def parse_datetime(value):
 @register.filter
 def is_report_visible(request, url_path=None):
     return is_report_allowed(request, url_path)
+
+
+@register.filter
+def sort_by_index(queryset, index):
+    return sorted(queryset, key=lambda x: x[index])
