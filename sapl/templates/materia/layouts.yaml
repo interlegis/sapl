@@ -59,8 +59,8 @@ Anexada:
 
 AnexadaDetail:
   {% trans 'Matéria Anexada' %}:
-  - materia_principal|fk_urlize_for_detail
-  - materia_anexada|fk_urlize_for_detail
+  - materia_principal|fk_urlify_for_detail
+  - materia_anexada|fk_urlify_for_detail
   - data_anexacao  data_desanexacao
 
 Autoria:
@@ -86,10 +86,17 @@ Orgao:
 
 Relatoria:
   {% trans 'Relatoria' %}:
-  - comissao|fk_urlize_for_detail
-  - materia|fk_urlize_for_detail
+  - comissao
+  - materia
   - data_designacao_relator data_destituicao_relator
   - parlamentar tipo_fim_relatoria
+
+RelatoriaList:
+  {% trans 'Relatoria' %}:
+  - comissao
+  - materia|fk_urlify_for_list
+  - data_designacao_relator data_destituicao_relator
+  - parlamentar|fk_urlify_for_list tipo_fim_relatoria
 
 TipoProposicao:
   {% trans 'Tipo Proposição' %}:

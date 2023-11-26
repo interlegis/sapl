@@ -133,5 +133,5 @@ Correspondencia:
 CorrespondenciaDetail:
   {% trans 'Correspondencia' %}:
   - numero_ordem:2 tipo:3 sessao_plenaria
-  - documento|fk_urlize_for_detail
+  - documento|fk_urlify_for_detail
   - observacao

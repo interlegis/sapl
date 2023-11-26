@@ -1337,6 +1337,9 @@ class RelatoriaCrud(MasterDetailCrud):
 
             return {'comissao': localizacao}
 
+    class ListView(MasterDetailCrud.ListView):
+        layout_key = 'RelatoriaList'
+
     class UpdateView(MasterDetailCrud.UpdateView):
         form_class = RelatoriaForm
         layout_key = None
