@@ -22,7 +22,7 @@ pytz==2019.3
 python-magic==0.4.15
 unipath==1.1
 WeasyPrint==51
-Pillow==9.3.0
+Pillow==10.0.0
 gunicorn==19.9.0
 more-itertools==8.2.0
 pysolr==3.6.0
