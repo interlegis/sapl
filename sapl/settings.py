@@ -80,6 +80,8 @@ INSTALLED_APPS = (
     'crispy_forms',
     'floppyforms',
 
+    'waffle',
+
     'drf_spectacular',
     'rest_framework',
     'rest_framework.authtoken',
@@ -137,6 +139,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
+    'waffle.middleware.WaffleMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
@@ -210,8 +213,7 @@ TEMPLATES = [
                 'sapl.context_processors.parliament_info',
                 'sapl.context_processors.mail_service_configured',
                 'sapl.context_processors.google_recaptcha_configured',
-                'sapl.context_processors.sapl_as_sapn',
-
+                'sapl.context_processors.enable_sapn',
             ],
             'debug': DEBUG
         },
@@ -254,6 +256,16 @@ EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 EMAIL_RUNNING = None
+
+# Feature Flag
+WAFFLE_FLAG_DEFAULT = False
+WAFFLE_SWITCH_DEFAULT = False
+WAFFLE_CREATE_MISSING_FLAGS = True
+WAFFLE_LOG_MISSING_FLAGS = True
+WAFFLE_CREATE_MISSING_SWITCHES = True
+WAFFLE_LOG_MISSING_SWITCHES = True
+WAFFLE_ENABLE_ADMIN_PAGES = True
+
 
 MAX_DOC_UPLOAD_SIZE = 150 * 1024 * 1024  # 150MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB

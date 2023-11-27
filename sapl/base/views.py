@@ -50,8 +50,8 @@ from sapl.relatorios.views import (relatorio_estatisticas_acesso_normas)
 from sapl.sessao.models import (Bancada, SessaoPlenaria)
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured,
-                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, google_recaptcha_configured, sapl_as_sapn,
-                        get_client_ip)
+                        SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, google_recaptcha_configured,
+                        get_client_ip, sapn_is_enabled)
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, EstatisticasAcessoNormasForm)
 from .models import AppConfig, CasaLegislativa
 
@@ -62,7 +62,7 @@ def get_casalegislativa():
 
 class IndexView(TemplateView):
     def get(self, request, *args, **kwargs):
-        if sapl_as_sapn():
+        if sapn_is_enabled():
             return redirect('/norma/pesquisar')
         return TemplateView.get(self, request, *args, **kwargs)
 

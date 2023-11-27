@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% load i18n staticfiles menus %}
 {% load common_tags %}
+{% load waffle_tags %}
 {% load render_bundle from webpack_loader %}
 {% load webpack_static from webpack_loader %}
 
@@ -11,12 +12,9 @@
 
   <head>
     <meta charset="utf-8">
-    <title>{% block head_title %}{% if sapl_as_sapn %}SAPL-Normas - {% else %}SAPL - {%endif%}{{nome_sistema}}{% endblock %}</title>
+    <title>{% block head_title %}{% switch "SAPLN_SWITCH" %}SAPL-Normas - {% else %}SAPL - {%endswitch%}{{nome_sistema}}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#343a40">
-
-
-
 
     {% block head_content %}
       <link rel="icon" href="{% webpack_static 'img/favicon.ico' %}"  type="image/png">

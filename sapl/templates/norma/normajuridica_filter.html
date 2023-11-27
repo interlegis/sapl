@@ -1,14 +1,15 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+{% load waffle_tags %}
 {% load crispy_forms_tags common_tags %}
 
 {% block actions %}
   <div class="actions btn-group float-right" role="group">
-    {% if USE_SOLR %}
+    {% switch "SOLR_SWITCH" %}
         <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-primary">
           Pesquisa Textual
         </a>
-    {% endif %}
+    {% endswitch %}
     {% if perms.norma.add_normajuridica %}
       <a href="{% url 'sapl.norma:normajuridica_create' %}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Norma Jurídica {% endblocktrans %}

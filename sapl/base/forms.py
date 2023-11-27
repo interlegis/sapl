@@ -1009,7 +1009,6 @@ class ConfiguracoesAppForm(ModelForm):
                   'google_recaptcha_site_key',
                   'google_recaptcha_secret_key',
                   'google_analytics_id_metrica',
-                  'sapl_as_sapn',
                   'identificacao_de_documentos',
                   ]
 
