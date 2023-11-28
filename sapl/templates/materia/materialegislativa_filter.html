@@ -1,18 +1,18 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
 {% load tz %}
+{% load waffle_tags %}
 {% load crispy_forms_tags common_tags%}
 {% load webpack_static from webpack_loader %}
 
   {% block actions %}
 
     <div class="actions btn-group" role="group">
-      {% if USE_SOLR %}
-          <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-primary">
-              Pesquisa Textual
-          </a>
-      {% endif %}
-
+      {% switch "SOLR_SWITCH" %}
+      <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-primary">
+          Pesquisa Textual
+      </a>
+      {% endswitch %}
       {% if perms.materia.add_materialegislativa %}
       <a href="{% url 'sapl.materia:materialegislativa_create' %}" class="btn btn-outline-primary">
           {% blocktrans with verbose_name=view.verbose_name %} Adicionar Matéria Legislativa {% endblocktrans %}

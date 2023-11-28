@@ -3997,9 +3997,6 @@ class PesquisarSessaoPlenariaView(FilterView):
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
 
-        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
-            settings, 'USE_SOLR') else False
-
         return context
 
     def get(self, request, *args, **kwargs):

@@ -1061,9 +1061,9 @@ def google_recaptcha_configured():
     return not AppConfig.attr('google_recaptcha_site_key') == ''
 
 
-def sapl_as_sapn():
-    from sapl.base.models import AppConfig
-    return AppConfig.attr('sapl_as_sapn')
+def sapn_is_enabled():
+    import waffle
+    return waffle.switch_is_active('SAPLN_SWITCH')
 
 
 def timing(f):

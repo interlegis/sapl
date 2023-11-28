@@ -28,7 +28,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Orgao
 from sapl.utils import show_results_filter_set, get_client_ip,\
-    sapl_as_sapn
+    sapn_is_enabled
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm,
@@ -187,8 +187,6 @@ class NormaPesquisaView(FilterView):
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
 
         context['show_results'] = show_results_filter_set(qr)
-        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
-            settings, 'USE_SOLR') else False
 
         return context
 
