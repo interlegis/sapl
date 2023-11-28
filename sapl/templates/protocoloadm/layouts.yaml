@@ -43,8 +43,8 @@ Anexado:
 
 AnexadoDetail:
   {% trans 'Documento Anexado' %}:
-  - documento_principal|fk_urlize_for_detail
-  - documento_anexado|fk_urlize_for_detail
+  - documento_principal|fk_urlify_for_detail
+  - documento_anexado|fk_urlify_for_detail
   - data_anexacao  data_desanexacao
 
 Protocolo:
@@ -70,5 +70,5 @@ VinculoDocAdminMateria:
 
 VinculoDocAdminMateriaDetail:
   {% trans 'Matéria Vinculada' %}:
-  - materia|fk_urlize_for_detail data_anexacao:3 data_desanexacao:3
+  - materia|fk_urlify_for_detail data_anexacao:3 data_desanexacao:3
   - documento

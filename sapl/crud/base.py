@@ -413,7 +413,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
           'composicao__periodo__data_inicio', 'composicao__periodo__data_fim')]
         """
         r = []
-        for fieldname in self.list_field_names:
+        for (fieldname, _) in self._parse_field_names(self.list_field_names):
             if not isinstance(fieldname, tuple):
                 fieldname = fieldname,
             s = []
@@ -446,14 +446,26 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
             r.append(s)
         return r
 
+    def _parse_field_names(self, field_name_list):
+        parsed_list = []
+        for field_name in field_name_list:
+            field_tuple = tuple(field_name.split('|')) \
+                if '|' in field_name else (field_name, None)
+            parsed_list.append(field_tuple)
+        return parsed_list
+
     def _as_row(self, obj):
         r = []
-        for i, name in enumerate(self.list_field_names):
+        for i, (name, func) in enumerate(self._parse_field_names(self.list_field_names)):
+            # URL padrão para primeira coluna da listagem
             url = self.resolve_url(
                 ACTION_DETAIL, args=(obj.id,)) if i == 0 else None
+            # gera URL para matéria a partir de fk_urlify_for_list em layouts.yaml
+            if i > 0 and func is not None:
+                url = getattr(self, func)(obj, name)[0]
 
             """Caso o crud list seja para uma relação ManyToManyField"""
-            if url and hasattr(self, 'crud') and\
+            if url and hasattr(self, 'crud') and \
                     hasattr(self.crud, 'is_m2m') and self.crud.is_m2m:
                 url = url + ('?pkk=' + self.kwargs['pk']
                              if 'pk' in self.kwargs else '')
@@ -483,7 +495,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                         if m:
                             ss = get_field_display(m, n[-1])[1]
                             ss = (
-                                ('<br>' if '<ul>' in ss else ' - ') + ss)\
+                                    ('<br>' if '<ul>' in ss else ' - ') + ss) \
                                 if ss and j != 0 and s else ss
                     except:
                         pass
