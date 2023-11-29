@@ -64,7 +64,8 @@ SAPL_APPS = (
     'sapl.redireciona_urls',
     'sapl.compilacao',
     'sapl.api',
-    'sapl.rules'
+    'sapl.rules',
+    'sapl.configuracao_impressao',
 )
 
 INSTALLED_APPS = (

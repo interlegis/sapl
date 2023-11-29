@@ -1,0 +1,18 @@
+{% load i18n %}
+ConfiguracaoImpressao:
+  {% trans 'Configuraçao de Impressao' %}:
+  - identificador nome
+  - descricao
+  - largura_pagina altura_pagina
+  - margem_superior margem_inferior margem_esquerda margem_direita
+  - cor_fundo tamanho_fonte cor_fonte
+  - fonte espacamento_linhas
+
+ConfiguracaoImpressaoDetail:
+  {% trans 'Configuraçao de Impressao' %}:
+  - identificador nome
+  - descricao
+  - largura_pagina altura_pagina
+  - margem_superior margem_inferior margem_esquerda margem_direita
+  - cor_fundo tamanho_fonte cor_fonte
+  - fonte espacamento_linhas
