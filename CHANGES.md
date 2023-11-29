@@ -1,4 +1,22 @@
 
+3.1.163-RC18 / 2023-11-29
+=========================
+
+  * Adiciona feature flag lib (#3693)
+  * Conserta relatoria de matérias (#3692)
+  * Bump Pillow version
+  * feat: adiciona script para ajuste to tamanho de fontes de seçoes do painel eletronico (#3691)
+  * Conserta bug na paginação do Relatório de Matérias por Tramitação (#3689)
+  * fix: ajusta ordenacao de votos nominais por ordem alfabetica no extrato da sessao (#3690)
+  * fix: corrige erro de loaddata cargomesa
+  * feat: adiciona check de presenca e sessao aberta na leitura em bloco da ordem do dia (#3686)
+  * fix: padroniza nome_parlamentar para lista de presenca e votacoes nominais no resumo da ata (#3687)
+  * Apaga Numeração se TipoMateriaLegislativa é apagado
+  * Adiciona opção de remover formatação
+  * Adiciona ordenacao em cargo mesa
+  * Remove tags de considerações finais e ocorrências de sessão
+  * Release: 3.1.163-RC17
+
 3.1.163-RC17 / 2023-09-30
 =========================
 
