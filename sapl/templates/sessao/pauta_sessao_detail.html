@@ -67,7 +67,8 @@
                                     {{m.titulo}}
                                 </a><br/>
 								<b>Processo</b>: {{ m.processo }}<br/>
-								<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+								<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}<br/>
+                                <b>Turno:</b> {{ m.turno }}
 							</td>
 							<td style="width:60%;">
 								{{m.ementa|dont_break_out}}
@@ -92,7 +93,8 @@
 							{{m.numero}} -
 							<a target="_blank" href="{% url 'sapl.materia:materialegislativa_detail' m.id %}">{{m.titulo}}</a><br/>
 							<b>Processo</b>: {{ m.processo }}<br/>
-							<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}
+							<b>Autor{{ m.autor|length|pluralize:"es" }}</b>: {{ m.autor|join:', ' }}<br/>
+                            <b>Turno:</b> {{ m.turno }}
 						</td>
 						<td style="width:60%;">
 							{{m.ementa|dont_break_out}}
