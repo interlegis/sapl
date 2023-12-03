@@ -15,7 +15,7 @@ django-waffle==3.0.0
 django-webpack-loader==1.6.0
 drf-spectacular==0.18.2
 django-ratelimit==3.0.1
-easy-thumbnails==2.5
+easy-thumbnails==2.8.5
 python-decouple==3.1
 psycopg2-binary==2.8.6
 pyyaml==6.0.1
