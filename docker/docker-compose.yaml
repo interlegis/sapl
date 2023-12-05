@@ -32,7 +32,7 @@ services:
     networks:
       - sapl-net
   sapl:
-    image: interlegis/sapl:3.1.163-RC19
+    image: interlegis/sapl:3.1.163-RC20
 #    build:
 #      context: ../
 #      dockerfile: ./docker/Dockerfile
@@ -54,7 +54,7 @@ services:
       SOLR_COLLECTION: sapl
       SOLR_URL: http://solr:solr@saplsolr:8983
       IS_ZK_EMBEDDED: 'True'
-      ENABLE_SAPN: 'False'
+      ENABLE_SAPN: 'True'
       TZ: America/Sao_Paulo
     volumes:
       - sapl_data:/var/interlegis/sapl/data
