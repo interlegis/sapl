@@ -54,7 +54,7 @@ services:
       SOLR_COLLECTION: sapl
       SOLR_URL: http://solr:solr@saplsolr:8983
       IS_ZK_EMBEDDED: 'True'
-      ENABLE_SAPN: 'True'
+      ENABLE_SAPN: 'False'
       TZ: America/Sao_Paulo
     volumes:
       - sapl_data:/var/interlegis/sapl/data
