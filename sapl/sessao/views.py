@@ -124,10 +124,10 @@ def verifica_presenca(request, model, spk, is_leitura=False):
     return True
 
 
-def verifica_votacoes_abertas(request):
+def verifica_votacoes_abertas(request, pk):
     votacoes_abertas = SessaoPlenaria.objects.filter(
-        Q(ordemdia__votacao_aberta=True) |
-        Q(expedientemateria__votacao_aberta=True)).distinct()
+        (Q(ordemdia__votacao_aberta=True) | Q(ordemdia__resultado='Matéria em Discussão') & ~Q(ordemdia__id=int(pk))) |
+        (Q(expedientemateria__votacao_aberta=True) | Q(expedientemateria__resultado='Matéria em Discussão') & ~Q(expedientemateria__id=int(pk)))).distinct()
 
     logger = logging.getLogger(__name__)
 
@@ -199,9 +199,15 @@ def abrir_votacao(request, pk, spk):
     materia_votacao = model.objects.get(id=pk)
     is_leitura = materia_votacao.tipo_votacao == 4
     if (verifica_presenca(request, presenca_model, spk, is_leitura) and
-            verifica_votacoes_abertas(request) and
+        verifica_votacoes_abertas(request, pk) and
             verifica_sessao_iniciada(request, spk, is_leitura)):
-        materia_votacao.votacao_aberta = True
+        if  'discutir' in request.GET:
+            materia_votacao.resultado = 'Matéria em Discussão'
+        else:
+            if materia_votacao.resultado == 'Matéria em Discussão':
+                materia_votacao.resultado = ''
+            if 'cancelar_discussao' not in request.GET:
+                materia_votacao.votacao_aberta = True
         sessao = SessaoPlenaria.objects.get(id=spk)
         sessao.painel_aberto = True
         sessao.save()
@@ -348,7 +354,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     if obj.tipo_votacao != LEITURA:
                         btn_registrar = '''
                                         <form action="%s">
-                                        <input type="submit" class="btn btn-primary"
+                                        <input type="submit" class="btn btn-primary btn-block"
                                         value="Registrar Votação" />
                                         %s
                                     </form>''' % (
@@ -356,7 +362,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     else:
                         btn_registrar = '''
                                         <form action="%s">
-                                        <input type="submit" class="btn btn-primary"
+                                        <input type="submit" class="btn btn-primary btn-block"
                                         value="Registrar Leitura" />
                                         %s
                                     </form>''' % (
@@ -386,17 +392,31 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
                 if has_permission:
                     if not obj.tipo_votacao == LEITURA:
-                        btn_abrir = '''
-                                            Matéria não votada<br />
-                                            <a href="%s"
-                                            class="btn btn-primary"
-                                            role="button">Abrir Votação</a>''' % (url)
-                        resultado = btn_abrir
+                        if obj.resultado != 'Matéria em Discussão':
+                            btn_abrir = '''
+                                                Matéria não votada<br />
+                                                <a href="%s"
+                                                class="btn btn-primary btn-block"
+                                                role="button" style="white-space : nowrap;">Abrir Discussão</a>
+                                                <a href="%s"
+                                                class="btn btn-primary btn-block"
+                                                role="button" style="white-space : nowrap;">Abrir Votação</a>''' % (url + '&discutir=True', url)
+                            resultado = btn_abrir
+                        else:
+                            btn_abrir = '''
+                                                Matéria não votada<br />
+                                                <a href="%s"
+                                                class="btn btn-danger btn-block"
+                                                role="button" style="white-space : nowrap;">Cancelar Discussão</a>
+                                                <a href="%s"
+                                                class="btn btn-primary btn-block"
+                                                role="button">Abrir Votação</a>''' % (url + '&cancelar_discussao=True', url)
+                            resultado = btn_abrir
                     else:
                         btn_abrir = '''
                                             Matéria não lida<br />
                                             <a href="%s"
-                                            class="btn btn-primary"
+                                            class="btn btn-primary btn-block"
                                             role="button">Abrir para Leitura</a>''' % (url)
                         resultado = btn_abrir
                 else:

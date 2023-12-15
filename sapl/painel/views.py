@@ -355,7 +355,7 @@ def get_cronometro_status(request, name):
 
 def get_materia_aberta(pk):
     return OrdemDia.objects.filter(
-        sessao_plenaria_id=pk, votacao_aberta=True).last()
+        sessao_plenaria_id=pk).filter(Q(votacao_aberta=True) | Q(resultado='Matéria em Discussão')).last()
 
 
 def get_presentes(pk, response, materia):
@@ -437,7 +437,7 @@ def get_presentes(pk, response, materia):
 
 def get_materia_expediente_aberta(pk):
     return ExpedienteMateria.objects.filter(
-        sessao_plenaria_id=pk, votacao_aberta=True).last()
+        sessao_plenaria_id=pk).filter(Q(votacao_aberta=True) | Q(resultado='Matéria em Discussão')).last()
 
 
 def response_nenhuma_materia(response):
@@ -569,6 +569,7 @@ def get_dados_painel(request, pk):
         'cronometro_consideracoes': get_cronometro_status(request, 'consideracoes'),
         'status_painel': sessao.painel_aberto,
         'brasao': brasao,
+        'discutir': False,
         'mostrar_voto': app_config.mostrar_voto
     }
 
@@ -578,10 +579,14 @@ def get_dados_painel(request, pk):
     # Caso tenha alguma matéria com votação aberta, ela é mostrada no painel
     # com prioridade para Ordem do Dia.
     if ordem_dia:
+        if ordem_dia.resultado == 'Matéria em Discussão':
+            response.update({'discutir':True})
         return JsonResponse(get_votos(
             get_presentes(pk, response, ordem_dia),
             ordem_dia, app_config.mostrar_voto))
     elif expediente:
+        if expediente.resultado == 'Matéria em Discussão':
+            response.update({'discutir':True})
         return JsonResponse(get_votos(
             get_presentes(pk, response, expediente),
             expediente, app_config.mostrar_voto))
