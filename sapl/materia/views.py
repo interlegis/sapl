@@ -2660,9 +2660,9 @@ class EtiquetaPesquisaView(PermissionRequiredMixin, FormView):
 
         if form.cleaned_data['processo_inicial']:
             materias = materias.filter(
-                numeracao__numero_materia__gte=form.cleaned_data[
+                numero__gte=form.cleaned_data[
                     'processo_inicial'],
-                numeracao__numero_materia__lte=form.cleaned_data[
+                numero__lte=form.cleaned_data[
                     'processo_final'])
 
         context['quantidade'] = len(materias)
