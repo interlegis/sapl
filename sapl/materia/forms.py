@@ -1582,9 +1582,6 @@ class TipoProposicaoForm(ModelForm):
     def clean(self):
         super(TipoProposicaoForm, self).clean()
 
-        if not self.is_valid():
-            return self.cleaned_data
-
         cd = self.cleaned_data
 
         content_type = cd['content_type'].split('/')
@@ -1638,7 +1635,6 @@ class TipoProposicaoForm(ModelForm):
 
     @transaction.atomic
     def save(self, commit=False):
-
         tipo_proposicao = self.instance
 
         assert tipo_proposicao.content_type
