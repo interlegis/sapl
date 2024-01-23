@@ -123,6 +123,14 @@ class AutoresPossiveisFilterSet(SaplFilterSetMixin):
             data_inicio__lte=data_relativa,
             data_fim__gte=data_relativa).first()
 
+        # Se cadastro em Janeiro e início da legislatura/mandato em Fevereiro
+        if not legislatura_relativa:
+            # ordering de Legislatura é DESC por padrão, então pega a última legislatura
+            legislatura_relativa = Legislatura.objects.filter(
+                data_inicio__year=data_relativa.year
+            ).first()
+            data_relativa = legislatura_relativa.data_inicio
+
         q = Q(
             parlamentar_set__mandato__data_inicio_mandato__lte=data_relativa,
             parlamentar_set__mandato__data_fim_mandato__isnull=True) | Q(
