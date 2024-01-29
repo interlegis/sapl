@@ -84,6 +84,9 @@ def desc_operation(value):
 
 @register.filter
 def format_user(user):
+    if not user:
+        return ""
+
     if user.first_name:
         return user.first_name + " " + user.last_name + " (" + user.username + ")"
     else:
