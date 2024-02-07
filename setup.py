@@ -9,7 +9,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 install_requires = [
-    'django>=1.11.19,<3.0',
+    'django>=1.11.19,<4.0',
     'django-haystack==2.8.1',
     'django-filter==2.0.0',
     'djangorestframework==3.11.2',
