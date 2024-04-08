@@ -28,7 +28,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Orgao
 from sapl.utils import show_results_filter_set, get_client_ip,\
-    sapn_is_enabled
+    sapn_is_enabled, MultiFormatOutputMixin
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm,
@@ -104,7 +104,7 @@ class PesquisarAssuntoNormaView(FilterView):
 
         if 'assunto' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
-             resultados = self.object_list
+            resultados = self.object_list
         else:
             resultados = []
 
@@ -147,10 +147,26 @@ class NormaRelacionadaCrud(MasterDetailCrud):
         layout_key = 'NormaRelacionadaDetail'
 
 
-class NormaPesquisaView(FilterView):
+class NormaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = NormaJuridica
     filterset_class = NormaFilterSet
     paginate_by = 50
+
+    fields_base_report = [
+        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'texto_integral', 'ementa'
+    ]
+    fields_report = {
+        'csv': fields_base_report,
+        'xlsx': fields_base_report,
+        'json': fields_base_report,
+    }
+
+    def hook_texto_integral(self, obj):
+        url = self.request.build_absolute_uri('/')[:-1]
+        texto_integral = obj.texto_integral if not isinstance(
+            obj, dict) else obj["texto_integral"]
+
+        return f'{url}/{texto_integral}'
 
     def get_queryset(self):
         qs = super().get_queryset()

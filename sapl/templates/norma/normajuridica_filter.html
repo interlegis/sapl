@@ -4,6 +4,15 @@
 {% load crispy_forms_tags common_tags %}
 
 {% block actions %}
+
+  {% if show_results %}
+    <div class="float-left">
+      {% with 'sapl.norma:norma_pesquisa' as url_reverse %}
+        {% include "crud/format_options.html" %}
+      {% endwith %}
+    </div>
+  {% endif %}
+
   <div class="actions btn-group float-right" role="group">
     {% switch "SOLR_SWITCH" %}
         <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-primary">
@@ -19,7 +28,6 @@
       <a href="{% url 'sapl.norma:norma_pesquisa' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
   {% endif %}
   </div>
-  <br /><br />
 {% endblock %}
 
 {% block detail_content %}

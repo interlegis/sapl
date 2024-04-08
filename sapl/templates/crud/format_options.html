@@ -1,0 +1,10 @@
+{% load i18n %}
+
+
+<div class=" d-flex justify-content-center">
+  <div class="actions btn-group" role="group">
+    <a class="btn btn-outline-secondary" href="{% url url_reverse %}?format=csv{{ filter_url }}" title="Download do resultado da pesquisa em CSV."><i class="fas fa-file-csv"></i></a>
+    <a class="btn btn-outline-secondary" href="{% url url_reverse %}?format=xlsx{{ filter_url }}" title="Download do resultado da pesquisa em XLSX."><i class="fas fa-file-excel"></i></a>
+    <a class="btn btn-outline-secondary" href="{% url url_reverse %}?format=json{{ filter_url }}" title="Download do resultado da pesquisa em JSON."><i class="far fa-file-code"></i></a>
+  </div>
+</div>

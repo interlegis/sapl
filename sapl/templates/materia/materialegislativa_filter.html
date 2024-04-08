@@ -7,7 +7,15 @@
 
   {% block actions %}
 
-    <div class="actions btn-group" role="group">
+  {% if show_results %}
+    <div class="float-left">
+      {% with 'sapl.materia:pesquisar_materia' as url_reverse %}
+        {% include "crud/format_options.html" %}
+      {% endwith %}
+    </div>
+  {% endif %}
+
+    <div class="actions btn-group float-right pb-4" role="group">
       {% switch "SOLR_SWITCH" %}
       <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-primary">
           Pesquisa Textual
