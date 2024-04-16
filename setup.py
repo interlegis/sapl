@@ -31,7 +31,7 @@ install_requires = [
     'python-magic==0.4.15',
     'unipath==1.1',
     'WeasyPrint==44',
-    'gunicorn==19.9.0',
+    'gunicorn==22.0.0',
     'pysolr==3.6.0',
 
     # 'git+git://github.com/interlegis/trml2pdf.git',
