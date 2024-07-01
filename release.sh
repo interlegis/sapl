@@ -43,14 +43,19 @@ function change_files {
 
     echo "Updating from "$OLD_VERSION" to "$FINAL_VERSION""
 
-    sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" docker/docker-compose.yaml
-
-    sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
-
-    sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
-
-    sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
-
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # MacOS (BSD sed)
+        sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" docker/docker-compose.yaml
+        sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
+        sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
+        sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
+    else
+        # Linux (GNU sed)
+        sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" docker/docker-compose.yaml
+        sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
+        sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
+        sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
+    fi
 }
 
 function set_major_version {
