@@ -264,7 +264,7 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
         texto_integral = self.cleaned_data.get('texto_integral', False)
 
         if texto_integral:
-            validar_arquivo(texto_integral, "Texto Integral")
+            validar_arquivo(texto_integral, "Texto Original")
 
         return texto_integral
 

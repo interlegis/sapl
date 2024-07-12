@@ -138,7 +138,7 @@ class NormaJuridica(models.Model):
         blank=True,
         null=True,
         upload_to=norma_upload_path,
-        verbose_name=_('Texto Integral'),
+        verbose_name=_('Texto Original'),
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     tipo = models.ForeignKey(
@@ -258,6 +258,17 @@ class NormaJuridica(models.Model):
     @property
     def epigrafe(self):
         return self.__str__()
+
+    @property
+    def epigrafe_simplificada(self):
+        numero_norma = self.numero
+        if numero_norma.isnumeric():
+            numero_norma = '{0:,}'.format(int(self.numero)).replace(',', '.')
+
+        return _('%(tipo)s nº %(numero)s, de %(data)s') % {
+            'tipo': self.tipo,
+            'numero': numero_norma,
+            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
 
     def delete(self, using=None, keep_parents=False):
         texto_integral = self.texto_integral

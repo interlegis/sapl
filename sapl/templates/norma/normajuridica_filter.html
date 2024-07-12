@@ -45,49 +45,63 @@
       {% endif %}
       <br />
       <table class="table table-striped">
-    		<thead class="thead-default">
+        <thead class="thead-default">
           <tr>
-            <th>Tipo</th>
-            <th>Número</th>
-            <th>Ano</th>
-            <th>Data</th>
-            <th>Ementa</th>
+            <th>Normas Jurídicas</th>
             <th>Relacionamentos</th>
           </tr>
     		</thead>
         {% for n in page_obj %}
           <tr>
-            <td><a href="{% url 'sapl.norma:normajuridica_detail' n.id %}">{{n.tipo}}</a></td>
-            {% if n.texto_integral %}
-                <td><a href="{{n.texto_integral.url}}">{{n.numero}}</a></td>
-            {% else %}
-                <td>{{n.numero}}</td>
-            {% endif %}
-            <td>{{n.ano}}</td>
-            <td>{{n.data}}</td>
-            <td>{{n.ementa|safe}}</td>
             <td>
-                {% if n.get_normas_relacionadas.0|length == 0 and n.get_normas_relacionadas.1|length == 0%}
-                   Norma sem alterações posteriores.
-                {% else %}
-                  {% for p in n.get_normas_relacionadas.0 %}
-                    <div>
-                      <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
-                        <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
-                          {{ p.norma_relacionada }}
-                        </a>
-                    </div>
-                  {% endfor %}
-                  {% for r in n.get_normas_relacionadas.1 %}
-                    <div>
-                      <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
-                        <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
-                          {{ r.norma_principal }}
-                        </a>
-                    </div>
-                  {% endfor %}
+              <a href="{% url 'sapl.norma:normajuridica_detail' n.id %}?display">
+                <strong>{{n.epigrafe_simplificada}}</strong>
+              </a><br>
+              {% if n.orgao %}
+                <strong>Órgão:</strong> {{n.orgao}}<br>
+              {% endif %}
+              
+              <strong>Ementa:</strong><br>
+              {{n.ementa|safe}}<br>
+
+              {% if n.texto_articulado.exists %}
+                <a href="{% url 'sapl.norma:normajuridica_detail' n.id %}">
+                  <strong>
+                    Texto Multivigente
+                  </strong>
+                </a>{% if n.texto_integral %} | {% endif %}
+              {% endif %}
+              {% if n.texto_integral %}
+                  <a href="{{n.texto_integral.url}}">
+                  <strong>
+                    Texto Original
+                  </strong>
+                </a><br>
               {% endif %}
             </td>
+            <td>
+            {% if n.get_normas_relacionadas.0|length == 0 and n.get_normas_relacionadas.1|length == 0%}
+                <em>
+                  Norma sem alterações posteriores.
+                </em>
+            {% else %}
+              {% for p in n.get_normas_relacionadas.0 %}
+                <div>
+                  <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
+                    <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
+                      {{ p.norma_relacionada }}
+                    </a>
+                </div>
+              {% endfor %}
+              {% for r in n.get_normas_relacionadas.1 %}
+                <div>
+                  <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
+                    <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
+                      {{ r.norma_principal }}
+                    </a>
+                </div>
+              {% endfor %}
+          {% endif %}
             {% if n.autoria_set.all %}
               <strong>Autor:</strong>
               {% for a in n.autoria_set.all %}
