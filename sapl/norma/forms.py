@@ -1,10 +1,11 @@
 import logging
+import re
 
 from crispy_forms.layout import (Button, Fieldset, HTML, Layout)
 from django import forms
 from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Q
+from django.db.models import Q, F, Func, Value
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -69,6 +70,10 @@ class NormaFilterSet(django_filters.FilterSet):
                                       label='Ano',
                                       choices=choice_anos_com_normas)
 
+    numero = django_filters.CharFilter(
+        method='filter_numero',
+        label=_('Número'))
+
     ementa = django_filters.CharFilter(
         method='filter_ementa',
         label=_('Pesquisar expressões na ementa da norma'))
@@ -128,6 +133,19 @@ class NormaFilterSet(django_filters.FilterSet):
                               HTML(autor_modal)),
                      form_actions(label='Pesquisar'))
         )
+
+    def filter_numero(self, queryset, name, value):
+        p = r'[\W_]'
+        value = re.sub(p, '', value, flags=re.IGNORECASE)
+        return queryset.annotate(
+            numero_clean=Func(
+                F('numero'),
+                Value(p),
+                Value(''),
+                Value('g'),
+                function='REGEXP_REPLACE'
+            )
+        ).filter(numero_clean=value)
 
     def filter_ementa(self, queryset, name, value):
         return queryset.annotate(search=SearchVector('ementa',
