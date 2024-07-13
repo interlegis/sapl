@@ -4068,6 +4068,8 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
 
     logger = logging.getLogger(__name__)
 
+    viewname = 'sapl.sessao:pesquisar_pauta'
+
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
         qs = kwargs.get('queryset')
