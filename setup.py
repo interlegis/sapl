@@ -16,7 +16,6 @@ install_requires = [
     'dj-database-url==0.5.0',
     'django-braces==1.9.0',
     'django-crispy-forms==1.7.2',
-    'django-floppyforms==1.7.0',
     'django-extra-views==0.12.0',
     'django-model-utils==3.1.2',
     'django-extensions==2.1.4',

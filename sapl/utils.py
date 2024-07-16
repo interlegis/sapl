@@ -31,14 +31,13 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
-from django.forms.widgets import SplitDateTimeWidget
+from django.forms.widgets import SplitDateTimeWidget, ClearableFileInput
 from django.http.response import JsonResponse, HttpResponse
 from django.utils import six, timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
-from floppyforms import ClearableFileInput
 import magic
 import requests
 from unipath.path import Path
@@ -310,7 +309,7 @@ class SaplGenericRelation(GenericRelation):
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
-    template_name = 'floppyforms/image_thumbnail.html'
+    template_name = 'widgets/image_thumbnail.html'
 
 
 class RangeWidgetOverride(forms.MultiWidget):
