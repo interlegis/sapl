@@ -10,7 +10,7 @@ from django.views.generic import CreateView, DeleteView, FormView, ListView
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin, UpdateView
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from django_filters.views import FilterView
 
@@ -19,7 +19,7 @@ from sapl.comissoes.apps import AppConfig
 from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
                                   DocumentoAcessorioCreateForm,
                                   DocumentoAcessorioEditForm,
-                                  ParticipacaoCreateForm, 
+                                  ParticipacaoCreateForm,
                                   ParticipacaoEditForm,
                                   PautaReuniaoFilterSet, PautaReuniaoForm,
                                   PeriodoForm, ReuniaoForm)
@@ -186,7 +186,7 @@ def lista_materias_comissao(comissao_pk):
     materias = MateriaEmTramitacao.objects.filter(
         tramitacao__unidade_tramitacao_destino__comissao=comissao_pk
     ).order_by('materia__tipo', '-materia__ano', '-materia__numero')
- 
+
     return materias
 
 
@@ -229,14 +229,14 @@ class ReuniaoCrud(MasterDetailCrud):
             mats = []
             materias_pauta = PautaReuniao.objects.filter(reuniao=self.kwargs['pk'])
             materias_pk = [materia_pauta.materia.pk for materia_pauta in materias_pauta]
-            
+
             context['mats'] = MateriaLegislativa.objects.filter(
                 pk__in=materias_pk
             ).order_by('tipo', '-ano', 'numero')
             context['num_mats'] = len(context['mats'])
 
             context['reuniao_pk'] = self.kwargs['pk']
-            
+
             return context
 
     class ListView(MasterDetailCrud.ListView):
@@ -307,7 +307,7 @@ class RemovePautaView(PermissionRequiredMixin, CreateView):
 
         materias_pauta = PautaReuniao.objects.filter(reuniao=context['object'])
         materias_pk = [materia_pauta.materia.pk for materia_pauta in materias_pauta]
-        
+
         context['materias'] = MateriaLegislativa.objects.filter(
             pk__in=materias_pk
         ).order_by('tipo', '-ano', 'numero')
@@ -366,16 +366,16 @@ class AdicionaPautaView(PermissionRequiredMixin, FilterView):
         context['show_results'] = show_results_filter_set(qr)
 
         return context
-    
+
     def post(self, request, *args, **kwargs):
-        success_url = reverse('sapl.comissoes:reuniao_detail', kwargs={'pk':kwargs['pk']}) 
+        success_url = reverse('sapl.comissoes:reuniao_detail', kwargs={'pk':kwargs['pk']})
         marcadas = request.POST.getlist('materia_id')
 
         if not marcadas:
             msg = _('Nenhuma máteria foi selecionada.')
             messages.add_message(request, messages.WARNING, msg)
             return HttpResponseRedirect(success_url)
-            
+
         reuniao = Reuniao.objects.get(pk=kwargs['pk'])
         pautas = []
         for materia in MateriaLegislativa.objects.filter(id__in=marcadas):
@@ -384,7 +384,7 @@ class AdicionaPautaView(PermissionRequiredMixin, FilterView):
                  pauta.materia = materia
                  pautas.append(pauta)
         PautaReuniao.objects.bulk_create(pautas)
-        
+
         msg = _('Matéria(s) adicionada(s) com sucesso!')
         messages.add_message(request, messages.SUCCESS, msg)
         return HttpResponseRedirect(success_url)

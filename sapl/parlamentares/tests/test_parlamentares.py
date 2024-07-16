@@ -1,6 +1,6 @@
 import pytest
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from model_bakery import baker
 
 from sapl.parlamentares.forms import FrenteForm, LegislaturaForm, MandatoForm
@@ -314,7 +314,7 @@ def test_legislatura_form_numeros_invalidos():
                                  data_inicio='2002-02-01',
                                  data_fim='2005-12-31',
                                  data_eleicao='2001-11-01')
-        
+
         legislatura2 = baker.make(Legislatura, pk=3,
                                  numero=3,
                                  data_inicio='2008-02-01',

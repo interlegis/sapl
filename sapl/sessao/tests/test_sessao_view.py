@@ -1,6 +1,6 @@
 import pytest
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from model_bakery import baker
 
 from sapl.parlamentares.models import Legislatura, SessaoLegislativa
@@ -13,7 +13,7 @@ from sapl.sessao.models import (SessaoPlenaria, TipoSessaoPlenaria,
 from sapl.parlamentares.models import Parlamentar, CargoMesa, Filiacao
 
 from sapl.sessao.views import (get_identificacao_basica, get_conteudo_multimidia,
-                                get_mesa_diretora, get_presenca_sessao, 
+                                get_mesa_diretora, get_presenca_sessao,
                                 get_expedientes, get_materias_expediente,
                                 get_oradores_expediente, get_presenca_ordem_do_dia,
                                 get_materias_ordem_do_dia, get_oradores_explicacoes_pessoais,
@@ -78,11 +78,11 @@ class TestResumoView():
         id_basica = get_identificacao_basica(self.sessao_plenaria)
         info_basica = id_basica['basica']
         assert info_basica[0] == 'Tipo de Sessão: ' + str(self.sessao_plenaria.tipo)
-        
+
         data_inicio = self.sessao_plenaria.data_inicio
         abertura = data_inicio.strftime('%d/%m/%Y') if data_inicio else ''
         assert info_basica[1] == 'Abertura: ' + abertura +' - '+ self.sessao_plenaria.hora_inicio
-        
+
         data_fim = self.sessao_plenaria.data_fim
         encerramento = data_fim.strftime('%d/%m/%Y') + ' -' if data_fim else ''
         assert info_basica[2] == 'Encerramento: ' + encerramento +' '+ self.sessao_plenaria.hora_fim
@@ -102,11 +102,11 @@ class TestResumoView():
 
     def test_get_mesa_diretora(self):
         mesa = get_mesa_diretora(self.sessao_plenaria)
-        assert mesa == {'mesa':[{ 
+        assert mesa == {'mesa':[{
             'cargo': self.cargo_mesa,
             'parlamentar': self.parlamentar
         }]}
-        
+
     def test_get_presenca_sessao(self):
         justificativa = baker.make(JustificativaAusencia,sessao_plenaria=self.sessao_plenaria)
         presenca = baker.make(SessaoPlenariaPresenca,sessao_plenaria=self.sessao_plenaria)
@@ -114,7 +114,7 @@ class TestResumoView():
         resposta_presenca = get_presenca_sessao(self.sessao_plenaria)
         assert resposta_presenca['presenca_sessao'] == [presenca.parlamentar]
         assert resposta_presenca['justificativa_ausencia'][0] == justificativa
-    
+
     def test_get_expedientes(self):
         tipo_expediente = baker.make(TipoExpediente)
         expediente = baker.make(ExpedienteSessao,sessao_plenaria=self.sessao_plenaria,tipo=tipo_expediente)
@@ -123,7 +123,7 @@ class TestResumoView():
 
         assert resposta_expediente['expedientes'] == [{
                 'conteudo': expediente.conteudo,
-                'tipo': tipo_expediente  
+                'tipo': tipo_expediente
         }]
 
     def test_get_materias_expediente(self):

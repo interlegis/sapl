@@ -11,7 +11,7 @@ from django.db import transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor, AppConfig
@@ -388,9 +388,9 @@ class ProtocoloDocumentoForm(ModelForm):
             (Div(), 2),
             (Alert(
                 """
-                Usuário: <strong>{}</strong> - {}<br> 
+                Usuário: <strong>{}</strong> - {}<br>
                 IP: <strong>{}</strong> - {}<br>
-                
+
                 """.format(
                     kwargs['initial']['user_data_hora_manual'],
                     Protocolo._meta.get_field(
@@ -570,9 +570,9 @@ class ProtocoloMateriaForm(ModelForm):
             (Div(), 2),
             (Alert(
                 """
-                Usuário: <strong>{}</strong> - {}<br> 
+                Usuário: <strong>{}</strong> - {}<br>
                 IP: <strong>{}</strong> - {}<br>
-                
+
                 """.format(
                     kwargs['initial']['user_data_hora_manual'],
                     Protocolo._meta.get_field(

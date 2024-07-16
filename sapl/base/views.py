@@ -24,7 +24,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import (FormView, ListView)
 from django.views.generic.base import RedirectView, TemplateView
 from django_filters.views import FilterView

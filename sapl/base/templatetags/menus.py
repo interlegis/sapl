@@ -2,7 +2,7 @@ import logging
 
 from django import template
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import yaml
 
 
@@ -145,7 +145,7 @@ def resolve_urls_inplace(menu, pk, rm, context):
                             Erro na construção do Menu:
                             menu: {}
                             url: {}
-                            1) Verifique se a url existe 
+                            1) Verifique se a url existe
                             2) Se existe no contexto um desses itens:
                                 - context['root_pk'] pk do master
                                 - context['object'] objeto do master
@@ -165,7 +165,7 @@ def resolve_urls_inplace(menu, pk, rm, context):
                             log = """Erro na construção do Menu:
                             menu: {}
                             url: {}
-                            1) Verifique se a url existe 
+                            1) Verifique se a url existe
                             2) Se existe no contexto um desses itens:
                                 - context['root_pk'] pk do master
                                 - context['object'] objeto do master

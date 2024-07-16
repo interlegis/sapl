@@ -12,7 +12,7 @@ from django.db.models.base import ModelBase
 from django.db.models.fields import TextField, CharField
 from django.db.models.fields.files import FileField
 from django.template.defaultfilters import capfirst
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import django_filters
 from django_filters.constants import ALL_FIELDS, EMPTY_VALUES
 from django_filters.filters import CharFilter

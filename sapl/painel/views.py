@@ -11,7 +11,7 @@ from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
@@ -202,7 +202,7 @@ def can_vote(context, context_vars, request):
 def votante_view(request):
     logger = logging.getLogger(__name__)
     username = request.user.username if request.user.is_authenticated else 'AnonymousUser'
- 
+
     # Pega o votante relacionado ao usuário
     template_name = 'painel/voto_nominal.html'
     context = {}
@@ -215,7 +215,7 @@ def votante_view(request):
         else:
             raise ObjectDoesNotExist
     except ObjectDoesNotExist:
-        logger.error(f"user={username}. Usuário (user={request.user}) não cadastrado como votante na tela de parlamentares. " 
+        logger.error(f"user={username}. Usuário (user={request.user}) não cadastrado como votante na tela de parlamentares. "
                      "Contate a administração de sua Casa Legislativa!")
         msg = _("Usuário não cadastrado como votante na tela de parlamentares. Contate a administração de sua Casa Legislativa!")
         context.update({'error_message': msg})
@@ -365,7 +365,7 @@ def get_presentes(pk, response, materia):
     else:
         presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=pk)
-    
+
     sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
@@ -555,7 +555,7 @@ def get_dados_painel(request, pk):
     if casa and app_config and (bool(casa.logotipo)):
         brasao = casa.logotipo.url \
             if app_config.mostrar_brasao_painel else None
-    
+
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
@@ -616,7 +616,7 @@ def get_dados_painel(request, pk):
         (not ultimo_timestamp and last_expediente_leitura):
         ordem_expediente = last_expediente_leitura.expediente
         ultimo_timestamp = last_expediente_leitura.data_hora
-    
+
     if ordem_expediente:
         return JsonResponse(get_votos(
                             get_presentes(pk, response, ordem_expediente),

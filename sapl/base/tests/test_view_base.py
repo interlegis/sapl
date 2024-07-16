@@ -2,7 +2,7 @@ import pytest
 from model_bakery import baker
 import datetime
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from model_bakery import baker
 
 from sapl.base.models import Autor, TipoAutor
@@ -404,7 +404,7 @@ def test_lista_anexados_ciclicas():
                 sigla="TT",
                 descricao="Tipo_Teste"
         )
-        
+
         documento_a = baker.make(
                 DocumentoAdministrativo,
                 tipo=tipo_documento,
@@ -550,7 +550,7 @@ def test_lista_anexados_ciclicas():
                 data_apresentacao="2019-05-08",
                 regime_tramitacao=regime_tramitacao,
                 tipo=tipo_materia
-        ) 
+        )
 
         baker.make(
                 Anexada,

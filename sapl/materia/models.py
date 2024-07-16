@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models.functions import Concat
 from django.template import defaultfilters
 from django.utils import formats, timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from model_utils import Choices
 
 from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor
@@ -934,7 +934,7 @@ class Proposicao(models.Model):
 
     """
     Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio de uma já existente
-    
+
     materia_gerada = models.ForeignKey(
         MateriaLegislativa,
         blank=True,

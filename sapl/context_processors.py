@@ -1,7 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from sapl.utils import google_recaptcha_configured as google_recaptcha_configured_utils, sapn_is_enabled
 from sapl.utils import mail_service_configured as mail_service_configured_utils
