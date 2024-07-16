@@ -50,7 +50,7 @@ def form_actions(more=[Div(css_class='clearfix')],
         Submit(name, label, css_class=css_class,
                # para impedir resubmissão do form
                onclick=doubleclick),
-        css_class='form-group row justify-content-between'
+        css_class='justify-content-between'
     )
 
 
