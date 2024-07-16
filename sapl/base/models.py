@@ -1,10 +1,10 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields.jsonb import JSONField
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models.deletion import CASCADE
+from django.db.models.fields.json import JSONField
 from django.db.models.signals import post_migrate
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import gettext_lazy as _

@@ -7,10 +7,10 @@ import re
 from django.apps.config import AppConfig
 from django.apps.registry import apps
 from django.conf import settings
-from django.contrib.postgres.fields.jsonb import JSONField
 from django.db.models.base import ModelBase
 from django.db.models.fields import TextField, CharField
 from django.db.models.fields.files import FileField
+from django.db.models.fields.json import JSONField
 from django.template.defaultfilters import capfirst
 from django.utils.translation import gettext_lazy as _
 import django_filters
