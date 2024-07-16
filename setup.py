@@ -16,6 +16,7 @@ install_requires = [
     'django-extensions==3.2.3',
     'django-haystack==3.2.1',
     'djangorestframework==3.15.2',
+    'crispy-bootstrap4==2024.1',
 
 
     'django-filter==2.0.0',
