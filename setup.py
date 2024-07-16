@@ -13,6 +13,7 @@ install_requires = [
 
     'django-image-cropping==1.7',
     'django-crispy-forms==2.2',
+    'django-extensions==3.2.3',
 
 
     'django-haystack==2.8.1',
@@ -22,7 +23,6 @@ install_requires = [
     'django-braces==1.9.0',
     'django-extra-views==0.12.0',
     'django-model-utils==3.1.2',
-    'django-extensions==2.1.4',
     'django-webpack-loader==0.6.0',
     'drf-yasg==1.20.0',
     'easy-thumbnails==2.5',
