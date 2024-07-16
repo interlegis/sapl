@@ -1,8 +1,8 @@
-from django.conf.urls import include, url
+from django.urls.conf import path, include
 
 from .views import CityCrud, CountryCrud
 
 urlpatterns = [
-    url(r'^country/', include(
+    path(r'^country/', include(
         CountryCrud.get_urls() + CityCrud.get_urls(), 'stub_app')),
 ]

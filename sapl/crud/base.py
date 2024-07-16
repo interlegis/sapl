@@ -5,7 +5,6 @@ from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.conf import settings
-from django.conf.urls import url
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,6 +13,7 @@ from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.http.response import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.urls.conf import path
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
@@ -27,6 +27,7 @@ from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                         RP_LIST)
 from sapl.utils import normalize
+
 
 logger = logging.getLogger(settings.BASE_DIR.name)
 
@@ -1032,7 +1033,7 @@ class Crud:
             if crud[0]:
                 cruds.append(crud)
 
-        return [url(regex, view.as_view(), name=view.url_name(suffix))
+        return [path(regex, view.as_view(), name=view.url_name(suffix))
                 for regex, view, suffix in cruds]
 
     @classonlymethod
