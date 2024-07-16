@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from model_bakery import baker
 from urllib.parse import urlencode
@@ -168,7 +168,7 @@ def test_create_tramitacao(admin_client):
          'data_tramitacao': date(2016, 8, 21)},
         follow=True)
 
-    msg = force_text(_('A origem da nova tramitação deve ser igual ao '
+    msg = force_str(_('A origem da nova tramitação deve ser igual ao '
                        'destino  da última adicionada!'))
 
     # Verifica se a origem da nova tramitacao é igual ao destino da última
@@ -209,7 +209,7 @@ def test_create_tramitacao(admin_client):
              days=1)},
         follow=True)
 
-    msg = force_text(_('A data de tramitação deve ser ' +
+    msg = force_str(_('A data de tramitação deve ser ' +
                        'menor ou igual a data de hoje!'))
 
     # Verifica se a data da tramitação é menor do que a data de hoje
@@ -230,7 +230,7 @@ def test_create_tramitacao(admin_client):
          'data_encaminhamento': date(2016, 8, 20)},
         follow=True)
 
-    msg = force_text(_('A data de encaminhamento deve ser ' +
+    msg = force_str(_('A data de encaminhamento deve ser ' +
                        'maior que a data de tramitação!'))
 
     # Verifica se a data da encaminhamento é menor do que a data de tramitacao

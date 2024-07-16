@@ -17,7 +17,7 @@ from django.urls.base import reverse_lazy
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -4007,7 +4007,7 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
         return kwargs
 
     def hook_header_(self):
-        return force_text(_('Título'))
+        return force_str(_('Título'))
 
     def hook_(self, obj):
         return str(obj)
@@ -5281,7 +5281,7 @@ class CorrespondenciaCrud(MasterDetailCrud):
             return qs
 
         def hook_header_numero_ordem(self, *args, **kwargs):
-            return force_text(_('Ordem / Tipo')) if not self.request.user.is_anonymous else force_text(_('Tipo'))
+            return force_str(_('Ordem / Tipo')) if not self.request.user.is_anonymous else force_str(_('Tipo'))
 
         def hook_numero_ordem(self, obj, ss, url):
             if not self.request.user.is_anonymous:

@@ -15,7 +15,7 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import classonlymethod
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
@@ -433,9 +433,9 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                     hook = 'hook_header_{}'.format(''.join(fn))
                     if hasattr(self, hook):
                         header = getattr(self, hook)()
-                        s.append(force_text(header))
+                        s.append(force_str(header))
                     else:
-                        s.append(force_text(f.verbose_name))
+                        s.append(force_str(f.verbose_name))
                 else:
                     hook = 'hook_header_{}'.format(''.join(fn))
                     if hasattr(self, hook):

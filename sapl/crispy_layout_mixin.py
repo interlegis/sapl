@@ -7,7 +7,7 @@ from django import template
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.translation import gettext as _
 import yaml
 
@@ -40,7 +40,7 @@ def form_actions(more=[Div(css_class='clearfix')],
                  label=_('Salvar'), name='salvar',
                  css_class='float-right', disabled=True):
 
-    if disabled and force_text(label) != 'Pesquisar':
+    if disabled and force_str(label) != 'Pesquisar':
         doubleclick = 'this.form.submit();this.disabled=true;'
     else:
         doubleclick = 'return true;'
@@ -301,10 +301,10 @@ class CrispyLayoutFormMixin:
     def fk_urlify_for_list(self, obj, field):
         value = getattr(obj, field)
         return reverse(
-                        '%s:%s_detail' % (
-                            value._meta.app_config.name,
-                            value._meta.model_name),
-                        kwargs={'pk': value.id}),
+            '%s:%s_detail' % (
+                value._meta.app_config.name,
+                value._meta.model_name),
+            kwargs={'pk': value.id}),
 
     def m2m_urlize_for_detail(self, obj, fieldname):
 
