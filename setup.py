@@ -14,9 +14,9 @@ install_requires = [
     'django-image-cropping==1.7',
     'django-crispy-forms==2.2',
     'django-extensions==3.2.3',
+    'django-haystack==3.2.1',
 
 
-    'django-haystack==2.8.1',
     'django-filter==2.0.0',
     'djangorestframework==3.11.2',
     'dj-database-url==0.5.0',
