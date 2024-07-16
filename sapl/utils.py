@@ -33,13 +33,14 @@ from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
 from django.forms.widgets import SplitDateTimeWidget, ClearableFileInput
 from django.http.response import JsonResponse, HttpResponse
-from django.utils import six, timezone
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
 import magic
 import requests
+import six
 from unipath.path import Path
 from xlsxwriter.workbook import Workbook
 
