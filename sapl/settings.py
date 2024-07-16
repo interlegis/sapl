@@ -235,6 +235,8 @@ DATABASES = {
     )
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 IMAGE_CROPPING_JQUERY_URL = None
 THUMBNAIL_PROCESSORS = (
     'image_cropping.thumbnail_processors.crop_corners',
