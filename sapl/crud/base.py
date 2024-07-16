@@ -13,7 +13,7 @@ from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.http.response import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.urls.conf import path
+from django.urls.conf import re_path
 from django.utils.decorators import classonlymethod
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
@@ -1033,7 +1033,7 @@ class Crud:
             if crud[0]:
                 cruds.append(crud)
 
-        return [path(regex, view.as_view(), name=view.url_name(suffix))
+        return [re_path(regex, view.as_view(), name=view.url_name(suffix))
                 for regex, view, suffix in cruds]
 
     @classonlymethod

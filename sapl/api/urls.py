@@ -1,5 +1,5 @@
 
-from django.urls.conf import path, include
+from django.urls.conf import re_path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, \
     SpectacularRedocView
 from rest_framework.authtoken.views import obtain_auth_token
@@ -25,21 +25,21 @@ router.register(r'sessao-plenaria', SessaoPlenariaViewSet,
 urlpatterns_router = router.urls
 
 urlpatterns_api_doc = [
-    path('^schema/swagger-ui/',
+    re_path('^schema/swagger-ui/',
          SpectacularSwaggerView.as_view(url_name='sapl.api:schema_api'),
          name='swagger_ui_schema_api'),
-    path('^schema/redoc/',
+    re_path('^schema/redoc/',
          SpectacularRedocView.as_view(url_name='sapl.api:schema_api'),
          name='redoc_schema_api'),
-    path('^schema/', SpectacularAPIView.as_view(), name='schema_api'),
+    re_path('^schema/', SpectacularAPIView.as_view(), name='schema_api'),
 ]
 
 urlpatterns = [
-    path(r'^api/', include(urlpatterns_api_doc)),
-    path(r'^api/', include(urlpatterns_router)),
+    re_path(r'^api/', include(urlpatterns_api_doc)),
+    re_path(r'^api/', include(urlpatterns_router)),
 
-    path(r'^api/version', AppVersionView.as_view()),
-    path(r'^api/auth/token$', obtain_auth_token),
-    path(r'^api/recriar-token/(?P<pk>\d*)$',
+    re_path(r'^api/version', AppVersionView.as_view()),
+    re_path(r'^api/auth/token$', obtain_auth_token),
+    re_path(r'^api/recriar-token/(?P<pk>\d*)$',
          recria_token, name="recria_token"),
 ]

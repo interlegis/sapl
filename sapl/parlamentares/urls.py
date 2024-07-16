@@ -1,4 +1,4 @@
-from django.urls.conf import path, include
+from django.urls.conf import re_path, include
 
 from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       coligacao_legislatura,
@@ -30,7 +30,7 @@ from .apps import AppConfig
 app_name = AppConfig.name
 
 urlpatterns = [
-    path(r'^parlamentar/', include(
+    re_path(r'^parlamentar/', include(
         ParlamentarCrud.get_urls() + DependenteCrud.get_urls() +
         FiliacaoCrud.get_urls() + MandatoCrud.get_urls() +
         ParticipacaoParlamentarCrud.get_urls() +
@@ -39,77 +39,77 @@ urlpatterns = [
         VotanteView.get_urls()
     )),
 
-    path(r'^parlamentar/pesquisar-parlamentar/',
+    re_path(r'^parlamentar/pesquisar-parlamentar/',
         PesquisarParlamentarView.as_view(), name='pesquisar_parlamentar'),
 
-    path(r'^parlamentar/(?P<pk>\d+)/materias$',
+    re_path(r'^parlamentar/(?P<pk>\d+)/materias$',
         ParlamentarMateriasView.as_view(), name='parlamentar_materias'),
 
-    path(r'^parlamentar/(?P<pk>\d+)/normas$',
+    re_path(r'^parlamentar/(?P<pk>\d+)/normas$',
         ParlamentarNormasView.as_view(), name='parlamentar_normas'),
 
-    path(r'^parlamentar/(?P<pk>\d+)/frentes/$', get_parlamentar_frentes, name='parlamentar_frentes'),
+    re_path(r'^parlamentar/(?P<pk>\d+)/frentes/$', get_parlamentar_frentes, name='parlamentar_frentes'),
 
-    path(r'^parlamentar/vincular-parlamentar/$',
+    re_path(r'^parlamentar/vincular-parlamentar/$',
         VincularParlamentarView.as_view(), name='vincular_parlamentar'),
 
-    path(r'^parlamentar/coligacao-legislatura/', coligacao_legislatura, name="coligacao_legislatura"),
-    path(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),
-    path(r'^sistema/pesquisar-coligacao/', PesquisarColigacaoView.as_view(), name='pesquisar_coligacao'),
+    re_path(r'^parlamentar/coligacao-legislatura/', coligacao_legislatura, name="coligacao_legislatura"),
+    re_path(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),
+    re_path(r'^sistema/pesquisar-coligacao/', PesquisarColigacaoView.as_view(), name='pesquisar_coligacao'),
 
-    path(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),
+    re_path(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),
 
-    path(r'^sistema/bloco/', include(BlocoCrud.get_urls())),
-    path(r'^sistema/bloco-cargo/', include(BlocoCargoCrud.get_urls())),
-    path(r'^sistema/bloco-membros/', include(BlocoMembroCrud.get_urls())),
+    re_path(r'^sistema/bloco/', include(BlocoCrud.get_urls())),
+    re_path(r'^sistema/bloco-cargo/', include(BlocoCargoCrud.get_urls())),
+    re_path(r'^sistema/bloco-membros/', include(BlocoMembroCrud.get_urls())),
 
-    path(r'^sistema/frente/', include(FrenteCrud.get_urls())),
-    path(r'^sistema/frente-cargo/', include(FrenteCargoCrud.get_urls())),
-    path(r'^sistema/frente-parlamentares/', include(FrenteParlamentarCrud.get_urls())),
+    re_path(r'^sistema/frente/', include(FrenteCrud.get_urls())),
+    re_path(r'^sistema/frente-cargo/', include(FrenteCargoCrud.get_urls())),
+    re_path(r'^sistema/frente-parlamentares/', include(FrenteParlamentarCrud.get_urls())),
 
-    path(r'^sistema/frente/atualiza-lista-parlamentares',
+    re_path(r'^sistema/frente/atualiza-lista-parlamentares',
         frente_atualiza_lista_parlamentares,
         name='atualiza_lista_parlamentares'),
-    path(r'^sistema/frente/parlamentares-frente-selected',
+    re_path(r'^sistema/frente/parlamentares-frente-selected',
         parlamentares_frente_selected,
         name='parlamentares_frente_selected'),
 
-    path(r'^sistema/parlamentar/legislatura/',
+    re_path(r'^sistema/parlamentar/legislatura/',
         include(LegislaturaCrud.get_urls())),
-    path(r'^sistema/parlamentar/tipo-dependente/',
+    re_path(r'^sistema/parlamentar/tipo-dependente/',
         include(TipoDependenteCrud.get_urls())),
-    path(r'^sistema/parlamentar/nivel-instrucao/',
+    re_path(r'^sistema/parlamentar/nivel-instrucao/',
         include(NivelInstrucaoCrud.get_urls())),
-    path(r'^sistema/parlamentar/tipo-afastamento/',
+    re_path(r'^sistema/parlamentar/tipo-afastamento/',
         include(TipoAfastamentoCrud.get_urls())),
-    path(r'^sistema/parlamentar/tipo-militar/',
+    re_path(r'^sistema/parlamentar/tipo-militar/',
         include(TipoMilitarCrud.get_urls())),
 
-    path(r'^sistema/parlamentar/partido/', include(PartidoCrud.get_urls())),
-    path(r'^sistema/parlamentar/pesquisar-partido/', PesquisarPartidoView.as_view(), name='pesquisar_partido'),
-    path(r'^sistema/parlamentar/partido/(?P<pk>\d+)/filiados$', parlamentares_filiados, name='parlamentares_filiados'),
+    re_path(r'^sistema/parlamentar/partido/', include(PartidoCrud.get_urls())),
+    re_path(r'^sistema/parlamentar/pesquisar-partido/', PesquisarPartidoView.as_view(), name='pesquisar_partido'),
+    re_path(r'^sistema/parlamentar/partido/(?P<pk>\d+)/filiados$', parlamentares_filiados, name='parlamentares_filiados'),
 
-    path(r'^sistema/mesa-diretora/sessao-legislativa/',
+    re_path(r'^sistema/mesa-diretora/sessao-legislativa/',
         include(SessaoLegislativaCrud.get_urls())),
-    path(r'^sistema/mesa-diretora/cargo-mesa/',
+    re_path(r'^sistema/mesa-diretora/cargo-mesa/',
         include(CargoMesaCrud.get_urls())),
 
-    path(r'^mesa-diretora/$',
+    re_path(r'^mesa-diretora/$',
         MesaDiretoraView.as_view(), name='mesa_diretora'),
 
-    path(r'^mesa-diretora/altera-field-mesa/$',
+    re_path(r'^mesa-diretora/altera-field-mesa/$',
         altera_field_mesa, name='altera_field_mesa'),
 
-    path(r'^mesa-diretora/altera-field-mesa-public-view/$',
+    re_path(r'^mesa-diretora/altera-field-mesa-public-view/$',
         altera_field_mesa_public_view, name='altera_field_mesa_public_view'),
 
-    path(r'^mesa-diretora/insere-parlamentar-composicao/$',
+    re_path(r'^mesa-diretora/insere-parlamentar-composicao/$',
         insere_parlamentar_composicao, name='insere_parlamentar_composicao'),
 
-    path(r'^mesa-diretora/remove-parlamentar-composicao/$',
+    re_path(r'^mesa-diretora/remove-parlamentar-composicao/$',
         remove_parlamentar_composicao, name='remove_parlamentar_composicao'),
 
-    path(r'^parlamentar/get-sessoes-legislatura/$',
+    re_path(r'^parlamentar/get-sessoes-legislatura/$',
         get_sessoes_legislatura, name='get_sessoes_legislatura'),
 
 ]

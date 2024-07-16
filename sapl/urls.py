@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls.conf import path, include
+from django.urls.conf import re_path, include
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.static import serve as view_static_server
 
@@ -24,37 +24,37 @@ import sapl.sessao.urls
 urlpatterns = []
 
 urlpatterns += [
-    path(r'^message$', TemplateView.as_view(template_name='base.html')),
-    path(r'^admin/', admin.site.urls),
+    re_path(r'^message$', TemplateView.as_view(template_name='base.html')),
+    re_path(r'^admin/', admin.site.urls),
 
-    path(r'', include(sapl.comissoes.urls)),
-    path(r'', include(sapl.sessao.urls)),
-    path(r'', include(sapl.parlamentares.urls)),
-    path(r'', include(sapl.materia.urls)),
-    path(r'', include(sapl.norma.urls)),
-    path(r'', include(sapl.lexml.urls)),
-    path(r'', include(sapl.painel.urls)),
-    path(r'', include(sapl.protocoloadm.urls)),
-    path(r'', include(sapl.compilacao.urls)),
-    path(r'', include(sapl.relatorios.urls)),
-    path(r'', include(sapl.audiencia.urls)),
+    re_path(r'', include(sapl.comissoes.urls)),
+    re_path(r'', include(sapl.sessao.urls)),
+    re_path(r'', include(sapl.parlamentares.urls)),
+    re_path(r'', include(sapl.materia.urls)),
+    re_path(r'', include(sapl.norma.urls)),
+    re_path(r'', include(sapl.lexml.urls)),
+    re_path(r'', include(sapl.painel.urls)),
+    re_path(r'', include(sapl.protocoloadm.urls)),
+    re_path(r'', include(sapl.compilacao.urls)),
+    re_path(r'', include(sapl.relatorios.urls)),
+    re_path(r'', include(sapl.audiencia.urls)),
 
     #    name='sapl_index'),
     # must come at the end
     #   so that base /sistema/ url doesn't capture its children
-    path(r'', include(sapl.base.urls)),
+    re_path(r'', include(sapl.base.urls)),
 
-    path(r'', include(sapl.api.urls)),
+    re_path(r'', include(sapl.api.urls)),
 
-    path(r'^favicon\.ico$', RedirectView.as_view(
+    re_path(r'^favicon\.ico$', RedirectView.as_view(
         url='/static/sapl/img/favicon.ico', permanent=True)),
 
-    path(r'', include(sapl.redireciona_urls.urls)),
+    re_path(r'', include(sapl.redireciona_urls.urls)),
 
-    path("robots.txt", TemplateView.as_view(
+    re_path("robots.txt", TemplateView.as_view(
         template_name="robots.txt", content_type="text/plain")),
 
-    path(r'', include('django_prometheus.urls')),
+    re_path(r'', include('django_prometheus.urls')),
 
 ]
 
@@ -66,14 +66,14 @@ if settings.DEBUG:
     import debug_toolbar
 
     urlpatterns += [
-        path(r'^__debug__/', include(debug_toolbar.urls)),
+        re_path(r'^__debug__/', include(debug_toolbar.urls)),
 
     ]
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
 
     urlpatterns += [
-        path(r'^media/(?P<path>.*)$', view_static_server, {
+        re_path(r'^media/(?P<path>.*)$', view_static_server, {
             'document_root': settings.MEDIA_ROOT,
         }),
     ]
