@@ -1,5 +1,8 @@
 django==4.2.14
 
+django-image-cropping==1.7
+
+
 django-haystack==3.1.1
 django-filter==2.4.0
 djangorestframework==3.12.4
@@ -10,7 +13,6 @@ django-contrib-postgres==0.0.1
 django-extra-views==0.12.0
 django-model-utils==3.1.2
 django-extensions==2.1.4
-django-image-cropping==1.2
 django-waffle==3.0.0
 django-webpack-loader==1.6.0
 drf-spectacular==0.18.2
