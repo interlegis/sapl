@@ -15,10 +15,10 @@ install_requires = [
     'django-crispy-forms==2.2',
     'django-extensions==3.2.3',
     'django-haystack==3.2.1',
+    'djangorestframework==3.15.2',
 
 
     'django-filter==2.0.0',
-    'djangorestframework==3.11.2',
     'dj-database-url==0.5.0',
     'django-braces==1.9.0',
     'django-extra-views==0.12.0',
