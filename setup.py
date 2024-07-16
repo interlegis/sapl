@@ -10,8 +10,9 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 install_requires = [
     'django==4.2.14',
-    
+
     'django-image-cropping==1.7',
+    'django-crispy-forms==2.2',
 
 
     'django-haystack==2.8.1',
@@ -19,7 +20,6 @@ install_requires = [
     'djangorestframework==3.11.2',
     'dj-database-url==0.5.0',
     'django-braces==1.9.0',
-    'django-crispy-forms==1.7.2',
     'django-extra-views==0.12.0',
     'django-model-utils==3.1.2',
     'django-extensions==2.1.4',
