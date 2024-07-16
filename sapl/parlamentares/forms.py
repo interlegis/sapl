@@ -13,28 +13,16 @@ from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 import django_filters
-from image_cropping.widgets import CropWidget, ImageCropWidget
+from image_cropping.widgets import CropWidget, ImageCropWidget, get_attrs
 
 from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
-from sapl.utils import FileFieldCheckMixin
+from sapl.utils import FileFieldCheckMixin, CustomImageCropWidget
 
 from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
-
-
-class CustomImageCropWidget(ImageCropWidget):
-    """
-    Custom ImageCropWidget that doesn't show the initial value of the field.
-    We use this trick, and place it right under the CropWidget so that
-    it looks like the user is seeing the image and clearing the image.
-    """
-    template_with_initial = (
-        # '%(initial_text)s: <a href="%(initial_url)s">%(initial)s</a> '
-        '%(clear_template)s<br />%(input_text)s: %(input)s'
-    )
 
 
 def validar_datas_legislatura(eleicao, inicio, fim, pk=None):

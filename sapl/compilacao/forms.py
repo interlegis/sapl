@@ -13,7 +13,7 @@ from django.forms.forms import Form
 from django.forms.models import ModelForm
 from django.template import defaultfilters
 from django.utils.translation import gettext_lazy as _
-from image_cropping.widgets import CropWidget, ImageCropWidget
+from image_cropping.widgets import CropWidget
 from model_utils.choices import Choices
 
 from sapl import utils
@@ -26,19 +26,8 @@ from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row
-from sapl.utils import YES_NO_CHOICES, FileFieldCheckMixin
-
-
-class CustomImageCropWidget(ImageCropWidget):
-    """
-    Custom ImageCropWidget that doesn't show the initial value of the field.
-    We use this trick, and place it right under the CropWidget so that
-    it looks like the user is seeing the image and clearing the image.
-    """
-    template_with_initial = (
-        # '%(initial_text)s: <a href="%(initial_url)s">%(initial)s</a> '
-        '%(clear_template)s<br />%(input_text)s: %(input)s'
-    )
+from sapl.utils import YES_NO_CHOICES, FileFieldCheckMixin,\
+    CustomImageCropWidget
 
 
 error_messages = {
