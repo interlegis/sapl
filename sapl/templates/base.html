@@ -287,9 +287,7 @@
         });
       </script>
 
-
-
-    {% if not DEBUG %}
+    {% if not debug %}
       <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
       <script>
         new window.VLibras.Widget('https://vlibras.gov.br/app');
@@ -304,11 +302,9 @@
           gtag('js', new Date());
           gtag('config', '{{"google_analytics_id_metrica"|get_config_attr}}');
         </script>
-        {% endif %}
+      {% endif %}
     {% endif %}
-
-
+    
     {% endblock foot_js %}
-
   </body>
 </html>
