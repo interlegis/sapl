@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   sapldb:
-    image: postgres:10.5-alpine
+    image: postgres:14.5-alpine
     restart: always
     container_name: postgres
     labels:
