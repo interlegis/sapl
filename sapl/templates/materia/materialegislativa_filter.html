@@ -92,7 +92,11 @@
                 {% endif %}
 
                 {% if not tipo_listagem or tipo_listagem == '1' %}
-
+                  {% for r in m.relatoria_set.all %}
+                    {% if forloop.first %}<strong>Relatorias:</strong>&nbsp;{% endif %}
+                    {{r.parlamentar}} ({{r.comissao}})
+                    {% if forloop.last %}</br>{% else %} || {% endif %}
+                  {% endfor %}
                   {% if m.tramitacao_set.first.unidade_tramitacao_destino %}
                   <strong>Localização Atual:</strong> &nbsp;{{m.tramitacao_set.first.unidade_tramitacao_destino}}</br>
                   {% endif %}

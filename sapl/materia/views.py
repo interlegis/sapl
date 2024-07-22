@@ -107,8 +107,8 @@ def proposicao_texto(request, pk):
         if (not proposicao.data_recebimento and
                 not proposicao.autor.operadores.filter(
                     id=request.user.id
-                    ).exists()
-                ):
+                ).exists()
+            ):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
             messages.error(request, _(
@@ -2095,6 +2095,9 @@ class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
                                      "anexadas",
                                      "tipo",
                                      "texto_articulado",
+                                     "relatoria_set",
+                                     "relatoria_set__comissao",
+                                     "relatoria_set__parlamentar",
                                      "tramitacao_set",
                                      "tramitacao_set__status",
                                      "tramitacao_set__unidade_tramitacao_local",
