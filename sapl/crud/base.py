@@ -958,9 +958,6 @@ class Crud:
     DeleteView = CrudDeleteView
     help_topic = ''
 
-    class PublicMixin:
-        permission_required = []
-
     @classonlymethod
     def get_urls(cls):
 
@@ -1574,7 +1571,7 @@ class MasterDetailCrud(Crud):
 class CrudBaseForListAndDetailExternalAppView(MasterDetailCrud):
     CreateView, UpdateView, DeleteView = None, None, None
 
-    class BaseMixin(Crud.PublicMixin, MasterDetailCrud.BaseMixin):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
 
         def resolve_url(self, suffix, args=None):
             obj = self.crud if hasattr(self, 'crud') else self

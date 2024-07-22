@@ -113,12 +113,13 @@ class VotanteView(MasterDetailCrud):
 
 
 class FrenteList(MasterDetailCrud):
+    public = [RP_DETAIL, RP_LIST]
     model = Frente
     is_m2m = True
     parent_field = 'parlamentares'
     CreateView, UpdateView, DeleteView = None, None, None
 
-    class BaseMixin(Crud.PublicMixin, MasterDetailCrud.BaseMixin):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
         list_field_names = ['nome', 'data_criacao', 'data_extincao']
 
         @classmethod
@@ -127,6 +128,7 @@ class FrenteList(MasterDetailCrud):
 
 
 class RelatoriaParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
+    public = [RP_DETAIL, RP_LIST]
     model = Relatoria
     parent_field = 'parlamentar'
     help_topic = 'tramitacao_relatoria'
@@ -355,6 +357,7 @@ class PesquisarPartidoView(FilterView):
 
 
 class ParticipacaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
+    public = [RP_DETAIL, RP_LIST]
     model = Participacao
     parent_field = 'parlamentar'
     namespace = AppConfig.name
@@ -589,6 +592,7 @@ def get_parlamentar_frentes(request, pk):
     context = {
         'subnav_template_name': 'parlamentares/subnav.yaml',
         'root_pk': pk,
+        'sexo_parlamentar': Parlamentar.objects.get(id=pk).sexo,
         'nome_parlamentar': Parlamentar.objects.get(id=pk).nome_parlamentar,
         'frentes': frentes,
         'num_frentes': len(frentes)

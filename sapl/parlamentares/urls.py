@@ -37,6 +37,8 @@ urlpatterns = [
         ProposicaoParlamentarCrud.get_urls() +
         RelatoriaParlamentarCrud.get_urls() +
         VotanteView.get_urls()
+
+
     )),
 
     url(r'^parlamentar/pesquisar-parlamentar/',
@@ -48,16 +50,21 @@ urlpatterns = [
     url(r'^parlamentar/(?P<pk>\d+)/normas$',
         ParlamentarNormasView.as_view(), name='parlamentar_normas'),
 
-    url(r'^parlamentar/(?P<pk>\d+)/frentes/$', get_parlamentar_frentes, name='parlamentar_frentes'),
+    url(r'^parlamentar/(?P<pk>\d+)/frentes/$',
+        get_parlamentar_frentes, name='parlamentar_frentes'),
 
     url(r'^parlamentar/vincular-parlamentar/$',
         VincularParlamentarView.as_view(), name='vincular_parlamentar'),
 
-    url(r'^parlamentar/coligacao-legislatura/', coligacao_legislatura, name="coligacao_legislatura"),
-    url(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),  
-    url(r'^sistema/pesquisar-coligacao/', PesquisarColigacaoView.as_view(), name='pesquisar_coligacao'),
+    url(r'^parlamentar/coligacao-legislatura/',
+        coligacao_legislatura, name="coligacao_legislatura"),
+    url(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() +
+                                        ComposicaoColigacaoCrud.get_urls())),
+    url(r'^sistema/pesquisar-coligacao/',
+        PesquisarColigacaoView.as_view(), name='pesquisar_coligacao'),
 
-    url(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() + ComposicaoColigacaoCrud.get_urls())),    
+    url(r'^sistema/coligacao/', include(ColigacaoCrud.get_urls() +
+                                        ComposicaoColigacaoCrud.get_urls())),
 
     url(r'^sistema/bloco/', include(BlocoCrud.get_urls())),
     url(r'^sistema/bloco-cargo/', include(BlocoCargoCrud.get_urls())),
@@ -65,7 +72,8 @@ urlpatterns = [
 
     url(r'^sistema/frente/', include(FrenteCrud.get_urls())),
     url(r'^sistema/frente-cargo/', include(FrenteCargoCrud.get_urls())),
-    url(r'^sistema/frente-parlamentares/', include(FrenteParlamentarCrud.get_urls())),
+    url(r'^sistema/frente-parlamentares/',
+        include(FrenteParlamentarCrud.get_urls())),
 
     url(r'^sistema/frente/atualiza-lista-parlamentares',
         frente_atualiza_lista_parlamentares,
@@ -86,8 +94,10 @@ urlpatterns = [
         include(TipoMilitarCrud.get_urls())),
 
     url(r'^sistema/parlamentar/partido/', include(PartidoCrud.get_urls())),
-    url(r'^sistema/parlamentar/pesquisar-partido/', PesquisarPartidoView.as_view(), name='pesquisar_partido'),
-    url(r'^sistema/parlamentar/partido/(?P<pk>\d+)/filiados$', parlamentares_filiados, name='parlamentares_filiados'),
+    url(r'^sistema/parlamentar/pesquisar-partido/',
+        PesquisarPartidoView.as_view(), name='pesquisar_partido'),
+    url(r'^sistema/parlamentar/partido/(?P<pk>\d+)/filiados$',
+        parlamentares_filiados, name='parlamentares_filiados'),
 
     url(r'^sistema/mesa-diretora/sessao-legislativa/',
         include(SessaoLegislativaCrud.get_urls())),
@@ -109,7 +119,7 @@ urlpatterns = [
     url(r'^mesa-diretora/remove-parlamentar-composicao/$',
         remove_parlamentar_composicao, name='remove_parlamentar_composicao'),
 
-    url(r'^parlamentar/get-sessoes-legislatura/$', 
+    url(r'^parlamentar/get-sessoes-legislatura/$',
         get_sessoes_legislatura, name='get_sessoes_legislatura'),
-    
+
 ]
