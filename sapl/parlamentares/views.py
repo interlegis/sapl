@@ -1388,7 +1388,8 @@ def altera_field_mesa_public_view(request):
             partido_parlamentar_sessao_legislativa(sessao, parlamentar))
         if parlamentar.fotografia:
             try:
-                logger.warning(f"Iniciando cropping da imagem {parlamentar.fotografia}")
+                logger.warning(
+                    f"Iniciando cropping da imagem {parlamentar.fotografia}")
                 thumbnail_url = get_backend().get_thumbnail_url(
                     parlamentar.fotografia,
                     {
@@ -1398,7 +1399,8 @@ def altera_field_mesa_public_view(request):
                         'detail': True,
                     }
                 )
-                logger.warning(f"Cropping da imagem {parlamentar.fotografia} realizado com sucesso")
+                logger.warning(
+                    f"Cropping da imagem {parlamentar.fotografia} realizado com sucesso")
                 lista_fotos.append(thumbnail_url)
             except Exception as e:
                 logger.error(e)
