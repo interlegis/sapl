@@ -231,12 +231,22 @@ class NormaJuridica(models.Model):
         ordering = ['-data', '-numero']
 
     def get_normas_relacionadas(self):
-        principais = NormaRelacionada.objects.filter(
-            norma_principal=self.id).order_by('norma_principal__data',
-                                              'norma_relacionada__data')
-        relacionadas = NormaRelacionada.objects.filter(
-            norma_relacionada=self.id).order_by('norma_principal__data',
-                                                'norma_relacionada__data')
+        principais = NormaRelacionada.objects.\
+                         select_related('tipo_vinculo',
+                                        'norma_principal',
+                                        'norma_relacionada',
+                                        'norma_principal__tipo',
+                                        'norma_relacionada__tipo').\
+                         filter(norma_principal=self.id).order_by('norma_principal__data',
+                                                                  'norma_relacionada__data')
+        relacionadas = NormaRelacionada.objects.\
+                        select_related('tipo_vinculo',
+                                       'norma_principal',
+                                       'norma_relacionada',
+                                       'norma_principal__tipo',
+                                       'norma_relacionada__tipo').\
+            filter(norma_relacionada=self.id).order_by('norma_principal__data',
+                                                       'norma_relacionada__data')
         return (principais, relacionadas)
 
     def get_anexos_norma_juridica(self):
