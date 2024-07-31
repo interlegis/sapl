@@ -23,7 +23,7 @@ urlpatterns_compilacao = [
     url(r'^(?P<ta_id>[0-9]+)/text$',
         views.TextView.as_view(), name='ta_text'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/vigencia/(?P<sign>.+)/$',
+    url(r'^(?P<ta_id>[0-9]+)/text/vigencia/(?P<sign>.*:[A-Za-z0-9_-]+)/$',
         views.TextView.as_view(), name='ta_vigencia'),
 
     url(r'^(?P<ta_id>[0-9]+)/text/edit',
