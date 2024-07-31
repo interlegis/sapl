@@ -135,7 +135,7 @@ class NormaFilterSet(django_filters.FilterSet):
         )
 
     def filter_numero(self, queryset, name, value):
-        p = r'[\W_]'
+        p = r'(\W|_)'
         value = re.sub(p, '', value, flags=re.IGNORECASE)
         return queryset.annotate(
             numero_clean=Func(
