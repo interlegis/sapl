@@ -1,4 +1,10 @@
 
+3.1.163-RC23 / 2024-07-31
+=========================
+
+  * Otimiza recuperação de normas relacionadas (#3734)
+  * hot-fix: resolve imcompatibilidade de regex com versão de produção do postgresql 9.6
+
 3.1.163-RC21 / 2024-06-25
 =========================
 
