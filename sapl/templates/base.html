@@ -215,14 +215,14 @@
                   </strong>
                   <br>
                   <span class="street-address">{{ endereco }}</span>
-                  <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
+                  {% if cep or telefone%}<br>{% endif %}
+                  {% if cep %}CEP: <span class="postal-code">{{ cep }}</span>{% endif %}
+                  {% if cep and telefone%}|{% endif %}
+                  {% if telefone %}Telefone: <span>{{ telefone }}</span>{% endif %}
                   <br>
                   <small><a href="{% url 'sapl.api:swagger_ui_schema_api' %}">{% trans 'OpenAPI' %}</a></small> |
-
                   <a href="{{endereco_web}}" class="url">{% trans 'Site' %}</a> |
                   <a href="mailto:{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
-
-
                 </small>
               </address>
               {% else %}
@@ -304,7 +304,7 @@
         </script>
       {% endif %}
     {% endif %}
-    
+
     {% endblock foot_js %}
   </body>
 </html>
