@@ -52,7 +52,7 @@
     "terser-webpack-plugin": "^5.3.5",
     "uglify-js": "^3.17.0",
     "vue-template-compiler": "^2.7.9",
-    "webpack": "^5.74.0",
+    "webpack": "^5.94.0",
     "webpack-bundle-tracker": "^1.6.0"
   }
 }
