@@ -1,4 +1,3 @@
-
 const _$ = window.$
 
 window.DispositivoEdit = function () {
@@ -500,38 +499,47 @@ window.DispositivoEdit = function () {
   }
 
   instance.reloadFunctionsDraggables = function () {
-    _$('.dpt-alts').sortable({
-      revert: true,
-      distance: 15,
-      start: function (event, ui) {
-      },
-      stop: function (event, ui) {
-        const pk = ui.item.attr('pk')
-        const bloco_pk = ui.item.closest('.dpt-alts').closest('.dpt').attr('pk')
+    const dptAlts = _$('.dpt-alts')
+    if (dptAlts.length > 0) {
+      dptAlts.sortable({
+        connectWith: '.dpt-alts',
+        items: '.sorting-initialize',
+        revert: true,
+        distance: 15,
+        start: function (event, ui) {
+        },
+        stop: function (event, ui) {
+          const pk = ui.item.attr('pk')
+          const bloco_pk = ui.item.closest('.dpt-alts').closest('.dpt').attr('pk')
 
-        const url = pk + '/refresh?action=json_drag_move_dpt_alterado&index=' + ui.item.index() + '&bloco_pk=' + bloco_pk
-        _$.get(url).done(function (data) {
-          // console.log(pk + ' - ' + bloco_pk)
-          // reloadFunctionsForObjectsOfCompilacao();
-        })
-      }
-    })
+          const url = pk + '/refresh?action=json_drag_move_dpt_alterado&index=' + ui.item.index() + '&bloco_pk=' + bloco_pk
+          _$.get(url).done(function (data) {
+            // handle data if needed
+          })
+        }
+      })
+      dptAlts.find('.dpt').one('mouseenter', function () {
+        $(this).addClass('sorting-initialize')
+        dptAlts.sortable('refresh')
+      })
 
-    _$('.dpt-alts .dpt').draggable({
-      connectToSortable: '.dpt-alts',
-      revert: 'invalid',
-      zIndex: 1,
-      distance: 15,
-      drag: function (event, ui) {
-        // _$('.dpt-comp-selected').removeClass('dpt-comp-selected');
-        _$('.dpt-alts').addClass('drag')
-      },
-      stop: function (event, ui) {
-        _$('.dpt-alts').removeClass('drag')
-      }
-    })
+      _$('.dpt-alts .dpt').draggable({
+        connectToSortable: '.dpt-alts',
+        revert: 'invalid',
+        zIndex: 1,
+        distance: 15,
+        drag: function (event, ui) {
+          _$('.dpt-alts').addClass('drag')
+        },
+        stop: function (event, ui) {
+          _$('.dpt-alts').removeClass('drag')
+        }
+      })
 
-    _$('.dpt-alts').disableSelection()
+      dptAlts.disableSelection()
+    } else {
+      console.warn("No '.dpt-alts' elements found to make sortable/draggable.")
+    }
   }
   instance.scrollTo = function (dpt) {
     try {
@@ -570,7 +578,9 @@ window.DispositivoEdit = function () {
       instance.triggerBtnDptEdit(href[1])
     }
     _$('main').click(function (event) {
-      if (event.target === this || event.target === this.firstElementChild) { instance.clearEditSelected() }
+      if (event.target === this || event.target === this.firstElementChild) {
+        instance.clearEditSelected()
+      }
     })
     instance.waitHide()
   }
