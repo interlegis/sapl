@@ -2059,7 +2059,7 @@ class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
         texto_original = obj.texto_original if not isinstance(
             obj, dict) else obj["texto_original"]
 
-        return f'{url}/{texto_original}'
+        return f'{url}/media/{texto_original}'
 
     def get_filterset_kwargs(self, filterset_class):
         super().get_filterset_kwargs(filterset_class)
