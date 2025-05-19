@@ -13,6 +13,11 @@
 
   {% endif %} -->
 
+<head>
+    <!-- TODO: Hack. Atualizar vue-bootstrap libs so we can call this in base.html and get the glyphs -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+
   <div class="container mb-3">
       <div class="row">
           <div class="col-lg-4 offset-lg-4 col-8 offset-2">
@@ -32,11 +37,11 @@
 
                                 {% endif %}
                                   <tr>
-                                      <p><b><center>Usuário</center></b></p>
+                                      <p><b><center>{{form.username.label}}</center></b></p>
                                       {{ form.username }}
                                   </tr>
                                   <tr>
-                                      <p><b><center>Senha</center></b></p>
+                                      <p><b><center>{{form.password.label}}</center></b></p>
                                       {{ form.password }}
                                   </tr>
                               </table>
@@ -67,5 +72,45 @@
     {% if not user.is_authenticated %}
         $("#autenticacao") .css("display","none");
     {% endif %}
+
+    $(document).ready(function () {
+      $("input[type='password']").each(function () {
+        const $input = $(this);
+
+        // Avoid re-wrapping
+        if ($input.parent().hasClass("password-container")) return;
+
+        // Wrap in relative container
+        const $wrapper = $('<div class="password-container position-relative mb-3"></div>');
+        $input.wrap($wrapper);
+
+        // Style input to have padding-right for icon
+        $input.css("padding-right", "2.5rem");
+
+        // Create the eye icon
+        const $eyeIcon = $(`
+          <i class="bi bi-eye password-toggle-icon"
+             style="
+               position: absolute;
+               right: 10px;
+               top: 50%;
+               transform: translateY(-50%);
+               cursor: pointer;
+               color: #6c757d;
+               font-size: 1.2rem;
+             "></i>
+        `);
+
+        // Insert icon after input
+        $input.after($eyeIcon);
+
+        // Toggle logic
+        $eyeIcon.on("click", function () {
+          const isPassword = $input.attr("type") === "password";
+          $input.attr("type", isPassword ? "text" : "password");
+          $(this).toggleClass("bi-eye bi-eye-slash");
+        });
+      });
+    });
   </script>
 {% endblock %}

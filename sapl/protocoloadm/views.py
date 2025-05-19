@@ -174,7 +174,7 @@ def create_pdf_docacessorios(docadministrativo):
     logger.info("Gerando compilado PDF de documentos acessorios com {} documentos"
                 .format(docs_path))
 
-    merger = PdfFileMerger()
+    merger = PdfFileMerger(strict=False)
     for f in docs_path:
         merger.append(fileobj=f)
 

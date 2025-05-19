@@ -2985,7 +2985,7 @@ def create_pdf_docacessorios(materia):
         materia.pk,
         time.mktime(datetime.now().timetuple()))
 
-    merger = PdfFileMerger()
+    merger = PdfFileMerger(strict=False)
     for f in docs_path:
         merger.append(fileobj=f)
 

@@ -141,6 +141,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
     'waffle.middleware.WaffleMiddleware',
+    'sapl.middleware.CheckWeakPasswordMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
