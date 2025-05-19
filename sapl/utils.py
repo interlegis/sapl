@@ -1,4 +1,5 @@
 import csv
+import string
 from functools import wraps
 import hashlib
 import io
@@ -24,7 +25,7 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
-from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile,\
+from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile, \
     TemporaryUploadedFile
 from django.core.mail import get_connection
 from django.db import models
@@ -47,13 +48,34 @@ from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       SaplFormLayout, to_row)
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 
-
 # (26/10/2018): O separador foi mudador de '/' para 'K'
 # por conta dos leitores de códigos de barra, que trocavam
 # a '/' por '&' ou ';'
 SEPARADOR_HASH_PROPOSICAO = 'K'
 
 TIME_PATTERN = '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+
+MIN_PASSWORD_LENGTH = 8
+
+
+def is_weak_password(password):
+    pwd_has_lowercase = False
+    pwd_has_uppercase = False
+    pwd_has_number = False
+    pwd_has_special_char = False
+
+    for c in password:
+        if c.isdigit():
+            pwd_has_number = True
+        elif c.islower():
+            pwd_has_lowercase = True
+        elif c.isupper():
+            pwd_has_uppercase = True
+        elif c in list(string.punctuation):
+            pwd_has_special_char = True
+
+    return len(password) < MIN_PASSWORD_LENGTH or not (pwd_has_lowercase and pwd_has_uppercase
+                                                       and pwd_has_number and pwd_has_special_char)
 
 
 def groups_remove_user(user, groups_name):
@@ -92,9 +114,11 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
     qtdes = {}
 
     if attr_tipo == 'tipo':
-        def sort_function(m): return m.tipo
+        def sort_function(m):
+            return m.tipo
     else:
-        def sort_function(m): return m.materia.tipo
+        def sort_function(m):
+            return m.materia.tipo
 
     # select_related eh importante por questoes de desempenho, pois caso
     # contrario ele realizara uma consulta ao banco para cada iteracao,
@@ -113,12 +137,12 @@ def validar_arquivo(arquivo, nome_campo):
         raise ValidationError(
             "Certifique-se de que o nome do arquivo no "
             "campo '" + nome_campo + "' tenha no máximo 200 caracteres "
-            "(ele possui {})".format(len(arquivo.name))
+                                     "(ele possui {})".format(len(arquivo.name))
         )
     if arquivo.size > MAX_DOC_UPLOAD_SIZE:
         raise ValidationError(
             "O arquivo " + nome_campo + " deve ser menor que "
-            "{0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb".format(
+                                        "{0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb".format(
                 (MAX_DOC_UPLOAD_SIZE / 1024) / 1024,
                 (arquivo.size / 1024) / 1024
             )
@@ -148,7 +172,6 @@ def dont_break_out(value, max_part=50):
 
 
 def clear_thumbnails_cache(queryset, field):
-
     for r in queryset:
         assert hasattr(r, field), _(
             'Objeto da listagem não possui o campo informado')
@@ -212,6 +235,7 @@ def montar_row_autor(name):
                  css_class='btn btn-primary btn-sm'), 10)])
 
     return autor_row
+
 
 # TODO: Esta função é utilizada?
 
@@ -284,7 +308,6 @@ class SaplGenericRelation(GenericRelation):
     """
 
     def __init__(self, to, fields_search=(), **kwargs):
-
         assert 'related_query_name' in kwargs, _(
             'SaplGenericRelation não pode ser instanciada sem '
             'related_query_name.')
@@ -337,8 +360,8 @@ class RangeWidgetOverride(forms.MultiWidget):
                 )
             )
 
-        html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>'\
-            % tuple(rendered_widgets)
+        html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>' \
+               % tuple(rendered_widgets)
         return '<div class="row">%s</div>' % html
 
 
@@ -355,8 +378,8 @@ class CustomSplitDateTimeWidget(SplitDateTimeWidget):
                 )
             )
 
-        html = '<div class="col-6">%s</div><div class="col-6">%s</div>'\
-            % tuple(rendered_widgets)
+        html = '<div class="col-6">%s</div><div class="col-6">%s</div>' \
+               % tuple(rendered_widgets)
         return '<div class="row">%s</div>' % html
 
 
@@ -417,7 +440,6 @@ YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
 
 
 def listify(function):
-
     @wraps(function)
     def f(*args, **kwargs):
         return list(function(*args, **kwargs))
@@ -613,7 +635,6 @@ TIPOS_IMG_PERMITIDOS = (
 
 
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
-
     def restringe_tipos_de_arquivo(value):
 
         filename = value.name if type(value) in (
@@ -649,7 +670,6 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
 
 
 class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
-
     choices = (
         ('', 'Selecione'),
         ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
@@ -675,7 +695,6 @@ class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
 
 
 class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
-
     choices = (
         ('', 'Selecione'),
         ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
@@ -733,7 +752,6 @@ class FileFieldCheckMixin(BaseForm):
 
 
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
-
     choices = (('DEC', 'Ordem Decrescente'),
                ('CRE', 'Ordem Crescente'),)
     order_by_mapping = {
@@ -774,8 +792,8 @@ def models_with_gr_for_model(model):
         lambda x: x.related_model,
         filter(
             lambda obj: obj.is_relation and
-            hasattr(obj, 'field') and
-            isinstance(obj, GenericRel),
+                        hasattr(obj, 'field') and
+                        isinstance(obj, GenericRel),
 
             model._meta.get_fields(include_hidden=True))
     ))
@@ -802,9 +820,9 @@ def generic_relations_for_model(model):
         lambda x: (x,
                    list(filter(
                        lambda field: (
-                           isinstance(
-                               field, SaplGenericRelation) and
-                           field.related_model == model),
+                               isinstance(
+                                   field, SaplGenericRelation) and
+                               field.related_model == model),
                        x._meta.get_fields(include_hidden=True)))),
         models_with_gr_for_model(model)
     ))
@@ -852,13 +870,13 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
         subpath = '_'
 
     path = str_path % \
-        {
-            'prefix': prefix,
-            'model_name': instance._meta.model_name,
-            'pk': instance.pk,
-            'subpath': subpath,
-            'filename': filename
-        }
+           {
+               'prefix': prefix,
+               'model_name': instance._meta.model_name,
+               'pk': instance.pk,
+               'subpath': subpath,
+               'filename': filename
+           }
 
     return path
 
@@ -1040,7 +1058,6 @@ def remover_acentos(string):
 
 
 def mail_service_configured(request=None):
-
     logger = logging.getLogger(__name__)
 
     if settings.EMAIL_RUNNING is None:
@@ -1079,6 +1096,7 @@ def timing(f):
         logger.info('funcao:%r args:[%r, %r] took: %2.4f sec' %
                     (f.__name__, args, kw, te - ts))
         return result
+
     return wrap
 
 
@@ -1150,7 +1168,6 @@ def get_tempfile_dir():
 
 
 class GoogleRecapthaMixin:
-
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
@@ -1163,9 +1180,9 @@ class GoogleRecapthaMixin:
         row1 = to_row(
             [
                 (Div(
-                 css_class="g-recaptcha float-right",  # if not settings.DEBUG else '',
-                 data_sitekey=AppConfig.attr('google_recaptcha_site_key')
-                 ), 5),
+                    css_class="g-recaptcha float-right",  # if not settings.DEBUG else '',
+                    data_sitekey=AppConfig.attr('google_recaptcha_site_key')
+                ), 5),
                 ('email', 7),
 
             ]
@@ -1296,7 +1313,6 @@ def get_path_to_name_report_map():
 
 
 class MultiFormatOutputMixin:
-
     formats_impl = 'csv', 'xlsx', 'json'
 
     queryset_values_for_formats = True
