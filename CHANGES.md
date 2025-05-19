@@ -1,4 +1,18 @@
 
+3.1.163-RC24 / 2025-05-19
+=========================
+
+  * Implementa relatórios CSV, XLSX e JSON para Pauta de Sessão (#3744)
+  * feat: adiciona pydevd-pycharm para facilitar debug usando pycharm ide (#3717)
+  * Ajusta link do texto integral da Norma Jurídica nos formatos CSV, XLSX e JSON. (#3743)
+  * Força mudança de senha para senhas fracas
+  * Fix Chamado #643964 - Multiple definitions in dictionary at byte 0xc854c for key /Info
+  * Ajusta link do texto original da Matéria nos formatos CSV, XLSX e JSON. (#3742)
+  * fix: aplica um lazy loading no sortable do jquery ui pelo evento mouseenter. (#3737)
+  * fix: corrige condição para mostrar btn para TAs.
+  * fix: add migrate resultante do commit anterior
+  * fix: torna cep opcional no model CasaLegislativa
+
 3.1.163-RC23 / 2024-07-31
 =========================
 
