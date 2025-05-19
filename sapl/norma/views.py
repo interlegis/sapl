@@ -166,7 +166,7 @@ class NormaPesquisaView(MultiFormatOutputMixin, FilterView):
         texto_integral = obj.texto_integral if not isinstance(
             obj, dict) else obj["texto_integral"]
 
-        return f'{url}/{texto_integral}'
+        return f'{url}/media/{texto_integral}'
 
     def get_queryset(self):
         qs = super().get_queryset()
