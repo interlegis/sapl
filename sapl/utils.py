@@ -1327,9 +1327,10 @@ class MultiFormatOutputMixin:
                 raise ValidationError(
                     'Formato Inválido e/ou não implementado!')
 
-            object_list = context['object_list']
-            object_list.query.low_mark = 0
-            object_list.query.high_mark = 0
+            if 'object_list' in context:
+                object_list = context['object_list']
+                object_list.query.low_mark = 0
+                object_list.query.high_mark = 0
 
             return getattr(self, f'render_to_{format_result}')(context)
 
@@ -1345,7 +1346,7 @@ class MultiFormatOutputMixin:
 
         data = []
         for obj in object_list:
-            wr = list(self._write_row(obj, 'json'))
+            wr = list(self._write_row(obj, self.fields_report['json']))
 
             if not data:
                 data.append([wr])
@@ -1371,7 +1372,7 @@ class MultiFormatOutputMixin:
 
         json_metadata = {
             'headers': dict(
-                map(lambda i, j: (i, j), self.fields_report['json'], self._headers('json'))),
+                map(lambda i, j: (i, j), self.fields_report['json'], self._headers(self.fields_report['json']))),
             'results': data
         }
         response = JsonResponse(json_metadata)
@@ -1397,9 +1398,9 @@ class MultiFormatOutputMixin:
             object_list = object_list.values(
                 *self.fields_report['csv'])
 
-        data = [[list(self._headers('csv'))], ]
+        data = [[list(self._headers(self.fields_report['csv']))], ]
         for obj in object_list:
-            wr = list(self._write_row(obj, 'csv'))
+            wr = list(self._write_row(obj, self.fields_report['csv']))
             if wr[0] != data[-1][0][0]:
                 data.append([wr])
             else:
@@ -1427,9 +1428,9 @@ class MultiFormatOutputMixin:
             object_list = object_list.values(
                 *self.fields_report['xlsx'])
 
-        data = [[list(self._headers('xlsx'))], ]
+        data = [[list(self._headers(self.fields_report['xlsx']))], ]
         for obj in object_list:
-            wr = list(self._write_row(obj, 'xlsx'))
+            wr = list(self._write_row(obj, self.fields_report['xlsx']))
             if wr[0] != data[-1][0][0]:
                 data.append([wr])
             else:
@@ -1469,9 +1470,12 @@ class MultiFormatOutputMixin:
 
         return response
 
-    def _write_row(self, obj, format_result):
+    def _write_row(self, obj, fields_report):
 
-        for fname in self.fields_report[format_result]:
+        for fname in fields_report:
+
+            if type(fname) is tuple:
+                fname = fname[0]
 
             if hasattr(self, f'hook_{fname}'):
                 v = getattr(self, f'hook_{fname}')(obj)
@@ -1493,9 +1497,9 @@ class MultiFormatOutputMixin:
 
             yield v
 
-    def _headers(self, format_result):
+    def _headers(self, fields_report):
 
-        for fname in self.fields_report[format_result]:
+        for fname in fields_report:
 
             verbose_name = []
 
@@ -1504,22 +1508,181 @@ class MultiFormatOutputMixin:
                 yield h
                 continue
 
-            fname = fname.split('__')
+            if type(fname) is tuple:
+                verbose_name.append(fname[1])
+            else:
 
-            m = self.model
-            for fp in fname:
+                fname = fname.split('__')
 
-                f = m._meta.get_field(fp)
+                m = self.model
+                for fp in fname:
 
-                vn = str(f.verbose_name) if hasattr(f, 'verbose_name') else fp
-                if f.is_relation:
-                    m = f.related_model
-                    if m == self.model:
-                        m = f.field.model
+                    f = m._meta.get_field(fp)
 
-                    if vn == fp:
-                        vn = str(m._meta.verbose_name_plural)
-                verbose_name.append(vn.strip())
+                    vn = str(f.verbose_name) if hasattr(f, 'verbose_name') else fp
+                    if f.is_relation:
+                        m = f.related_model
+                        if m == self.model:
+                            m = f.field.model
+
+                        if vn == fp:
+                            vn = str(m._meta.verbose_name_plural)
+                    verbose_name.append(vn.strip())
 
             verbose_name = '/'.join(verbose_name).strip()
             yield f'{verbose_name}'
+
+
+class PautaMultiFormatOutputMixin(MultiFormatOutputMixin):
+
+    def render_to_csv(self, context):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="sapl_{self.request.resolver_match.url_name}.csv"'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = 0
+        writer = csv.writer(response, delimiter=";",
+                            quoting=csv.QUOTE_NONNUMERIC)
+
+        writer.writerow(['Pauta da ' + str(context['sessaoplenaria'])])
+        writer.writerow('')
+
+        for item in self.item_context:
+            if item[0] in context:
+
+                index = self.item_context.index(item)
+                writer.writerow([self.item_context[index][1]])
+
+                data = [[list(self._headers(self.fields_report['csv'][index]))], ]
+                for obj in context.get(item[0]):
+                    wr = list(self._write_row(obj, self.fields_report['csv'][index]))
+                    if wr[0] != data[-1][0][0]:
+                        data.append([wr])
+                    else:
+                        data[-1].append(wr)
+
+                for mri, multirows in enumerate(data):
+                    if len(multirows) == 1:
+                        writer.writerow(multirows[0])
+                    else:
+                        v = multirows[0]
+                        for ri, cols in enumerate(multirows[1:]):
+                            for rc, cell in enumerate(cols):
+                                if v[rc] != cell:
+                                    v[rc] = f'{v[rc]}\r\n{cell}'
+
+                        writer.writerow(v)
+                writer.writerow('')
+
+        return response
+
+    def render_to_json(self, context):
+
+        json_metadata = {'sessaoplenaria': str(context['sessaoplenaria'])}
+        for item in self.item_context:
+            if item[0] in context:
+                index = self.item_context.index(item)
+                json_metadata.update({item[0]: {}})
+                data = []
+
+                for obj in context.get(item[0]):
+                    wr = list(self._write_row(obj, self.fields_report['json'][index]))
+
+                    if not data:
+                        data.append([wr])
+                        continue
+
+                    if wr[0] != data[-1][0][0]:
+                        data.append([wr])
+                    else:
+                        data[-1].append(wr)
+
+                for mri, multirows in enumerate(data):
+                    if len(multirows) == 1:
+                        try:
+                            v = multirows[0]
+                        except TypeError:
+                            v = str(multirows[0])
+                    else:
+                        try:
+                            v = str(multirows[0])
+                        except TypeError:
+                            v = multirows[0]
+                        for ri, cols in enumerate(multirows[1:]):
+                            for rc, cell in enumerate(cols):
+                                if v[rc] != cell:
+                                    v[rc] = f'{v[rc]}\r\n{cell}'
+
+                    data[mri] = dict(
+                        map(lambda i, j: (i[0], j if type(j) in [str, int, list] else str(j)), self.fields_report['json'][index], v))
+
+                json_metadata.update({item[0]:{
+                    'headers': dict(
+                        map(lambda i, j: (i[0], j), self.fields_report['json'][index], self._headers(self.fields_report['json'][index]))),
+                    'results': data}
+                })
+        response = JsonResponse(json_metadata)
+        response['Content-Disposition'] = f'attachment; filename="sapl_{self.request.resolver_match.url_name}.json"'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = 0
+
+        return response
+
+    def render_to_xlsx(self, context):
+
+        output = io.BytesIO()
+        wb = Workbook(output, {'in_memory': True})
+
+        ws = wb.add_worksheet()
+        ws.write('A1', 'Pauta da ' + str(context['sessaoplenaria']))
+        row = 2
+
+        for item in self.item_context:
+            if item[0] in context:
+                index = self.item_context.index(item)
+                ws.write(row, 0, self.item_context[index][1])
+                row += 1
+                data = [[list(self._headers(self.fields_report['xlsx'][index]))], ]
+
+                for obj in context.get(item[0]):
+                    wr = list(self._write_row(obj, self.fields_report['xlsx'][index]))
+                    if wr[0] != data[-1][0][0]:
+                        data.append([wr])
+                    else:
+                        data[-1].append(wr)
+
+                for mri, multirows in enumerate(data):
+                    if len(multirows) == 1:
+                        for rc, cell in enumerate(multirows[0]):
+                            try:
+                                ws.write(row, rc, cell)
+                            except TypeError:
+                                ws.write(row, rc, str(cell))
+                        row += 1
+                    else:
+                        v = multirows[0]
+                        for ri, cols in enumerate(multirows[1:]):
+                            for rc, cell in enumerate(cols):
+                                if v[rc] != cell:
+                                    v[rc] = f'{v[rc]}\r\n{cell}'
+
+                        for rc, cell in enumerate(v):
+                            ws.write(row, rc, cell)
+                        row += 1
+                row += 1
+        ws.autofit()
+        wb.close()
+
+        output.seek(0)
+
+        response = HttpResponse(output.read(
+        ), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response['Content-Disposition'] = f'attachment; filename="sapl_{self.request.resolver_match.url_name}.xlsx"'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = 0
+
+        output.close()
+
+        return response

@@ -46,7 +46,7 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedien
 from sapl.sessao.models import Correspondencia
 from sapl.settings import TIME_ZONE
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip,\
-    MultiFormatOutputMixin
+    MultiFormatOutputMixin, PautaMultiFormatOutputMixin
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
@@ -3809,9 +3809,26 @@ class PautaSessaoView(TemplateView):
             reverse('sapl.sessao:pauta_sessao_detail', kwargs={'pk': sessao.pk}))
 
 
-class PautaSessaoDetailView(DetailView):
+class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
     template_name = "sessao/pauta_sessao_detail.html"
     model = SessaoPlenaria
+
+    queryset_values_for_formats = False
+
+    fields_base_report = [
+        [('id', 'ID'), ('titulo', 'Matéria'), ('autor', 'Autor'), ('ementa', 'Ementa'), ('situacao', 'Situação')],
+        [('id', 'ID'), ('titulo', 'Matéria'), ('autor', 'Autor'), ('ementa', 'Ementa'), ('situacao', 'Situação')]
+    ]
+    fields_report = {
+        'csv': fields_base_report,
+        'xlsx': fields_base_report,
+        'json': fields_base_report,
+    }
+
+    item_context = [
+                    ('materia_expediente', 'Matérias do Expediente'),
+                    ('materias_ordem', 'Matérias da Ordem do Dia')
+                   ]
 
     def get(self, request, *args, **kwargs):
         from sapl.relatorios.views import relatorio_pauta_sessao_weasy  # Evitar import ciclico
