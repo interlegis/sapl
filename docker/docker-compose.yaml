@@ -32,10 +32,10 @@ services:
     networks:
       - sapl-net
   sapl:
-    image: interlegis/sapl:3.1.163-RC24
-#    build:
-#      context: ../
-#      dockerfile: ./docker/Dockerfile
+#    image: interlegis/sapl:3.1.163
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
     container_name: sapl
     labels:
        NAME: "sapl"
@@ -50,7 +50,7 @@ services:
       EMAIL_HOST_USER: usuariosmtp
       EMAIL_SEND_USER: usuariosmtp
       EMAIL_HOST_PASSWORD: senhasmtp
-      USE_SOLR: 'True'
+      USE_SOLR: 'False'
       SOLR_COLLECTION: sapl
       SOLR_URL: http://solr:solr@saplsolr:8983
       IS_ZK_EMBEDDED: 'True'
