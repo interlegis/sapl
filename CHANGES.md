@@ -1,4 +1,9 @@
 
+3.1.163 / 2025-05-21
+====================
+
+  * Fix fancycompleter incompatibility when calling shell_plus
+
 3.1.163-RC24 / 2025-05-19
 =========================
 
