@@ -125,7 +125,7 @@
                   {% if m.tramitacao_set.first.data_tramitacao %}
                   <strong>Data da última Tramitação:</strong> &nbsp;{{m.tramitacao_set.first.data_tramitacao}}</br>
                   {% if m.tramitacao_set.first.texto %}
-                  <strong>Última Ação:</strong> &nbsp; {{m.tramitacao_set.first.texto}}</br>
+                  <strong>Última Ação:</strong> &nbsp; {{m.tramitacao_set.first.texto|safe}}</br>
                   {% endif %}
                   {% endif %}
                   {% if m.anexo_de.exists %}
