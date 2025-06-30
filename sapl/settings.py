@@ -388,12 +388,12 @@ LOGGING = {
     },
     'loggers': {
         'sapl': {
-            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
+            'handlers': ['applogfile'] + (['console_verbose'] if LOGGING_CONSOLE_VERBOSE else []),
             'level': 'DEBUG' if LOGGING_CONSOLE_VERBOSE else 'INFO',
             'propagate': True,
         },
         'django': {
-            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
+            'handlers': ['applogfile'] + (['console_verbose'] if LOGGING_CONSOLE_VERBOSE else []),
             'level': 'ERROR',
             'propagate': True,
         },
