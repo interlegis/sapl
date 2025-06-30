@@ -934,7 +934,7 @@ class Proposicao(models.Model):
 
     """
     Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio de uma já existente
-    
+
     materia_gerada = models.ForeignKey(
         MateriaLegislativa,
         blank=True,
@@ -1262,6 +1262,16 @@ class MateriaEmTramitacao(models.Model):
     materia = models.ForeignKey(
         MateriaLegislativa, on_delete=models.DO_NOTHING)
     tramitacao = models.ForeignKey(Tramitacao, on_delete=models.DO_NOTHING)
+
+    unidade_tramitacao_atual = models.ForeignKey(
+        UnidadeTramitacao,
+        related_name='materiaemtramitacao_set',
+        on_delete=models.DO_NOTHING,
+        verbose_name=_('Unidade de Tramitação Atual'),
+        db_column='unidade_tramitacao_atual_id',
+        null=True,
+        blank=True
+    )
 
     class Meta:
         managed = False
