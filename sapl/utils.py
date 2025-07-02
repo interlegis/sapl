@@ -23,6 +23,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile, \
@@ -1093,11 +1094,29 @@ def timing(f):
         ts = time()
         result = f(*args, **kw)
         te = time()
-        logger.info('funcao:%r args:[%r, %r] took: %2.4f sec' %
+        logger.info('function:%r args:[%r, %r] took: %2.4f sec' %
                     (f.__name__, args, kw, te - ts))
         return result
 
     return wrap
+
+
+def cached_call(key, timeout=300):
+    def cache_decorator(f):
+        @wraps(f)
+        def wrap(*args, **kw):
+            result = cache.get(key)
+            if not result:
+                result = f(*args, **kw)
+                cache.set(key, result, timeout)
+            return result
+
+        return wrap
+    return cache_decorator
+
+
+def delete_cached_entry(key):
+    cache.delete(key)
 
 
 @timing
@@ -1614,11 +1633,13 @@ class PautaMultiFormatOutputMixin(MultiFormatOutputMixin):
                                     v[rc] = f'{v[rc]}\r\n{cell}'
 
                     data[mri] = dict(
-                        map(lambda i, j: (i[0], j if type(j) in [str, int, list] else str(j)), self.fields_report['json'][index], v))
+                        map(lambda i, j: (i[0], j if type(j) in [str, int, list] else str(j)),
+                            self.fields_report['json'][index], v))
 
-                json_metadata.update({item[0]:{
+                json_metadata.update({item[0]: {
                     'headers': dict(
-                        map(lambda i, j: (i[0], j), self.fields_report['json'][index], self._headers(self.fields_report['json'][index]))),
+                        map(lambda i, j: (i[0], j), self.fields_report['json'][index],
+                            self._headers(self.fields_report['json'][index]))),
                     'results': data}
                 })
         response = JsonResponse(json_metadata)

@@ -40,7 +40,7 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
                         ImageThumbnailFileInput, qs_override_django_filter,
                         RANGE_ANOS, YES_NO_CHOICES, choice_tipos_normas,
-                        GoogleRecapthaMixin, parlamentares_ativos, RANGE_MESES, is_weak_password)
+                        GoogleRecapthaMixin, parlamentares_ativos, RANGE_MESES, is_weak_password, delete_cached_entry)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -921,12 +921,16 @@ class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
         # chama __clean de FileFieldCheckMixin
         # por estar em clean de campo
         super(CasaLegislativaForm, self)._check()
-
         logotipo = self.cleaned_data.get('logotipo')
-        if logotipo:
-            if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
-                raise ValidationError("Imagem muito grande. ( > 2MB )")
+        if logotipo and logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
+            raise ValidationError("Imagem muito grande. ( > 2MB )")
         return logotipo
+
+    def save(self, commit=True):
+        casa = super(CasaLegislativaForm, self).save(commit=commit)
+        delete_cached_entry("site-title")
+        return casa
+
 
 
 class LoginForm(AuthenticationForm):
