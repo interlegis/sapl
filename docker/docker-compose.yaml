@@ -1,4 +1,3 @@
-version: "3.7"
 services:
   sapldb:
     image: postgres:10.5-alpine
