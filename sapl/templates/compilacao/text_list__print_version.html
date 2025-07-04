@@ -15,6 +15,9 @@
 
 {% block base_content %}
 <div class="cp-print">
+  <a class="btn btn-success d-print-none" href="javascript:window.print()" title="Imprimir Texto Compilado. Para gerar PDF do texto, utilize a opção &#34;Salvar como PDF&#34; do seu navegador.">
+    <i class="fas fa-print"></i>
+  </a>
   {{ block.super }}
 </div>
 {% endblock %}
