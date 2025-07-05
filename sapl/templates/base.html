@@ -12,12 +12,12 @@
 
   <head>
     <meta charset="utf-8">
-    <title>{% block head_title %}{% switch "SAPLN_SWITCH" %}SAPL-Normas - {% else %}SAPL - {%endswitch%}{{nome_sistema}}{% endblock %}</title>
+    <title>{% block head_title %}{% switch "SAPLN_SWITCH" %}SAPL-Normas - {% else %}SAPL - {%endswitch%}{{nome_casa}}{% endblock %}</title>
     <script type="application/ld+json">
     {
       "@context" : "https://schema.org",
       "@type" : "WebSite",
-      "name" : "{{ nome_sistema }}",
+      "name" : "{{ nome_casa }}",
       "url" : "{{ base_url }}"
     }
   </script>

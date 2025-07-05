@@ -32,7 +32,7 @@ def google_recaptcha_configured(request):
     return {'google_recaptcha_configured': True}
 
 
-@cached_call("site-title", timeout=2 * 60)
+@cached_call("site-title", timeout=60 * 2)
 def enable_sapn(request):
     verbose_name = _('Sistema de Apoio ao Processo Legislativo') \
         if not sapn_is_enabled() \
@@ -40,11 +40,11 @@ def enable_sapn(request):
 
     from sapl.base.models import CasaLegislativa
     casa_legislativa = CasaLegislativa.objects.first()
-    if casa_legislativa:
-        verbose_name = casa_legislativa.nome
+    nome_casa = casa_legislativa.nome if casa_legislativa and casa_legislativa.nome else ''
 
     return {
         'sapl_as_sapn': sapn_is_enabled(),
         'nome_sistema': verbose_name,
+        'nome_casa': nome_casa,
         'base_url': get_base_url(request),
     }
