@@ -1,4 +1,16 @@
 
+3.1.164-RC0 / 2025-07-09
+========================
+
+  * Fix: nome casa duplicado
+  * feat: #3771 (#3772)
+  * Adiciona metadados para Google crawler
+  * Remove version e monta mais um volume
+  * Fix: log de aplicação
+  * feat: #3769 (#3770)
+  * fix: #3767 (#3768)
+  * Release: 3.1.163
+
 3.1.163 / 2025-05-21
 ====================
 
