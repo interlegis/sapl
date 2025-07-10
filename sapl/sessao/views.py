@@ -4367,7 +4367,7 @@ def mudar_ordem_materia_sessao(request):
 
 class JustificativaAusenciaCrud(MasterDetailCrud):
     model = JustificativaAusencia
-    public = [RP_LIST, RP_DETAIL, ]
+    public = [RP_LIST]
     parent_field = 'sessao_plenaria'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
