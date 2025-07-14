@@ -45,7 +45,8 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedien
     CorrespondenciaForm, CorrespondenciaEmLoteFilterSet
 from sapl.sessao.models import Correspondencia
 from sapl.settings import TIME_ZONE
-from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip
+from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip,\
+    MultiFormatOutputMixin, PautaMultiFormatOutputMixin
 
 from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
@@ -147,7 +148,8 @@ def verifica_votacoes_abertas(request):
 
         for sessao in votacoes_abertas:
             ordens = sessao.ordemdia_set.filter(votacao_aberta=True)
-            expediente = sessao.expedientemateria_set.filter(votacao_aberta=True)
+            expediente = sessao.expedientemateria_set.filter(
+                votacao_aberta=True)
             for o in ordens:
                 o.votacao_aberta = False
                 o.save()
@@ -167,7 +169,7 @@ def verifica_sessao_iniciada(request, spk, is_leitura=False):
         aux_text = 'leitura' if is_leitura else 'votação'
         logger.info('user=' + username + '. Não é possível abrir matérias para {}. '
                                          'Esta SessaoPlenaria (id={}) não foi iniciada ou está finalizada.'.format(
-            aux_text, spk))
+                                             aux_text, spk))
         msg = _('Não é possível abrir matérias para {}. '
                 'Esta Sessão Plenária não foi iniciada ou está finalizada.'
                 ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.'.format(aux_text))
@@ -481,11 +483,11 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'mid': obj.materia_id})
 
                 resultado = (
-                        '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
-                    url,
-                    context.get('page', 1),
-                    resultado_descricao,
-                    resultado_observacao))
+                    '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
+                        url,
+                        context.get('page', 1),
+                        resultado_descricao,
+                        resultado_observacao))
             else:
 
                 if obj.tipo_votacao == NOMINAL:
@@ -496,7 +498,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                              '?&materia=expediente'
+                            '?&materia=expediente'
                     else:
                         url = reverse(
                             'sapl.sessao:votacao_nominal_transparencia',
@@ -504,7 +506,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                              '?&materia=ordem'
+                            '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
                                  (url,
@@ -519,7 +521,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                              '?&materia=expediente'
+                            '?&materia=expediente'
                     else:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
@@ -527,7 +529,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                              '?&materia=ordem'
+                            '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
                                  (url,
@@ -791,7 +793,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                 Max('numero_ordem'))['numero_ordem__max']
             self.initial['numero_ordem'] = (
-                                               max_numero_ordem if max_numero_ordem else 0) + 1
+                max_numero_ordem if max_numero_ordem else 0) + 1
             return self.initial
 
         def get_success_url(self):
@@ -934,7 +936,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                 Max('numero_ordem'))['numero_ordem__max']
             initial['numero_ordem'] = (
-                                          max_numero_ordem if max_numero_ordem else 0) + 1
+                max_numero_ordem if max_numero_ordem else 0) + 1
             return initial
 
         def get_success_url(self):
@@ -1414,7 +1416,7 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                       + request.POST.getlist('presenca_inativos')
+                + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1529,7 +1531,7 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                       + request.POST.getlist('presenca_inativos')
+                + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1791,7 +1793,7 @@ def insere_parlamentar_composicao(request):
     username = request.user.username
     if request.user.has_perm(
             '%s.add_%s' % (
-                    AppConfig.label, IntegranteMesa._meta.model_name)):
+                AppConfig.label, IntegranteMesa._meta.model_name)):
 
         composicao = IntegranteMesa()
 
@@ -1825,7 +1827,8 @@ def insere_parlamentar_composicao(request):
 
             if parlamentar_ja_inserido:
                 logger.debug(
-                    "user=" + username + ". Parlamentar (id={}) já inserido na sessao_plenaria(id={}) e cargo(ìd={})."
+                    "user=" + username +
+                    ". Parlamentar (id={}) já inserido na sessao_plenaria(id={}) e cargo(ìd={})."
                     .format(request.POST['parlamentar'], composicao.sessao_plenaria.id, composicao.cargo.id))
                 return JsonResponse({'msg': ('Parlamentar já inserido!', 0)})
 
@@ -1854,7 +1857,7 @@ def remove_parlamentar_composicao(request):
     username = request.user.username
     if request.POST and request.user.has_perm(
             '%s.delete_%s' % (
-                    AppConfig.label, IntegranteMesa._meta.model_name)):
+                AppConfig.label, IntegranteMesa._meta.model_name)):
 
         if 'composicao_mesa' in request.POST:
             try:
@@ -2213,7 +2216,7 @@ def get_materias_ordem_do_dia(sessao_plenaria):
         if o.tipo_votacao == 2:
             for voto in VotoParlamentar.objects.filter(ordem=o.id):
                 voto_nominal.append(
-                    (voto.parlamentar.nome_completo, voto.voto))
+                    (voto.parlamentar.nome_parlamentar, voto.voto))
 
         voto = RegistroVotacao.objects.filter(ordem=o.id).last()
         if voto:
@@ -2534,7 +2537,8 @@ class ExpedienteView(FormMixin, DetailView):
                 msg = _('Registro salvo com sucesso')
                 messages.add_message(self.request, messages.SUCCESS, msg)
                 self.logger.info(
-                    'user=' + username + '. ExpedienteSessao(sessao_plenaria_id={} e tipo_id={}) salvo com sucesso.'
+                    'user=' + username +
+                    '. ExpedienteSessao(sessao_plenaria_id={} e tipo_id={}) salvo com sucesso.'
                     .format(self.object.id, tipo))
 
             return self.form_valid(form)
@@ -2907,7 +2911,7 @@ class VotacaoView(SessaoPermissionMixin):
                     username = request.user.username
                     self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
                                                            'e da ordem de id={}. '.format(materia_id, ordem_id) + str(
-                        e))
+                                                               e))
                     return self.form_invalid(form)
                 else:
                     ordem = OrdemDia.objects.get(id=ordem_id)
@@ -3805,9 +3809,26 @@ class PautaSessaoView(TemplateView):
             reverse('sapl.sessao:pauta_sessao_detail', kwargs={'pk': sessao.pk}))
 
 
-class PautaSessaoDetailView(DetailView):
+class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
     template_name = "sessao/pauta_sessao_detail.html"
     model = SessaoPlenaria
+
+    queryset_values_for_formats = False
+
+    fields_base_report = [
+        [('id', 'ID'), ('titulo', 'Matéria'), ('autor', 'Autor'), ('ementa', 'Ementa'), ('situacao', 'Situação')],
+        [('id', 'ID'), ('titulo', 'Matéria'), ('autor', 'Autor'), ('ementa', 'Ementa'), ('situacao', 'Situação')]
+    ]
+    fields_report = {
+        'csv': fields_base_report,
+        'xlsx': fields_base_report,
+        'json': fields_base_report,
+    }
+
+    item_context = [
+                    ('materia_expediente', 'Matérias do Expediente'),
+                    ('materias_ordem', 'Matérias da Ordem do Dia')
+                   ]
 
     def get(self, request, *args, **kwargs):
         from sapl.relatorios.views import relatorio_pauta_sessao_weasy  # Evitar import ciclico
@@ -3866,7 +3887,8 @@ class PautaSessaoDetailView(DetailView):
                 'resultado_observacao': resultado_observacao,
                 'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
                 'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
-                'autor': [str(x.autor) for x in m.materia.autoria_set.select_related('autor').all()]
+                'autor': [str(x.autor) for x in m.materia.autoria_set.select_related('autor').all()],
+                'turno': get_turno(ultima_tramitacao.turno) if ultima_tramitacao else ''
             })
         context.update({'materia_expediente': materias_expediente})
 
@@ -3949,7 +3971,8 @@ class PautaSessaoDetailView(DetailView):
                 'resultado_observacao': resultado_observacao,
                 'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
                 'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
-                'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)]
+                'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)],
+                'turno': get_turno(ultima_tramitacao.turno) if ultima_tramitacao else ''
             })
 
         context.update({
@@ -3964,12 +3987,25 @@ class PautaSessaoDetailView(DetailView):
             return self.render_to_response(context)
 
 
-class PesquisarSessaoPlenariaView(FilterView):
+class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
     model = SessaoPlenaria
     filterset_class = SessaoPlenariaFilterSet
     paginate_by = 10
 
     logger = logging.getLogger(__name__)
+
+    viewname = 'sapl.sessao:pesquisar_sessao'
+
+    queryset_values_for_formats = False
+
+    fields_base_report = [
+        'id', 'data_inicio', 'hora_inicio', 'data_fim', 'hora_fim', '',
+    ]
+    fields_report = {
+        'csv': fields_base_report,
+        'xlsx': fields_base_report,
+        'json': fields_base_report,
+    }
 
     def get_filterset_kwargs(self, filterset_class):
         super().get_filterset_kwargs(filterset_class)
@@ -3987,50 +4023,60 @@ class PesquisarSessaoPlenariaView(FilterView):
         })
         return kwargs
 
+    def hook_header_(self):
+        return force_text(_('Título'))
+
+    def hook_(self, obj):
+        return str(obj)
+
+    def hook_data_inicio(self, obj):
+        return str(obj.data_inicio or '')
+
+    def hook_data_fim(self, obj):
+        return str(obj.data_fim or '')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context['title'] = _('Pesquisar Sessão Plenária')
+
         paginator = context['paginator']
         page_obj = context['page_obj']
 
         context['page_range'] = make_pagination(
             page_obj.number, paginator.num_pages)
 
-        context['USE_SOLR'] = settings.USE_SOLR if hasattr(
-            settings, 'USE_SOLR') else False
+        context['show_results'] = show_results_filter_set(
+            self.request.GET.copy())
 
-        return context
-
-    def get(self, request, *args, **kwargs):
-        super().get(request)
-
-        # Se a pesquisa estiver quebrando com a paginação
-        # Olhe esta função abaixo
-        # Provavelmente você criou um novo campo no Form/FilterSet
-        # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('data_inicio__year') is not None:
             url = "&" + str(self.request.META['QUERY_STRING'])
             if url.startswith("&page"):
                 ponto_comeco = url.find('data_inicio__year=') - 1
                 url = url[ponto_comeco:]
-        else:
-            url = ''
+            context['filter_url'] = url
 
-        context = self.get_context_data(filter=self.filterset,
-                                        object_list=self.object_list,
-                                        filter_url=url,
-                                        numero_res=len(self.object_list)
-                                        )
+        context['numero_res'] = len(self.object_list)
 
-        context['show_results'] = show_results_filter_set(
-            self.request.GET.copy())
+        return context
+
+    def get(self, request, *args, **kwargs):
+
+        r = super().get(request)
+
+        data = self.filterset.data
+        if not data:
+            return HttpResponseRedirect(
+                reverse(
+                    self.viewname
+                ) + f'?data_inicio__year={timezone.now().year}'
+            )
 
         username = request.user.username
         self.logger.debug('user=' + username + '. Pesquisa de SessaoPlenaria.')
 
-        return self.render_to_response(context)
+        return r
 
 
 class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
@@ -4038,6 +4084,8 @@ class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
     template_name = 'sessao/pauta_sessao_filter.html'
 
     logger = logging.getLogger(__name__)
+
+    viewname = 'sapl.sessao:pesquisar_pauta'
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
@@ -4319,7 +4367,7 @@ def mudar_ordem_materia_sessao(request):
 
 class JustificativaAusenciaCrud(MasterDetailCrud):
     model = JustificativaAusencia
-    public = [RP_LIST, RP_DETAIL, ]
+    public = [RP_LIST]
     parent_field = 'sessao_plenaria'
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
@@ -4425,8 +4473,14 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, ListView):
             selectedlist = request.POST.getlist('marcadas_4')
             if request.POST['origem'] == 'ordem':
                 models = OrdemDia.objects.filter(id__in=selectedlist)
+                presenca_model = PresencaOrdemDia
             elif request.POST['origem'] == 'expediente':
                 models = ExpedienteMateria.objects.filter(id__in=selectedlist)
+                presenca_model = SessaoPlenariaPresenca
+
+            if (not verifica_presenca(request, presenca_model, self.kwargs['pk'], True) or
+                    not verifica_sessao_iniciada(request, self.kwargs['pk'], True)):
+                return self.get(request, self.kwargs)
 
             if not models:
                 messages.add_message(self.request, messages.ERROR,
@@ -4451,8 +4505,11 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, ListView):
                 leituras.append(obj)
 
             RegistroLeitura.objects.bulk_create(leituras)
+            models.update(resultado='Matéria Lida')
+
         else:
-            messages.add_message(self.request, messages.ERROR, _('Nenhuma matéria selecionada para leitura em Bloco'))
+            messages.add_message(self.request, messages.ERROR, _(
+                'Nenhuma matéria selecionada para leitura em Bloco'))
             return self.get(request, self.kwargs)
 
         return HttpResponseRedirect(self.get_success_url())
@@ -5258,7 +5315,7 @@ class CorrespondenciaCrud(MasterDetailCrud):
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                 Max('numero_ordem'))['numero_ordem__max']
             initial['numero_ordem'] = (
-                                          max_numero_ordem if max_numero_ordem else 0) + 1
+                max_numero_ordem if max_numero_ordem else 0) + 1
 
             return initial
 

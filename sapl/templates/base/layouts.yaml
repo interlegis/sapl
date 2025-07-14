@@ -20,7 +20,7 @@ UserDetail:
 AppConfig:
 
   {% trans 'Configurações Gerais' %}:
-  - esfera_federacao sapl_as_sapn
+  - esfera_federacao
 
   #{% trans 'Módulo Parlamentares' %}:
   #{% trans 'Módulo Mesa Diretora' %}:

@@ -66,50 +66,68 @@
 
 
       <div class="">
-        <div class="d-flex justify-content-start">
-          <div class="col-md-4">
-            <div class="text-center painel">   
-              <h2 class="text-subtitle">Parlamentares</h2>   
-              <span id="parlamentares" class="text-value text-center"></span>
-            </div>
-          </div>
-          <div class="d-flex col-md-8 painels">
-            <div class="col-md-6 text-center painel" id="aparecer_oradores">  
-              <h2 class="text-subtitle">Oradores</h2>  
-              <span id="orador"></span>     
-            </div>
-
-            <div class="col-md-6 text-center painel">  
-              <h2 class="text-subtitle">Cronômetros</h2>
-                <div class="text-value">
-                Discurso: <span id="cronometro_discurso"></span><br>
-                Aparte: <span id="cronometro_aparte"></span><br>
-                Questão de Ordem: <span id="cronometro_ordem"></span><br>
-                Considerações Finais: <span id="cronometro_consideracoes"></span>
+          <div class="d-flex justify-content-start">
+              <div class="col-md-4">
+                  <div class="text-center painel">
+                      <h2 class="text-subtitle">Parlamentares</h2>
+                      <span id="parlamentares" class="text-value text-center"></span>
+                  </div>
               </div>
-            </div>
-            
-            <div class="col-md-6 text-center painel" id="resultado_votacao_div">      
-              <h2 class="text-subtitle">Resultado</h2>   
-              <span id="votacao" class="text-value"></span> 
-              <h2><span id="resultado_votacao" lass="text-title"></span>
-            </div>
+              <div class="d-flex col-md-8 painels">
+                  <div class="col-md-6 text-center painel" id="aparecer_oradores">
+                      <h2 class="text-subtitle">Oradores</h2>
+                      <span id="orador"></span>
+                  </div>
 
-            <div class="col-md-6 text-center painel" id="obs_materia_div">      
-              <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>   
-              <span id="materia_legislativa_texto" class="text-value"></span>
-              <br>
-              <span id="materia_legislativa_ementa" class="text-value"></span>
-              <br>
-              <span id="observacao_materia" class="text-value"></span>
-            </div>
+                  <div class="col-md-6 text-left painel">
+                      <div class="d-flex align-items-left justify-content-left mb-2">
+                          <h2 class="text-subtitle mb-0">Cronômetros</h2>
+                          <button class="btn btn-sm btn-secondary ms-2" onclick="changeFontSize('box_cronometros', -1)">
+                              A-
+                          </button>
+                          <button class="btn btn-sm btn-secondary ms-2" onclick="changeFontSize('box_cronometros', 1)">
+                              A+
+                          </button>
+                      </div>
+                      <div class="text-value" id="box_cronometros">
+                          Discurso: <span id="cronometro_discurso"></span><br>
+                          Aparte: <span id="cronometro_aparte"></span><br>
+                          Questão de Ordem: <span id="cronometro_ordem"></span><br>
+                          Considerações Finais: <span id="cronometro_consideracoes"></span>
+                      </div>
+                  </div>
 
-            <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">      
-              <h2 class="text-subtitle">Tema da Sessão Solene</h2>   
-                <span id="sessao_solene_tema" class="text-value"></span>
-            </div>
+                  <div class="col-md-6 text-left painel" id="resultado_votacao_div">
+                      <div class="d-flex align-items-left justify-content-left mb-2">
+                          <h2 class="text-subtitle mb-0">Resultado</h2>
+                          <button class="btn btn-sm btn-secondary ms-2" onclick="changeFontSize('box_votacao', -1)">
+                              A-
+                          </button>
+                          <button class="btn btn-sm btn-secondary ms-2" onclick="changeFontSize('box_votacao', 1)">
+                              A+
+                          </button>
+                      </div>
+                      <div id="box_votacao">
+                          <span id="votacao" class="text-value"></span>
+                          <span id="resultado_votacao" lass="text-title"></span>
+                      </div>
+                  </div>
+
+                  <div class="col-md-6 text-center painel" id="obs_materia_div">
+                      <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>
+                      <span id="materia_legislativa_texto" class="text-value"></span>
+                      <br>
+                      <span id="materia_legislativa_ementa" class="text-value"></span>
+                      <br>
+                      <span id="observacao_materia" class="text-value"></span>
+                  </div>
+
+                  <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">
+                      <h2 class="text-subtitle">Tema da Sessão Solene</h2>
+                      <span id="sessao_solene_tema" class="text-value"></span>
+                  </div>
+              </div>
           </div>
-        </div>
       </div>
       </div>
   </body>
@@ -490,6 +508,14 @@
                 `<font color="`+color+`">${parlamentar.partido}</font> </td> <td style="padding-right:20px">` +
                 `<font color="`+color+`">${parlamentar.voto}</font> </td></tr>`)
      }
+
+      function changeFontSize(elementId, increment) {
+          let element = document.getElementById(elementId);
+          if (element) {
+              let currentSize = parseFloat(window.getComputedStyle(element, null).getPropertyValue('font-size'));
+              element.style.fontSize = (currentSize + increment) + 'px';
+          }
+      }
      
   </script>
 </html>

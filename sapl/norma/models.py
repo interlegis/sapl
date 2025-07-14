@@ -138,7 +138,7 @@ class NormaJuridica(models.Model):
         blank=True,
         null=True,
         upload_to=norma_upload_path,
-        verbose_name=_('Texto Integral'),
+        verbose_name=_('Texto Original'),
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
     tipo = models.ForeignKey(
@@ -231,12 +231,22 @@ class NormaJuridica(models.Model):
         ordering = ['-data', '-numero']
 
     def get_normas_relacionadas(self):
-        principais = NormaRelacionada.objects.filter(
-            norma_principal=self.id).order_by('norma_principal__data',
-                                              'norma_relacionada__data')
-        relacionadas = NormaRelacionada.objects.filter(
-            norma_relacionada=self.id).order_by('norma_principal__data',
-                                                'norma_relacionada__data')
+        principais = NormaRelacionada.objects.\
+                         select_related('tipo_vinculo',
+                                        'norma_principal',
+                                        'norma_relacionada',
+                                        'norma_principal__tipo',
+                                        'norma_relacionada__tipo').\
+                         filter(norma_principal=self.id).order_by('norma_principal__data',
+                                                                  'norma_relacionada__data')
+        relacionadas = NormaRelacionada.objects.\
+                        select_related('tipo_vinculo',
+                                       'norma_principal',
+                                       'norma_relacionada',
+                                       'norma_principal__tipo',
+                                       'norma_relacionada__tipo').\
+            filter(norma_relacionada=self.id).order_by('norma_principal__data',
+                                                       'norma_relacionada__data')
         return (principais, relacionadas)
 
     def get_anexos_norma_juridica(self):
@@ -258,6 +268,17 @@ class NormaJuridica(models.Model):
     @property
     def epigrafe(self):
         return self.__str__()
+
+    @property
+    def epigrafe_simplificada(self):
+        numero_norma = self.numero
+        if numero_norma.isnumeric():
+            numero_norma = '{0:,}'.format(int(self.numero)).replace(',', '.')
+
+        return _('%(tipo)s nº %(numero)s, de %(data)s') % {
+            'tipo': self.tipo,
+            'numero': numero_norma,
+            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
 
     def delete(self, using=None, keep_parents=False):
         texto_integral = self.texto_integral

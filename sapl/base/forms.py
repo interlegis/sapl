@@ -40,7 +40,7 @@ from sapl.utils import (autor_label, autor_modal, ChoiceWithoutValidationField,
                         FilterOverridesMetaMixin, FileFieldCheckMixin,
                         ImageThumbnailFileInput, qs_override_django_filter,
                         RANGE_ANOS, YES_NO_CHOICES, choice_tipos_normas,
-                        GoogleRecapthaMixin, parlamentares_ativos, RANGE_MESES)
+                        GoogleRecapthaMixin, parlamentares_ativos, RANGE_MESES, is_weak_password, delete_cached_entry)
 
 from .models import AppConfig, CasaLegislativa
 
@@ -288,8 +288,13 @@ class UserAdminForm(ModelForm):
             )
         else:
             if new_password1 and new_password2:
+                if is_weak_password(new_password1):
+                    raise forms.ValidationError(_(
+                        'A senha deve ter pelo menos 8 caracteres e incluir uma combinação '
+                        'de letras maiúsculas e minúsculas, números e caracteres especiais.'
+                    ))
                 password_validation.validate_password(
-                    new_password2, self.instance)
+                    new_password1, self.instance)
 
         parlamentar = data.get('parlamentar', None)
         if parlamentar and parlamentar.votante_set.exists() and \
@@ -916,22 +921,26 @@ class CasaLegislativaForm(FileFieldCheckMixin, ModelForm):
         # chama __clean de FileFieldCheckMixin
         # por estar em clean de campo
         super(CasaLegislativaForm, self)._check()
-
         logotipo = self.cleaned_data.get('logotipo')
-        if logotipo:
-            if logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
-                raise ValidationError("Imagem muito grande. ( > 2MB )")
+        if logotipo and logotipo.size > MAX_IMAGE_UPLOAD_SIZE:
+            raise ValidationError("Imagem muito grande. ( > 2MB )")
         return logotipo
+
+    def save(self, commit=True):
+        casa = super(CasaLegislativaForm, self).save(commit=commit)
+        delete_cached_entry("site-title")
+        return casa
+
 
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
-        label="Username", max_length=30,
+        label="Usuário", max_length=30,
         widget=forms.TextInput(
             attrs={
                 'class': 'form-control', 'name': 'username'}))
     password = forms.CharField(
-        label="Password", max_length=30,
+        label="Senha", max_length=30,
         widget=forms.PasswordInput(
             attrs={
                 'class': 'form-control', 'name': 'password'}))
@@ -1009,7 +1018,6 @@ class ConfiguracoesAppForm(ModelForm):
                   'google_recaptcha_site_key',
                   'google_recaptcha_secret_key',
                   'google_analytics_id_metrica',
-                  'sapl_as_sapn',
                   'identificacao_de_documentos',
                   ]
 
@@ -1140,12 +1148,15 @@ class AlterarSenhaForm(Form):
         # TODO: caracteres alfanuméricos, maiúsculas (?),
         # TODO: senha atual igual a senha anterior, etc
 
-        if len(new_password1) < 6:
+        if is_weak_password(new_password1):
             self.logger.warning(
-                'A senha informada não tem o mínimo de 6 caracteres.'
+                'A senha deve ter pelo menos 8 caracteres e incluir uma combinação '
+                'de letras maiúsculas e minúsculas, números e caracteres especiais.'
             )
             raise ValidationError(
-                "A senha informada deve ter no mínimo 6 caracteres")
+                'A senha deve ter pelo menos 8 caracteres e incluir uma combinação '
+                'de letras maiúsculas e minúsculas, números e caracteres especiais.'
+            )
 
         username = data['username']
         old_password = data['old_password']

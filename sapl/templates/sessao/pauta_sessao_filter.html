@@ -6,10 +6,19 @@
 
 {% block sections_nav %} {% endblock %}
 
-{% block base_content %}
-  {% if not filter_url %}
-    {% crispy filter.form %}
+{% block actions %}
+
+  {% if show_results %}
+    <div class="float-left">
+      {% with 'sapl.sessao:pesquisar_pauta' as url_reverse %}
+        {% include "crud/format_options.html" %}
+      {% endwith %}
+    </div>
   {% endif %}
+  {% endblock %}
+{% block detail_content %}
+
+  {% crispy filter.form %}
 
   {% if filter_url %}
     <p></p>
@@ -33,6 +42,5 @@
         <tr><td><h3>Nenhuma Pauta de Sessão encontrada com essas especificações</h3></tr>
       {% endif %}
     </table>
-    {% include "paginacao.html" %}
   {% endif %}
-{% endblock base_content %}
+{% endblock detail_content %}

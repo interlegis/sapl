@@ -84,6 +84,9 @@ def desc_operation(value):
 
 @register.filter
 def format_user(user):
+    if not user:
+        return ""
+
     if user.first_name:
         return user.first_name + " " + user.last_name + " (" + user.username + ")"
     else:
@@ -409,3 +412,8 @@ def parse_datetime(value):
 @register.filter
 def is_report_visible(request, url_path=None):
     return is_report_allowed(request, url_path)
+
+
+@register.filter
+def sort_by_index(queryset, index):
+    return sorted(queryset, key=lambda x: x[index])

@@ -47,7 +47,7 @@ from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
-                        google_recaptcha_configured, get_tempfile_dir)
+                        google_recaptcha_configured, get_tempfile_dir, MultiFormatOutputMixin)
 
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
                     AnularProtocoloAdmForm, compara_tramitacoes_doc,
@@ -174,7 +174,7 @@ def create_pdf_docacessorios(docadministrativo):
     logger.info("Gerando compilado PDF de documentos acessorios com {} documentos"
                 .format(docs_path))
 
-    merger = PdfFileMerger()
+    merger = PdfFileMerger(strict=False)
     for f in docs_path:
         merger.append(fileobj=f)
 
@@ -1039,12 +1039,22 @@ class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
 
 
 class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
+                                           MultiFormatOutputMixin,
                                            PermissionRequiredMixin,
                                            FilterView):
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
     permission_required = ('protocoloadm.list_documentoadministrativo', )
+
+    fields_base_report = [
+        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'assunto'
+    ]
+    fields_report = {
+        'csv': fields_base_report,
+        'xlsx': fields_base_report,
+        'json': fields_base_report,
+    }
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,

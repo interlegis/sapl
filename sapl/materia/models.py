@@ -1,4 +1,6 @@
 
+from datetime import datetime
+
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -14,13 +16,13 @@ from sapl.comissoes.models import Comissao, Reuniao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)
 from sapl.parlamentares.models import Parlamentar
-#from sapl.protocoloadm.models import Protocolo
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path, get_settings_auth_user_model,
                         OverwriteStorage)
 
 
+#from sapl.protocoloadm.models import Protocolo
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
 
@@ -340,7 +342,13 @@ class MateriaLegislativa(models.Model):
                 if protocolo.timestamp:
                     return protocolo.timestamp
                 elif protocolo.timestamp_data_hora_manual:
-                    return protocolo.timestamp_data_hora_manual
+                    tz = timezone.localtime().tzinfo
+                    return tz.localize(
+                        datetime.combine(
+                            protocolo.data,
+                            protocolo.hora
+                        )
+                    )
                 elif protocolo.data:
                     return protocolo.data
 
@@ -629,7 +637,7 @@ class Numeracao(models.Model):
     materia = models.ForeignKey(MateriaLegislativa, on_delete=models.CASCADE)
     tipo_materia = models.ForeignKey(
         TipoMateriaLegislativa,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         verbose_name=_('Tipo de Matéria'))
     numero_materia = models.CharField(max_length=5,
                                       verbose_name=_('Número'))
@@ -931,7 +939,7 @@ class Proposicao(models.Model):
 
     """
     Ao ser recebida, irá gerar uma nova matéria ou um documento acessorio de uma já existente
-    
+
     materia_gerada = models.ForeignKey(
         MateriaLegislativa,
         blank=True,
@@ -1027,7 +1035,8 @@ class Proposicao(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        # atualiza o usuario baseado no status da proposição (que esta sendo calculado pela data)
+        # atualiza o usuario baseado no status da proposição (que esta sendo
+        # calculado pela data)
         if self.data_envio is not None and not self.usuario_envio:
             self.usuario_envio = self.user
         elif self.data_recebimento is not None and not self.usuario_recebimento:
@@ -1258,6 +1267,16 @@ class MateriaEmTramitacao(models.Model):
     materia = models.ForeignKey(
         MateriaLegislativa, on_delete=models.DO_NOTHING)
     tramitacao = models.ForeignKey(Tramitacao, on_delete=models.DO_NOTHING)
+
+    unidade_tramitacao_atual = models.ForeignKey(
+        UnidadeTramitacao,
+        related_name='materiaemtramitacao_set',
+        on_delete=models.DO_NOTHING,
+        verbose_name=_('Unidade de Tramitação Atual'),
+        db_column='unidade_tramitacao_atual_id',
+        null=True,
+        blank=True
+    )
 
     class Meta:
         managed = False

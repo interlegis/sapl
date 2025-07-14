@@ -183,17 +183,21 @@ def resolve_urls_inplace(menu, pk, rm, context):
                     as funcionalidades diretas do MasterDetailCrud, como:
                     - visualização de detalhes, adição, edição, remoção.
                     """
-                    if 'view' in context:
-                        view = context['view']
-                        if hasattr(view, '__class__') and\
-                                hasattr(view.__class__, 'crud'):
-                            urls = view.__class__.crud.get_urls()
-                            for u in urls:
-                                if (u.name == url_name or
-                                        'urls_extras' in menu and
-                                        u.name in menu['urls_extras']):
-                                    menu['active'] = 'active'
-                                    break
+                    try:
+                        if 'view' in context:
+                            view = context['view']
+                            if hasattr(view, 'crud'):
+                                urls = view.crud.get_urls()
+                                for u in urls:
+                                    if (u.name == url_name or
+                                            'urls_extras' in menu and
+                                            u.name in menu['urls_extras']):
+                                        menu['active'] = 'active'
+                                        break
+                    except:
+                        url_active = menu.get('url', '')
+                        logger.warning(
+                            f'Não foi possível definir se url {url_active} é a url ativa.')
         elif 'check_permission' in menu and not context[
                 'request'].user.has_perm(menu['check_permission']):
             menu['active'] = ''

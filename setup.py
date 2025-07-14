@@ -16,7 +16,6 @@ install_requires = [
     'dj-database-url==0.5.0',
     'django-braces==1.9.0',
     'django-crispy-forms==1.7.2',
-    'django-floppyforms==1.7.0',
     'django-extra-views==0.12.0',
     'django-model-utils==3.1.2',
     'django-extensions==2.1.4',
@@ -31,7 +30,7 @@ install_requires = [
     'python-magic==0.4.15',
     'unipath==1.1',
     'WeasyPrint==44',
-    'gunicorn==19.9.0',
+    'gunicorn==22.0.0',
     'pysolr==3.6.0',
 
     # 'git+git://github.com/interlegis/trml2pdf.git',
@@ -39,7 +38,7 @@ install_requires = [
 ]
 setup(
     name='interlegis-sapl',
-    version='3.1.163-RC17',
+    version='3.1.164-RC0',
     packages=find_packages(),
     include_package_data=True,
     license='GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007',

@@ -39,6 +39,7 @@ create_env() {
     echo "SOLR_COLLECTION = ""${SOLR_COLLECTION-sapl}" >> $FILENAME
     echo "SOLR_URL = ""${SOLR_URL-http://localhost:8983}" >> $FILENAME
     echo "IS_ZK_EMBEDDED = ""${IS_ZK_EMBEDDED-False}" >> $FILENAME
+    echo "ENABLE_SAPN = ""${ENABLE_SAPN-False}" >> $FILENAME
 
     echo "[ENV FILE] done."
 }
@@ -85,13 +86,29 @@ if [ "${USE_SOLR-False}" == "True" ] || [ "${USE_SOLR-False}" == "true" ]; then
         fi
 
         python3 solr_cli.py -u $SOLR_URL -c $SOLR_COLLECTION -s $NUM_SHARDS -rf $RF -ms $MAX_SHARDS_PER_NODE $ZK_EMBEDDED &
+        # Enable SOLR switch on, creating if it doesn't exist on database
+        ./manage.py waffle_switch SOLR_SWITCH on --create
     else
         echo "Solr is offline, not possible to connect."
+        # Disable Solr switch off, creating if it doesn't exist on database
+        ./manage.py waffle_switch SOLR_SWITCH off --create
     fi
 
 else
     echo "Solr support is not initialized."
+    # Disable Solr switch off, creating if it doesn't exist on database
+    ./manage.py waffle_switch SOLR_SWITCH off --create
 fi
+
+## Enable/Disable SAPN
+if [ "${ENABLE_SAPN-False}" == "True" ] || [ "${ENABLE_SAPN-False}" == "true" ]; then
+  echo "Enabling SAPN"
+  ./manage.py waffle_switch SAPLN_SWITCH on --create
+else
+  echo "Enabling SAPL"
+  ./manage.py waffle_switch SAPLN_SWITCH off --create
+fi
+
 
 echo "Creating admin user..."
 

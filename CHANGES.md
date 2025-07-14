@@ -1,4 +1,94 @@
 
+3.1.164-RC0 / 2025-07-09
+========================
+
+  * Fix: nome casa duplicado
+  * feat: #3771 (#3772)
+  * Adiciona metadados para Google crawler
+  * Remove version e monta mais um volume
+  * Fix: log de aplicação
+  * feat: #3769 (#3770)
+  * fix: #3767 (#3768)
+  * Release: 3.1.163
+
+3.1.163 / 2025-05-21
+====================
+
+  * Fix fancycompleter incompatibility when calling shell_plus
+
+3.1.163-RC24 / 2025-05-19
+=========================
+
+  * Implementa relatórios CSV, XLSX e JSON para Pauta de Sessão (#3744)
+  * feat: adiciona pydevd-pycharm para facilitar debug usando pycharm ide (#3717)
+  * Ajusta link do texto integral da Norma Jurídica nos formatos CSV, XLSX e JSON. (#3743)
+  * Força mudança de senha para senhas fracas
+  * Fix Chamado #643964 - Multiple definitions in dictionary at byte 0xc854c for key /Info
+  * Ajusta link do texto original da Matéria nos formatos CSV, XLSX e JSON. (#3742)
+  * fix: aplica um lazy loading no sortable do jquery ui pelo evento mouseenter. (#3737)
+  * fix: corrige condição para mostrar btn para TAs.
+  * fix: add migrate resultante do commit anterior
+  * fix: torna cep opcional no model CasaLegislativa
+
+3.1.163-RC23 / 2024-07-31
+=========================
+
+  * Otimiza recuperação de normas relacionadas (#3734)
+  * hot-fix: resolve imcompatibilidade de regex com versão de produção do postgresql 9.6
+
+3.1.163-RC21 / 2024-06-25
+=========================
+
+  * fix: descomenta código pertencente ao commit anterior
+  * fix: elimina dupla extração de assinaturas eletrônicas
+  * fix: remove listagem pública de OperadorAutor
+  * fix: altera campo de 'resultado' ao registrar leitura em bloco
+  * bump version gunicorn in setup.py
+  * rebuild frontend
+  * fix dependabot alerts #61 - bump version axios
+  * fix: ajuste no conjunto inicial de permissões na construção de classe crud
+  * Impl Mixin para gerar arquivos de pesq em diversos formatos (#3710)
+  * Fix estatistica norma view (#3707)
+  * bump version gunicorn, pillow
+  * Build(deps): Bump pillow from 10.0.1 to 10.3.0 in /requirements (#3709)
+  * fix: corrige display de data e hora de protocolor manual
+  * fix: corrige carga de permissões públicas do crud
+  * Add blank space when SAPN
+  * fix: corrige bug na pesquisa de impressos etiquetas (#3695)
+  * feat: adiciona o turno na info de materias na pauta de sessao (#3694)
+  * fix: invert lógica do sapln_switch
+  * fix: Update docker-compose.yaml
+  * Update CHANGES.md
+
+3.1.163-RC20 / 2023-12-04
+=========================
+
+  * HOT-FIX: Bump easy-thumbnails
+
+3.1.163-RC19 / 2023-11-29
+=========================
+
+  * Bump Pillow
+
+3.1.163-RC18 / 2023-11-29
+=========================
+
+  * Bump Pillow
+  * Adiciona feature flag lib
+  * Conserta relatoria de matérias
+  * Bump Pillow version
+  * feat: adiciona script para ajuste to tamanho de fontes de seçoes do painel eletronico
+  * Conserta bug na paginação do Relatório de Matérias por Tramitação
+  * fix: ajusta ordenacao de votos nominais por ordem alfabetica no extrato da sessao
+  * fix: corrige erro de loaddata cargomesa
+  * feat: adiciona check de presenca e sessao aberta na leitura em bloco da ordem do dia
+  * fix: padroniza nome_parlamentar para lista de presenca e votacoes nominais no resumo da ata
+  * Apaga Numeração se TipoMateriaLegislativa é apagado
+  * Adiciona opção de remover formatação
+  * Adiciona ordenacao em cargo mesa
+  * Remove tags de considerações finais e ocorrências de sessão
+  * fix: padroniza nome_parlamentar para lista de presenca e votacoes nominais no resumo da ata
+
 3.1.163-RC17 / 2023-09-30
 =========================
 

@@ -1,5 +1,6 @@
 {% extends "crud/detail.html" %}
 {% load i18n common_tags %}
+{% load waffle_tags %}
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_loader_css %}
@@ -46,8 +47,9 @@
   <div class="row">
     <div class="col-sm-12">
       <p class="control-label">Normas Relacionadas</p>
-      {% if object.get_normas_relacionadas.0|length > 0 %}
-        {% for p in object.get_normas_relacionadas.0 %}
+      {% with normas_relacionadas=object.get_normas_relacionadas %}
+      {% if normas_relacionadas.0|length > 0 %}
+        {% for p in normas_relacionadas.0 %}
           <div class="form-control-static">
             <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
             <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
@@ -56,8 +58,8 @@
           </div>
         {% endfor %}
       {% endif %}
-      {% if object.get_normas_relacionadas.1|length > 0 %}
-        {% for r in object.get_normas_relacionadas.1 %}
+      {% if normas_relacionadas.1|length > 0 %}
+        {% for r in normas_relacionadas.1 %}
           <div class="form-control-static">
             <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
             <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
@@ -66,6 +68,7 @@
           </div>
         {% endfor %}
       {% endif %}
+      {% endwith %}
     </div>
   </div>
   <hr />
@@ -137,7 +140,7 @@
     <div class="row">
       <div class="col-sm-12">
         <br>
-        <p class="control-label">{%trans 'Texto Multivigente' %}</p>
+        <p class="control-label">{%trans 'Texto Compilado' %}</p>
         <div id="textomultivigente"></div>
       </div>
     </div>

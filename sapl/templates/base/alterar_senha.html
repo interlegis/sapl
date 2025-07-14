@@ -3,6 +3,18 @@
 {% load crispy_forms_tags %}
 {% block actions %}{% endblock %}
 {% block detail_content %}
+<head>
+    <!-- TODO: Hack. Atualizar vue-bootstrap libs so we can call this in base.html and get the glyphs -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+    {%if request.session.weak_password %}
+          <div class="alert alert-danger" role="alert">
+              A senha utilizada pelo usuário <strong>{{request.user.username}}</strong> é fraca!
+              Uma senha forte deve ter pelo menos 8 caracteres e incluir uma combinação de letras maiúsculas
+              e minúsculas, números e caracteres especiais (por exemplo, !, $, #, @). Evitem reutilizar
+              senhas antigas ou senhas utilizadas em outros serviços.
+          </div>
+    {% endif %}
     <h1>Alterar Senha</h1>
 	{% crispy form %}
     </br>
@@ -10,3 +22,46 @@
     Favor entrar novamente com a nova senha após a mudança com sucesso.
 
 {% endblock detail_content %}
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+  $("input[type='password']").each(function () {
+    const $input = $(this);
+
+    // Avoid re-wrapping
+    if ($input.parent().hasClass("password-container")) return;
+
+    // Wrap in relative container
+    const $wrapper = $('<div class="password-container position-relative mb-3"></div>');
+    $input.wrap($wrapper);
+
+    // Style input to have padding-right for icon
+    $input.css("padding-right", "2.5rem");
+
+    // Create the eye icon
+    const $eyeIcon = $(`
+      <i class="bi bi-eye password-toggle-icon"
+         style="
+           position: absolute;
+           right: 10px;
+           top: 50%;
+           transform: translateY(-50%);
+           cursor: pointer;
+           color: #6c757d;
+           font-size: 1.2rem;
+         "></i>
+    `);
+
+    // Insert icon after input
+    $input.after($eyeIcon);
+
+    // Toggle logic
+    $eyeIcon.on("click", function () {
+      const isPassword = $input.attr("type") === "password";
+      $input.attr("type", isPassword ? "text" : "password");
+      $(this).toggleClass("bi-eye bi-eye-slash");
+    });
+  });
+});
+</script>
+{% endblock %}

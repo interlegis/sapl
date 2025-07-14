@@ -71,8 +71,8 @@
   {% endfor %}
   <div class="{% if not ta_pub_list %}d-none{% else %}d-flex{% endif %} tipo-vigencias fixed-bottom justify-content-center">
     <div class="btn-group btn-group-sm">
-      <a class="btn btn-primary active" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Multivigente Sequencial'%}">{% trans 'TMS'%}</a>
-      <a class="btn btn-primary" onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Multivigente Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a>
+      <a class="btn btn-primary active" onclick="textoMultiVigente(this, false);" title="{% trans 'Texto Compilado Sequencial'%}">{% trans 'TMS'%}</a>
+      <a class="btn btn-primary" onclick="textoMultiVigente(this, true);" title="{% trans 'Texto Compilado Integrado com Realce de Alterações'%}">{% trans 'TMI'%}</a>
       <a class="btn btn-primary"  onclick="textoMultiVigente(this, false); textoVigente(this, true);" title="{% trans 'Texto Vigente COM Links para Textos Alteradores'%}">{% trans 'TVL'%}</a>
       <a class="btn btn-primary"  onclick="textoVigente(this, false);" title="{% trans 'Texto Vigente'%}">{% trans 'TVT'%}</a>
       <a class="btn btn-primary"  onclick="textoVigenteSemRevogados(this, false);" title="{% trans 'Texto Vigente Sem Dispositivos Revogados'%}">{% trans 'TVR'%}</a>

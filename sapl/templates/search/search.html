@@ -1,7 +1,7 @@
 {% extends 'crud/form.html' %}
 {% load crispy_forms_tags %}
 {% load common_tags %}
-
+{% load waffle_tags %}
 {% block base_content %}
   <h1><legend>Pesquisa Textual</legend></h1>
   </br>
@@ -11,9 +11,9 @@
         {{ form.q|as_crispy_field }}
       </div>
     </div>
-
-    {% if not sapl_as_sapn %}
-
+    {% switch "SAPLN_SWITCH" %}
+      &nbsp;
+    {% else %}
       <div class="row">
         <div class="col-md-8">
           <h3> Em quais tipos de documento deseja pesquisar?</h3>
@@ -27,7 +27,7 @@
           {{ form.models }}
         </div>
       </div>
-    {% endif %}
+    {% endswitch %}
 
     <div  class="row">
       <div class="col-md-12">

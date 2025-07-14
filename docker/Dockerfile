@@ -68,6 +68,6 @@ ENV DEBIAN_FRONTEND teletype
 
 EXPOSE 80/tcp 443/tcp
 
-VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media"]
+VOLUME ["/var/interlegis/sapl/data", "/var/interlegis/sapl/media", "/var/log/sapl/"]
 
 CMD ["/var/interlegis/sapl/start.sh"]

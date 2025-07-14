@@ -56,7 +56,7 @@ class CasaLegislativa(models.Model):
     nome = models.CharField(max_length=100, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=100, verbose_name=_('Sigla'))
     endereco = models.CharField(max_length=100, verbose_name=_('Endereço'))
-    cep = models.CharField(max_length=100, verbose_name=_('CEP'))
+    cep = models.CharField(max_length=100,  blank=True, verbose_name=_('CEP'))
     municipio = models.CharField(max_length=50, verbose_name=_('Município'))
     uf = models.CharField(max_length=2,
                           choices=LISTA_DE_UFS,
@@ -107,10 +107,6 @@ class AppConfig(models.Model):
         default="",
         verbose_name=_('Esfera Federação'),
         choices=ESFERA_FEDERACAO_CHOICES)
-    sapl_as_sapn = models.BooleanField(
-        verbose_name=_(
-            'Utilizar SAPL apenas como SAPL-Normas?'),
-        choices=YES_NO_CHOICES, default=False)
 
     # MÓDULO PARLAMENTARES
 

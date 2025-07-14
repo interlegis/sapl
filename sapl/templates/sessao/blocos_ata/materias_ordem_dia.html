@@ -1,3 +1,4 @@
+{% load common_tags %}
 {% if materias_ordem %}
     <fieldset>
         <p align="justify" style="margin-top: 0">
@@ -28,7 +29,7 @@
                 {% if m.resultado_observacao %} - Obs.: {{ m.resultado_observacao }} {% endif %}
                 {% if m.voto_nominal %}
                     <b>Votos Nominais :</b>
-                    {% for voto in m.voto_nominal %}
+                    {% for voto in m.voto_nominal|sort_by_index:0 %}
                         {{ voto.0 }} - {{ voto.1 }}
                         {% if not forloop.last %} ; {% endif %}
                     {% endfor %}

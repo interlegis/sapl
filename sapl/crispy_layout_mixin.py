@@ -284,7 +284,7 @@ class CrispyLayoutFormMixin:
             'text': field_display,
         }
 
-    def fk_urlize_for_detail(self, obj, fieldname):
+    def fk_urlify_for_detail(self, obj, fieldname):
 
         field = obj._meta.get_field(fieldname)
         value = getattr(obj, fieldname)
@@ -297,6 +297,14 @@ class CrispyLayoutFormMixin:
             value)
 
         return field.verbose_name, display
+
+    def fk_urlify_for_list(self, obj, field):
+        value = getattr(obj, field)
+        return reverse(
+                        '%s:%s_detail' % (
+                            value._meta.app_config.name,
+                            value._meta.model_name),
+                        kwargs={'pk': value.id}),
 
     def m2m_urlize_for_detail(self, obj, fieldname):
 

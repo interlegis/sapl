@@ -283,13 +283,18 @@ def signed_files_extraction_function(sender, instance, **kwargs):
             return signs
 
         # tenta extrair via /Fields
+        fields_br = []
         try:
             pdf = PdfFileReader(file)
             fields = pdf.getFields()
+            fields_br = list(
+                map(lambda x: x.get('/V', {}).get('/ByteRange', []), fields.values()))
         except Exception as e:
             try:
                 pdf = PdfFileReader(file, strict=False)
                 fields = pdf.getFields()
+                fields_br = list(
+                    map(lambda x: x.get('/V', {}).get('/ByteRange', []), fields.values()))
             except Exception as ee:
                 fields = ee
 
@@ -309,13 +314,17 @@ def signed_files_extraction_function(sender, instance, **kwargs):
                 n += 1
 
                 br = [int(i, 10) for i in pdfdata[start + 1: stop].split()]
+
+                if br in fields_br:
+                    continue
+
                 contents = pdfdata[br[0] + br[1] + 1: br[2] - 1]
                 bcontents = bytes.fromhex(contents.decode("utf8"))
                 data1 = pdfdata[br[0]: br[0] + br[1]]
                 data2 = pdfdata[br[2]: br[2] + br[3]]
                 #signedData = data1 + data2
 
-                nome = 'Nome do assinante não localizado.'
+                not_nome = nome = 'Nome do assinante não localizado.'
                 oname = ''
                 try:
                     info = cms.ContentInfo.load(bcontents)
@@ -348,7 +357,8 @@ def signed_files_extraction_function(sender, instance, **kwargs):
                     pass
 
                 fd = None
-                signs.append((nome, [fd, oname]))
+                if nome != not_nome:
+                    signs.append((nome, [fd, oname]))
 
         except Exception as e:
             pass

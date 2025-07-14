@@ -30,7 +30,7 @@ BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='')
+SECRET_KEY = config('SECRET_KEY', default='32jk1h412l3kjh421lkj4hlkj234')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
@@ -41,7 +41,7 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
-SAPL_VERSION = '3.1.163-RC17'
+SAPL_VERSION = '3.1.164-RC0'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -75,10 +75,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.forms',
+
     'django_extensions',
 
     'crispy_forms',
-    'floppyforms',
+
+    'waffle',
 
     'drf_spectacular',
     'rest_framework',
@@ -137,6 +140,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
+    'waffle.middleware.WaffleMiddleware',
+    'sapl.middleware.CheckWeakPasswordMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
@@ -189,10 +194,13 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
+        'OPTIONS': {"MAX_ENTRIES": 1000},
     }
 }
 
 ROOT_URLCONF = 'sapl.urls'
+
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 TEMPLATES = [
     {
@@ -210,8 +218,7 @@ TEMPLATES = [
                 'sapl.context_processors.parliament_info',
                 'sapl.context_processors.mail_service_configured',
                 'sapl.context_processors.google_recaptcha_configured',
-                'sapl.context_processors.sapl_as_sapn',
-
+                'sapl.context_processors.enable_sapn',
             ],
             'debug': DEBUG
         },
@@ -254,6 +261,16 @@ EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
 SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
 EMAIL_RUNNING = None
+
+# Feature Flag
+WAFFLE_FLAG_DEFAULT = False
+WAFFLE_SWITCH_DEFAULT = False
+WAFFLE_CREATE_MISSING_FLAGS = True
+WAFFLE_LOG_MISSING_FLAGS = True
+WAFFLE_CREATE_MISSING_SWITCHES = True
+WAFFLE_LOG_MISSING_SWITCHES = True
+WAFFLE_ENABLE_ADMIN_PAGES = True
+
 
 MAX_DOC_UPLOAD_SIZE = 150 * 1024 * 1024  # 150MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
@@ -321,9 +338,6 @@ DAB_FIELD_RENDERER = \
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 CRISPY_FAIL_SILENTLY = not DEBUG
-FLOPPY_FORMS_USE_GIS = False
-
-FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'
 
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
@@ -375,12 +389,12 @@ LOGGING = {
     },
     'loggers': {
         'sapl': {
-            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
+            'handlers': ['applogfile'] + (['console_verbose'] if LOGGING_CONSOLE_VERBOSE else []),
             'level': 'DEBUG' if LOGGING_CONSOLE_VERBOSE else 'INFO',
             'propagate': True,
         },
         'django': {
-            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
+            'handlers': ['applogfile'] + (['console_verbose'] if LOGGING_CONSOLE_VERBOSE else []),
             'level': 'ERROR',
             'propagate': True,
         },

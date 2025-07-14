@@ -49,6 +49,12 @@
 
       <div class="col-sm-8">
         <div id="div_data_nascimento" class="form-group">
+          <p><b>Homepage: </b> &nbsp {{object.endereco_web|default_if_none:"Não informado"}}</p>
+        </div>
+      </div>
+
+      <div class="col-sm-8">
+        <div id="div_data_nascimento" class="form-group">
           <p><b>Número do Gabinete: </b> &nbsp {{object.numero_gab_parlamentar|default_if_none:"Não informado"}}</p>
         </div>
       </div>
