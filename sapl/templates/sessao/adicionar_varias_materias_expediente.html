@@ -32,6 +32,23 @@
         <table class="table table-striped table-bordered">
           <thead class="thead-default">
             <tr><td><h3>{% trans "Matérias" %}</h3></td><td><h3>{% trans "Tipo de Votação" %}</h3></td></tr>
+            <tr>
+             <td>
+              <label for="id_check_all">
+                  <input type="checkbox" id="id_check_all" onchange="checkAll(this)" /> Marcar/Desmarcar Todos
+              </label>
+             </td>
+             <td>
+                  <input type="radio" name="tipo_votacao_check_all" id="tipo_votacao_simb" value="1" onchange="marcaTipoVotacao()" > <label>Simbólica</label>
+                  </br>
+                  <input type="radio" name="tipo_votacao_check_all" id="tipo_votacao_nom" value="2" onchange="marcaTipoVotacao()" > <label>Nominal</label>
+                  </br>
+                  <input type="radio" name="tipo_votacao_check_all" id="tipo_votacao_secr" value="3" onchange="marcaTipoVotacao()" > <label>Secreta</label>
+                  </br>
+                  <input type="radio" name="tipo_votacao_check_all" id="tipo_votacao_leit" value="4" onchange="marcaTipoVotacao()" > <label>Leitura</label>
+                </br>
+             </td>
+            </tr>
           </thead>
           {% if paginator.count > 1 %}
             <h3>{% blocktrans with paginator.count as total_materias %}Pesquisa concluída com sucesso! Foram encontradas {{ total_materias }} matérias.{% endblocktrans %}</h3>
@@ -126,5 +143,22 @@
 		$(window).on('beforeunload', function() {
       $("input[type=submit], input[type=button]").prop("disabled", "disabled")
     });
+    function checkAll(elem) {
+      let checkboxes = document.getElementsByName('materia_id');
+      for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type == 'checkbox')
+            checkboxes[i].checked = elem.checked;
+      }
+    }
+
+    function marcaTipoVotacao() {
+      materias = document.getElementsByName('materia_id');
+      for (var i=0; i<materias.length;i++){
+        if ( materias[i].checked ){
+           var id_materia = "#tipo_votacao_" + materias[i].value + "_" + document.querySelector('input[name="tipo_votacao_check_all"]:checked').value;
+           $(id_materia).prop('checked', true);
+        }
+      }
+    }
 	</script>
 {% endblock extra_js %}
