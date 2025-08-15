@@ -641,11 +641,14 @@ class RegistroVotacao(models.Model):
         ordering = ('id',)
 
     def __str__(self):
-        return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
-                 'Matéria: %(materia)s') % {
-                     'ordem': self.ordem,
-                     'votacao': self.tipo_resultado_votacao,
-            'materia': self.materia}
+        if self.ordem:
+            return _('Ordem: %(ordem)s - Votação: %(votacao)s') % {
+                         'ordem': self.ordem,
+                         'votacao': self.tipo_resultado_votacao}
+        else:
+            return _('Expediente: %(expediente)s - Votação: %(votacao)s') % {
+                         'expediente': self.expediente,
+                         'votacao': self.tipo_resultado_votacao}
 
     def clean(self):
         """Exatamente um dos campos ordem ou expediente deve estar preenchido.
@@ -696,7 +699,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     class Meta:
         verbose_name = _('Registro de Votação de Parlamentar')
         verbose_name_plural = _('Registros de Votações de Parlamentares')
-        ordering = ('id',)
+        ordering = ('parlamentar',)
 
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {

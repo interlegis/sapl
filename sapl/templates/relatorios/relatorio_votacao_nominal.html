@@ -1,0 +1,49 @@
+{% extends "relatorios/base_relatorio.html" %}
+{% load i18n %}
+{% load common_tags %}
+{% load static %}
+
+{% block content %}
+  <h2>Votações Nominais</h2>
+   <span style="font-size:x-small">
+    <b>PARÂMETROS DE PESQUISA:<br /></b>
+    {% if tipo_materia %}
+      Tipo de matéria: {{ tipo_materia }}<br />
+    {% endif %}
+    Período: {{ periodo }}<br />
+   </span>
+
+    {% if object_list %}
+
+      {% if qtde_votacoes > 1 %}
+        <h3>Foram encontradas {{qtde_votacoes}} votações.</h3>
+      {% elif qtde_votacoes == 1 %}
+        <h3>Foi encontrada {{qtde_votacoes}} votação.</h3>
+      {% endif %}
+
+      {% for voto in object_list %}
+        {% ifchanged voto.votacao_id %}
+         {% if not forloop.first %}</ul>{% endif %}
+         <div style="border-top: 1px solid black;margin-top:0.3cm;font-size:small">
+          {% if voto.ordem %}
+            <b>Matéria: {{ voto.ordem.materia }}</b> - {{ voto.ordem.materia.ementa }}<br />
+            <b>Momento da Votação: </b>Ordem do Dia - {{ voto.ordem.sessao_plenaria }}<br />
+            <b>Data da Votação: </b>{{ voto.data_hora|date:"d/m/Y" }}<br />
+            <b>Resultado: </b>{{ voto.ordem.resultado }}<br /><br />
+          {% else %}
+            <b>Matéria: {{ voto.expediente.materia }}</b> - {{ voto.expediente.materia.ementa }}<br />
+            <b>Momento da Votação: </b>Expediente - {{ voto.expediente.sessao_plenaria }}<br />
+            <b>Data da Votação: </b>{{ voto.data_hora|date:"d/m/Y" }}<br />
+            <b>Resultado: </b>{{ voto.expediente.resultado }}<br /><br />
+          {% endif %}
+         </div>
+        <ul style="columns: 2; list-style-type: none;font-size:small">
+        {% endifchanged %}
+          <li>{{ voto.parlamentar }} - <b>{{ voto.voto }}</b></li>
+      {% endfor %}
+      </ul>
+    {% else %}
+       <tr><td><h3 style="text-align: left;">Nenhuma votação encontrada com esses parâmetros.</h3></td></tr><br><br>
+    {% endif %}
+
+{% endblock content %}
