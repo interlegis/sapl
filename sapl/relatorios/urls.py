@@ -11,7 +11,7 @@ from .views import (relatorio_capa_processo,
                     RelatorioMateriasTramitacaoView, RelatorioMateriaAnoAssuntoView, RelatorioHistoricoTramitacaoView,
                     RelatorioDataFimPrazoTramitacaoView, RelatorioPresencaSessaoView, RelatorioAtasView,
                     RelatorioReuniaoView, RelatorioAudienciaView, RelatorioHistoricoTramitacaoAdmView,
-                    RelatorioDocumentosAcessoriosView, RelatorioNormasPorAutorView)
+                    RelatorioDocumentosAcessoriosView, RelatorioNormasPorAutorView, RelatorioVotacoesNominaisView)
 from ..base.views import EstatisticasAcessoNormas
 
 app_name = AppConfig.name
@@ -95,6 +95,9 @@ urlpatterns = [
     url(r'^sistema/relatorios/documentos_acessorios$',
         RelatorioDocumentosAcessoriosView.as_view(),
         name='relatorio_documentos_acessorios'),
+    url(r'^sistema/relatorios/votacoes_nominais$',
+        RelatorioVotacoesNominaisView.as_view(),
+        name='relatorio_votacoes_nominais'),
     url(r'^sistema/relatorios/normas-por-autor$',
         RelatorioNormasPorAutorView.as_view(), name='normas_por_autor'),
 ]

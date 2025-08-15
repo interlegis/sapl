@@ -1707,3 +1707,125 @@ class PautaMultiFormatOutputMixin(MultiFormatOutputMixin):
         output.close()
 
         return response
+
+
+class VotacoesMultiFormatOutputMixin(MultiFormatOutputMixin):
+
+    def render_to_csv(self, context):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="sapl_{self.request.resolver_match.url_name}.csv"'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = 0
+        writer = csv.writer(response, delimiter=";",
+                            quoting=csv.QUOTE_NONNUMERIC)
+
+        object_list = context['object_list']
+
+        data = [[list(self._headers(self.fields_report['csv']))], ]
+        for obj in object_list:
+            wr = list(self._write_row(obj, self.fields_report['csv']))
+            if wr[0] != data[-1][0][0]:
+                data.append([wr])
+            else:
+                data[-1].append(wr)
+
+        for mri, multirows in enumerate(data):
+            if len(multirows) == 1:
+                writer.writerow(multirows[0])
+            else:
+                for v in multirows:
+                    writer.writerow(v)
+
+        return response
+
+    def render_to_xlsx(self, context):
+
+        object_list = context['object_list']
+
+        data = [[list(self._headers(self.fields_report['xlsx']))], ]
+        row = 0
+        for obj in object_list:
+            wr = list(self._write_row(obj, self.fields_report['xlsx']))
+            if wr[0] != data[-1][0][0]:
+                data.append([wr])
+            else:
+                data[-1].append(wr)
+
+        output = io.BytesIO()
+        wb = Workbook(output, {'in_memory': True})
+
+        ws = wb.add_worksheet()
+
+        for mri, multirows in enumerate(data):
+            if len(multirows) == 1:
+                for rc, cell in enumerate(multirows[0]):
+                    ws.write(row, rc, cell)
+                row += 1
+            else:
+                for v in multirows:
+                    for rc, cell in enumerate(v):
+                        try:
+                            ws.write(row, rc, cell)
+                        except TypeError:
+                            ws.write(row, rc, str(cell))
+                    row += 1
+        ws.autofit()
+        wb.close()
+
+        output.seek(0)
+
+        response = HttpResponse(output.read(
+        ), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response['Content-Disposition'] = f'attachment; filename="sapl_{self.request.resolver_match.url_name}.xlsx"'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = 0
+
+        output.close()
+
+        return response
+
+    def render_to_json(self, context):
+
+        object_list = context['object_list']
+
+        data = []
+        for obj in object_list:
+            wr = list(self._write_row(obj, self.fields_report['json']))
+
+            wr[1] = str(wr[1])
+            if not data:
+                data.append([wr])
+                continue
+
+            if wr[0] != data[-1][0][0]:
+                data.append([wr])
+            else:
+                data[-1].append(wr)
+
+        fields_report = list(map(lambda i, j: (i, j), self.fields_report['json'], self._headers(self.fields_report['json'])))
+        fields_report[2] = ('parlamentar_voto', 'Voto por Parlamentar')
+        fields_report_data = []
+        for f in fields_report:
+            fields_report_data.append(f[0])
+        for mri, multirows in enumerate(data):
+            parlamentar_voto = []
+            for ri, cols in enumerate(multirows):
+                parlamentar_voto.append([cols[2], cols[3]])
+            data[mri] = dict(
+                map(lambda i, j: (i, j), fields_report_data, [multirows[0][0], multirows[0][1], parlamentar_voto]))
+
+        json_metadata = {
+            'headers': dict(fields_report[:-1]),
+            'results': data
+        }
+
+        response = JsonResponse(json_metadata)
+        response['Content-Disposition'] = f'attachment; filename="sapl_{self.request.resolver_match.url_name}.json"'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = 0
+
+        return response
+

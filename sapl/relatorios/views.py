@@ -31,7 +31,8 @@ from sapl.relatorios.forms import RelatorioNormasPorAutorFilterSet, RelatorioHis
     RelatorioNormasVigenciaFilterSet, RelatorioNormasMesFilterSet, RelatorioMateriasPorAutorFilterSet, \
     RelatorioMateriasPorAnoAutorTipoFilterSet, RelatorioMateriasTramitacaoFilterSet, RelatorioAudienciaFilterSet, \
     RelatorioReuniaoFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet, RelatorioHistoricoTramitacaoFilterSet, \
-    RelatorioPresencaSessaoFilterSet, RelatorioAtasFilterSet, RelatorioDocumentosAcessoriosFilterSet
+    RelatorioPresencaSessaoFilterSet, RelatorioAtasFilterSet, RelatorioDocumentosAcessoriosFilterSet, \
+    RelatorioVotacoesNominaisFilterSet
 from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 IntegranteMesa, JustificativaAusencia,
                                 Orador, OradorExpediente,
@@ -50,7 +51,7 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
 from sapl.settings import MEDIA_URL
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
-    num_materias_por_tipo, parlamentares_ativos
+    num_materias_por_tipo, parlamentares_ativos, VotacoesMultiFormatOutputMixin
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
@@ -1560,6 +1561,10 @@ def relatorio_documento_acessorio(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_documento_acessorio.html')
 
 
+def relatorio_votacao_nominal(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_votacao_nominal.html')
+
+
 def relatorio_normas_por_autor(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_normas_por_autor.html')
 
@@ -1876,6 +1881,75 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
         context['periodo'] = (
                 data_inicial + ' - ' + data_final
         )
+
+        return context
+
+
+class RelatorioVotacoesNominaisView(RelatorioMixin, VotacoesMultiFormatOutputMixin, FilterView):
+    model = VotoParlamentar
+    filterset_class = RelatorioVotacoesNominaisFilterSet
+    template_name = 'relatorios/RelatorioVotacoesNominais_filter.html'
+    relatorio = relatorio_votacao_nominal
+
+    fields_base_report = [
+        'votacao_id', 'votacao', 'parlamentar__nome_parlamentar', 'voto'
+    ]
+
+    fields_report = {
+        'csv': fields_base_report,
+        'xlsx': fields_base_report,
+        'json': fields_base_report,
+    }
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            RelatorioVotacoesNominaisView, self
+        ).get_context_data(**kwargs)
+
+        context['title'] = _('Votações Nominais')
+
+        if not self.filterset.form.is_valid():
+            return context
+
+        query_dict = self.request.GET.copy()
+        context['filter_url'] = ('&' + query_dict.urlencode()) if len(query_dict) > 0 else ''
+        context['show_results'] = show_results_filter_set(query_dict)
+
+        data_inicial = self.request.GET['data_hora_0']
+        data_final = self.request.GET['data_hora_1']
+        if not data_inicial:
+            data_inicial = "Data Inicial não definida"
+        if not data_final:
+            data_final = "Data Final não definida"
+        context['periodo'] = (
+                data_inicial + ' - ' + data_final
+        )
+
+        if self.request.GET['tipo_materia'] or self.request.GET['numero'] or self.request.GET['ano']:
+            object_list = context['object_list']
+            if self.request.GET['tipo_materia']:
+                tipo_id = self.request.GET['tipo_materia']
+                context['tipo_materia'] = TipoMateriaLegislativa.objects.get(id=tipo_id)
+                object_list = object_list.filter(
+                    Q(ordem__materia__tipo_id=tipo_id) |
+                    Q(expediente__materia__tipo_id=tipo_id))
+            if self.request.GET['numero']:
+                numero = self.request.GET['numero']
+                context['numero'] = numero
+                object_list = object_list.filter(
+                    Q(ordem__materia__numero=numero) |
+                    Q(expediente__materia__numero=numero))
+            if self.request.GET['ano']:
+                ano = self.request.GET['ano']
+                context['ano'] = ano
+                object_list = object_list.filter(
+                    Q(ordem__materia__ano=ano) |
+                    Q(expediente__materia__ano=ano))
+            context['object_list'] = object_list
+
+
+        if not 'format' in query_dict:
+            context['qtde_votacoes'] = context['object_list'].distinct('votacao_id').count()
 
         return context
 

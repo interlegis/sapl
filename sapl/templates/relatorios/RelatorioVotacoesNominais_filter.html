@@ -1,0 +1,79 @@
+{% extends "crud/list.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block base_content %}
+    {% if not show_results %}
+        {% crispy filter.form %}
+    {% else %}
+    <div class="float-left">
+      {% with 'sapl.relatorios:relatorio_votacoes_nominais' as url_reverse %}
+        {% include "crud/format_options.html" %}
+      {% endwith %}
+    </div>
+
+        <div class="actions btn-group float-right" role="group">
+            <a href="{% url 'sapl.relatorios:relatorio_votacoes_nominais' %}" class="btn btn-outline-primary">{% trans 'Fazer uma nova pesquisa' %}</a>
+        </div>
+        <br /><br />
+        <b>PARÂMETROS DE PESQUISA<br /></b>
+        {% if tipo_materia %}
+          &emsp;Tipo de Matéria: {{ tipo_materia }}<br />
+        {% endif %}
+        {% if numero %}
+          &emsp;Número: {{ numero }}<br />
+        {% endif %}
+        {% if ano %}
+          &emsp;Ano: {{ ano }}<br />
+        {% endif %}
+        &emsp;Período: {{ periodo }}<br /><br />
+
+        {% if object_list %}
+
+        {% if qtde_votacoes > 1 %}
+          <h3>Foram encontradas {{qtde_votacoes}} votações.</h3></br>
+        {% elif qtde_votacoes == 1 %}
+          <h3>Foi encontrada {{qtde_votacoes}} votação.</h3></br>
+        {% endif %}
+
+    <table class="table table-bordered table-hover">
+      <thead class="thead-default" >
+        <tr>
+          <th>Dados da Votação / Matéria</th>
+          <th>Parlamentar - Voto</th>
+        </tr>
+      </thead>     <tbody>
+               {% for voto in object_list %}
+                     {% ifchanged voto.votacao_id %}
+                      {% if not forloop.first %}
+                        </td></tr>
+                      {% endif %}
+                <tr><td class="materia" {% comment %}style="max-width: 50%"{% endcomment %}>
+                       {% if voto.ordem %}
+                         <b><a href="{% url 'sapl.materia:materialegislativa_detail' voto.ordem.materia_id %}">{{ voto.ordem.materia }}</a></b> - {{ voto.ordem.materia.ementa }}<br />
+                         <b>Momento da Votação: </b><a href="{% url 'sapl.sessao:ordemdia_list' voto.ordem.sessao_plenaria_id %}">Ordem do Dia</a> - 
+                         <a href="{% url 'sapl.sessao:sessaoplenaria_detail' voto.ordem.sessao_plenaria_id %}">{{ voto.ordem.sessao_plenaria }}</a><br />
+                         <b>Data da Votação: </b>{{ voto.data_hora|date:"d/m/Y" }}<br />
+                         <b>Resultado: </b>{{ voto.ordem.resultado }}
+                       {% else %}
+                         <b><a href="{% url 'sapl.materia:materialegislativa_detail' voto.expediente.materia_id %}">{{ voto.expediente.materia }}</a></b> - {{ voto.expediente.materia.ementa }}<br />
+                         <b>Momento da Votação: </b><a href="{% url 'sapl.sessao:expedientemateria_list' voto.expediente.sessao_plenaria_id %}">Expediente</a> - 
+                         <a href="{% url 'sapl.sessao:sessaoplenaria_detail' voto.expediente.sessao_plenaria_id %}">{{ voto.expediente.sessao_plenaria }}</a><br />
+                         <b>Data da Votação: </b>{{ voto.data_hora|date:"d/m/Y" }}<br />
+                         <b>Resultado: </b>{{ voto.expediente.resultado }}
+
+                       {% endif %}
+                </td><td class="votos" {% comment %}style="width: 50%"{% endcomment %}>
+                     {% endifchanged %}
+                       <span style="white-space: nowrap;">
+                       {{ voto.parlamentar }} - <b>{{ voto.voto }}</b>
+                       </span><br />
+               {% endfor %}
+     </tbody>
+    </table>
+        {% else %}
+            <tr><td><h3 style="text-align: left;">Nenhuma votação encontrada com esses parâmetros.</h3></td></tr><br><br>
+        {% endif %}
+    {% endif %}
+    {% include "paginacao.html" %}
+{% endblock base_content %}

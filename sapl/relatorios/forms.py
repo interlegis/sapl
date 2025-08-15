@@ -3,6 +3,7 @@ from crispy_forms.bootstrap import (FormActions)
 from crispy_forms.layout import (HTML, Button, Fieldset,
                                  Layout, Submit)
 from django import forms
+from django.forms import ModelChoiceField
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.audiencia.models import AudienciaPublica
@@ -10,10 +11,10 @@ from sapl.base.models import Autor
 from sapl.comissoes.models import Reuniao
 from sapl.crispy_layout_mixin import SaplFormHelper, to_row, form_actions
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, MateriaEmTramitacao, UnidadeTramitacao, \
-    StatusTramitacao
+    StatusTramitacao, TipoMateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.protocoloadm.models import DocumentoAdministrativo
-from sapl.sessao.models import SessaoPlenaria
+from sapl.sessao.models import SessaoPlenaria, VotoParlamentar
 from sapl.utils import FilterOverridesMetaMixin, choice_anos_com_normas, qs_override_django_filter, \
     choice_anos_com_materias, choice_tipos_normas, autor_label, autor_modal
 
@@ -53,6 +54,68 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
                                                    </div>
                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between',
+        )
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa'),
+                     row0, row1,
+                     buttons)
+        )
+
+
+class RelatorioVotacoesNominaisFilterSet(django_filters.FilterSet):
+
+    @property
+    def qs(self):
+        parent = super(RelatorioVotacoesNominaisFilterSet, self).qs
+        return parent.distinct().order_by('-votacao_id', 'parlamentar')
+
+    class Meta(FilterOverridesMetaMixin):
+        model = VotoParlamentar
+        fields = ['data_hora']
+
+    def __init__(self, *args, **kwargs):
+        super(
+            RelatorioVotacoesNominaisFilterSet, self
+        ).__init__(*args, **kwargs)
+
+        self.filters['data_hora'].label = 'Período (Data Inicial - Data Final)'
+
+        tipo_materia = '''<div class="col-md-6"><div id="div_id_tipo_materia" class="form-group"><label for="id_tipo_materia" class="col-form-label ">
+               Tipo de Matéria Legislativa
+           </label><div class=""><select name="tipo_materia" class="select form-control" id="id_tipo_materia"><option value="" selected="">---------</option>'''
+        for tipo in TipoMateriaLegislativa.objects.all():
+            tipo_materia += '<option value="' + str(tipo.id) + '">' + tipo.descricao + '</option>'
+        tipo_materia += '</select></div></div></div>'
+
+        numero = '''<div id="div_id_numero" class="col-md-3"><label for="id_numero" class="col-form-label ">Número</label>
+                    <div class=""><input type="number" name="numero" step="any" class="numberinput form-control" id="id_numero"></div></div>'''
+
+        ano = '''<div id="div_id_ano" class="col-md-3"><label for="id_ano" class="col-form-label ">Ano da Matéria</label>
+                 <div class=""><select name="ano" class="select form-control" id="id_ano"><option value="" selected="">---------</option>'''
+        for ano_materia in choice_anos_com_materias():
+            ano += '<option value="' + str(ano_materia[0]) + '">' + str(ano_materia[1]) + '</option>'
+
+        ano += '</select></div></div>'
+
+        row0= HTML('<div class="row">' + tipo_materia + numero + ano + '</div>')
+
+        row1 = to_row([('data_hora', 12)])
+
+        buttons = FormActions(
+            *[
+                HTML('''
+                        <div class="form-check">
+                            <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                            <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                        </div>
+                     ''')
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
