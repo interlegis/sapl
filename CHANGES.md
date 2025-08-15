@@ -1,4 +1,12 @@
 
+3.1.164-RC1 / 2025-08-05
+========================
+
+  * Adiciona botoes de impressao na pesquisa de doc adm
+  * Fix: conserta erro em historico proposicao
+  * Desabilita detalhe de Justificativa Ausência para acesso público
+  * Adiciona homepage do parlamentar a perfil público
+
 3.1.164-RC0 / 2025-07-09
 ========================
 
