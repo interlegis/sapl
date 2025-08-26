@@ -31,7 +31,7 @@ class LexmlProvedorForm(ModelForm):
             return cd
 
         if cd["xml"]:
-            xml = re.sub("\n|\t", "", cd["xml"].strip())
+            xml = re.sub(r"\n|\t", "", cd["xml"].strip())
 
             validar_xml(xml)
             validar_schema(xml)

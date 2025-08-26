@@ -612,13 +612,13 @@ def get_sessao_plenaria(sessao, casa, user):
         if not is_empty(conteudo):
             # unescape HTML codes
             # https://github.com/interlegis/sapl/issues/1046
-            conteudo = re.sub('style=".*?"', '', conteudo)
-            conteudo = re.sub('class=".*?"', '', conteudo)
+            conteudo = re.sub(r'style=".*?"', '', conteudo)
+            conteudo = re.sub(r'class=".*?"', '', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('align=".*?"', '', conteudo)
-            conteudo = re.sub('<p\s+>', '<p>', conteudo)
+            conteudo = re.sub(r'align=".*?"', '', conteudo)
+            conteudo = re.sub(r'<p\s+>', '<p>', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)
+            conteudo = re.sub(r'<br\s+/>', '<br/>', conteudo)
             conteudo = html.unescape(conteudo)
 
             # escape special character '&'
@@ -874,7 +874,7 @@ def get_sessao_plenaria(sessao, casa, user):
 
         # unescape HTML codes
         # https://github.com/interlegis/sapl/issues/1046
-        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = re.sub(r'style=".*?"', '', conteudo)
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
@@ -894,7 +894,7 @@ def get_sessao_plenaria(sessao, casa, user):
 
         # unescape HTML codes
         # https://github.com/interlegis/sapl/issues/1046
-        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = re.sub(r'style=".*?"', '', conteudo)
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
@@ -1321,13 +1321,13 @@ def get_pauta_sessao(sessao, casa):
         if not is_empty(conteudo):
             # unescape HTML codes
             # https://github.com/interlegis/sapl/issues/1046
-            conteudo = re.sub('style=".*?"', '', conteudo)
-            conteudo = re.sub('class=".*?"', '', conteudo)
+            conteudo = re.sub(r'style=".*?"', '', conteudo)
+            conteudo = re.sub(r'class=".*?"', '', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('align=".*?"', '', conteudo)
-            conteudo = re.sub('<p\s+>', '<p>', conteudo)
+            conteudo = re.sub(r'align=".*?"', '', conteudo)
+            conteudo = re.sub(r'<p\s+>', '<p>', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)
+            conteudo = re.sub(r'<br\s+/>', '<br/>', conteudo)
             conteudo = html.unescape(conteudo)
 
             # escape special character '&'

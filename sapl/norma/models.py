@@ -263,7 +263,7 @@ class NormaJuridica(models.Model):
             'tipo': self.tipo,
             'orgao_sigla': f'-{self.orgao.sigla}' if self.orgao else '',
             'numero': numero_norma,
-            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
+            'data': defaultfilters.date(self.data, r"d \d\e F \d\e Y").lower()}
 
     @property
     def epigrafe(self):
@@ -278,7 +278,7 @@ class NormaJuridica(models.Model):
         return _('%(tipo)s nº %(numero)s, de %(data)s') % {
             'tipo': self.tipo,
             'numero': numero_norma,
-            'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
+            'data': defaultfilters.date(self.data, r"d \d\e F \d\e Y").lower()}
 
     def delete(self, using=None, keep_parents=False):
         texto_integral = self.texto_integral

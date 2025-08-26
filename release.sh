@@ -76,9 +76,6 @@ function set_rc_version {
     fi
 
     FINAL_VERSION=$NEXT_RC_VERSION
-## DEBUG
-#    echo "OLD_VERSION: $OLD_VERSION"
-#    echo "FINAL_VERSION: $FINAL_VERSION"
 }
 
 # Function to display Yes/No prompt with colored message

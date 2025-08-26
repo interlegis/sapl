@@ -20,6 +20,8 @@ from kazoo.client import KazooClient
 #
 
 logging.basicConfig()
+logging.captureWarnings(True)
+logger = logging.getLogger(__name__)
 
 SECURITY_FILE_TEMPLATE = """
    {
@@ -49,6 +51,7 @@ def solr_hash_password(password: str, salt: str = None):
         salt (optional): base64 salt string
         returns: sha256 hash of password and salt (both base64 strings)
     """
+    logger.debug("Generating Solr password")
     m = sha256()
     if salt is None:
         salt = secrets.token_bytes(32)
@@ -67,32 +70,32 @@ def solr_hash_password(password: str, salt: str = None):
 
 
 def create_security_file(username, password):
-    print("Creating security.json file...")
+    logger.info("Creating security.json file...")
     with open("security.json", "w") as f:
         cypher, salt = solr_hash_password(password)
         f.write(SECURITY_FILE_TEMPLATE % (username, cypher, salt, username))
-    print("file created!")
+    logger.info("file created!")
 
 
 def upload_security_file(zk_host):
     zk_port = 9983  # embedded ZK port
-    print(f"Uploading security file to Solr, ZK server={zk_host}:{zk_port}...")
+    logger.info(f"Uploading security file to Solr, ZK server={zk_host}:{zk_port}...")
     try:
         with open('security.json', 'r') as f:
             data = f.read()
         zk = KazooClient(hosts=f"{zk_host}:{zk_port}")
         zk.start()
-        print("Uploading security.json file...")
+        logger.info("Uploading security.json file...")
         if zk.exists('/security.json'):
             zk.set("/security.json", str.encode(data))
         else:
             zk.create("/security.json", str.encode(data))
         data, stat = zk.get('/security.json')
-        print("file uploaded!")
-        print(data.decode('utf-8'))
+        logger.info("file uploaded!")
+        logger.info(data.decode('utf-8'))
         zk.stop()
     except Exception as e:
-        print(e)
+        logger.error(e)
         sys.exit(-1)
 
 
@@ -250,6 +253,7 @@ def setup_embedded_zk(solr_url):
         _, solr_user, solr_pwd, solr_host, solr_port = match.groups()
 
         if solr_user and solr_pwd and solr_host:
+            print(f"Creating Solr user {solr_user} with password {solr_pwd}")
             create_security_file(solr_user, solr_pwd)
             upload_security_file(solr_host)
         else:
