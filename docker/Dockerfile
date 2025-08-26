@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.12-slim-bookworm
 
 # Setup env
 ENV LANG C.UTF-8
@@ -7,14 +7,17 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND noninteractive
 
-ENV BUILD_PACKAGES apt-utils apt-file libpq-dev graphviz-dev build-essential git pkg-config \
-                   python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev \
-                   libcairo2-dev software-properties-common python3-setuptools python3-pip
+ENV BUILD_PACKAGES="apt-utils apt-file libpq-dev graphviz-dev build-essential git pkg-config \
+                    python3-dev libxml2-dev libjpeg-dev libssl-dev libffi-dev libxslt1-dev \
+                    libcairo2-dev libpango1.0-dev libgdk-pixbuf-2.0-dev libharfbuzz-dev \
+                    libfreetype6-dev zlib1g-dev software-properties-common python3-setuptools python3-pip"
 
 ## NAO EH PRA TIRAR O vim DA LISTA DE COMANDOS INSTALADOS!!!
-ENV RUN_PACKAGES graphviz python3-lxml python3-magic postgresql-client python3-psycopg2 \
-                 poppler-utils curl jq bash vim python3-venv tzdata nodejs \
-                 fontconfig ttf-dejavu python nginx
+ENV RUN_PACKAGES="graphviz python3-lxml python3-magic postgresql-client \
+                  poppler-utils curl jq bash vim python3-venv tzdata nodejs \
+                  fontconfig python3 nginx \
+                  libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
+                  libharfbuzz0b libfreetype6 libjpeg62-turbo zlib1g fonts-dejavu-core"
  
 RUN mkdir -p /var/interlegis/sapl
 
@@ -41,7 +44,7 @@ COPY docker/wait-for-pg.sh $HOME
 COPY docker/wait-for-solr.sh $HOME
 COPY docker/create_admin.py $HOME
 COPY docker/genkey.py $HOME
-COPY docker/gunicorn_start.sh $HOME
+COPY docker/gunicorn.conf.py $HOME
 
 COPY docker/config/nginx/sapl.conf /etc/nginx/conf.d
 COPY docker/config/nginx/nginx.conf /etc/nginx/nginx.conf

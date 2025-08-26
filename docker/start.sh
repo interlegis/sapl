@@ -48,12 +48,18 @@ create_env
 
 /bin/bash wait-for-pg.sh $DATABASE_URL
 
+###
+### This is required for compability with newer versions of psycopg2 lib
+###
+echo "Setting database timezone to UTC"
+psql $DATABASE_URL -c 'SET TIME ZONE UTC;'
+
 yes yes | python3 manage.py migrate
 
 
 ## SOLR
 USE_SOLR="${USE_SOLR:=False}"
-SOLR_URL="${SOLR_URL:=http://localhost:8983}"
+SOLR_URL="${SOLR_URL:=http://admin:solr@localhost:8983}"
 SOLR_COLLECTION="${SOLR_COLLECTION:=sapl}"
 NUM_SHARDS=${NUM_SHARDS:=1}
 RF=${RF:=1}
@@ -131,8 +137,6 @@ if [ $lack_pwd -eq 0 ]; then
    # return -1
 fi
 
-# Backfilling AuditLog's JSON field
-time ./manage.py backfill_auditlog &
 
 echo "-------------------------------------"
 echo "| ███████╗ █████╗ ██████╗ ██╗       |"
@@ -143,5 +147,5 @@ echo "| ███████║██║  ██║██║     ████�
 echo "| ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝  |"
 echo "-------------------------------------"
 
-/bin/sh gunicorn_start.sh &
+gunicorn -c gunicorn.conf.py &
 /usr/sbin/nginx -g "daemon off;"

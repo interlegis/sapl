@@ -12,4 +12,5 @@ export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 # Get eth0 IP and filter out the netmask portion (/24, e.g.)
 IP=`ip addr | grep 'inet .* eth0' | awk '{print $2}' | sed 's/\/[0-9]*//'`
 
-gunicorn --bind $IP:8000 sapl.wsgi:application
+#gunicorn --bind $IP:8000 sapl.wsgi:application
+gunicorn -c gunicorn.conf.py sapl.wsgi:application
