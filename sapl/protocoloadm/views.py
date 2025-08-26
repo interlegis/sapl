@@ -24,7 +24,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
@@ -278,7 +278,7 @@ class AcompanhamentoDocumentoView(CreateView):
         if not google_recaptcha_configured():
             self.logger.warning(_('Google Recaptcha não configurado!'))
             messages.error(request, _('Google Recaptcha não configurado!'))
-            return redirect(request.META.get('HTTP_REFERER', '/'))
+            return redirect(request.headers.get('referer', '/'))
 
         pk = self.kwargs['pk']
         documento = DocumentoAdministrativo.objects.get(id=pk)
@@ -297,7 +297,7 @@ class AcompanhamentoDocumentoView(CreateView):
         if not google_recaptcha_configured():
             self.logger.warning(_('Google Recaptcha não configurado!'))
             messages.error(request, _('Google Recaptcha não configurado!'))
-            return redirect(request.META.get('HTTP_REFERER', '/'))
+            return redirect(request.headers.get('referer', '/'))
 
         form = AcompanhamentoDocumentoForm(request.POST)
         pk = self.kwargs['pk']
@@ -440,8 +440,7 @@ class DocumentoAdministrativoCrud(Crud):
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
 
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -477,8 +476,7 @@ class DocumentoAdministrativoCrud(Crud):
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
 
-                    tz = timezone.get_current_timezone()
-                    self.object.ultima_edicao = tz.localize(datetime.now())
+                    self.object.ultima_edicao = timezone.now()
 
                     self.object.save()
                     break
@@ -793,8 +791,7 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc['user'] = self.request.user
         doc['ip'] = get_client_ip(self.request)
 
-        tz = timezone.get_current_timezone()
-        doc['ultima_edicao'] = tz.localize(datetime.now())
+        doc['ultima_edicao'] = timezone.now()
 
         return doc
 
@@ -989,8 +986,7 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             materia.user = self.request.user
             materia.ip = get_client_ip(self.request)
 
-            tz = timezone.get_current_timezone()
-            materia.ultima_edicao = tz.localize(datetime.now())
+            materia.ultima_edicao = timezone.now()
 
             materia.save()
 
@@ -1336,8 +1332,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
 
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -1385,8 +1380,7 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
 
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -1527,8 +1521,7 @@ class DesvincularDocumentoView(PermissionRequiredMixin, CreateView):
         documento.user = self.request.user
         documento.ip = get_client_ip(self.request)
 
-        tz = timezone.get_current_timezone()
-        documento.ultima_edicao = tz.localize(datetime.now())
+        documento.ultima_edicao = timezone.now()
 
         documento.save()
         return redirect(self.get_success_url())
@@ -1555,8 +1548,7 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         materia.user = self.request.user
         materia.ip = get_client_ip(self.request)
 
-        tz = timezone.get_current_timezone()
-        materia.ultima_edicao = tz.localize(datetime.now())
+        materia.ultima_edicao = timezone.now()
 
         materia.save()
         return redirect(self.get_success_url())
@@ -1708,8 +1700,7 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
         user = request.user
         ip = get_client_ip(request)
 
-        tz = timezone.get_current_timezone()
-        ultima_edicao = tz.localize(datetime.now())
+        ultima_edicao = timezone.now()
 
         documentos_ids = request.POST.getlist('documentos')
         if not documentos_ids:

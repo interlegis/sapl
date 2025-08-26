@@ -5,7 +5,7 @@ from datetime import datetime
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from crispy_forms.layout import Button, Column, Fieldset, HTML, Layout
 

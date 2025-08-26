@@ -18,7 +18,7 @@ import socket
 import sys
 
 from decouple import config
-from dj_database_url import parse as db_url
+import dj_database_url
 from easy_thumbnails.conf import Settings as thumbnail_settings
 from unipath import Path
 
@@ -30,6 +30,8 @@ host = socket.gethostbyname_ex(socket.gethostname())[0]
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='32jk1h412l3kjh421lkj4hlkj234')
@@ -82,6 +84,7 @@ INSTALLED_APPS = (
                      'django_extensions',
 
                      'crispy_forms',
+                     'crispy_bootstrap4',
 
                      'waffle',
 
@@ -109,14 +112,15 @@ HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable au
 SEARCH_BACKEND = ''
 SEARCH_URL = ['', '']
 
+## TODO! Check if Solr user/password passing is working!
 # SOLR
 USE_SOLR = config('USE_SOLR', cast=bool, default=False)
 SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
 SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
 
 # FOR HAYSTACK 3.3.1 (Django >= 3)
-# SOLR_USER = config('SOLR_USER', cast=str)
-# SOLR_PASSWORD = config('SOLR_PASSWORD', cast=str)
+SOLR_USER = config('SOLR_USER', cast=str, default='solr')
+SOLR_PASSWORD = config('SOLR_PASSWORD', cast=str, default='solr')
 
 if USE_SOLR:
     HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'  # enable auto-index
@@ -130,10 +134,10 @@ HAYSTACK_CONNECTIONS = {
         SEARCH_URL[0]: SEARCH_URL[1],
         'BATCH_SIZE': 1000,
         'TIMEOUT': 20,
-        # 'KWARGS': {
-        #     'timeout': 60,
-        #     'auth': (SOLR_USER, SOLR_PASSWORD),  # Basic Auth
-        # },
+        'KWARGS': {
+            'timeout': 60,
+            'auth': (SOLR_USER, SOLR_PASSWORD),  # Basic Auth
+        },
     },
 }
 
@@ -241,42 +245,15 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-# Parse DATABASE_URL
-# dj-database-url==0.5.0 is the latest compatible with Django 2.2, later versions required Django >= 4
-# but it doesn't support OPTIONS tag, so we need setup_db_tz
-# This should be removed once we are able to upgrade to Django >= 4
-DATABASES = {
-    "default": config("DATABASE_URL", cast=db_url)
-}
+db_config = dj_database_url.config(
+    default=config("DATABASE_URL"),
+    conn_max_age=600,
+    conn_health_checks=True,
+)
 
+db_config["OPTIONS"] = {"options": "-c timezone=utc"}
 
-def setup_db_tz():
-    db = DATABASES["default"]
-    # Normalize legacy engine alias returned by old dj-database-url
-    if db.get("ENGINE") == "django.db.backends.postgresql_psycopg2":
-        db["ENGINE"] = "django.db.backends.postgresql"
-
-    # Force UTC per connection for Postgres (fixes Django’s utc_tzinfo_factory assertion)
-    if db.get("ENGINE") == "django.db.backends.postgresql":
-        opts = db.setdefault("OPTIONS", {})
-        existing = (opts.get("options") or "").strip()
-        force_utc = "-c timezone=UTC"
-        opts["options"] = f"{existing} {force_utc}".strip() if existing else force_utc
-
-        # ensure default TCP port if you use HOST; leave sockets alone if HOST is empty
-        if db.get("HOST") and not db.get("PORT"):
-            db["PORT"] = "5432"
-
-    # Add connection lifetime
-    # in recent dj-database-url versions, replace by config("DATABASE_URL", conn_max_age=300)
-    db["CONN_MAX_AGE"] = 300  # keep connections for 5 minutes
-
-    # Log if DEBUG mode
-    if config("DEBUG", default=False, cast=bool):
-        logger.debug("DB config: %r", db)
-
-
-setup_db_tz()
+DATABASES = {"default": db_config}
 
 IMAGE_CROPPING_JQUERY_URL = None
 THUMBNAIL_PROCESSORS = (
@@ -331,31 +308,7 @@ if not TIME_ZONE:
         'TIMEZONE env variable undefined in .env settings file! Leaving...')
 
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
-
-
-##
-## Monkey patch of the Django 2.2 because latest version of psycopg2 returns DB time zone as UTC,
-## but Django 2.2 requires an int! This should be removed once we are able to upgrade to Django >= 4
-##
-import importlib
-from django.utils.timezone import utc
-
-pg_utils = importlib.import_module("django.db.backends.postgresql.utils")
-
-
-def _compat_utc_tzinfo_factory(offset):
-    try:
-        minutes = int(offset.total_seconds() // 60) if hasattr(offset, "total_seconds") else int(offset)
-    except Exception:
-        raise AssertionError("database connection isn't set to UTC")
-    if minutes != 0:
-        raise AssertionError("database connection isn't set to UTC")
-    return utc
-
-
-pg_utils.utc_tzinfo_factory = _compat_utc_tzinfo_factory
 
 # DATE_FORMAT = 'N j, Y'
 DATE_FORMAT = 'd/m/Y'
@@ -402,8 +355,8 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
-CRISPY_FAIL_SILENTLY = not DEBUG
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
+CRISPY_FAIL_SILENTLY = False
 
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False

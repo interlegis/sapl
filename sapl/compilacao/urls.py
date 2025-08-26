@@ -1,4 +1,4 @@
-from django.conf.urls import include, url
+from django.urls import include, path, re_path
 
 from sapl.compilacao import views
 from sapl.compilacao.views import (TipoDispositivoCrud, TipoNotaCrud,
@@ -11,92 +11,86 @@ from .apps import AppConfig
 app_name = AppConfig.name
 
 urlpatterns_compilacao = [
-    url(r'^$', views.TaListView.as_view(), name='ta_list'),
-    url(r'^create$', views.TaCreateView.as_view(), name='ta_create'),
-    url(r'^(?P<pk>[0-9]+)$', views.TaDetailView.as_view(), name='ta_detail'),
-    url(r'^(?P<pk>[0-9]+)/edit$',
+    path('', views.TaListView.as_view(), name='ta_list'),
+    path('create', views.TaCreateView.as_view(), name='ta_create'),
+    path('<int:pk>', views.TaDetailView.as_view(), name='ta_detail'),
+    path('<int:pk>/edit',
         views.TaUpdateView.as_view(), name='ta_edit'),
-    url(r'^(?P<pk>[0-9]+)/delete$',
+    path('<int:pk>/delete',
         views.TaDeleteView.as_view(), name='ta_delete'),
 
 
-    url(r'^(?P<ta_id>[0-9]+)/text$',
+    path('<int:ta_id>/text',
         views.TextView.as_view(), name='ta_text'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/vigencia/(?P<sign>.*:[A-Za-z0-9_-]+)/$',
+    re_path(r'^(?P<ta_id>[0-9]+)/text/vigencia/(?P<sign>.*:[A-Za-z0-9_-]+)/$',
         views.TextView.as_view(), name='ta_vigencia'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/edit',
+    re_path(r'^(?P<ta_id>[0-9]+)/text/edit',
         views.TextEditView.as_view(), name='ta_text_edit'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/notifications',
+    re_path(r'^(?P<ta_id>[0-9]+)/text/notifications',
         views.TextNotificacoesView.as_view(), name='ta_text_notificacoes'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/$',
+    path('<int:ta_id>/text/<int:dispositivo_id>/',
         views.DispositivoView.as_view(), name='dispositivo'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/refresh',
+    re_path(r'^(?P<ta_id>[0-9]+)/text/(?P<dispositivo_id>[0-9]+)/refresh',
         views.DispositivoDinamicEditView.as_view(),
         name='dispositivo_refresh'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit$',
+    path('<int:ta_id>/text/<int:pk>/edit',
         views.DispositivoEdicaoBasicaView.as_view(), name='dispositivo_edit'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/vigencia',
+    re_path(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/vigencia',
         views.DispositivoEdicaoVigenciaView.as_view(),
         name='dispositivo_edit_vigencia'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/alteracao',
+    re_path(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/alteracao',
         views.DispositivoEdicaoAlteracaoView.as_view(),
         name='dispositivo_edit_alteracao'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/definidor_vigencia',
+    re_path(r'^(?P<ta_id>[0-9]+)/text/(?P<pk>[0-9]+)/edit/definidor_vigencia',
         views.DispositivoDefinidorVigenciaView.as_view(),
         name='dispositivo_edit_definidor_vigencia'),
 
 
-    url(r'^(?P<ta_id>[0-9]+)/text/'
-        '(?P<dispositivo_id>[0-9]+)/nota/create$',
+    path('<int:ta_id>/text/<int:dispositivo_id>/nota/create',
         views.NotasCreateView.as_view(), name='nota_create'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/'
-        '(?P<dispositivo_id>[0-9]+)/nota/(?P<pk>[0-9]+)/edit$',
+    path('<int:ta_id>/text/<int:dispositivo_id>/nota/<int:pk>/edit',
         views.NotasEditView.as_view(), name='nota_edit'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/'
-        '(?P<dispositivo_id>[0-9]+)/nota/(?P<pk>[0-9]+)/delete$',
+    path('<int:ta_id>/text/<int:dispositivo_id>/nota/<int:pk>/delete',
         views.NotasDeleteView.as_view(), name='nota_delete'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/'
-        '(?P<dispositivo_id>[0-9]+)/vide/create$',
+    path('<int:ta_id>/text/<int:dispositivo_id>/vide/create',
         views.VideCreateView.as_view(), name='vide_create'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/'
-        '(?P<dispositivo_id>[0-9]+)/vide/(?P<pk>[0-9]+)/edit$',
+    path('<int:ta_id>/text/<int:dispositivo_id>/vide/<int:pk>/edit',
         views.VideEditView.as_view(), name='vide_edit'),
 
-    url(r'^(?P<ta_id>[0-9]+)/text/'
-        '(?P<dispositivo_id>[0-9]+)/vide/(?P<pk>[0-9]+)/delete$',
+    path('<int:ta_id>/text/<int:dispositivo_id>/vide/<int:pk>/delete',
         views.VideDeleteView.as_view(), name='vide_delete'),
 
-    url(r'^search_fragment_form$',
+    path('search_fragment_form',
         views.DispositivoSearchFragmentFormView.as_view(),
         name='dispositivo_fragment_form'),
 
-    url(r'^search_form$',
+    path('search_form',
         views.DispositivoSearchModalView.as_view(),
         name='dispositivo_search_form'),
 
 
-    url(r'^(?P<ta_id>[0-9]+)/publicacao$',
+    path('<int:ta_id>/publicacao',
         views.PublicacaoListView.as_view(), name='ta_pub_list'),
-    url(r'^(?P<ta_id>[0-9]+)/publicacao/create$',
+    path('<int:ta_id>/publicacao/create',
         views.PublicacaoCreateView.as_view(), name='ta_pub_create'),
-    url(r'^(?P<ta_id>[0-9]+)/publicacao/(?P<pk>[0-9]+)$',
+    path('<int:ta_id>/publicacao/<int:pk>',
         views.PublicacaoDetailView.as_view(), name='ta_pub_detail'),
-    url(r'^(?P<ta_id>[0-9]+)/publicacao/(?P<pk>[0-9]+)/edit$',
+    path('<int:ta_id>/publicacao/<int:pk>/edit',
         views.PublicacaoUpdateView.as_view(), name='ta_pub_edit'),
-    url(r'^(?P<ta_id>[0-9]+)/publicacao/(?P<pk>[0-9]+)/delete$',
+    path('<int:ta_id>/publicacao/<int:pk>/delete',
         views.PublicacaoDeleteView.as_view(), name='ta_pub_delete'),
 
 
@@ -104,19 +98,19 @@ urlpatterns_compilacao = [
 ]
 
 urlpatterns = [
-    url(r'^ta/', include(urlpatterns_compilacao)),
+    path('ta/', include(urlpatterns_compilacao)),
 
-    url(r'^sistema/ta/config/tipo-nota/',
+    path('sistema/ta/config/tipo-nota/',
         include(TipoNotaCrud.get_urls())),
-    url(r'^sistema/ta/config/tipo-vide/',
+    path('sistema/ta/config/tipo-vide/',
         include(TipoVideCrud.get_urls())),
-    url(r'^sistema/ta/config/tipo-publicacao/',
+    path('sistema/ta/config/tipo-publicacao/',
         include(TipoPublicacaoCrud.get_urls())),
-    url(r'^sistema/ta/config/veiculo-publicacao/',
+    path('sistema/ta/config/veiculo-publicacao/',
         include(VeiculoPublicacaoCrud.get_urls())),
-    url(r'^sistema/ta/config/tipo/',
+    path('sistema/ta/config/tipo/',
         include(TipoTextoArticuladoCrud.get_urls())),
-    url(r'^sistema/ta/config/tipodispositivo/',
+    path('sistema/ta/config/tipodispositivo/',
         include(TipoDispositivoCrud.get_urls())),
 
 

@@ -2,7 +2,7 @@
 {% load i18n compilacao_filters common_tags%}
 
 <div class="controls cp lista-dispositivo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
-  {% include 'bootstrap/layout/field_errors_block.html' %}
+  {% include 'bootstrap4/layout/field_errors_block.html' %}
   {% for choice in  field.field.choices %}
     {% ifchanged choice.1.ta%}
       {% if not forloop.first %}</ul>{% endif %}
@@ -62,5 +62,5 @@
 
 
 
-    {% include 'bootstrap/layout/help_text.html' %}
+    {% include 'bootstrap4/layout/help_text.html' %}
 </div>

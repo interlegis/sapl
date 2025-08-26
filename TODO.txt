@@ -1,0 +1,3 @@
+[] Check if Solr usermame/password passing is working
+[] Check if email sending is working
+[] Adjust buttons layout

@@ -1,44 +1,59 @@
-django==2.2.28
-django-haystack==3.1.1
-django-filter==2.4.0
-djangorestframework==3.12.4
-django-braces==1.14.0
-django-crispy-forms==1.7.2
-django-contrib-postgres==0.0.1
-django-extra-views==0.12.0
-django-model-utils==3.1.2
-django-extensions==2.1.4
-django-image-cropping==1.2
-django-waffle==3.0.0
-django-webpack-loader==1.6.0
-drf-spectacular==0.18.2
+# Core
+Django==4.2.24
+
+# Search / API / Forms
+django-haystack==3.3.0
+django-filter==24.3
+djangorestframework==3.15.2
+drf-spectacular==0.28.0
+django-crispy-forms==2.4
+crispy-bootstrap4==2024.1
+
+# DB / utils
+dj-database-url==3.1.2
+django-braces==1.17.0
+django-extra-views==0.16.0
+django-model-utils==4.3.1
+django-extensions==3.2.3
 django-ratelimit==3.0.1
-easy-thumbnails==2.8.5
+easy-thumbnails==2.9.0
+
+# Images / files / PDF
+django-image-cropping==1.7.0
+Pillow==10.3.0
+trml2pdf==0.6
+weasyprint==66.0
+PyPDF4==1.27.0
+rlPyCairo==0.4.0
+
+# Frontend integration
+django-webpack-loader==1.6.0    # (works; keep unless you’re moving to webpack5 forks)
+
+# Feature flags / misc
+django-waffle==4.1.0
+whitenoise==6.9.0
+
+# Monitoring
+django-prometheus==2.4.1
+
+# Other deps from your list (unchanged unless you want to bump)
 python-decouple==3.1
-dj-database-url==0.5.0
 psycopg2-binary==2.9.9
 pyyaml==6.0.1
-pytz==2019.3
+# pytz is no longer required by Django; keep only if YOU use it directly:
+# pytz==2024.1
 python-magic==0.4.15
 unipath==1.1
-Pillow==10.3.0
-reportlab==3.6.13
-WeasyPrint==66
-trml2pdf==0.6
-gunicorn==23.0.0
+gunicorn==22.0.0
 more-itertools==8.2.0
 pysolr==3.6.0
-PyPDF4==1.27.0
-#pyoai==2.5.1
-git+https://github.com/infrae/pyoai@5ff2f15e869869e70d8139e4c37b7832854d7049
 Unidecode==1.1.1
-whitenoise==5.1.0
-kazoo==2.8.0
-django-prometheus==2.2.0
-
 asn1crypto==1.5.1
 XlsxWriter==3.2.0
 
-setuptools==80.9.0
-
+# Custom / VCS deps you already use
+git+https://github.com/infrae/pyoai@5ff2f15e869869e70d8139e4c37b7832854d7049
 git+https://github.com/interlegis/django-admin-bootstrapped
+
+# REMOVE this old backport package completely (Django ships postgres contrib):
+# django-contrib-postgres==0.0.1

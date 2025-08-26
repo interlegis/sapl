@@ -4,7 +4,7 @@ from crispy_forms.layout import (HTML, Button, Fieldset,
                                  Layout, Submit)
 from django import forms
 from django.forms import ModelChoiceField
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 
 from sapl.audiencia.models import AudienciaPublica

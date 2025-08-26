@@ -9,7 +9,7 @@ from django.db.models import Max
 from django.db.models.functions import Concat
 from django.template import defaultfilters
 from django.utils import formats, timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from model_utils import Choices
 
 
@@ -343,13 +343,10 @@ class MateriaLegislativa(models.Model):
                 if protocolo.timestamp:
                     return protocolo.timestamp
                 elif protocolo.timestamp_data_hora_manual:
-                    tz = timezone.localtime().tzinfo
-                    return tz.localize(
-                        datetime.combine(
-                            protocolo.data,
-                            protocolo.hora
-                        )
-                    )
+                    dt = datetime.combine(protocolo.data, protocolo.hora)
+                    if timezone.is_naive(dt):  # when USE_TZ=True this will be True
+                        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+                    return dt
                 elif protocolo.data:
                     return protocolo.data
 

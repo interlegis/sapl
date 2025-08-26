@@ -25,7 +25,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 from django.utils import formats, timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
@@ -243,8 +243,7 @@ class CriarProtocoloMateriaView(CreateView):
         materia.user = self.request.user
         materia.ip = get_client_ip(self.request)
 
-        tz = timezone.get_current_timezone()
-        materia.ultima_edicao = tz.localize(datetime.now())
+        materia.ultima_edicao = timezone.now()
 
         materia.save()
 
@@ -1040,7 +1039,7 @@ class ProposicaoCrud(Crud):
                     or tipo_texto == 'T' and not objeto_antigo.texto_articulado.exists():
                 self.object.user = self.request.user
                 self.object.ip = get_client_ip(self.request)
-                self.object.ultima_edicao = tz.localize(datetime.now())
+                self.object.ultima_edicao = timezone.now()
                 self.object.save()
 
             self.object = form.save()
@@ -1058,7 +1057,7 @@ class ProposicaoCrud(Crud):
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
-                    self.object.ultima_edicao = tz.localize(datetime.now())
+                    self.object.ultima_edicao = timezone.now()
                     self.object.save()
                     break
 
@@ -1115,8 +1114,7 @@ class ProposicaoCrud(Crud):
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
 
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -1373,9 +1371,7 @@ class TramitacaoCrud(MasterDetailCrud):
             initial['data_tramitacao'] = timezone.now().date()
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
-
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -1426,9 +1422,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
-
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -1820,9 +1814,7 @@ class MateriaLegislativaCrud(Crud):
 
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
-
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -1855,9 +1847,7 @@ class MateriaLegislativaCrud(Crud):
                 if dict_objeto_antigo[atributo] != dict_objeto_novo[atributo]:
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
-
-                    tz = timezone.get_current_timezone()
-                    self.object.ultima_edicao = tz.localize(datetime.now())
+                    self.object.ultima_edicao = timezone.now()
 
                     self.object.save()
                     break
@@ -2342,8 +2332,10 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             for chunk in request.FILES['arquivo'].chunks():
                 destination.write(chunk)
         try:
-            doc_data = tz.localize(datetime.strptime(
-                request.POST['data'], "%d/%m/%Y"))
+            dt = datetime.strptime(request.POST['data'], "%d/%m/%Y")
+            if timezone.is_naive(dt):
+                dt = timezone.make_aware(dt, timezone.get_current_timezone())
+            return dt
         except Exception as e:
             msg = _(
                 'Formato da data incorreto. O formato deve ser da forma dd/mm/aaaa.')
@@ -2572,9 +2564,7 @@ class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     def post(self, request, *args, **kwargs):
         user = request.user
         ip = get_client_ip(request)
-
-        tz = timezone.get_current_timezone()
-        ultima_edicao = tz.localize(datetime.now())
+        ultima_edicao = timezone.now()
 
         materias_ids = request.POST.getlist('materias')
         if not materias_ids:

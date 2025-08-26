@@ -3,7 +3,7 @@
 
 
 <div class="controls lista-dispositivo"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
-  {% include 'bootstrap/layout/field_errors_block.html' %}
+  {% include 'bootstrap4/layout/field_errors_block.html' %}
 
     {% for choice, dpt in  field.field.choices %}
       {% ifchanged dpt.ta%}
@@ -58,5 +58,5 @@
 
 
 
-    {% include 'bootstrap/layout/help_text.html' %}
+    {% include 'bootstrap4/layout/help_text.html' %}
 </div>
