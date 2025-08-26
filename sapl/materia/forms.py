@@ -1716,7 +1716,7 @@ class TramitacaoEmLoteForm(ModelForm):
             ('texto', 12)
         ])
 
-        documentos_checkbox_HTML = '''
+        documentos_checkbox_HTML = r'''
             <br\><br\><br\>
             <fieldset>
                 <legend style="font-size: 24px;">Selecione as matérias para tramitação:</legend>

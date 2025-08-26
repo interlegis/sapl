@@ -6,11 +6,11 @@ import multiprocessing
 
 # ---- SAPL app configuration ----
 NAME = "SAPL"
-DJANGODIR = "/var/interlegis/sapl/"
-SOCKFILE = "/var/interlegis/sapl/run/gunicorn.sock"
-# USER = os.getenv("RUN_AS_USER", os.getenv("USER", "nginx"))
-# GROUP = os.getenv("RUN_AS_GROUP", USER)
-NUM_WORKERS = 11  # keep your explicit value
+DJANGODIR = "/var/interlegis/sapl"
+SOCKFILE = f"unix:{DJANGODIR}/run/gunicorn.sock"
+USER = "sapl"
+GROUP = "nginx"
+NUM_WORKERS = 2 * multiprocessing.cpu_count() + 1  # keep your explicit value
 TIMEOUT = 300
 MAX_REQUESTS = 100
 DJANGO_SETTINGS = "sapl.settings"
@@ -23,6 +23,9 @@ proc_name = NAME
 # Equivalent of: --bind=unix:...
 # For quick testing via browser, you can switch to: bind = "0.0.0.0:8000"
 bind = f"unix:{SOCKFILE}"
+umask = 0o007
+user = "sapl"
+group = "nginx"
 
 # Ensure imports work like in your script’s working dir
 chdir = DJANGODIR
@@ -32,8 +35,9 @@ wsgi_app = WSGI_APP
 
 # Logs
 loglevel = "debug"
-errorlog = "-"       # send to stderr (so you see it in docker logs or terminal)
-accesslog = "-"      # send to stdout
+errorlog = "-"          # send to stderr (so you see it in docker logs or terminal)
+accesslog = "-"         # send to stdout
+capture_output = True   # capture print/tracebacks from app
 # accesslog = "/var/log/sapl/access.log"
 # errorlog = "/var/log/sapl/error.log"
 
@@ -43,10 +47,6 @@ timeout = TIMEOUT
 graceful_timeout = 30
 max_requests = MAX_REQUESTS
 max_requests_jitter = 0
-
-# Drop privileges (only applies if started as root)
-# user = USER
-# group = GROUP
 
 # Environment (same as exporting before running)
 raw_env = [

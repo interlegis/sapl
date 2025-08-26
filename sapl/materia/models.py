@@ -1,4 +1,3 @@
-
 from datetime import datetime
 
 from django.contrib.auth.models import Group
@@ -21,8 +20,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         texto_upload_path, get_settings_auth_user_model,
                         OverwriteStorage)
 
-
-#from sapl.protocoloadm.models import Protocolo
+# from sapl.protocoloadm.models import Protocolo
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
 
@@ -185,7 +183,6 @@ def anexo_upload_path(instance, filename):
 
 
 class MateriaLegislativa(models.Model):
-
     tipo = models.ForeignKey(
         TipoMateriaLegislativa,
         on_delete=models.PROTECT,
@@ -282,7 +279,7 @@ class MateriaLegislativa(models.Model):
         Autor,
         through='Autoria',
         through_fields=('materia', 'autor'),
-        symmetrical=False,)
+        symmetrical=False, )
 
     data_ultima_atualizacao = models.DateTimeField(
         blank=True, null=True,
@@ -325,7 +322,7 @@ class MateriaLegislativa(models.Model):
             'numero': self.numero,
             'data': defaultfilters.date(
                 self.data_apresentacao,
-                "d \d\e F \d\e Y"
+                r"d \d\e F \d\e Y"
             )}
 
     def data_entrada_protocolo(self):
@@ -400,7 +397,7 @@ class Autoria(models.Model):
     class Meta:
         verbose_name = _('Autoria')
         verbose_name_plural = _('Autorias')
-        unique_together = (('autor', 'materia'), )
+        unique_together = (('autor', 'materia'),)
         ordering = ('-primeiro_autor', 'autor__nome')
 
     def __str__(self):
@@ -456,9 +453,9 @@ class PautaReuniao(models.Model):
     def __str__(self):
         return _('Reunião: %(reuniao)s'
                  ' - Matéria: %(materia)s') % {
-                     'reuniao': self.reuniao,
-                     'materia': self.materia
-        }
+                   'reuniao': self.reuniao,
+                   'materia': self.materia
+               }
 
 
 class Anexada(models.Model):
@@ -482,8 +479,8 @@ class Anexada(models.Model):
     def __str__(self):
         return _('Principal: %(materia_principal)s'
                  ' - Anexada: %(materia_anexada)s') % {
-            'materia_principal': self.materia_principal,
-            'materia_anexada': self.materia_anexada}
+                   'materia_principal': self.materia_principal,
+                   'materia_anexada': self.materia_anexada}
 
 
 class AssuntoMateria(models.Model):
@@ -755,7 +752,6 @@ class Parecer(models.Model):
 
 
 class Proposicao(models.Model):
-
     autor = models.ForeignKey(
         Autor,
         null=True,
@@ -978,13 +974,13 @@ class Proposicao(models.Model):
         return '%s nº _____ %s' % (
             self.tipo, formats.date_format(
                 self.data_envio if self.data_envio else timezone.now(),
-                "\d\e d \d\e F \d\e Y"))
+                r"\d\e d \d\e F \d\e Y"))
 
     class Meta:
         ordering = ['-data_recebimento']
         verbose_name = _('Proposição')
         verbose_name_plural = _('Proposições')
-        unique_together = (('content_type', 'object_id'), )
+        unique_together = (('content_type', 'object_id'),)
         permissions = (
             ('detail_proposicao_enviada',
              _('Pode acessar detalhes de uma proposição enviada.')),
@@ -1016,7 +1012,7 @@ class Proposicao(models.Model):
             'numero': self.numero_proposicao,
             'data': defaultfilters.date(
                 self.data_envio if self.data_envio else timezone.now(),
-                "d \d\e F \d\e Y"
+                r"d \d\e F \d\e Y"
             )}
 
     def delete(self, using=None, keep_parents=False):

@@ -224,7 +224,7 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
             return cleaned_data
 
         import re
-        has_digits = re.sub('[^0-9]', '', cleaned_data['numero'])
+        has_digits = re.sub(r'[^0-9]', '', cleaned_data['numero'])
         if not has_digits:
             self.logger.error("Número de norma ({}) não pode conter somente letras.".format(
                 cleaned_data['numero']))

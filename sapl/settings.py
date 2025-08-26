@@ -114,6 +114,10 @@ USE_SOLR = config('USE_SOLR', cast=bool, default=False)
 SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
 SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
 
+# FOR HAYSTACK 3.3.1 (Django >= 3)
+# SOLR_USER = config('SOLR_USER', cast=str)
+# SOLR_PASSWORD = config('SOLR_PASSWORD', cast=str)
+
 if USE_SOLR:
     HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'  # enable auto-index
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
@@ -126,6 +130,10 @@ HAYSTACK_CONNECTIONS = {
         SEARCH_URL[0]: SEARCH_URL[1],
         'BATCH_SIZE': 1000,
         'TIMEOUT': 20,
+        # 'KWARGS': {
+        #     'timeout': 60,
+        #     'auth': (SOLR_USER, SOLR_PASSWORD),  # <-- for basic auth
+        # },
     },
 }
 
@@ -196,7 +204,7 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
-        'OPTIONS': {"MAX_ENTRIES": 1000},
+        'OPTIONS': {"MAX_ENTRIES": 10000},
     }
 }
 
@@ -401,59 +409,22 @@ LOGGING_CONSOLE_VERBOSE = config(
     'LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {  # everything falls back here
+        "handlers": ["console"],
+        "level": 'DEBUG',
+    },
+    "loggers": {
+        "django.request": {   # 500s go here
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
         },
     },
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s ' + host + ' %(pathname)s %(name)s:%(funcName)s:%(lineno)d %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(asctime)s - %(message)s'
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
-            'formatter': 'simple',
-        },
-        'console_verbose': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
-            'formatter': 'verbose',
-        },
-        'applogfile': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'sapl.log',
-            'maxBytes': 1024 * 1024 * 15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'sapl': {
-            'handlers': ['applogfile'] + (['console_verbose'] if LOGGING_CONSOLE_VERBOSE else []),
-            'level': 'DEBUG' if LOGGING_CONSOLE_VERBOSE else 'INFO',
-            'propagate': True,
-        },
-        'django': {
-            'handlers': ['applogfile'] + (['console_verbose'] if LOGGING_CONSOLE_VERBOSE else []),
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
 }
 
 PASSWORD_HASHERS = [

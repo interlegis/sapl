@@ -1110,7 +1110,7 @@ class DocumentoAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
         numero_protocolo = self.data['numero_protocolo']
         ano_protocolo = self.data['ano_protocolo']
-        complemento = re.sub('\s+', '', self.data['complemento']).upper()
+        complemento = re.sub(r'\s+', '', self.data['complemento']).upper()
         numero_documento = int(self.cleaned_data['numero'])
         tipo_documento = int(self.data['tipo'])
         ano_documento = int(self.data['ano'])
@@ -1558,7 +1558,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
             ('texto', 12)
         ])
 
-        documentos_checkbox_HTML = '''
+        documentos_checkbox_HTML = r'''
             <br\><br\><br\>
             <fieldset>
                 <legend style="font-size: 24px;">Selecione os documentos para tramitação:</legend>
