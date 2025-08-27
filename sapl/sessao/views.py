@@ -3813,22 +3813,23 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
     template_name = "sessao/pauta_sessao_detail.html"
     model = SessaoPlenaria
 
-    queryset_values_for_formats = False
+    export_fields = (
+        ('id', 'ID'),
+        ('periodo', 'Período'),
+        ('titulo', 'Matéria'),
+        ('autor', 'Autor'),
+        ('ementa', 'Ementa'),
+        ('situacao', 'Situação')
+    )
 
-    fields_base_report = [
-        [('id', 'ID'), ('titulo', 'Matéria'), ('autor', 'Autor'), ('ementa', 'Ementa'), ('situacao', 'Situação')],
-        [('id', 'ID'), ('titulo', 'Matéria'), ('autor', 'Autor'), ('ementa', 'Ementa'), ('situacao', 'Situação')]
-    ]
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
+    def hook_autor(self, obj):
+        return ','.join(obj['autor'])
 
-    item_context = [
-                    ('materia_expediente', 'Matérias do Expediente'),
-                    ('materias_ordem', 'Matérias da Ordem do Dia')
-                   ]
+    def hook_titulo(self, obj):
+        return str(obj['titulo'])
+
+    def hook_situacao(self, obj):
+        return str(obj['situacao'])
 
     def get(self, request, *args, **kwargs):
         from sapl.relatorios.views import relatorio_pauta_sessao_weasy  # Evitar import ciclico
@@ -3888,7 +3889,8 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
                 'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
                 'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
                 'autor': [str(x.autor) for x in m.materia.autoria_set.select_related('autor').all()],
-                'turno': get_turno(ultima_tramitacao.turno) if ultima_tramitacao else ''
+                'turno': get_turno(ultima_tramitacao.turno) if ultima_tramitacao else '',
+                'periodo': 'expediente',
             })
         context.update({'materia_expediente': materias_expediente})
 
@@ -3972,7 +3974,8 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
                 'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
                 'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
                 'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)],
-                'turno': get_turno(ultima_tramitacao.turno) if ultima_tramitacao else ''
+                'turno': get_turno(ultima_tramitacao.turno) if ultima_tramitacao else '',
+                'periodo': 'ordem dia',
             })
 
         context.update({
@@ -3998,14 +4001,9 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
 
     queryset_values_for_formats = False
 
-    fields_base_report = [
+    export_fields = [
         'id', 'data_inicio', 'hora_inicio', 'data_fim', 'hora_fim', '',
     ]
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
 
     def get_filterset_kwargs(self, filterset_class):
         super().get_filterset_kwargs(filterset_class)
