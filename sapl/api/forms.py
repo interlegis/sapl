@@ -2,7 +2,7 @@ import logging
 
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_filters.filters import CharFilter, DateFilter, ModelChoiceFilter
 from django_filters.filterset import FilterSet
 from rest_framework import serializers

@@ -31,6 +31,8 @@ host = socket.gethostbyname_ex(socket.gethostname())[0]
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='32jk1h412l3kjh421lkj4hlkj234')
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -330,29 +332,6 @@ if not TIME_ZONE:
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
-
-##
-## Monkey patch of the Django 2.2 because latest version of psycopg2 returns DB time zone as UTC,
-## but Django 2.2 requires an int! This should be removed once we are able to upgrade to Django >= 4
-##
-import importlib
-from django.utils.timezone import utc
-
-pg_utils = importlib.import_module("django.db.backends.postgresql.utils")
-
-
-def _compat_utc_tzinfo_factory(offset):
-    try:
-        minutes = int(offset.total_seconds() // 60) if hasattr(offset, "total_seconds") else int(offset)
-    except Exception:
-        raise AssertionError("database connection isn't set to UTC")
-    if minutes != 0:
-        raise AssertionError("database connection isn't set to UTC")
-    return utc
-
-
-pg_utils.utc_tzinfo_factory = _compat_utc_tzinfo_factory
 
 # DATE_FORMAT = 'N j, Y'
 DATE_FORMAT = 'd/m/Y'

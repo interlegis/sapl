@@ -1,6 +1,6 @@
 import logging
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from sapl.utils import google_recaptcha_configured as \
     google_recaptcha_configured_utils, sapn_is_enabled, cached_call, get_base_url

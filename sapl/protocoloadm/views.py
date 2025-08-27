@@ -24,7 +24,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, CreateView, UpdateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
@@ -275,7 +275,7 @@ class AcompanhamentoDocumentoView(CreateView):
         if not google_recaptcha_configured():
             self.logger.warning(_('Google Recaptcha não configurado!'))
             messages.error(request, _('Google Recaptcha não configurado!'))
-            return redirect(request.META.get('HTTP_REFERER', '/'))
+            return redirect(request.headers.get('referer', '/'))
 
         pk = self.kwargs['pk']
         documento = DocumentoAdministrativo.objects.get(id=pk)
@@ -294,7 +294,7 @@ class AcompanhamentoDocumentoView(CreateView):
         if not google_recaptcha_configured():
             self.logger.warning(_('Google Recaptcha não configurado!'))
             messages.error(request, _('Google Recaptcha não configurado!'))
-            return redirect(request.META.get('HTTP_REFERER', '/'))
+            return redirect(request.headers.get('referer', '/'))
 
         form = AcompanhamentoDocumentoForm(request.POST)
         pk = self.kwargs['pk']

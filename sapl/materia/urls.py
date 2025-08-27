@@ -1,4 +1,4 @@
-from django.conf.urls import include, url
+from django.urls import include, path, re_path
 
 from sapl.materia.views import (AcompanhamentoConfirmarView,
                                 AcompanhamentoExcluirView,
@@ -42,28 +42,28 @@ from .apps import AppConfig
 app_name = AppConfig.name
 
 urlpatterns_impressos = [
-    url(r'^materia/impressos/$',
+    path('materia/impressos/',
         ImpressosView.as_view(),
         name='impressos'),
-    url(r'^materia/impressos/etiqueta-pesquisa/$',
+    path('materia/impressos/etiqueta-pesquisa/',
         EtiquetaPesquisaView.as_view(),
         name='impressos_etiqueta'),
-    url(r'^materia/impressos/ficha-pesquisa/$',
+    path('materia/impressos/ficha-pesquisa/',
         FichaPesquisaView.as_view(),
         name='impressos_ficha_pesquisa'),
-    url(r'^materia/impressos/ficha-seleciona/$',
+    path('materia/impressos/ficha-seleciona/',
         FichaSelecionaView.as_view(),
         name='impressos_ficha_seleciona'),
-    url(r'^materia/impressos/norma-pesquisa/$',
+    path('materia/impressos/norma-pesquisa/',
         NormaPesquisaSimplesView.as_view(),
         name='impressos_norma_pesquisa'),
-    url(r'^materia/impressos/materia-pesquisa/$',
+    path('materia/impressos/materia-pesquisa/',
         MateriaPesquisaSimplesView.as_view(),
         name='impressos_materia_pesquisa'),
-    url(r'^materia/impressos/ficha-pesquisa-adm/$',
+    path('materia/impressos/ficha-pesquisa-adm/',
         FichaPesquisaAdmView.as_view(),
         name='impressos_ficha_pesquisa_adm'),
-    url(r'^materia/impressos/ficha-seleciona-adm/$',
+    path('materia/impressos/ficha-seleciona-adm/',
         FichaSelecionaAdmView.as_view(),
         name='impressos_ficha_seleciona_adm'),
 ]
@@ -72,11 +72,11 @@ urlpatterns_materia = [
 
     # Esta customização substitui a url do crud desque que ela permaneça antes
     # da inclusão das urls de DespachoInicialCrud
-    url(r'^materia/(?P<pk>\d+)/despachoinicial/create',
+    re_path(r'^materia/(?P<pk>\d+)/despachoinicial/create',
         DespachoInicialMultiCreateView.as_view(),
         name='despacho-inicial-multi'),
 
-    url(r'^materia/', include(MateriaLegislativaCrud.get_urls() +
+    path('materia/', include(MateriaLegislativaCrud.get_urls() +
                               AnexadaCrud.get_urls() +
                               AutoriaCrud.get_urls() +
                               DespachoInicialCrud.get_urls() +
@@ -87,107 +87,107 @@ urlpatterns_materia = [
                               RelatoriaCrud.get_urls() +
                               DocumentoAcessorioCrud.get_urls())),
 
-    url(r'^materia/(?P<pk>[0-9]+)/create_simplificado$',
+    path('materia/<int:pk>/create_simplificado',
         CriarProtocoloMateriaView.as_view(),
         name='materia_create_simplificado'),
-    url(r'^materia/recuperar-materia',
+    re_path(r'^materia/recuperar-materia',
         recuperar_materia, name='recuperar_materia'),
-    url(r'^materia/(?P<pk>[0-9]+)/ta$',
+    path('materia/<int:pk>/ta',
         MateriaTaView.as_view(), name='materia_ta'),
 
 
-    url(r'^materia/pesquisar-materia$',
+    path('materia/pesquisar-materia',
         MateriaLegislativaPesquisaView.as_view(), name='pesquisar_materia'),
-    url(r'^materia/(?P<pk>\d+)/acompanhar-materia/$',
+    path('materia/<int:pk>/acompanhar-materia/',
         AcompanhamentoMateriaView.as_view(), name='acompanhar_materia'),
-    url(r'^materia/(?P<pk>\d+)/acompanhar-confirmar$',
+    path('materia/<int:pk>/acompanhar-confirmar',
         AcompanhamentoConfirmarView.as_view(),
         name='acompanhar_confirmar'),
-    url(r'^materia/(?P<pk>\d+)/acompanhar-excluir$',
+    path('materia/<int:pk>/acompanhar-excluir',
         AcompanhamentoExcluirView.as_view(),
         name='acompanhar_excluir'),
 
-    url(r'^materia/(?P<pk>\d+)/autoria/multicreate',
+    re_path(r'^materia/(?P<pk>\d+)/autoria/multicreate',
         AutoriaMultiCreateView.as_view(),
         name='autoria_multicreate'),
 
 
-    url(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
+    re_path(r'^materia/acessorio-em-lote', DocumentoAcessorioEmLoteView.as_view(),
         name='acessorio_em_lote'),
-    url(r'^materia/(?P<pk>\d+)/anexada-em-lote', MateriaAnexadaEmLoteView.as_view(),
+    re_path(r'^materia/(?P<pk>\d+)/anexada-em-lote', MateriaAnexadaEmLoteView.as_view(),
         name='anexada_em_lote'),
-    url(r'^materia/primeira-tramitacao-em-lote',
+    re_path(r'^materia/primeira-tramitacao-em-lote',
         PrimeiraTramitacaoEmLoteView.as_view(),
         name='primeira_tramitacao_em_lote'),
-    url(r'^materia/tramitacao-em-lote', TramitacaoEmLoteView.as_view(),
+    re_path(r'^materia/tramitacao-em-lote', TramitacaoEmLoteView.as_view(),
         name='tramitacao_em_lote'),
-    url(r'^materia/excluir-tramitacao-em-lote', ExcluirTramitacaoEmLoteView.as_view(),
+    re_path(r'^materia/excluir-tramitacao-em-lote', ExcluirTramitacaoEmLoteView.as_view(),
         name='excluir_tramitacao_em_lote'),
-    url(r'^materia/docacessorio/zip/(?P<pk>\d+)$', get_zip_docacessorios,
+    path('materia/docacessorio/zip/<int:pk>', get_zip_docacessorios,
         name='compress_docacessorios'),
-    url(r'^materia/docacessorio/pdf/(?P<pk>\d+)$', get_pdf_docacessorios,
+    path('materia/docacessorio/pdf/<int:pk>', get_pdf_docacessorios,
         name='merge_docacessorios')
 ]
 
 
 urlpatterns_proposicao = [
-    url(r'^proposicao/', include(ProposicaoCrud.get_urls())),
-    url(r'^proposicao/recibo/(?P<pk>\d+)', ReciboProposicaoView.as_view(),
+    path('proposicao/', include(ProposicaoCrud.get_urls())),
+    re_path(r'^proposicao/recibo/(?P<pk>\d+)', ReciboProposicaoView.as_view(),
         name='recibo-proposicao'),
-    url(r'^proposicao/receber/', ReceberProposicao.as_view(),
+    re_path(r'^proposicao/receber/', ReceberProposicao.as_view(),
         name='receber-proposicao'),
-    url(r'^proposicao/pendente/', ProposicaoPendente.as_view(),
+    re_path(r'^proposicao/pendente/', ProposicaoPendente.as_view(),
         name='proposicao-pendente'),
-    url(r'^proposicao/recebida/', ProposicaoRecebida.as_view(),
+    re_path(r'^proposicao/recebida/', ProposicaoRecebida.as_view(),
         name='proposicao-recebida'),
-    url(r'^proposicao/devolvida/', ProposicaoDevolvida.as_view(),
+    re_path(r'^proposicao/devolvida/', ProposicaoDevolvida.as_view(),
         name='proposicao-devolvida'),
-    url(r'^proposicao/confirmar/P(?P<hash>[0-9A-Fa-f]+)/'
-        r'(?P<pk>\d+)', ConfirmarProposicao.as_view(),
+    re_path(r'^proposicao/confirmar/P(?P<hash>[0-9A-Fa-f]+)/'
+        '(?P<pk>\d+)', ConfirmarProposicao.as_view(),
         name='proposicao-confirmar'),
-    url(r'^sistema/proposicao/tipo/',
+    path('sistema/proposicao/tipo/',
         include(TipoProposicaoCrud.get_urls())),
 
-    url(r'^proposicao/(?P<pk>[0-9]+)/ta$',
+    path('proposicao/<int:pk>/ta',
         ProposicaoTaView.as_view(), name='proposicao_ta'),
 
 
-    url(r'^proposicao/texto/(?P<pk>\d+)$', proposicao_texto,
+    path('proposicao/texto/<int:pk>', proposicao_texto,
         name='proposicao_texto'),
-    url(r'^proposicao/(?P<pk>\d+)/retornar', RetornarProposicao.as_view(),
+    re_path(r'^proposicao/(?P<pk>\d+)/retornar', RetornarProposicao.as_view(),
         name='retornar-proposicao'),
-    url(r'^proposicao/historico', HistoricoProposicaoView.as_view(),
+    re_path(r'^proposicao/historico', HistoricoProposicaoView.as_view(),
         name='historico-proposicao'),
 
 ]
 
 urlpatterns_sistema = [
-    url(r'^sistema/assunto-materia/',
+    path('sistema/assunto-materia/',
         include(AssuntoMateriaCrud.get_urls())),
-    url(r'^sistema/proposicao/tipo/',
+    path('sistema/proposicao/tipo/',
         include(TipoProposicaoCrud.get_urls())),
-    url(r'^sistema/materia/tipo/', include(TipoMateriaCrud.get_urls())),
-    url(r'^sistema/materia/regime-tramitacao/',
+    path('sistema/materia/tipo/', include(TipoMateriaCrud.get_urls())),
+    path('sistema/materia/regime-tramitacao/',
         include(RegimeTramitacaoCrud.get_urls())),
-    url(r'^sistema/materia/tipo-documento/',
+    path('sistema/materia/tipo-documento/',
         include(TipoDocumentoCrud.get_urls())),
-    url(r'^sistema/materia/tipo-fim-relatoria/',
+    path('sistema/materia/tipo-fim-relatoria/',
         include(TipoFimRelatoriaCrud.get_urls())),
-    url(r'^sistema/materia/unidade-tramitacao/',
+    path('sistema/materia/unidade-tramitacao/',
         include(UnidadeTramitacaoCrud.get_urls())),
-    url(r'^sistema/materia/origem/', include(OrigemCrud.get_urls())),
+    path('sistema/materia/origem/', include(OrigemCrud.get_urls())),
 
-    url(r'^sistema/materia/status-tramitacao/', include(
+    path('sistema/materia/status-tramitacao/', include(
         StatusTramitacaoCrud.get_urls()
     )),
-    url(
+    re_path(
         r'^sistema/materia/pesquisar-status-tramitacao/',
         PesquisarStatusTramitacaoView.as_view(),
         name="pesquisar_statustramitacao"
     ),
 
-    url(r'^sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
-    url(r'^sistema/materia/config-etiqueta-materia-legislativas/',configEtiquetaMateriaLegislativaCrud, name="configEtiquetaMateriaLegislativaCrud"),
+    path('sistema/materia/orgao/', include(OrgaoCrud.get_urls())),
+    re_path(r'^sistema/materia/config-etiqueta-materia-legislativas/',configEtiquetaMateriaLegislativaCrud, name="configEtiquetaMateriaLegislativaCrud"),
 ]
 
 urlpatterns = urlpatterns_impressos + urlpatterns_materia + \

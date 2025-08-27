@@ -11,7 +11,7 @@ from django.db import transaction
 from django.db.models import Max
 from django.forms import ModelForm
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import django_filters
 
 from sapl.base.models import Autor, TipoAutor, AppConfig

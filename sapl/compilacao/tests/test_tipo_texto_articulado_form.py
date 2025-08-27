@@ -1,5 +1,5 @@
 import pytest
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from model_bakery import baker
 
 from sapl.compilacao import forms

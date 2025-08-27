@@ -12,8 +12,8 @@ from django.template import loader
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.utils import timezone
-from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_str
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, UpdateView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
@@ -353,7 +353,7 @@ class NormaCrud(Crud):
                 return HttpResponseRedirect(url)
 
         def hook_header_epigrafe(self, *args, **kwargs):
-            return force_text(_('Epigrafe'))
+            return force_str(_('Epigrafe'))
 
         def hook_epigrafe(self, obj, ss, url):
 

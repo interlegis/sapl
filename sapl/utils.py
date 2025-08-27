@@ -35,9 +35,10 @@ from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
 from django.forms.widgets import SplitDateTimeWidget, ClearableFileInput
 from django.http.response import JsonResponse, HttpResponse
-from django.utils import six, timezone
+import six
+from django.utils import timezone
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
 import magic
@@ -403,7 +404,7 @@ def xstr(s):
 
 
 def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.headers.get('x-forwarded-for')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
     else:

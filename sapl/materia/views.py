@@ -24,8 +24,8 @@ from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 from django.utils import formats, timezone
-from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_str
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
@@ -2173,7 +2173,7 @@ class AcompanhamentoMateriaView(CreateView):
         if not google_recaptcha_configured():
             self.logger.warning(_('Google Recaptcha não configurado!'))
             messages.error(request, _('Google Recaptcha não configurado!'))
-            return redirect(request.META.get('HTTP_REFERER', '/'))
+            return redirect(request.headers.get('referer', '/'))
 
         pk = self.kwargs['pk']
         materia = MateriaLegislativa.objects.get(id=pk)
@@ -2193,7 +2193,7 @@ class AcompanhamentoMateriaView(CreateView):
         if not google_recaptcha_configured():
             self.logger.warning(_('Google Recaptcha não configurado!'))
             messages.error(request, _('Google Recaptcha não configurado!'))
-            return redirect(request.META.get('HTTP_REFERER', '/'))
+            return redirect(request.headers.get('referer', '/'))
 
         form = AcompanhamentoMateriaForm(request.POST)
         pk = self.kwargs['pk']
