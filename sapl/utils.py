@@ -1160,13 +1160,13 @@ def from_date_to_datetime_utc(data):
     :param data: datetime.date
     :return: datetime.timestamp com UTC
     """
-    import pytz
+    from django.utils import timezone
     from datetime import datetime
 
-    # from date to datetime
-    dt_unware = datetime.combine(data, datetime.min.time())
-    dt_utc = pytz.utc.localize(dt_unware)
-    return dt_utc
+    dt = datetime.combine(data, datetime.min.time())
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt.astimezone(timezone.utc)
 
 
 class OverwriteStorage(FileSystemStorage):

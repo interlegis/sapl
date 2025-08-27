@@ -214,19 +214,26 @@ class CrispyLayoutFormMixin:
                     for fieldname, span in row]
 
     def get_form(self, form_class=None):
-        try:
-            form = super(CrispyLayoutFormMixin, self).get_form(form_class)
-        except AttributeError:
-            # simply return None if there is no get_form on super
-            pass
+        # Only handle the “no get_form in MRO” case; let real errors bubble up.
+        super_get_form = getattr(super(CrispyLayoutFormMixin, self), 'get_form', None)
+        if super_get_form is None:
+            # Either raise, or (if you want to support non-form views) construct a form when form_class exists.
+            if getattr(self, 'form_class', None):
+                form_class = self.get_form_class()
+                form = form_class(**self.get_form_kwargs())
+            else:
+                raise NotImplementedError(
+                    f"{self.__class__.__name__} requires get_form() in the MRO or form_class set"
+                )
         else:
-            if self.layout_key:
-                form.helper = SaplFormHelper()
-                layout = self.get_layout()
+            form = super_get_form(form_class)
 
-                form.helper.layout = SaplFormLayout(*layout)
+        if self.layout_key:
+            form.helper = SaplFormHelper()
+            layout = self.get_layout()
+            form.helper.layout = SaplFormLayout(*layout)
 
-            return form
+        return form
 
     @property
     def list_field_names(self):

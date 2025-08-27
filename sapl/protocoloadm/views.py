@@ -437,8 +437,8 @@ class DocumentoAdministrativoCrud(Crud):
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
 
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            from django.utils import timezone
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -474,8 +474,8 @@ class DocumentoAdministrativoCrud(Crud):
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
 
-                    tz = timezone.get_current_timezone()
-                    self.object.ultima_edicao = tz.localize(datetime.now())
+                    from django.utils import timezone
+                    self.object.ultima_edicao = timezone.now()
 
                     self.object.save()
                     break
@@ -786,8 +786,8 @@ class CriarDocumentoProtocolo(PermissionRequiredMixin, CreateView):
         doc['user'] = self.request.user
         doc['ip'] = get_client_ip(self.request)
 
-        tz = timezone.get_current_timezone()
-        doc['ultima_edicao'] = tz.localize(datetime.now())
+        from django.utils import timezone
+        doc['ultima_edicao'] = timezone.now()
 
         return doc
 
@@ -982,8 +982,8 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
             materia.user = self.request.user
             materia.ip = get_client_ip(self.request)
 
-            tz = timezone.get_current_timezone()
-            materia.ultima_edicao = tz.localize(datetime.now())
+            from django.utils import timezone
+            materia.ultima_edicao = timezone.now()
 
             materia.save()
 
@@ -1327,8 +1327,8 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
 
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            from django.utils import timezone
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -1376,8 +1376,8 @@ class TramitacaoAdmCrud(MasterDetailCrud):
             initial['ip'] = get_client_ip(self.request)
             initial['user'] = self.request.user
 
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            from django.utils import timezone
+            initial['ultima_edicao'] = timezone.now()
 
             return initial
 
@@ -1518,8 +1518,8 @@ class DesvincularDocumentoView(PermissionRequiredMixin, CreateView):
         documento.user = self.request.user
         documento.ip = get_client_ip(self.request)
 
-        tz = timezone.get_current_timezone()
-        documento.ultima_edicao = tz.localize(datetime.now())
+        from django.utils import timezone
+        documento.ultima_edicao = timezone.now()
 
         documento.save()
         return redirect(self.get_success_url())
@@ -1546,8 +1546,8 @@ class DesvincularMateriaView(PermissionRequiredMixin, FormView):
         materia.user = self.request.user
         materia.ip = get_client_ip(self.request)
 
-        tz = timezone.get_current_timezone()
-        materia.ultima_edicao = tz.localize(datetime.now())
+        from django.utils import timezone
+        materia.ultima_edicao = timezone.now()
 
         materia.save()
         return redirect(self.get_success_url())
@@ -1695,8 +1695,8 @@ class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
         user = request.user
         ip = get_client_ip(request)
 
-        tz = timezone.get_current_timezone()
-        ultima_edicao = tz.localize(datetime.now())
+        from django.utils import timezone
+        ultima_edicao = timezone.now()
 
         documentos_ids = request.POST.getlist('documentos')
         if not documentos_ids:

@@ -323,8 +323,8 @@ class NormaCrud(Crud):
             initial['user'] = self.request.user
             initial['ip'] = get_client_ip(self.request)
 
-            tz = timezone.get_current_timezone()
-            initial['ultima_edicao'] = tz.localize(datetime.now())
+            from django.utils import timezone
+            initial['ultima_edicao'] = timezone.now()
 
             username = self.request.user.username
             try:
@@ -430,9 +430,8 @@ class NormaCrud(Crud):
                     self.object.user = self.request.user
                     self.object.ip = get_client_ip(self.request)
 
-                    tz = timezone.get_current_timezone()
-                    self.object.ultima_edicao = tz.localize(datetime.now())
-
+                    from django.utils import timezone
+                    self.object.ultima_edicao = timezone.now()
                     self.object.save()
                     break
 
@@ -443,8 +442,8 @@ class NormaCrud(Crud):
                 self.object.user = self.request.user
                 self.object.ip = get_client_ip(self.request)
 
-                tz = timezone.get_current_timezone()
-                self.object.ultima_edicao = tz.localize(datetime.now())
+                from django.utils import timezone
+                self.object.ultima_edicao = timezone.now()
 
                 self.object.save()
 
