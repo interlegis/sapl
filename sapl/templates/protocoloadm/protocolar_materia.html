@@ -57,7 +57,7 @@
                    o: 'nome',
                    get_all: true
                 }
-                $.getJSON("{% url 'sapl.api:autor-possiveis' %}", json_data, function(data){
+                $.getJSON("{% url 'sapl.api:base-autor-possiveis' %}", json_data, function(data){
                     if (data) {
                       if (data.length > 1) {
                         $("#id_autor").append("<option>-----</option>");

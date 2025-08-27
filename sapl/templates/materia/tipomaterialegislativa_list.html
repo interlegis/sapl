@@ -23,7 +23,7 @@
               var pos_fim = ui.item.index() + 1;
               var pk = ui.item.find('a[pk]').attr('pk');
 
-              var url = "{% url 'sapl.api:tipomaterialegislativa-change-position' 0 %}";
+              var url = "{% url 'sapl.api:base-tipomaterialegislativa-change-position' 0 %}";
               url = url.replace('0', pk) ;
 
               $.ajax({
