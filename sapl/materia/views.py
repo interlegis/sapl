@@ -2045,21 +2045,28 @@ class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
     filterset_class = MateriaLegislativaFilterSet
     paginate_by = 50
 
-    fields_base_report = [
-        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'autoria__autor__nome', 'texto_original', 'ementa'
+    export_fields = [
+        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'autoria', 'texto_original', 'ementa'
     ]
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
 
     def hook_texto_original(self, obj):
         url = self.request.build_absolute_uri('/')[:-1]
         texto_original = obj.texto_original if not isinstance(
             obj, dict) else obj["texto_original"]
-
         return f'{url}/media/{texto_original}'
+
+    def hook_autoria(self, obj):
+        """
+        Hook específico para pegar nomes dos autores (reverse query)
+        """
+        try:
+            autores = [
+                str(autoria.autor.nome)
+                for autoria in obj.autoria_set.select_related('autor').all()
+            ]
+            return ', '.join(autores)
+        except AttributeError:
+            return ''
 
     def get_filterset_kwargs(self, filterset_class):
         super().get_filterset_kwargs(filterset_class)
