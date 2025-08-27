@@ -5,6 +5,7 @@ Django==4.2.23
 django-haystack==3.3.0
 django-filter==24.3
 djangorestframework==3.15.2
+drf-spectacular==0.28.0
 django-crispy-forms==2.4
 crispy-bootstrap4==2024.1
 
@@ -20,8 +21,10 @@ easy-thumbnails==2.9.0
 # Images / files / PDF
 django-image-cropping==1.7.0
 Pillow==10.3.0
+trml2pdf==0.6
 weasyprint==66.0
 PyPDF4==1.27.0
+rlPyCairo==0.4.0
 
 # Frontend integration
 django-webpack-loader==1.6.0    # (works; keep unless you’re moving to webpack5 forks)
@@ -50,7 +53,6 @@ XlsxWriter==3.2.0
 
 # Custom / VCS deps you already use
 git+https://github.com/infrae/pyoai@5ff2f15e869869e70d8139e4c37b7832854d7049
-git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped
 
 # REMOVE this old backport package completely (Django ships postgres contrib):
