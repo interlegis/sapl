@@ -378,8 +378,8 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
-CRISPY_ALLOWED_TEMPLATE_PACKS = ("bootstrap", "bootstrap4")
-CRISPY_FAIL_SILENTLY = not DEBUG
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
+CRISPY_FAIL_SILENTLY = False
 
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False

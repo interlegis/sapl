@@ -337,6 +337,7 @@ class ProtocoloDocumentoForm(ModelForm):
     tipo_protocolo = forms.ChoiceField(required=True,
                                        label=_('Tipo de Protocolo'),
                                        choices=TIPOS_PROTOCOLO_CREATE,
+                                       widget=forms.RadioSelect(),    # sem isso o Crispy Form buga com InlineRadios!
                                        initial=0,)
 
     tipo_documento = forms.ModelChoiceField(
@@ -422,6 +423,7 @@ class ProtocoloDocumentoForm(ModelForm):
             fieldset = row3
 
         self.helper = SaplFormHelper()
+        self.helper.template_pack = "bootstrap4"
         self.helper.layout = Layout(
             Fieldset(_('Identificação de Documento'),
                      row1,
