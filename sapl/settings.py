@@ -84,6 +84,7 @@ INSTALLED_APPS = (
                      'django_extensions',
 
                      'crispy_forms',
+                     'crispy_bootstrap4',
 
                      'waffle',
 
@@ -330,7 +331,6 @@ if not TIME_ZONE:
         'TIMEZONE env variable undefined in .env settings file! Leaving...')
 
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 # DATE_FORMAT = 'N j, Y'
@@ -378,7 +378,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = ("bootstrap", "bootstrap4")
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 # suprime texto de ajuda default do django-filter

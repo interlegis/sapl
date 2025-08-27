@@ -211,9 +211,11 @@ class ApiViewSetConstrutor():
     def router(cls, router_class=DefaultRouter):
         router = router_class()
         for app, built_sets in cls._built_sets.items():
+            app_label = getattr(app, "label", app.name.split(".")[-1])
             for model, viewset in built_sets.items():
                 router.register(
-                    f'{app.label}/{model._meta.model_name}', viewset)
+                    f'{app.label}/{model._meta.model_name}', viewset,
+                    basename=f"{app_label}-{model._meta.model_name}")
         return router
 
     @classmethod

@@ -1,56 +1,57 @@
 # Core
-Django==3.2.25
-gunicorn==23.0.0
+Django==4.2.23
 
-# Search / indexing
-django-haystack==3.2.1
-pysolr==3.6.0
+# Search / API / Forms
+django-haystack==3.3.0
+django-filter==24.3
+djangorestframework==3.15.2
+django-crispy-forms==2.4
+crispy-bootstrap4==2024.1
 
-# DRF & filtering
-djangorestframework==3.12.4
-django-filter==2.4.0
-drf-spectacular==0.18.2
-
-# DB & config
-dj-database-url==0.5.0
-psycopg2-binary==2.9.9
-python-decouple==3.1
-
-# Django utilities
-django-crispy-forms==1.14.0
-django-braces==1.15.0
-django-extra-views==0.14.0
+# DB / utils
+dj-database-url==2.2.0
+django-braces==1.17.0
+django-extra-views==0.16.0
 django-model-utils==4.3.1
 django-extensions==3.2.3
-django-waffle==3.0.0
-django-webpack-loader==1.6.0
 django-ratelimit==3.0.1
-whitenoise==5.1.0
-django-prometheus==2.2.0
+easy-thumbnails==2.9.0
 
-# Images / files / PDFs
-easy-thumbnails==2.8.5
-django-image-cropping==1.7
+# Images / files / PDF
+django-image-cropping==1.7.0
 Pillow==10.3.0
-rlPyCairo==0.3.0
-reportlab==4.2.0
-WeasyPrint==66
-trml2pdf==0.6
+weasyprint==66.0
 PyPDF4==1.27.0
-python-magic==0.4.15
 
-# Other libs
+# Frontend integration
+django-webpack-loader==1.6.0    # (works; keep unless you’re moving to webpack5 forks)
+
+# Feature flags / misc
+django-waffle==4.1.0
+whitenoise==6.9.0
+
+# Monitoring
+django-prometheus==2.4.1
+
+# Other deps from your list (unchanged unless you want to bump)
+python-decouple==3.1
+psycopg2-binary==2.9.9
 pyyaml==6.0.1
-pytz==2024.1
-Unidecode==1.1.1
+# pytz is no longer required by Django; keep only if YOU use it directly:
+# pytz==2024.1
+python-magic==0.4.15
 unipath==1.1
-kazoo==2.8.0
+gunicorn==22.0.0
+more-itertools==8.2.0
+pysolr==3.6.0
+Unidecode==1.1.1
 asn1crypto==1.5.1
 XlsxWriter==3.2.0
-more-itertools==8.2.0
 
-# OAI (fork/commit you already use)
+# Custom / VCS deps you already use
 git+https://github.com/infrae/pyoai@5ff2f15e869869e70d8139e4c37b7832854d7049
-
-# Project-specific forks
+git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped
+
+# REMOVE this old backport package completely (Django ships postgres contrib):
+# django-contrib-postgres==0.0.1
