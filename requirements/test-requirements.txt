@@ -1,11 +1,14 @@
 -r requirements.txt
-coverage==4.4
-django-webtest==1.9.7
-flake8==2.6.2
-isort==4.2.5
-model-bakery==1.1.0
-pep8==1.7.0
-pytest==5.4.3
-pytest-cov==2.10.0
-pytest-django==3.8.0
-webtest==2.0.21
+
+# --- test/dev tools for Django 3.2 (Python 3.9) ---
+coverage==7.10.5
+django-webtest==1.9.12         # 1.9.13+ drops Django 3.x
+flake8==7.3.0
+isort==6.0.1
+model-bakery==1.17.0           # 1.18+ requires Django >=4.2
+pycodestyle==2.14.0            # replacement for deprecated "pep8"
+pytest==8.4.1
+pytest-cov==6.0.0
+pytest-django==4.8.0           # 4.9.0+ drops Django 3.2
+webtest==3.0.6
+
