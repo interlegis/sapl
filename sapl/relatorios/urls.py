@@ -101,3 +101,4 @@ urlpatterns = [
     url(r'^sistema/relatorios/normas-por-autor$',
         RelatorioNormasPorAutorView.as_view(), name='normas_por_autor'),
 ]
+

@@ -42,38 +42,41 @@
           <th>Dados da Votação / Matéria</th>
           <th>Parlamentar - Voto</th>
         </tr>
-      </thead>     <tbody>
-               {% for voto in object_list %}
-                     {% ifchanged voto.votacao_id %}
-                      {% if not forloop.first %}
-                        </td></tr>
-                      {% endif %}
-                <tr><td class="materia" {% comment %}style="max-width: 50%"{% endcomment %}>
-                       {% if voto.ordem %}
-                         <b><a href="{% url 'sapl.materia:materialegislativa_detail' voto.ordem.materia_id %}">{{ voto.ordem.materia }}</a></b> - {{ voto.ordem.materia.ementa }}<br />
-                         <b>Momento da Votação: </b><a href="{% url 'sapl.sessao:ordemdia_list' voto.ordem.sessao_plenaria_id %}">Ordem do Dia</a> - 
-                         <a href="{% url 'sapl.sessao:sessaoplenaria_detail' voto.ordem.sessao_plenaria_id %}">{{ voto.ordem.sessao_plenaria }}</a><br />
-                         <b>Data da Votação: </b>{{ voto.data_hora|date:"d/m/Y" }}<br />
-                         <b>Resultado: </b>{{ voto.ordem.resultado }}
-                       {% else %}
-                         <b><a href="{% url 'sapl.materia:materialegislativa_detail' voto.expediente.materia_id %}">{{ voto.expediente.materia }}</a></b> - {{ voto.expediente.materia.ementa }}<br />
-                         <b>Momento da Votação: </b><a href="{% url 'sapl.sessao:expedientemateria_list' voto.expediente.sessao_plenaria_id %}">Expediente</a> - 
-                         <a href="{% url 'sapl.sessao:sessaoplenaria_detail' voto.expediente.sessao_plenaria_id %}">{{ voto.expediente.sessao_plenaria }}</a><br />
-                         <b>Data da Votação: </b>{{ voto.data_hora|date:"d/m/Y" }}<br />
-                         <b>Resultado: </b>{{ voto.expediente.resultado }}
-
-                       {% endif %}
-                </td><td class="votos" {% comment %}style="width: 50%"{% endcomment %}>
-                     {% endifchanged %}
-                       <span style="white-space: nowrap;">
-                       {{ voto.parlamentar }} - <b>{{ voto.voto }}</b>
-                       </span><br />
-               {% endfor %}
-     </tbody>
+      </thead>
+      <tbody>
+        {% for rv in object_list %}
+           <tr>
+             <td class="materia">
+                 {% if rv.ordem %}
+                   <b><a href="{% url 'sapl.materia:materialegislativa_detail' rv.ordem.materia_id %}">{{ rv.ordem.materia }}</a></b> - {{ rv.ordem.materia.ementa }}<br />
+                   <b>Momento da Votação: </b><a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">Ordem do Dia</a> -
+                   <a href="{% url 'sapl.sessao:sessaoplenaria_detail' rv.ordem.sessao_plenaria_id %}">{{ rv.ordem.sessao_plenaria }}</a><br />
+                   <b>Data da Votação: </b>{{ rv.data_hora|date:"d/m/Y" }}<br />
+                   <b>Resultado: </b>{{ rv.ordem.resultado }}
+                 {% else %}
+                   <b><a href="{% url 'sapl.materia:materialegislativa_detail' rv.expediente.materia_id %}">{{ rv.expediente.materia }}</a></b> - {{ rv.expediente.materia.ementa }}<br />
+                   <b>Momento da Votação: </b><a href="{% url 'sapl.sessao:expedientemateria_list' rv.expediente.sessao_plenaria_id %}">Expediente</a> -
+                   <a href="{% url 'sapl.sessao:sessaoplenaria_detail' rv.expediente.sessao_plenaria_id %}">{{ rv.expediente.sessao_plenaria }}</a><br />
+                   <b>Data da Votação: </b>{{ rv.data_hora|date:"d/m/Y" }}<br />
+                   <b>Resultado: </b>{{ rv.expediente.resultado }}
+                 {% endif %}
+             </td>
+             <td class="votos">
+                 {% for voto in rv.votoparlamentar_set.all|dictsort:"parlamentar.nome_parlamentar" %}
+                   <span style="white-space: nowrap;">
+                     {{ voto.parlamentar }} - <b>{{ voto.voto }}</b>
+                   </span><br />
+                 {% endfor %}
+             </td>
+           </tr>
+        {% endfor %}
+      </tbody>
     </table>
         {% else %}
             <tr><td><h3 style="text-align: left;">Nenhuma votação encontrada com esses parâmetros.</h3></td></tr><br><br>
         {% endif %}
     {% endif %}
-    {% include "paginacao.html" %}
+    {% if filter_url %}
+        {% include "paginacao.html" %}
+    {% endif %}
 {% endblock base_content %}

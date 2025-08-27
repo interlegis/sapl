@@ -699,7 +699,7 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
     class Meta:
         verbose_name = _('Registro de Votação de Parlamentar')
         verbose_name_plural = _('Registros de Votações de Parlamentares')
-        ordering = ('parlamentar',)
+        ordering = ('id',)
 
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {

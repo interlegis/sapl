@@ -1886,10 +1886,10 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
 
 
 class RelatorioVotacoesNominaisView(RelatorioMixin, VotacoesMultiFormatOutputMixin, FilterView):
-    model = VotoParlamentar
     filterset_class = RelatorioVotacoesNominaisFilterSet
     template_name = 'relatorios/RelatorioVotacoesNominais_filter.html'
     relatorio = relatorio_votacao_nominal
+    paginate_by = 20
 
     fields_base_report = [
         'votacao_id', 'votacao', 'parlamentar__nome_parlamentar', 'voto'
@@ -1901,10 +1901,18 @@ class RelatorioVotacoesNominaisView(RelatorioMixin, VotacoesMultiFormatOutputMix
         'json': fields_base_report,
     }
 
+    def get_queryset(self):
+        if 'format' in self.request.GET:
+            self.model = VotoParlamentar
+            order_fields = ['-votacao_id', 'parlamentar']
+        else:
+            self.model = RegistroVotacao
+            order_fields = ['-id']
+        qs = self.model.objects.filter(Q(ordem__tipo_votacao=2)|Q(expediente__tipo_votacao=2)).order_by(*order_fields)
+        return qs
+
     def get_context_data(self, **kwargs):
-        context = super(
-            RelatorioVotacoesNominaisView, self
-        ).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         context['title'] = _('Votações Nominais')
 
@@ -1912,44 +1920,41 @@ class RelatorioVotacoesNominaisView(RelatorioMixin, VotacoesMultiFormatOutputMix
             return context
 
         query_dict = self.request.GET.copy()
-        context['filter_url'] = ('&' + query_dict.urlencode()) if len(query_dict) > 0 else ''
+        if 'page' in query_dict:
+            del query_dict['page']
+        context['filter_url'] = f"&{query_dict.urlencode()}" if query_dict else ''
         context['show_results'] = show_results_filter_set(query_dict)
 
-        data_inicial = self.request.GET['data_hora_0']
-        data_final = self.request.GET['data_hora_1']
+        data_inicial = self.request.GET.get('data_hora_0', '')
+        data_final = self.request.GET.get('data_hora_1', '')
         if not data_inicial:
             data_inicial = "Data Inicial não definida"
         if not data_final:
             data_final = "Data Final não definida"
-        context['periodo'] = (
-                data_inicial + ' - ' + data_final
-        )
+        context['periodo'] = f"{data_inicial} - {data_final}"
 
-        if self.request.GET['tipo_materia'] or self.request.GET['numero'] or self.request.GET['ano']:
-            object_list = context['object_list']
-            if self.request.GET['tipo_materia']:
-                tipo_id = self.request.GET['tipo_materia']
-                context['tipo_materia'] = TipoMateriaLegislativa.objects.get(id=tipo_id)
-                object_list = object_list.filter(
-                    Q(ordem__materia__tipo_id=tipo_id) |
-                    Q(expediente__materia__tipo_id=tipo_id))
-            if self.request.GET['numero']:
-                numero = self.request.GET['numero']
-                context['numero'] = numero
-                object_list = object_list.filter(
-                    Q(ordem__materia__numero=numero) |
-                    Q(expediente__materia__numero=numero))
-            if self.request.GET['ano']:
-                ano = self.request.GET['ano']
-                context['ano'] = ano
-                object_list = object_list.filter(
-                    Q(ordem__materia__ano=ano) |
-                    Q(expediente__materia__ano=ano))
-            context['object_list'] = object_list
+        tipo_id = self.request.GET.get('tipo_id')
+        numero = self.request.GET.get('numero')
+        ano = self.request.GET.get('ano')
 
+        if tipo_id:
+            context['tipo_materia'] = TipoMateriaLegislativa.objects.get(id=tipo_id)
+        if numero:
+            context['numero'] = int(numero)
+        if ano:
+            context['ano'] = ano
 
-        if not 'format' in query_dict:
-            context['qtde_votacoes'] = context['object_list'].distinct('votacao_id').count()
+        if 'relatorio' not in self.request.GET:
+            paginator = context['paginator']
+            page_obj = context['page_obj']
+
+            context['page_range'] = make_pagination(
+                page_obj.number, paginator.num_pages)
+
+            context['qtde_votacoes'] = paginator.count
+        else:
+            self.paginate_by = None
+            context['qtde_votacoes'] = len(context['object_list'])
 
         return context
 

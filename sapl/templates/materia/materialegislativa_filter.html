@@ -116,14 +116,14 @@
                       {% for rv in m.registrovotacao_set.all %}
                           {% if rv.ordem %}
                             <a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">{{ rv.ordem.sessao_plenaria.data_inicio }}</a>
-                            {% if rv.ordem.get_tipo_votacao_display == 'Nominal' %}
+                            {% if rv.ordem.tipo_votacao == 2 %}
                               - <a id="link_votacao_nominal_{{ rv.id }}" class="link_votacao_nominal" href="#" onclick="votacaoNominal({{ rv.id }})">
                                  Votação Nominal >>>
                                 </a>
                               <div id="div_{{ rv.id }}" style="display:none">
                                 <b>{{ rv.ordem.resultado }}</b><br />
                                 <ul id="ul_{{ rv.id }}"style="columns: 2; list-style-type: none;">
-                                {% for voto in rv.ordem.votoparlamentar_set.all %}
+                                {% for voto in rv.ordem.votoparlamentar_set.all|dictsort:"parlamentar.nome_parlamentar" %}
                                    <li>{{ voto.parlamentar }} - <b>{{ voto.voto }}</b></li>
                                 {% endfor %}
                                 </ul>
@@ -131,14 +131,14 @@
                             {% endif %}
                           {% elif rv.expediente %}
                             <a href="{% url 'sapl.sessao:expedientemateria_list' rv.expediente.sessao_plenaria_id %}">{{ rv.expediente.sessao_plenaria.data_inicio }}</a>
-                            {% if rv.expediente.get_tipo_votacao_display == 'Nominal' %}
+                            {% if rv.expediente.tipo_votacao == 2 %}
                               - <a id="link_votacao_nominal_{{ rv.id }}" class="link_votacao_nominal" href="#" onclick="votacaoNominal({{ rv.id }})">
                                  Votação Nominal >>>
                                 </a>
                               <div id="div_{{ rv.id }}" style="display:none">
                                 <b>{{ rv.expediente.resultado }}</b><br />
                                 <ul id="ul_{{ rv.id }}"style="columns: 2; list-style-type: none;">
-                                {% for voto in rv.expediente.votoparlamentar_set.all %}
+                                {% for voto in rv.expediente.votoparlamentar_set.all|dictsort:"parlamentar.nome_parlamentar" %}
                                    <li>{{ voto.parlamentar }} - <b>{{ voto.voto }}</b></li>
                                 {% endfor %}
                                 </ul>
@@ -263,16 +263,16 @@
      }
   };
 
-function votacaoNominal(id){
-$('#div_' + id).toggle();
+  function votacaoNominal(id){
+     $('#div_' + id).toggle();
 
-var id_link = "#link_votacao_nominal_" + id;
-if ($(id_link).text().indexOf('>>>') > -1){
-$(id_link).text($(id_link).text().replace('>>>', '<<<'))
-}else{
-$(id_link).text($(id_link).text().replace('<<<', '>>>'))
-}
-};
+     var id_link = "#link_votacao_nominal_" + id;
+     if ($(id_link).text().indexOf('>>>') > -1){
+       $(id_link).text($(id_link).text().replace('>>>', '<<<'))
+     }else{
+       $(id_link).text($(id_link).text().replace('<<<', '>>>'))
+     }
+  };
   </script>
   {% endblock extra_js %}
 
