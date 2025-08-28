@@ -253,6 +253,7 @@ DATABASES = {
 
 
 def setup_db_tz():
+    ### TODO: dj-database-url now supports CONN_MAX_AGE and OPTIONS
     db = DATABASES["default"]
     # Normalize legacy engine alias returned by old dj-database-url
     if db.get("ENGINE") == "django.db.backends.postgresql_psycopg2":
