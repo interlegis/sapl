@@ -244,12 +244,9 @@
 
   <script type="text/javascript" >
   $( document ).ready(function() {
-    const links_votacao = document.querySelectorAll('.link_votacao_nominal');
-    links_votacao.forEach(link => {
-      link.addEventListener('click', function(event) {
+      $('.link_votacao_nominal').on('click', function(event) {
         event.preventDefault();
       });
-    });
   });
 
   function pesquisaAvancada(){

@@ -1891,15 +1891,9 @@ class RelatorioVotacoesNominaisView(RelatorioMixin, VotacoesMultiFormatOutputMix
     relatorio = relatorio_votacao_nominal
     paginate_by = 20
 
-    fields_base_report = [
+    export_fields = [
         'votacao_id', 'votacao', 'parlamentar__nome_parlamentar', 'voto'
     ]
-
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
 
     def get_queryset(self):
         if 'format' in self.request.GET:

@@ -91,14 +91,12 @@ class RelatorioVotacoesNominaisFilterSet(django_filters.FilterSet):
         )
 
     def ordem_or_expediente(self, queryset, name, value):
-        if value:
-            try:
-                val = value.id
-            except AttributeError:
-                val = value
-            return queryset.filter(
-                    eval(f'Q(ordem__materia__{name}={val}) | Q(expediente__materia__{name}={val})')
-                   )
+        if value is None:
+           return queryset
+        value = getattr(value, "pk", value)
+            ordem_q = f"ordem__materia__{name}"
+            expediente_q = f"expediente__materia__{name}"
+            return queryset.filter(Q(**{ordem_q: val})|Q(**{expediente_q: val}))
         return queryset
 
     class Meta(FilterOverridesMetaMixin):
