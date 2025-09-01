@@ -51,7 +51,7 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
 from sapl.settings import MEDIA_URL
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
-    num_materias_por_tipo, parlamentares_ativos, VotacoesMultiFormatOutputMixin
+    num_materias_por_tipo, parlamentares_ativos, MultiFormatOutputMixin
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
@@ -1885,7 +1885,8 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
         return context
 
 
-class RelatorioVotacoesNominaisView(RelatorioMixin, VotacoesMultiFormatOutputMixin, FilterView):
+class RelatorioVotacoesNominaisView(RelatorioMixin, MultiFormatOutputMixin, FilterView):
+    model = VotoParlamentar
     filterset_class = RelatorioVotacoesNominaisFilterSet
     template_name = 'relatorios/RelatorioVotacoesNominais_filter.html'
     relatorio = relatorio_votacao_nominal
@@ -1896,13 +1897,13 @@ class RelatorioVotacoesNominaisView(RelatorioMixin, VotacoesMultiFormatOutputMix
     ]
 
     def get_queryset(self):
+        query_params = Q(ordem__tipo_votacao=2)|Q(expediente__tipo_votacao=2)
         if 'format' in self.request.GET:
-            self.model = VotoParlamentar
             order_fields = ['-votacao_id', 'parlamentar']
+            qs = VotoParlamentar.objects.filter(query_params).order_by(*order_fields)
         else:
-            self.model = RegistroVotacao
             order_fields = ['-id']
-        qs = self.model.objects.filter(Q(ordem__tipo_votacao=2)|Q(expediente__tipo_votacao=2)).order_by(*order_fields)
+            qs = RegistroVotacao.objects.filter(query_params).order_by(*order_fields)
         return qs
 
     def get_context_data(self, **kwargs):
