@@ -70,34 +70,33 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
         )
 
 
-class RelatorioVotacoesNominaisFilterSet(django_filters.FilterSet):
+def ordem_or_expediente(queryset, name, value):
+    if value is None:
+        return queryset
+    value = getattr(value, "pk", value)
+    ordem_q = f"ordem__materia__{name}"
+    expediente_q = f"expediente__materia__{name}"
+    return queryset.filter(Q(**{ordem_q: value}) | Q(**{expediente_q: value}))
 
+
+class RelatorioVotacoesNominaisFilterSet(django_filters.FilterSet):
     tipo_id = django_filters.ModelChoiceFilter(
-            queryset=TipoMateriaLegislativa.objects.all(),
-            method='ordem_or_expediente',
-            label='Tipo de Matéria',
-            empty_label="---------"
-        )
+        queryset=TipoMateriaLegislativa.objects.all(),
+        method='ordem_or_expediente',
+        label='Tipo de Matéria',
+        empty_label="---------"
+    )
     numero = django_filters.NumberFilter(
-            widget=forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
-            method='ordem_or_expediente',
-            label='Número'
-        )
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+        method='ordem_or_expediente',
+        label='Número'
+    )
     ano = django_filters.ChoiceFilter(
         choices=list(choice_anos_com_materias()),
         widget=forms.Select(attrs={'class': 'form-control'}),
         method='ordem_or_expediente',
         label='Ano da Matéria'
-        )
-
-    def ordem_or_expediente(self, queryset, name, value):
-        if value is None:
-           return queryset
-        value = getattr(value, "pk", value)
-            ordem_q = f"ordem__materia__{name}"
-            expediente_q = f"expediente__materia__{name}"
-            return queryset.filter(Q(**{ordem_q: val})|Q(**{expediente_q: val}))
-        return queryset
+    )
 
     class Meta(FilterOverridesMetaMixin):
         model = RegistroVotacao
@@ -108,7 +107,7 @@ class RelatorioVotacoesNominaisFilterSet(django_filters.FilterSet):
 
         self.filters['data_hora'].label = 'Período (Data Inicial - Data Final)'
 
-        row0= to_row([('tipo_id', 6), ('numero', 3), ('ano', 3)])
+        row0 = to_row([('tipo_id', 6), ('numero', 3), ('ano', 3)])
 
         row1 = to_row([('data_hora', 12)])
 
@@ -380,7 +379,8 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
-        return parent.distinct().prefetch_related('materia__tipo').order_by('tramitacao__data_fim_prazo', 'materia__tipo', 'materia__numero')
+        return parent.distinct().prefetch_related('materia__tipo').order_by('tramitacao__data_fim_prazo',
+                                                                            'materia__tipo', 'materia__numero')
 
     class Meta(FilterOverridesMetaMixin):
         model = MateriaEmTramitacao
