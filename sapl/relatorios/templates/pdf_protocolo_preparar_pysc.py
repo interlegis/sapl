@@ -1,4 +1,3 @@
-import os
 
 request = context.REQUEST
 response = request.RESPONSE

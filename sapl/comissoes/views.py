@@ -2,19 +2,12 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.db.models import F
 from django.http.response import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.generic import CreateView, DeleteView, FormView, ListView
-from django.views.generic.base import RedirectView
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import FormMixin, UpdateView
+from django.views.generic import CreateView, ListView
 from django_filters.views import FilterView
 
-from sapl.base.models import AppConfig as AppsAppConfig
-from sapl.comissoes.apps import AppConfig
 from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
                                   DocumentoAcessorioCreateForm,
                                   DocumentoAcessorioEditForm,
@@ -22,10 +15,9 @@ from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
                                   PautaReuniaoFilterSet, PautaReuniaoForm,
                                   PeriodoForm, ReuniaoForm)
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
-                            MasterDetailCrud,
-                            PermissionRequiredForAppCrudMixin)
+                            MasterDetailCrud)
 from sapl.materia.models import (MateriaEmTramitacao, MateriaLegislativa,
-                                 PautaReuniao, Tramitacao)
+                                 PautaReuniao)
 from sapl.utils import show_results_filter_set
 
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,

@@ -1,12 +1,10 @@
 import logging
-import os
 
 import django_filters
 from crispy_forms.bootstrap import (FieldWithButtons, FormActions,
-                                    InlineRadios, StrictButton)
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (HTML, Button, Div, Field, Fieldset, Layout,
-                                 Row, Submit)
+                                    StrictButton)
+from crispy_forms.layout import (HTML, Div, Field, Fieldset, Layout, Row,
+                                 Submit)
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model, password_validation
@@ -14,7 +12,7 @@ from django.contrib.auth.forms import (AuthenticationForm, PasswordResetForm,
                                        SetPasswordForm)
 from django.contrib.auth.models import Group, Permission, User
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import Q
 from django.forms import Form, ModelForm
 from django.utils import timezone
@@ -22,29 +20,18 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from haystack.forms import ModelSearchForm
 
-from sapl.audiencia.models import AudienciaPublica
 from sapl.base.models import AuditLog, Autor, OperadorAutor, TipoAutor
-from sapl.comissoes.models import Reuniao
 from sapl.crispy_layout_mixin import (SaplFormHelper, SaplFormLayout,
                                       form_actions, to_column, to_row)
-from sapl.materia.models import (DocumentoAcessorio, MateriaEmTramitacao,
-                                 MateriaLegislativa, StatusTramitacao,
-                                 UnidadeTramitacao)
-from sapl.norma.models import NormaEstatisticas, NormaJuridica
+from sapl.norma.models import NormaEstatisticas
 from sapl.parlamentares.models import (Parlamentar, Partido, SessaoLegislativa,
                                        Votante)
-from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.rules import SAPL_GROUP_AUTOR, SAPL_GROUP_VOTANTE
-from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import MAX_IMAGE_UPLOAD_SIZE
 from sapl.utils import (RANGE_ANOS, RANGE_MESES, YES_NO_CHOICES,
                         ChoiceWithoutValidationField, FileFieldCheckMixin,
-                        FilterOverridesMetaMixin, GoogleRecapthaMixin,
-                        ImageThumbnailFileInput, autor_label, autor_modal,
-                        choice_anos_com_materias, choice_anos_com_normas,
-                        choice_tipos_normas, delete_cached_entry,
-                        is_weak_password, parlamentares_ativos,
-                        qs_override_django_filter)
+                        GoogleRecapthaMixin, ImageThumbnailFileInput,
+                        delete_cached_entry, is_weak_password, parlamentares_ativos)
 
 from .models import AppConfig, CasaLegislativa
 

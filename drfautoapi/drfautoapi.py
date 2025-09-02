@@ -4,8 +4,6 @@ import inspect
 import logging
 import re
 
-from django.apps.config import AppConfig
-from django.apps.registry import apps
 from django.conf import settings
 from django.db.models import JSONField
 from django.db.models.base import ModelBase

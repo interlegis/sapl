@@ -5,12 +5,10 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import JSONField
 from django.db.models.deletion import CASCADE
-from django.db.models.signals import post_migrate
-from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import gettext_lazy as _
 
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES,
-                        get_settings_auth_user_model, models_with_gr_for_model)
+                        get_settings_auth_user_model)
 
 DOC_ADM_OSTENSIVO = "O"
 DOC_ADM_RESTRITIVO = "R"

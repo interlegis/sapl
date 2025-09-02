@@ -40,9 +40,9 @@ from sapl.utils import (SEPARADOR_HASH_PROPOSICAO, YES_NO_CHOICES,
                         FilterOverridesMetaMixin, GoogleRecapthaMixin,
                         MateriaPesquisaOrderingFilter, autor_label,
                         autor_modal, choice_anos_com_materias,
-                        gerar_hash_arquivo, get_client_ip, lista_anexados,
-                        models_with_gr_for_model, qs_override_django_filter,
-                        timing, validar_arquivo)
+                        gerar_hash_arquivo, lista_anexados, models_with_gr_for_model,
+                        qs_override_django_filter, timing,
+                        validar_arquivo)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria, DespachoInicial,
                      DocumentoAcessorio, Numeracao, Proposicao, Relatoria,
@@ -2736,7 +2736,6 @@ class ConfirmarProposicaoForm(ProposicaoForm):
                 numeracao = BaseAppConfig.objects.last().sequencia_numeracao_protocolo
             except AttributeError as e:
                 self.logger.error("Erro ao obter modelo. " + str(e))
-                pass
 
             tipo = self.instance.tipo.tipo_conteudo_related
             if tipo.sequencia_numeracao:

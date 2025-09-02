@@ -13,7 +13,7 @@ from sapl.base.views import (anexados_ciclicos, autores_duplicados,
                              parlamentares_duplicados,
                              parlamentares_filiacoes_intersecao,
                              parlamentares_mandatos_intersecao,
-                             protocolos_com_materias, protocolos_duplicados)
+                             protocolos_com_materias)
 from sapl.comissoes.models import Comissao, TipoComissao
 from sapl.materia.models import (Anexada, MateriaLegislativa, RegimeTramitacao,
                                  TipoMateriaLegislativa)

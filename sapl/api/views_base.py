@@ -115,7 +115,6 @@ class _AutorViewSet:
                 params["id"] = tipo
         except Exception as e:
             logger.error("user= " + username + ". " + str(e))
-            pass
 
         tipos = TipoAutor.objects.filter(**params)
 

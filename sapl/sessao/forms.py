@@ -24,18 +24,17 @@ from sapl.parlamentares.models import Mandato, Parlamentar
 from sapl.protocoloadm.models import (DocumentoAdministrativo,
                                       TipoDocumentoAdministrativo)
 from sapl.sessao.models import Correspondencia
-from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES, TIME_PATTERN,
-                        FileFieldCheckMixin, FilterOverridesMetaMixin,
-                        MateriaPesquisaOrderingFilter, autor_label,
-                        autor_modal, choice_anos_com_sessaoplenaria, timezone,
-                        validar_arquivo)
+from sapl.utils import (RANGE_DIAS_MES, RANGE_MESES, FileFieldCheckMixin,
+                        FilterOverridesMetaMixin, MateriaPesquisaOrderingFilter,
+                        autor_label, autor_modal,
+                        choice_anos_com_sessaoplenaria, timezone, validar_arquivo)
 
 from .models import (ORDENACAO_RESUMO, Bancada, ExpedienteMateria,
                      JustificativaAusencia, OcorrenciaSessao, Orador,
                      OradorExpediente, OradorOrdemDia, OrdemDia,
                      PresencaOrdemDia, RegistroLeitura, ResumoOrdenacao,
                      RetiradaPauta, SessaoPlenaria, SessaoPlenariaPresenca,
-                     TipoResultadoVotacao, TipoRetiradaPauta, Tramitacao)
+                     TipoResultadoVotacao, TipoRetiradaPauta)
 
 MES_CHOICES = RANGE_MESES
 DIA_CHOICES = RANGE_DIAS_MES

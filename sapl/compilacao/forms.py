@@ -534,7 +534,6 @@ class PublicacaoForm(ModelForm):
         )
 
         super(PublicacaoForm, self).__init__(*args, **kwargs)
-        pass
 
 
 class DispositivoIntegerField(forms.IntegerField):

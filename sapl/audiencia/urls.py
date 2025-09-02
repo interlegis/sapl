@@ -1,7 +1,6 @@
 from django.urls import include, path
 
-from sapl.audiencia.views import (AnexoAudienciaPublicaCrud, AudienciaCrud,
-                                  index)
+from sapl.audiencia.views import (AnexoAudienciaPublicaCrud, AudienciaCrud)
 
 from .apps import AppConfig
 

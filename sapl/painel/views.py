@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
-from django.http.response import Http404, HttpResponseRedirect
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -17,7 +17,7 @@ from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
-from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
+from sapl.parlamentares.models import Votante
 from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 PresencaOrdemDia, RegistroLeitura,
                                 RegistroVotacao, SessaoPlenaria,

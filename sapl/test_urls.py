@@ -464,7 +464,6 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
 
                     urls_publicas_excecoes, logo acima do teste
                 """
-                pass
 
     if isinstance(app_labels, str):
         app_labels = (app_labels,)

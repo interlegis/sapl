@@ -6,7 +6,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Fieldset, Layout, Submit
 from django import template
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils import formats
 from django.utils.encoding import force_str
 from django.utils.translation import gettext as _

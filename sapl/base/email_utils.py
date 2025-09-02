@@ -2,7 +2,7 @@ import logging
 from datetime import datetime as dt
 
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
-from django.template import Context, loader
+from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _

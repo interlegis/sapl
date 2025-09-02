@@ -4,10 +4,9 @@ from django.utils.translation import gettext_lazy as _
 from model_utils import Choices
 
 from sapl.materia.models import MateriaLegislativa
-from sapl.parlamentares.models import CargoMesa, Parlamentar
+from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, OverwriteStorage,
-                        SaplGenericRelation, restringe_tipos_de_arquivo_txt,
-                        texto_upload_path)
+                        restringe_tipos_de_arquivo_txt, texto_upload_path)
 
 
 def get_audiencia_media_path(instance, subpath, filename):

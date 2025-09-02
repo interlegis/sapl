@@ -7,7 +7,7 @@ from model_bakery import baker
 from sapl.audiencia import forms
 from sapl.audiencia.models import (AnexoAudienciaPublica, AudienciaPublica,
                                    TipoAudienciaPublica)
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.materia.models import TipoMateriaLegislativa
 
 
 @pytest.mark.django_db(transaction=False)

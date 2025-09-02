@@ -1,11 +1,9 @@
 import logging
 import re
-from datetime import datetime
 
 import weasyprint
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -20,15 +18,13 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 
 import sapl
-from sapl import settings
 from sapl.base.models import AppConfig
 from sapl.compilacao.models import STATUS_TA_PUBLIC
 from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Orgao
-from sapl.utils import (MultiFormatOutputMixin, get_client_ip, sapn_is_enabled,
-                        show_results_filter_set)
+from sapl.utils import (MultiFormatOutputMixin, get_client_ip, show_results_filter_set)
 
 from .forms import (AnexoNormaJuridicaForm, AssuntoNormaFilterSet,
                     AutoriaNormaForm, NormaFilterSet, NormaJuridicaForm,
@@ -361,7 +357,6 @@ class NormaCrud(Crud):
                     + username
                     + ". Erro ao obter objeto de modelo da esfera da federação."
                 )
-                pass
             initial["complemento"] = False
             return initial
 

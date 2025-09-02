@@ -16,20 +16,19 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import (MultipleObjectsReturned,
                                     ObjectDoesNotExist, ValidationError)
-from django.db.models import Max, Q
+from django.db.models import Max
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import formats, timezone
-from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
-from PyPDF4 import PdfFileMerger, PdfFileReader
+from PyPDF4 import PdfFileMerger
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
@@ -386,7 +385,6 @@ def recuperar_materia(request):
             + str(e)
             + " Numeracao da matéria definida como None."
         )
-        pass
 
     if tipo.sequencia_numeracao:
         numeracao = tipo.sequencia_numeracao
@@ -1044,13 +1042,10 @@ class ProposicaoCrud(Crud):
                             )
                         except ValueError as e:
                             self.logger.warning("User=" + username + ". " + str(e))
-                            pass
                         except AttributeError as e:
                             self.logger.warning("User=" + username + ". " + str(e))
-                            pass
                         except TypeError as e:
                             self.logger.warning("User=" + username + ". " + str(e))
-                            pass
 
                 elif action == "return":
                     if not p.data_envio:
@@ -2263,7 +2258,6 @@ class AcompanhamentoConfirmarView(TemplateView):
             # (MultipleObjectsReturned) seja lançada e vá para o log,
             # pois só poderá ser causada por um erro de desenvolvimente
             self.logger.error("user=" + username + "." + str(e))
-            pass
         acompanhar.confirmado = True
         acompanhar.save()
 
@@ -2308,7 +2302,6 @@ class AcompanhamentoExcluirView(TemplateView):
                     materia_id, hash_txt
                 )
             )
-            pass
 
         return HttpResponseRedirect(self.get_success_url())
 

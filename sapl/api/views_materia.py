@@ -3,8 +3,7 @@ from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from drfautoapi.drfautoapi import (ApiViewSetConstrutor, customize,
-                                   wrapper_queryset_response_for_drf_action)
+from drfautoapi.drfautoapi import (ApiViewSetConstrutor, customize)
 from sapl.api.permissions import SaplModelPermissions
 from sapl.materia.models import (MateriaLegislativa, Proposicao,
                                  TipoMateriaLegislativa, Tramitacao)

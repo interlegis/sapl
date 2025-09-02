@@ -5,19 +5,15 @@ from model_bakery import baker
 
 from sapl.parlamentares.models import (CargoMesa, Filiacao, Legislatura,
                                        Parlamentar, SessaoLegislativa)
-from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
-                                IntegranteMesa, JustificativaAusencia,
-                                OcorrenciaSessao, Orador, SessaoPlenaria,
-                                SessaoPlenariaPresenca, TipoExpediente,
-                                TipoSessaoPlenaria)
+from sapl.sessao.models import (ExpedienteSessao, IntegranteMesa,
+                                JustificativaAusencia, OcorrenciaSessao,
+                                Orador, SessaoPlenaria, SessaoPlenariaPresenca,
+                                TipoExpediente, TipoSessaoPlenaria)
 from sapl.sessao.views import (get_conteudo_multimidia, get_expedientes,
                                get_identificacao_basica,
-                               get_materias_expediente,
-                               get_materias_ordem_do_dia, get_mesa_diretora,
-                               get_ocorrencias_da_sessao,
-                               get_oradores_expediente,
-                               get_oradores_explicacoes_pessoais,
-                               get_presenca_ordem_do_dia, get_presenca_sessao)
+                               get_mesa_diretora,
+                               get_ocorrencias_da_sessao, get_oradores_explicacoes_pessoais,
+                               get_presenca_sessao)
 
 
 @pytest.mark.django_db(transaction=False)

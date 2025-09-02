@@ -16,7 +16,7 @@ from image_cropping.fields import ImageCropField, ImageRatioField
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
                                    int_to_roman)
 from sapl.utils import (YES_NO_CHOICES, get_settings_auth_user_model,
-                        restringe_tipos_de_arquivo_img, texto_upload_path)
+                        texto_upload_path)
 
 
 class TimestampedMixin(models.Model):

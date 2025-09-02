@@ -634,7 +634,6 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                         except Exception as e:
                             username = self.request.user.username
                             self.logger.info("user=" + username + ". " + str(e))
-                            pass
 
                         if fm and hasattr(fm, "related_model") and fm.related_model:
                             rmo = fm.related_model._meta.ordering
@@ -709,7 +708,6 @@ class CrudCreateView(
         except Exception as e:
             username = self.request.user.username
             self.logger.error("user=" + username + ". " + str(e))
-            pass
 
         if self.container_field:
             container = self.container_field.split("__")
@@ -916,7 +914,6 @@ class CrudUpdateView(
         except Exception as e:
             username = self.request.user.username
             self.logger.error("user=" + username + ". " + str(e))
-            pass
 
         return super().form_valid(form)
 

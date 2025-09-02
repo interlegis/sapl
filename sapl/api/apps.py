@@ -8,4 +8,4 @@ class AppConfig(apps.AppConfig):
     verbose_name = _("API Rest")
 
     def ready(self):
-        from . import signals
+        pass

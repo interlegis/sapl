@@ -6,11 +6,10 @@ import os
 import platform
 import re
 import string
-import sys
 import tempfile
 import unicodedata
 from functools import wraps
-from itertools import chain, groupby
+from itertools import groupby
 from operator import itemgetter
 from time import time
 from unicodedata import normalize as unicodedata_normalize
@@ -36,7 +35,6 @@ from django.core.files.uploadedfile import (InMemoryUploadedFile,
 from django.core.mail import get_connection
 from django.db import models
 from django.db.models import Q
-from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
 from django.forms.widgets import ClearableFileInput, SplitDateTimeWidget
 from django.http.response import HttpResponse, JsonResponse

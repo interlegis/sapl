@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
-from prompt_toolkit.key_binding.bindings.named_commands import self_insert
 
 from sapl.base.models import Autor
 from sapl.decorators import vigencia_atual

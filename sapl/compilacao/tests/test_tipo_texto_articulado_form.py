@@ -3,8 +3,7 @@ from django.utils.translation import gettext as _
 from model_bakery import baker
 
 from sapl.compilacao import forms
-from sapl.compilacao.models import PerfilEstruturalTextoArticulado, TipoNota
-from sapl.compilacao.views import choice_models_in_extenal_views
+from sapl.compilacao.models import TipoNota
 
 
 def test_valida_campos_obrigatorios_tipo_texto_articulado_form():

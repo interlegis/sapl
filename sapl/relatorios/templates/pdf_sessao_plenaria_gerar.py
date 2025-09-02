@@ -8,8 +8,6 @@ import logging
 import os
 import time
 
-from django.template.defaultfilters import safe
-from django.utils.html import strip_tags
 from trml2pdf import parseString
 
 from sapl.sessao.models import ResumoOrdenacao

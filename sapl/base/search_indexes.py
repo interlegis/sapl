@@ -17,7 +17,6 @@ from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.sessao.models import SessaoPlenaria
 from sapl.settings import SOLR_URL
-from sapl.utils import RemoveTag
 
 
 class TextExtractField(CharField):

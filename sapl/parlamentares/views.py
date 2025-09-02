@@ -7,12 +7,11 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.db.models import F, Q
+from django.db.models import Q
 from django.db.models.aggregates import Count
 from django.http import JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
-from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
@@ -30,7 +29,7 @@ from sapl.crud.base import (RP_CHANGE, RP_DETAIL, RP_LIST, Crud, CrudAux,
                             CrudBaseForListAndDetailExternalAppView,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Autoria, Proposicao, Relatoria
-from sapl.norma.models import AutoriaNorma, NormaJuridica
+from sapl.norma.models import AutoriaNorma
 from sapl.parlamentares.apps import AppConfig
 from sapl.rules import SAPL_GROUP_VOTANTE
 from sapl.utils import parlamentares_ativos, show_results_filter_set

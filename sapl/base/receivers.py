@@ -6,7 +6,7 @@ from asn1crypto import cms
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
-from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
+from django.core.files.uploadedfile import UploadedFile
 from django.db.models.fields.files import FileField
 from django.db.models.signals import (post_delete, post_migrate, post_save,
                                       pre_migrate, pre_save)
@@ -20,7 +20,6 @@ from sapl.base.email_utils import do_envia_email_tramitacao
 from sapl.base.models import AuditLog, Autor, Metadata, TipoAutor
 from sapl.decorators import receiver_multi_senders
 from sapl.materia.models import Tramitacao
-from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import TramitacaoAdministrativo
 from sapl.utils import get_base_url, models_with_gr_for_model
 

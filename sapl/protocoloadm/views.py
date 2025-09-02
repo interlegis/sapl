@@ -1,14 +1,12 @@
 import logging
 import os
 import re
-import time
 from datetime import datetime
 from io import BytesIO
 from random import choice
 from string import ascii_letters, digits
 
 from braces.views import FormValidMessageMixin
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import permission_required
@@ -29,7 +27,6 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 from PyPDF4 import PdfFileMerger
 
-import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import AppConfig, Autor, CasaLegislativa
 from sapl.comissoes.models import Comissao
@@ -46,9 +43,9 @@ from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (MultiFormatOutputMixin, create_barcode,
                         from_date_to_datetime_utc, get_base_url, get_client_ip,
-                        get_mime_type_from_file_extension, get_tempfile_dir,
-                        google_recaptcha_configured, lista_anexados,
-                        mail_service_configured, show_results_filter_set)
+                        get_mime_type_from_file_extension, google_recaptcha_configured,
+                        lista_anexados, mail_service_configured,
+                        show_results_filter_set)
 
 from ..settings import MEDIA_ROOT
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet,

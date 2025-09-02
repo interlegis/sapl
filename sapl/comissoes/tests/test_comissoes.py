@@ -4,8 +4,7 @@ from django.utils.translation import gettext as _
 from model_bakery import baker
 
 from sapl.comissoes import forms
-from sapl.comissoes.models import (Comissao, Composicao, Periodo, Reuniao,
-                                   TipoComissao)
+from sapl.comissoes.models import (Comissao, Composicao, Periodo, TipoComissao)
 from sapl.parlamentares.models import Filiacao, Parlamentar, Partido
 
 

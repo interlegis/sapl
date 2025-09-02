@@ -1,6 +1,5 @@
 # /var/interlegis/sapl/gunicorn.conf.py
 
-import os
 import pathlib
 import multiprocessing
 

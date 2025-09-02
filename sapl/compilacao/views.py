@@ -4,7 +4,6 @@ from collections import OrderedDict
 from datetime import timedelta
 
 from braces.views import FormMessagesMixin
-from bs4 import BeautifulSoup
 from django import forms
 from django.apps.registry import apps
 from django.conf import settings
@@ -15,7 +14,6 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import Signer
 from django.db import transaction
 from django.db.models import Q
-from django.db.models.query import QuerySet
 from django.http.response import (Http404, HttpResponse, HttpResponseRedirect,
                                   JsonResponse)
 from django.shortcuts import get_object_or_404, redirect
@@ -50,9 +48,7 @@ from sapl.compilacao.models import (STATUS_TA_EDITION, STATUS_TA_PRIVATE,
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT,
                                    get_integrations_view_names)
-from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux, CrudListView,
-                            make_pagination)
-from sapl.settings import BASE_DIR
+from sapl.crud.base import (RP_DETAIL, RP_LIST, CrudAux, CrudListView, make_pagination)
 
 TipoNotaCrud = CrudAux.build(TipoNota, "tipo_nota")
 TipoVideCrud = CrudAux.build(TipoVide, "tipo_vide")
@@ -3773,7 +3769,6 @@ class DispositivoSearchFragmentFormView(ListView):
             username = self.request.user.username
             self.logger.error("user=" + username + ". " + str(e))
             return []
-        pass
 
 
 class DispositivoSearchModalView(FormView):

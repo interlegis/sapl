@@ -8,4 +8,4 @@ class AppConfig(django.apps.AppConfig):
     verbose_name = _("Dados Básicos")
 
     def ready(self):
-        from sapl.base import receivers
+        pass

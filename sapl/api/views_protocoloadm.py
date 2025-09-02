@@ -1,7 +1,6 @@
 from django.apps.registry import apps
 
-from drfautoapi.drfautoapi import (ApiViewSetConstrutor, customize,
-                                   wrapper_queryset_response_for_drf_action)
+from drfautoapi.drfautoapi import (ApiViewSetConstrutor, customize)
 from sapl.api.permissions import SaplModelPermissions
 from sapl.base.models import DOC_ADM_OSTENSIVO, AppConfig
 from sapl.protocoloadm.models import (Anexado,

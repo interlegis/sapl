@@ -1,10 +1,7 @@
-import json
 import logging
-from collections import OrderedDict
 from datetime import datetime
 from re import sub
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -13,7 +10,6 @@ from django.db.models import Max, Q
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.urls import reverse
-from django.urls.base import reverse_lazy
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
@@ -32,19 +28,17 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import filtra_tramitacao_status
-from sapl.materia.models import (Autoria, MateriaEmTramitacao, Numeracao,
-                                 TipoMateriaLegislativa, Tramitacao)
+from sapl.materia.models import (Autoria, MateriaEmTramitacao, TipoMateriaLegislativa,
+                                 Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
-from sapl.protocoloadm.models import (DocumentoAdministrativo,
-                                      TipoDocumentoAdministrativo)
+from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import (CorrespondenciaEmLoteFilterSet,
                                CorrespondenciaForm, ExpedienteMateriaForm,
                                OrdemDiaForm, OrdemExpedienteLeituraForm)
 from sapl.sessao.models import Correspondencia
-from sapl.settings import TIME_ZONE
 from sapl.utils import (MultiFormatOutputMixin, PautaMultiFormatOutputMixin,
                         get_client_ip, remover_acentos,
                         show_results_filter_set)
