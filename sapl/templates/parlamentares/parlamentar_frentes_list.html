@@ -8,7 +8,7 @@
 
 {% block base_content %}
 	{% if not frentes %}
-    <h1>O {{ nome_parlamentar }} não têm participações em Frentes Parlamentares.</h1>
+    <h1>{% if sexo_parlamentar == 'M' %}O{% else %}A{% endif %} Parlamentar {{ nome_parlamentar }} não têm participações em Frentes Parlamentares.</h1>
 	{% else %}
     <h1>Frentes ({{ nome_parlamentar }})</h1>
     <br/>

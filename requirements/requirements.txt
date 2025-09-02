@@ -2,11 +2,9 @@ django==2.2.28
 django-haystack==3.1.1
 django-filter==2.4.0
 djangorestframework==3.12.4
-dj-database-url==0.5.0
 django-braces==1.14.0
 django-crispy-forms==1.7.2
 django-contrib-postgres==0.0.1
-django-floppyforms==1.8.0
 django-extra-views==0.12.0
 django-model-utils==3.1.2
 django-extensions==2.1.4
@@ -17,14 +15,18 @@ drf-spectacular==0.18.2
 django-ratelimit==3.0.1
 easy-thumbnails==2.8.5
 python-decouple==3.1
-psycopg2-binary==2.8.6
+dj-database-url==0.5.0
+psycopg2-binary==2.9.9
 pyyaml==6.0.1
 pytz==2019.3
 python-magic==0.4.15
 unipath==1.1
-WeasyPrint==51
-Pillow==10.0.1
-gunicorn==19.9.0
+Pillow==10.3.0
+rlPyCairo==0.3.0
+reportlab==4.2.0
+WeasyPrint==66
+trml2pdf==0.6
+gunicorn==23.0.0
 more-itertools==8.2.0
 pysolr==3.6.0
 PyPDF4==1.27.0
@@ -36,6 +38,6 @@ kazoo==2.8.0
 django-prometheus==2.2.0
 
 asn1crypto==1.5.1
+XlsxWriter==3.2.0
 
-git+https://github.com/interlegis/trml2pdf
 git+https://github.com/interlegis/django-admin-bootstrapped

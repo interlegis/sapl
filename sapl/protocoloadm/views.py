@@ -47,7 +47,7 @@ from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
-                        google_recaptcha_configured, get_tempfile_dir)
+                        google_recaptcha_configured, get_tempfile_dir, MultiFormatOutputMixin)
 
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
                     AnularProtocoloAdmForm, compara_tramitacoes_doc,
@@ -174,7 +174,7 @@ def create_pdf_docacessorios(docadministrativo):
     logger.info("Gerando compilado PDF de documentos acessorios com {} documentos"
                 .format(docs_path))
 
-    merger = PdfFileMerger()
+    merger = PdfFileMerger(strict=False)
     for f in docs_path:
         merger.append(fileobj=f)
 
@@ -448,7 +448,7 @@ class DocumentoAdministrativoCrud(Crud):
 
         def form_valid(self, form):
             form.instance.complemento = re.sub(
-                '\s+', '', form.instance.complemento).upper()
+                r'\s+', '', form.instance.complemento).upper()
             return super().form_valid(form)
 
     class UpdateView(Crud.UpdateView):
@@ -481,7 +481,7 @@ class DocumentoAdministrativoCrud(Crud):
                     break
 
             form.instance.complemento = re.sub(
-                '\s+', '', form.instance.complemento).upper()
+                r'\s+', '', form.instance.complemento).upper()
 
             return super().form_valid(form)
 
@@ -992,7 +992,6 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super(CreateView, self).get_context_data(**kwargs)
         autores_ativos = self.autores_ativos()
-
         autores = []
         autores.append(['0', '------'])
         for a in autores_ativos:
@@ -1034,12 +1033,17 @@ class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
 
 
 class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
+                                           MultiFormatOutputMixin,
                                            PermissionRequiredMixin,
                                            FilterView):
     model = DocumentoAdministrativo
     filterset_class = DocumentoAdministrativoFilterSet
     paginate_by = 10
     permission_required = ('protocoloadm.list_documentoadministrativo', )
+
+    export_fields = [
+        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'assunto'
+    ]
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,

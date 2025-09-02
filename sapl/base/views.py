@@ -6,7 +6,7 @@ import os
 
 from django.apps.registry import apps
 from django.contrib import messages
-from django.contrib.auth import get_user_model, views
+from django.contrib.auth import authenticate, login, get_user_model, views
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
@@ -51,7 +51,7 @@ from sapl.sessao.models import (Bancada, SessaoPlenaria)
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, google_recaptcha_configured,
-                        get_client_ip, sapn_is_enabled)
+                        get_client_ip, sapn_is_enabled, is_weak_password)
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, EstatisticasAcessoNormasForm)
 from .models import AppConfig, CasaLegislativa
 
@@ -74,6 +74,21 @@ class IndexView(TemplateView):
 class LoginSapl(views.LoginView):
     template_name = 'base/login.html'
     authentication_form = LoginForm
+
+    def form_valid(self, form):
+        """Override do comportamento padrão para verificar senha fraca"""
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+
+        user = authenticate(self.request, username=username, password=password)
+        if user is not None:
+            login(self.request, user)
+            if is_weak_password(password):
+                self.request.session['weak_password'] = True
+            return redirect(self.get_success_url())
+
+        # Fallback se falhar a autenticação (tecnicamente não devia chegar aqui)
+        return super().form_invalid(form)
 
 
 class ConfirmarEmailView(TemplateView):
@@ -1480,6 +1495,8 @@ class AlterarSenha(FormView):
         user = self.request.user
         user.set_password(new_password)
         user.save()
+
+        self.request.session.pop('weak_password', None)
 
         return super().form_valid(form)
 

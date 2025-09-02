@@ -24,7 +24,7 @@
             <tr>
               <td>{{ hist.data_hora|localtime|date:"d/m/Y H:i:s" }}</td>
               <td>{{ hist.status_descricao}}</td>
-              <td>{{ hist.user }}</td>
+              <td>{{ hist.user|default_if_none:"" }}</td>
               <td>
                     <a href="{% url 'sapl.materia:proposicao_detail' hist.proposicao.pk %}">
                       {{ hist.proposicao.numero_proposicao }}/{{ hist.proposicao.ano }}

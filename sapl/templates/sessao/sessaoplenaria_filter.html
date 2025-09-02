@@ -4,12 +4,22 @@
 {% load crispy_forms_tags common_tags %}
 
 {% block actions %}
+
+  {% if show_results %}
+    <div class="float-left">
+      {% with 'sapl.sessao:pesquisar_sessao' as url_reverse %}
+        {% include "crud/format_options.html" %}
+      {% endwith %}
+    </div>
+  {% endif %}
+
   <div class="actions btn-group float-right" role="group">
     {% switch "SOLR_SWITCH" %}
         <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-primary">
           Pesquisa Textual
         </a>
     {% endswitch %}
+
     {% if perms.sessao %}
       <a href="{% url 'sapl.sessao:sessaoplenaria_create' %}" class="btn btn-outline-primary">
         {% blocktrans with verbose_name=view.verbose_name %} Adicionar Sessão Plenária {% endblocktrans %}

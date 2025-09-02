@@ -24,13 +24,15 @@ from unipath import Path
 
 logging.captureWarnings(True)
 
+logger = logging.getLogger(__name__)
+
 host = socket.gethostbyname_ex(socket.gethostname())[0]
 
 BASE_DIR = Path(__file__).ancestor(1)
 PROJECT_DIR = Path(__file__).ancestor(2)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='')
+SECRET_KEY = config('SECRET_KEY', default='32jk1h412l3kjh421lkj4hlkj234')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
@@ -41,7 +43,7 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
-SAPL_VERSION = '3.1.163-RC20'
+SAPL_VERSION = '3.1.164-RC1'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -68,36 +70,37 @@ SAPL_APPS = (
 )
 
 INSTALLED_APPS = (
-    'django_admin_bootstrapped',  # must come before django.contrib.admin
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_extensions',
+                     'django_admin_bootstrapped',  # must come before django.contrib.admin
+                     'django.contrib.admin',
+                     'django.contrib.auth',
+                     'django.contrib.contenttypes',
+                     'django.contrib.sessions',
+                     'django.contrib.messages',
+                     'django.contrib.staticfiles',
+                     'django.forms',
 
-    'crispy_forms',
-    'floppyforms',
+                     'django_extensions',
 
-    'waffle',
+                     'crispy_forms',
 
-    'drf_spectacular',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'django_filters',
+                     'waffle',
 
-    'easy_thumbnails',
-    'image_cropping',
+                     'drf_spectacular',
+                     'rest_framework',
+                     'rest_framework.authtoken',
+                     'django_filters',
 
-    'haystack',
-    'django.contrib.postgres',
+                     'easy_thumbnails',
+                     'image_cropping',
 
-    'webpack_loader',
+                     'haystack',
+                     'django.contrib.postgres',
 
-    'django_prometheus',
+                     'webpack_loader',
 
-) + SAPL_APPS
+                     'django_prometheus',
+
+                 ) + SAPL_APPS
 
 # FTS = Full Text Search
 # Desabilita a indexação textual até encontramos uma solução para a issue
@@ -111,6 +114,10 @@ USE_SOLR = config('USE_SOLR', cast=bool, default=False)
 SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
 SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
 
+# FOR HAYSTACK 3.3.1 (Django >= 3)
+# SOLR_USER = config('SOLR_USER', cast=str)
+# SOLR_PASSWORD = config('SOLR_PASSWORD', cast=str)
+
 if USE_SOLR:
     HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'  # enable auto-index
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
@@ -123,6 +130,10 @@ HAYSTACK_CONNECTIONS = {
         SEARCH_URL[0]: SEARCH_URL[1],
         'BATCH_SIZE': 1000,
         'TIMEOUT': 20,
+        # 'KWARGS': {
+        #     'timeout': 60,
+        #     'auth': (SOLR_USER, SOLR_PASSWORD),  # Basic Auth
+        # },
     },
 }
 
@@ -140,6 +151,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
     'waffle.middleware.WaffleMiddleware',
+    'sapl.middleware.CheckWeakPasswordMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
@@ -192,10 +204,13 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
+        'OPTIONS': {"MAX_ENTRIES": 10000},
     }
 }
 
 ROOT_URLCONF = 'sapl.urls'
+
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 TEMPLATES = [
     {
@@ -225,17 +240,47 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
+# Parse DATABASE_URL
+# dj-database-url==0.5.0 is the latest compatible with Django 2.2, later versions required Django >= 4
+# but it doesn't support OPTIONS tag, so we need setup_db_tz
+# This should be removed once we are able to upgrade to Django >= 4
 DATABASES = {
-    'default': config(
-        'DATABASE_URL', default='sqlite://:memory:',
-        cast=db_url,
-    )
+    "default": config("DATABASE_URL", cast=db_url)
 }
+
+
+def setup_db_tz():
+    db = DATABASES["default"]
+    # Normalize legacy engine alias returned by old dj-database-url
+    if db.get("ENGINE") == "django.db.backends.postgresql_psycopg2":
+        db["ENGINE"] = "django.db.backends.postgresql"
+
+    # Force UTC per connection for Postgres (fixes Django’s utc_tzinfo_factory assertion)
+    if db.get("ENGINE") == "django.db.backends.postgresql":
+        opts = db.setdefault("OPTIONS", {})
+        existing = (opts.get("options") or "").strip()
+        force_utc = "-c timezone=UTC"
+        opts["options"] = f"{existing} {force_utc}".strip() if existing else force_utc
+
+        # ensure default TCP port if you use HOST; leave sockets alone if HOST is empty
+        if db.get("HOST") and not db.get("PORT"):
+            db["PORT"] = "5432"
+
+    # Add connection lifetime
+    # in recent dj-database-url versions, replace by config("DATABASE_URL", conn_max_age=300)
+    db["CONN_MAX_AGE"] = 300  # keep connections for 5 minutes
+
+    # Log if DEBUG mode
+    if config("DEBUG", default=False, cast=bool):
+        logger.debug("DB config: %r", db)
+
+
+setup_db_tz()
 
 IMAGE_CROPPING_JQUERY_URL = None
 THUMBNAIL_PROCESSORS = (
-    'image_cropping.thumbnail_processors.crop_corners',
-) + thumbnail_settings.THUMBNAIL_PROCESSORS
+                           'image_cropping.thumbnail_processors.crop_corners',
+                       ) + thumbnail_settings.THUMBNAIL_PROCESSORS
 
 THUMBNAIL_SOURCE_GENERATORS = (
     'sapl.utils.pil_image',
@@ -266,7 +311,6 @@ WAFFLE_CREATE_MISSING_SWITCHES = True
 WAFFLE_LOG_MISSING_SWITCHES = True
 WAFFLE_ENABLE_ADMIN_PAGES = True
 
-
 MAX_DOC_UPLOAD_SIZE = 150 * 1024 * 1024  # 150MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
@@ -286,6 +330,30 @@ if not TIME_ZONE:
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+
+##
+## Monkey patch of the Django 2.2 because latest version of psycopg2 returns DB time zone as UTC,
+## but Django 2.2 requires an int! This should be removed once we are able to upgrade to Django >= 4
+##
+import importlib
+from django.utils.timezone import utc
+
+pg_utils = importlib.import_module("django.db.backends.postgresql.utils")
+
+
+def _compat_utc_tzinfo_factory(offset):
+    try:
+        minutes = int(offset.total_seconds() // 60) if hasattr(offset, "total_seconds") else int(offset)
+    except Exception:
+        raise AssertionError("database connection isn't set to UTC")
+    if minutes != 0:
+        raise AssertionError("database connection isn't set to UTC")
+    return utc
+
+
+pg_utils.utc_tzinfo_factory = _compat_utc_tzinfo_factory
+
 # DATE_FORMAT = 'N j, Y'
 DATE_FORMAT = 'd/m/Y'
 SHORT_DATE_FORMAT = 'd/m/Y'
@@ -333,9 +401,6 @@ DAB_FIELD_RENDERER = \
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 CRISPY_FAIL_SILENTLY = not DEBUG
-FLOPPY_FORMS_USE_GIS = False
-
-FORM_RENDERER = 'django.forms.renderers.DjangoTemplates'
 
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
@@ -387,12 +452,12 @@ LOGGING = {
     },
     'loggers': {
         'sapl': {
-            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
+            'handlers': ['applogfile'] + (['console_verbose'] if LOGGING_CONSOLE_VERBOSE else []),
             'level': 'DEBUG' if LOGGING_CONSOLE_VERBOSE else 'INFO',
             'propagate': True,
         },
         'django': {
-            'handlers': ['applogfile'] + ['console_verbose'] if LOGGING_CONSOLE_VERBOSE else [],
+            'handlers': ['applogfile'] + (['console_verbose'] if LOGGING_CONSOLE_VERBOSE else []),
             'level': 'ERROR',
             'propagate': True,
         },

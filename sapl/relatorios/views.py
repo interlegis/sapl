@@ -31,7 +31,8 @@ from sapl.relatorios.forms import RelatorioNormasPorAutorFilterSet, RelatorioHis
     RelatorioNormasVigenciaFilterSet, RelatorioNormasMesFilterSet, RelatorioMateriasPorAutorFilterSet, \
     RelatorioMateriasPorAnoAutorTipoFilterSet, RelatorioMateriasTramitacaoFilterSet, RelatorioAudienciaFilterSet, \
     RelatorioReuniaoFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet, RelatorioHistoricoTramitacaoFilterSet, \
-    RelatorioPresencaSessaoFilterSet, RelatorioAtasFilterSet, RelatorioDocumentosAcessoriosFilterSet
+    RelatorioPresencaSessaoFilterSet, RelatorioAtasFilterSet, RelatorioDocumentosAcessoriosFilterSet, \
+    RelatorioVotacoesNominaisFilterSet
 from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 IntegranteMesa, JustificativaAusencia,
                                 Orador, OradorExpediente,
@@ -50,7 +51,7 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
 from sapl.settings import MEDIA_URL
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
-    num_materias_por_tipo, parlamentares_ativos
+    num_materias_por_tipo, parlamentares_ativos, MultiFormatOutputMixin
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
@@ -612,13 +613,13 @@ def get_sessao_plenaria(sessao, casa, user):
         if not is_empty(conteudo):
             # unescape HTML codes
             # https://github.com/interlegis/sapl/issues/1046
-            conteudo = re.sub('style=".*?"', '', conteudo)
-            conteudo = re.sub('class=".*?"', '', conteudo)
+            conteudo = re.sub(r'style=".*?"', '', conteudo)
+            conteudo = re.sub(r'class=".*?"', '', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('align=".*?"', '', conteudo)
-            conteudo = re.sub('<p\s+>', '<p>', conteudo)
+            conteudo = re.sub(r'align=".*?"', '', conteudo)
+            conteudo = re.sub(r'<p\s+>', '<p>', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)
+            conteudo = re.sub(r'<br\s+/>', '<br/>', conteudo)
             conteudo = html.unescape(conteudo)
 
             # escape special character '&'
@@ -874,7 +875,7 @@ def get_sessao_plenaria(sessao, casa, user):
 
         # unescape HTML codes
         # https://github.com/interlegis/sapl/issues/1046
-        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = re.sub(r'style=".*?"', '', conteudo)
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
@@ -894,7 +895,7 @@ def get_sessao_plenaria(sessao, casa, user):
 
         # unescape HTML codes
         # https://github.com/interlegis/sapl/issues/1046
-        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = re.sub(r'style=".*?"', '', conteudo)
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
@@ -1321,13 +1322,13 @@ def get_pauta_sessao(sessao, casa):
         if not is_empty(conteudo):
             # unescape HTML codes
             # https://github.com/interlegis/sapl/issues/1046
-            conteudo = re.sub('style=".*?"', '', conteudo)
-            conteudo = re.sub('class=".*?"', '', conteudo)
+            conteudo = re.sub(r'style=".*?"', '', conteudo)
+            conteudo = re.sub(r'class=".*?"', '', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('align=".*?"', '', conteudo)
-            conteudo = re.sub('<p\s+>', '<p>', conteudo)
+            conteudo = re.sub(r'align=".*?"', '', conteudo)
+            conteudo = re.sub(r'<p\s+>', '<p>', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)
+            conteudo = re.sub(r'<br\s+/>', '<br/>', conteudo)
             conteudo = html.unescape(conteudo)
 
             # escape special character '&'
@@ -1558,6 +1559,10 @@ def relatorio_estatisticas_acesso_normas(obj, request, context):
 
 def relatorio_documento_acessorio(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_documento_acessorio.html')
+
+
+def relatorio_votacao_nominal(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_votacao_nominal.html')
 
 
 def relatorio_normas_por_autor(obj, request, context):
@@ -1876,6 +1881,75 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
         context['periodo'] = (
                 data_inicial + ' - ' + data_final
         )
+
+        return context
+
+
+class RelatorioVotacoesNominaisView(RelatorioMixin, MultiFormatOutputMixin, FilterView):
+    model = VotoParlamentar
+    filterset_class = RelatorioVotacoesNominaisFilterSet
+    template_name = 'relatorios/RelatorioVotacoesNominais_filter.html'
+    relatorio = relatorio_votacao_nominal
+    paginate_by = 20
+
+    export_fields = [
+        'votacao_id', 'votacao', 'parlamentar__nome_parlamentar', 'voto'
+    ]
+
+    def get_queryset(self):
+        query_params = Q(ordem__tipo_votacao=2)|Q(expediente__tipo_votacao=2)
+        if 'format' in self.request.GET:
+            order_fields = ['-votacao_id', 'parlamentar']
+            qs = VotoParlamentar.objects.filter(query_params).order_by(*order_fields)
+        else:
+            order_fields = ['-id']
+            qs = RegistroVotacao.objects.filter(query_params).order_by(*order_fields)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = _('Votações Nominais')
+
+        if not self.filterset.form.is_valid():
+            return context
+
+        query_dict = self.request.GET.copy()
+        if 'page' in query_dict:
+            del query_dict['page']
+        context['filter_url'] = f"&{query_dict.urlencode()}" if query_dict else ''
+        context['show_results'] = show_results_filter_set(query_dict)
+
+        data_inicial = self.request.GET.get('data_hora_0', '')
+        data_final = self.request.GET.get('data_hora_1', '')
+        if not data_inicial:
+            data_inicial = "Data Inicial não definida"
+        if not data_final:
+            data_final = "Data Final não definida"
+        context['periodo'] = f"{data_inicial} - {data_final}"
+
+        tipo_id = self.request.GET.get('tipo_id')
+        numero = self.request.GET.get('numero')
+        ano = self.request.GET.get('ano')
+
+        if tipo_id:
+            context['tipo_materia'] = TipoMateriaLegislativa.objects.get(id=tipo_id)
+        if numero:
+            context['numero'] = int(numero)
+        if ano:
+            context['ano'] = ano
+
+        if 'relatorio' not in self.request.GET:
+            paginator = context['paginator']
+            page_obj = context['page_obj']
+
+            context['page_range'] = make_pagination(
+                page_obj.number, paginator.num_pages)
+
+            context['qtde_votacoes'] = paginator.count
+        else:
+            self.paginate_by = None
+            context['qtde_votacoes'] = len(context['object_list'])
 
         return context
 

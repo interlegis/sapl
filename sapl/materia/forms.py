@@ -42,7 +42,7 @@ from sapl.utils import (autor_label, autor_modal, timing,
                         models_with_gr_for_model, qs_override_django_filter,
                         SEPARADOR_HASH_PROPOSICAO,
                         validar_arquivo, YES_NO_CHOICES,
-                        GoogleRecapthaMixin)
+                        GoogleRecapthaMixin, get_client_ip)
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, Numeracao,
@@ -1039,6 +1039,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
                   'ano_origem_externa',
                   'data_origem_externa',
                   'local_origem_externa',
+                  'regime_tramitacao',
                   ]
 
     def filter_ementa(self, queryset, name, value):
@@ -1099,7 +1100,7 @@ class MateriaLegislativaFilterSet(django_filters.FilterSet):
              ('tramitacao__status', 6),
              ])
         row9 = to_row(
-            [('materiaassunto__assunto', 6), ('indexacao', 6)])
+            [('materiaassunto__assunto', 4), ('indexacao', 4), ('regime_tramitacao', 4)])
 
         row8 = to_row(
             [
@@ -1715,7 +1716,7 @@ class TramitacaoEmLoteForm(ModelForm):
             ('texto', 12)
         ])
 
-        documentos_checkbox_HTML = '''
+        documentos_checkbox_HTML = r'''
             <br\><br\><br\>
             <fieldset>
                 <legend style="font-size: 24px;">Selecione as matérias para tramitação:</legend>
@@ -2653,7 +2654,9 @@ class ConfirmarProposicaoForm(ProposicaoForm):
 
         protocolo.save()
         HistoricoProposicao.objects.create(proposicao=proposicao,
-                                           status='E')
+                                           status='E',
+                                           user=self.initial['user'],
+                                           ip=self.initial['ip'])
 
         self.instance.results['messages']['success'].append(_(
             'Protocolo realizado com sucesso'))

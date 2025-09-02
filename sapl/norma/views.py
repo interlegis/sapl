@@ -28,7 +28,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Orgao
 from sapl.utils import show_results_filter_set, get_client_ip,\
-    sapn_is_enabled
+    sapn_is_enabled, MultiFormatOutputMixin
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm,
@@ -104,7 +104,7 @@ class PesquisarAssuntoNormaView(FilterView):
 
         if 'assunto' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
-             resultados = self.object_list
+            resultados = self.object_list
         else:
             resultados = []
 
@@ -147,10 +147,21 @@ class NormaRelacionadaCrud(MasterDetailCrud):
         layout_key = 'NormaRelacionadaDetail'
 
 
-class NormaPesquisaView(FilterView):
+class NormaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = NormaJuridica
     filterset_class = NormaFilterSet
     paginate_by = 50
+
+    export_fields = [
+        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'texto_integral', 'ementa'
+    ]
+
+    def hook_texto_integral(self, obj):
+        url = self.request.build_absolute_uri('/')[:-1]
+        texto_integral = obj.texto_integral if not isinstance(
+            obj, dict) else obj["texto_integral"]
+
+        return f'{url}/media/{texto_integral}'
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -478,7 +489,7 @@ def recuperar_numero_norma(request):
     norma = NormaJuridica.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', flat=True)
     if norma:
-        numeros = sorted([int(re.sub("[^0-9].*", '', n)) for n in norma])
+        numeros = sorted([int(re.sub(r"[^0-9].*", '', n)) for n in norma])
         next_num = numeros.pop() + 1
         response = JsonResponse({'numero': next_num,
                                  'ano': param['ano']})

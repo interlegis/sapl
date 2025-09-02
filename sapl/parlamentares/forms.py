@@ -13,7 +13,6 @@ from django.forms import ModelForm
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
-from floppyforms.widgets import ClearableFileInput
 from image_cropping.widgets import CropWidget, ImageCropWidget
 
 from sapl.base.models import Autor, TipoAutor
@@ -24,10 +23,6 @@ from sapl.utils import FileFieldCheckMixin
 
 from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
                      Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
-
-
-class ImageThumbnailFileInput(ClearableFileInput):
-    template_name = 'floppyforms/image_thumbnail.html'
 
 
 class CustomImageCropWidget(ImageCropWidget):

@@ -6,6 +6,14 @@
 {% block sections_nav %} {% endblock %}
 
 {% block actions %}
+  {% if show_results %}
+    <div class="float-left">
+      {% with 'sapl.protocoloadm:pesq_doc_adm' as url_reverse %}
+        {% include "crud/format_options.html" %}
+      {% endwith %}
+    </div>
+  {% endif %}
+
   <div class="actions btn-group float-right" role="group">
     {% if perms.protocoloadm.add_documentoadministrativo %}
       <a href="{% url 'sapl.protocoloadm:documentoadministrativo_create' %}" class="btn btn-outline-primary">

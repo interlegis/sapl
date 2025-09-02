@@ -1,4 +1,3 @@
-version: "3.7"
 services:
   sapldb:
     image: postgres:10.5-alpine
@@ -10,7 +9,9 @@ services:
       POSTGRES_PASSWORD: sapl
       POSTGRES_USER: sapl
       POSTGRES_DB: sapl
-      PGDATA : /var/lib/postgresql/data/
+      PGDATA: /var/lib/postgresql/data/
+      TZ: UTC
+      PG_TZ: UTC
     volumes:
       - sapldb_data:/var/lib/postgresql/data/
     ports:
@@ -32,10 +33,10 @@ services:
     networks:
       - sapl-net
   sapl:
-    image: interlegis/sapl:3.1.163-RC20
-#    build:
-#      context: ../
-#      dockerfile: ./docker/Dockerfile
+#    image: interlegis/sapl:3.1.164-RC1
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
     container_name: sapl
     labels:
        NAME: "sapl"
@@ -52,7 +53,9 @@ services:
       EMAIL_HOST_PASSWORD: senhasmtp
       USE_SOLR: 'True'
       SOLR_COLLECTION: sapl
-      SOLR_URL: http://solr:solr@saplsolr:8983
+      SOLR_URL: http://admin:solr@saplsolr:8983
+      SOLR_USER: solr
+      SOLR_PASSWORD: solr
       IS_ZK_EMBEDDED: 'True'
       ENABLE_SAPN: 'False'
       TZ: America/Sao_Paulo

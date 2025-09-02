@@ -3,17 +3,19 @@ from crispy_forms.bootstrap import (FormActions)
 from crispy_forms.layout import (HTML, Button, Fieldset,
                                  Layout, Submit)
 from django import forms
+from django.forms import ModelChoiceField
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 
 from sapl.audiencia.models import AudienciaPublica
 from sapl.base.models import Autor
 from sapl.comissoes.models import Reuniao
 from sapl.crispy_layout_mixin import SaplFormHelper, to_row, form_actions
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, MateriaEmTramitacao, UnidadeTramitacao, \
-    StatusTramitacao
+    StatusTramitacao, TipoMateriaLegislativa
 from sapl.norma.models import NormaJuridica
 from sapl.protocoloadm.models import DocumentoAdministrativo
-from sapl.sessao.models import SessaoPlenaria
+from sapl.sessao.models import SessaoPlenaria, VotoParlamentar, RegistroVotacao
 from sapl.utils import FilterOverridesMetaMixin, choice_anos_com_normas, qs_override_django_filter, \
     choice_anos_com_materias, choice_tipos_normas, autor_label, autor_modal
 
@@ -53,6 +55,70 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
                                                        <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
                                                    </div>
                                                ''')
+            ],
+            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+                   onclick='return true;'),
+            css_class='form-group row justify-content-between',
+        )
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisa'),
+                     row0, row1,
+                     buttons)
+        )
+
+
+def ordem_or_expediente(queryset, name, value):
+    if value is None:
+        return queryset
+    value = getattr(value, "pk", value)
+    ordem_q = f"ordem__materia__{name}"
+    expediente_q = f"expediente__materia__{name}"
+    return queryset.filter(Q(**{ordem_q: value}) | Q(**{expediente_q: value}))
+
+
+class RelatorioVotacoesNominaisFilterSet(django_filters.FilterSet):
+    tipo_id = django_filters.ModelChoiceFilter(
+        queryset=TipoMateriaLegislativa.objects.all(),
+        method='ordem_or_expediente',
+        label='Tipo de Matéria',
+        empty_label="---------"
+    )
+    numero = django_filters.NumberFilter(
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': 'any'}),
+        method='ordem_or_expediente',
+        label='Número'
+    )
+    ano = django_filters.ChoiceFilter(
+        choices=list(choice_anos_com_materias()),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        method='ordem_or_expediente',
+        label='Ano da Matéria'
+    )
+
+    class Meta(FilterOverridesMetaMixin):
+        model = RegistroVotacao
+        fields = ['data_hora']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.filters['data_hora'].label = 'Período (Data Inicial - Data Final)'
+
+        row0 = to_row([('tipo_id', 6), ('numero', 3), ('ano', 3)])
+
+        row1 = to_row([('data_hora', 12)])
+
+        buttons = FormActions(
+            *[
+                HTML("""
+                        <div class="form-check">
+                            <input name="relatorio" type="checkbox" class="form-check-input" id="relatorio">
+                            <label class="form-check-label" for="relatorio">Gerar relatório PDF</label>
+                        </div>
+                     """)
             ],
             Submit('pesquisar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
@@ -313,7 +379,8 @@ class RelatorioDataFimPrazoTramitacaoFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioDataFimPrazoTramitacaoFilterSet, self).qs
-        return parent.distinct().prefetch_related('materia__tipo').order_by('tramitacao__data_fim_prazo', 'materia__tipo', 'materia__numero')
+        return parent.distinct().prefetch_related('materia__tipo').order_by('tramitacao__data_fim_prazo',
+                                                                            'materia__tipo', 'materia__numero')
 
     class Meta(FilterOverridesMetaMixin):
         model = MateriaEmTramitacao

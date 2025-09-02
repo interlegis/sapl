@@ -12,7 +12,15 @@
 
   <head>
     <meta charset="utf-8">
-    <title>{% block head_title %}{% switch "SAPLN_SWITCH" %}SAPL-Normas - {% else %}SAPL - {%endswitch%}{{nome_sistema}}{% endblock %}</title>
+    <title>{% block head_title %}{% switch "SAPLN_SWITCH" %}SAPL-Normas - {% else %}SAPL - {%endswitch%}{{nome_casa}}{% endblock %}</title>
+    <script type="application/ld+json">
+    {
+      "@context" : "https://schema.org",
+      "@type" : "WebSite",
+      "name" : "{{ nome_casa }}",
+      "url" : "{{ base_url }}"
+    }
+  </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#343a40">
 
@@ -192,7 +200,7 @@
                 <small>
                   Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto.
                 </small>
-		<span>Release: 3.1.163-RC20</span>
+		<span>Release: 3.1.164-RC1</span>
               </p>
 
             </div>
@@ -215,14 +223,14 @@
                   </strong>
                   <br>
                   <span class="street-address">{{ endereco }}</span>
-                  <br> CEP: <span class="postal-code">{{ cep }}</span> | Telefone: <span>{{ telefone }}</span>
+                  {% if cep or telefone%}<br>{% endif %}
+                  {% if cep %}CEP: <span class="postal-code">{{ cep }}</span>{% endif %}
+                  {% if cep and telefone%}|{% endif %}
+                  {% if telefone %}Telefone: <span>{{ telefone }}</span>{% endif %}
                   <br>
                   <small><a href="{% url 'sapl.api:swagger_ui_schema_api' %}">{% trans 'OpenAPI' %}</a></small> |
-
                   <a href="{{endereco_web}}" class="url">{% trans 'Site' %}</a> |
                   <a href="mailto:{{email}}" class="email">{% trans 'Fale Conosco' %}</a>
-
-
                 </small>
               </address>
               {% else %}
@@ -243,7 +251,7 @@
     {% endblock footer_container %}
     {% endif %}
 
-    <div vw class="enabled">
+    <div vw class="enabled btn-vlibras">
       <div vw-access-button class="active"></div>
       <div vw-plugin-wrapper>
         <div class="vw-plugin-top-wrapper"></div>
@@ -287,9 +295,7 @@
         });
       </script>
 
-
-
-    {% if not DEBUG %}
+    {% if not debug %}
       <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
       <script>
         new window.VLibras.Widget('https://vlibras.gov.br/app');
@@ -304,11 +310,9 @@
           gtag('js', new Date());
           gtag('config', '{{"google_analytics_id_metrica"|get_config_attr}}');
         </script>
-        {% endif %}
+      {% endif %}
     {% endif %}
 
-
     {% endblock foot_js %}
-
   </body>
 </html>

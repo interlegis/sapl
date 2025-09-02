@@ -287,7 +287,7 @@ class TextoArticulado(TimestampedMixin):
             return _('%(tipo)s nº %(numero)s, de %(data)s') % {
                 'tipo': self.tipo_ta,
                 'numero': numero,
-                'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
+                'data': defaultfilters.date(self.data, r"d \d\e F \d\e Y").lower()}
 
     def hash(self):
         from django.core import serializers
@@ -390,7 +390,6 @@ class TextoArticulado(TimestampedMixin):
 
     @classonlymethod
     def update_or_create(cls, view_integracao, obj):
-
         map_fields = view_integracao.map_fields
         ta_values = getattr(view_integracao, 'ta_values', {})
 
@@ -944,7 +943,7 @@ class Publicacao(TimestampedMixin):
     def __str__(self):
         return _('%s realizada em %s \n <small>%s</small>') % (
             self.tipo_publicacao,
-            defaultfilters.date(self.data, "d \d\e F \d\e Y"),
+            defaultfilters.date(self.data, r"d \d\e F \d\e Y"),
             self.ta)
 
 
@@ -1181,6 +1180,24 @@ class Dispositivo(BaseModel, TimestampedMixin):
         free_crop=True, size_warning=True,
         help_text=_('O recorte de imagem '
                     'é possível após a atualização.'))
+
+    # define custom manager
+    class SelectRelatedManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().select_related('tipo_dispositivo',
+                                                         'publicacao',
+                                                         'ta',
+                                                         'ta_publicado',
+                                                         'dispositivo_subsequente',
+                                                         'dispositivo_substituido',
+                                                         'dispositivo_pai',
+                                                         'dispositivo_pai__tipo_dispositivo',
+                                                         'dispositivo_raiz',
+                                                         'dispositivo_vigencia',
+                                                         'dispositivo_atualizador'
+                                                         )
+    # Replace the default manager with custom manager
+    objects = SelectRelatedManager()
 
     class Meta:
         verbose_name = _('Dispositivo')

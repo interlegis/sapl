@@ -263,18 +263,18 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
             self.model_name_set = getattr(
                 obj.model, obj.model_set).field.model._meta.model_name
 
-        if hasattr(self, 'permission_required') and self.permission_required:
-            if hasattr(obj, 'public'):
-                self.permission_required = list(
-                    set(self.permission_required) - set(obj.public))
-            else:
-                obj.public = []
-
-            self.permission_required = tuple((
-                self.permission(pr) for pr in self.permission_required))
-
-        else:
+        if not hasattr(obj, 'public'):
             obj.public = []
+
+        if hasattr(self, 'permission_required') and self.permission_required:
+
+            self.permission_required = tuple(
+                (
+                    self.permission(pr) for pr in (
+                        set(self.permission_required) - set(obj.public)
+                    )
+                )
+            )
 
     @classmethod
     def url_name(cls, suffix):
@@ -460,7 +460,8 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
             # URL padrão para primeira coluna da listagem
             url = self.resolve_url(
                 ACTION_DETAIL, args=(obj.id,)) if i == 0 else None
-            # gera URL para matéria a partir de fk_urlify_for_list em layouts.yaml
+            # gera URL para matéria a partir de fk_urlify_for_list em
+            # layouts.yaml
             if i > 0 and func is not None:
                 url = getattr(self, func)(obj, name)[0]
 
@@ -495,7 +496,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                         if m:
                             ss = get_field_display(m, n[-1])[1]
                             ss = (
-                                    ('<br>' if '<ul>' in ss else ' - ') + ss) \
+                                ('<br>' if '<ul>' in ss else ' - ') + ss) \
                                 if ss and j != 0 and s else ss
                     except:
                         pass
@@ -947,6 +948,8 @@ class CrudDeleteView(PermissionRequiredContainerCrudMixin,
 
 
 class Crud:
+    __abstract__ = True
+
     BaseMixin = CrudBaseMixin
     ListView = CrudListView
     CreateView = CrudCreateView
@@ -955,28 +958,59 @@ class Crud:
     DeleteView = CrudDeleteView
     help_topic = ''
 
-    class PublicMixin:
-        permission_required = []
-
     @classonlymethod
     def get_urls(cls):
 
         def _add_base(view):
-            if view:
 
-                class CrudViewWithBase(cls.BaseMixin, view):
-                    model = cls.model
-                    help_topic = cls.help_topic
-                    crud = cls
+            if not view:
+                return
 
-                CrudViewWithBase.__name__ = view.__name__
-                return CrudViewWithBase
+            if not cls.__abstract__:
+                return view
+
+            pr = set(view.permission_required) if hasattr(
+                view, 'permission_required') else set()
+
+            if hasattr(view, 'permission_required') and \
+                    view.permission_required and \
+                    hasattr(cls, 'public') and \
+                    cls.public:
+
+                #print(view.permission_required, view)
+                #print(cls.public, cls)
+
+                pr = pr - set(cls.public)
+
+            class CrudViewWithBase(cls.BaseMixin, view):
+                permission_required = tuple(pr)
+                model = cls.model
+                help_topic = cls.help_topic
+                crud = cls
+
+            CrudViewWithBase.__name__ = view.__name__
+            return CrudViewWithBase
 
         CrudListView = _add_base(cls.ListView)
         CrudCreateView = _add_base(cls.CreateView)
         CrudDetailView = _add_base(cls.DetailView)
         CrudUpdateView = _add_base(cls.UpdateView)
         CrudDeleteView = _add_base(cls.DeleteView)
+
+        cruds = CrudListView, CrudCreateView, CrudDetailView, CrudUpdateView, CrudDeleteView
+
+        if cls.__abstract__:
+            class CRUD(cls):
+                __abstract__ = False
+                ListView = CrudListView
+                CreateView = CrudCreateView
+                DetailView = CrudDetailView
+                UpdateView = CrudUpdateView
+                DeleteView = CrudDeleteView
+
+            for c in cruds:
+                if c:
+                    c.crud = CRUD
 
         cruds_base = [
             (CrudListView.get_url_regex()
@@ -1537,7 +1571,7 @@ class MasterDetailCrud(Crud):
 class CrudBaseForListAndDetailExternalAppView(MasterDetailCrud):
     CreateView, UpdateView, DeleteView = None, None, None
 
-    class BaseMixin(Crud.PublicMixin, MasterDetailCrud.BaseMixin):
+    class BaseMixin(MasterDetailCrud.BaseMixin):
 
         def resolve_url(self, suffix, args=None):
             obj = self.crud if hasattr(self, 'crud') else self

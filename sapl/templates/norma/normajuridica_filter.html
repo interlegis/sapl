@@ -4,6 +4,15 @@
 {% load crispy_forms_tags common_tags %}
 
 {% block actions %}
+
+  {% if show_results %}
+    <div class="float-left">
+      {% with 'sapl.norma:norma_pesquisa' as url_reverse %}
+        {% include "crud/format_options.html" %}
+      {% endwith %}
+    </div>
+  {% endif %}
+
   <div class="actions btn-group float-right" role="group">
     {% switch "SOLR_SWITCH" %}
         <a href="{% url 'sapl.base:haystack_search' %}" class="btn btn-outline-primary">
@@ -19,7 +28,6 @@
       <a href="{% url 'sapl.norma:norma_pesquisa' %}" class="btn btn-outline-primary">{% trans 'Fazer nova pesquisa' %}</a>
   {% endif %}
   </div>
-  <br /><br />
 {% endblock %}
 
 {% block detail_content %}
@@ -37,32 +45,48 @@
       {% endif %}
       <br />
       <table class="table table-striped">
-    		<thead class="thead-default">
+        <thead class="thead-default">
           <tr>
-            <th>Tipo</th>
-            <th>Número</th>
-            <th>Ano</th>
-            <th>Data</th>
-            <th>Ementa</th>
+            <th>Normas Jurídicas</th>
             <th>Relacionamentos</th>
           </tr>
     		</thead>
         {% for n in page_obj %}
           <tr>
-            <td><a href="{% url 'sapl.norma:normajuridica_detail' n.id %}">{{n.tipo}}</a></td>
-            {% if n.texto_integral %}
-                <td><a href="{{n.texto_integral.url}}">{{n.numero}}</a></td>
-            {% else %}
-                <td>{{n.numero}}</td>
-            {% endif %}
-            <td>{{n.ano}}</td>
-            <td>{{n.data}}</td>
-            <td>{{n.ementa|safe}}</td>
             <td>
-                {% if n.get_normas_relacionadas.0|length == 0 and n.get_normas_relacionadas.1|length == 0%}
-                   Norma sem alterações posteriores.
+              <a href="{% url 'sapl.norma:normajuridica_detail' n.id %}?display">
+                <strong>{{n.epigrafe_simplificada}}</strong>
+              </a><br>
+              {% if n.orgao %}
+                <strong>Órgão:</strong> {{n.orgao}}<br>
+              {% endif %}
+
+              <strong>Ementa:</strong><br>
+              {{n.ementa|safe}}<br>
+
+              {% if n.texto_articulado.exists and not n.texto_articulado.first.privacidade %}
+                <a href="{% url 'sapl.norma:normajuridica_detail' n.id %}">
+                  <strong>
+                    Texto Compilado
+                  </strong>
+                </a>{% if n.texto_integral %} | {% endif %}
+              {% endif %}
+              {% if n.texto_integral %}
+                  <a href="{{n.texto_integral.url}}">
+                  <strong>
+                    Texto Original
+                  </strong>
+                </a><br>
+              {% endif %}
+            </td>
+            <td>
+            {% with normas_relacionadas=n.get_normas_relacionadas %}
+                {% if normas_relacionadas.0|length == 0 and normas_relacionadas.1|length == 0%}
+                    <em>
+                      Norma sem alterações posteriores.
+                    </em>
                 {% else %}
-                  {% for p in n.get_normas_relacionadas.0 %}
+                  {% for p in normas_relacionadas.0 %}
                     <div>
                       <b>{{ p.tipo_vinculo.descricao_ativa }}</b>&nbsp;
                         <a href="{% url 'sapl.norma:normajuridica_detail' p.norma_relacionada.pk %}">
@@ -70,7 +94,7 @@
                         </a>
                     </div>
                   {% endfor %}
-                  {% for r in n.get_normas_relacionadas.1 %}
+                  {% for r in normas_relacionadas.1 %}
                     <div>
                       <b>{{ r.tipo_vinculo.descricao_passiva }}</b>&nbsp;
                         <a href="{% url 'sapl.norma:normajuridica_detail' r.norma_principal.pk %}">
@@ -79,7 +103,7 @@
                     </div>
                   {% endfor %}
               {% endif %}
-            </td>
+            {% endwith %}
             {% if n.autoria_set.all %}
               <strong>Autor:</strong>
               {% for a in n.autoria_set.all %}
@@ -91,6 +115,7 @@
               {% endfor %}
               </br>
             {% endif %}
+            </td>
     			</tr>
     		{% endfor %}
     	</table>

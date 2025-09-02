@@ -24,6 +24,7 @@ from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 from django.utils import formats, timezone
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
@@ -53,7 +54,7 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_u
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, get_tempfile_dir,
-                        google_recaptcha_configured)
+                        google_recaptcha_configured, MultiFormatOutputMixin)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -104,9 +105,9 @@ def proposicao_texto(request, pk):
 
     if proposicao.texto_original:
         if (not proposicao.data_recebimento and
-            not proposicao.autor.operadores.filter(
-                        id=request.user.id
-                    ).exists()
+                not proposicao.autor.operadores.filter(
+                    id=request.user.id
+                ).exists()
             ):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
@@ -1261,11 +1262,11 @@ class HistoricoProposicaoView(PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = HistoricoProposicao
     permission_required = (
-            'materia.list_historicoproposicao',
-            'materia.add_historicoproposicao',
-            'materia.change_historicoproposicao',
-            'materia.delete_historicoproposicao',
-            'materia.detail_historicoproposicao',
+        'materia.list_historicoproposicao',
+        'materia.add_historicoproposicao',
+        'materia.change_historicoproposicao',
+        'materia.delete_historicoproposicao',
+        'materia.detail_historicoproposicao',
     )
 
     def get_queryset(self):
@@ -2039,10 +2040,33 @@ class AcompanhamentoExcluirView(TemplateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class MateriaLegislativaPesquisaView(FilterView):
+class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaFilterSet
     paginate_by = 50
+
+    export_fields = [
+        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'autoria', 'texto_original', 'ementa'
+    ]
+
+    def hook_texto_original(self, obj):
+        url = self.request.build_absolute_uri('/')[:-1]
+        texto_original = obj.texto_original if not isinstance(
+            obj, dict) else obj["texto_original"]
+        return f'{url}/media/{texto_original}'
+
+    def hook_autoria(self, obj):
+        """
+        Hook específico para pegar nomes dos autores (reverse query)
+        """
+        try:
+            autores = [
+                str(autoria.autor.nome)
+                for autoria in obj.autoria_set.select_related('autor').all()
+            ]
+            return ', '.join(autores)
+        except AttributeError:
+            return ''
 
     def get_filterset_kwargs(self, filterset_class):
         super().get_filterset_kwargs(filterset_class)
@@ -2078,6 +2102,9 @@ class MateriaLegislativaPesquisaView(FilterView):
                                      "anexadas",
                                      "tipo",
                                      "texto_articulado",
+                                     "relatoria_set",
+                                     "relatoria_set__comissao",
+                                     "relatoria_set__parlamentar",
                                      "tramitacao_set",
                                      "tramitacao_set__status",
                                      "tramitacao_set__unidade_tramitacao_local",
@@ -2099,8 +2126,9 @@ class MateriaLegislativaPesquisaView(FilterView):
             qs = qs.filter(materiaassunto__isnull=True)
 
         if 'o' in self.request.GET and not self.request.GET['o']:
-            args = ['-ano', 'tipo__sequencia_regimental', '-numero'] if BaseAppConfig.attr('ordenacao_pesquisa_materia') == 'R' else ['-ano', 'tipo__sigla', '-numero']
- 
+            args = ['-ano', 'tipo__sequencia_regimental', '-numero'] if BaseAppConfig.attr(
+                'ordenacao_pesquisa_materia') == 'R' else ['-ano', 'tipo__sigla', '-numero']
+
             qs = qs.order_by(*args)
 
         kwargs.update({
@@ -2964,7 +2992,7 @@ def create_pdf_docacessorios(materia):
         materia.pk,
         time.mktime(datetime.now().timetuple()))
 
-    merger = PdfFileMerger()
+    merger = PdfFileMerger(strict=False)
     for f in docs_path:
         merger.append(fileobj=f)
 

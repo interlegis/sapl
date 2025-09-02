@@ -1,5 +1,8 @@
+import csv
+import string
 from functools import wraps
 import hashlib
+import io
 from itertools import groupby, chain
 import logging
 from operator import itemgetter
@@ -20,30 +23,31 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
-from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile,\
+from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile, \
     TemporaryUploadedFile
 from django.core.mail import get_connection
 from django.db import models
 from django.db.models import Q
 from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
-from django.forms.widgets import SplitDateTimeWidget
+from django.forms.widgets import SplitDateTimeWidget, ClearableFileInput
+from django.http.response import JsonResponse, HttpResponse
 from django.utils import six, timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
-from floppyforms import ClearableFileInput
 import magic
 import requests
 from unipath.path import Path
+from xlsxwriter.workbook import Workbook
 
 from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       SaplFormLayout, to_row)
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
-
 
 # (26/10/2018): O separador foi mudador de '/' para 'K'
 # por conta dos leitores de códigos de barra, que trocavam
@@ -52,6 +56,27 @@ SEPARADOR_HASH_PROPOSICAO = 'K'
 
 TIME_PATTERN = '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
 
+MIN_PASSWORD_LENGTH = 8
+
+
+def is_weak_password(password):
+    pwd_has_lowercase = False
+    pwd_has_uppercase = False
+    pwd_has_number = False
+    pwd_has_special_char = False
+
+    for c in password:
+        if c.isdigit():
+            pwd_has_number = True
+        elif c.islower():
+            pwd_has_lowercase = True
+        elif c.isupper():
+            pwd_has_uppercase = True
+        elif c in list(string.punctuation):
+            pwd_has_special_char = True
+
+    return len(password) < MIN_PASSWORD_LENGTH or not (pwd_has_lowercase and pwd_has_uppercase
+                                                       and pwd_has_number and pwd_has_special_char)
 
 def groups_remove_user(user, groups_name):
     from django.contrib.auth.models import Group
@@ -89,9 +114,11 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
     qtdes = {}
 
     if attr_tipo == 'tipo':
-        def sort_function(m): return m.tipo
+        def sort_function(m):
+            return m.tipo
     else:
-        def sort_function(m): return m.materia.tipo
+        def sort_function(m):
+            return m.materia.tipo
 
     # select_related eh importante por questoes de desempenho, pois caso
     # contrario ele realizara uma consulta ao banco para cada iteracao,
@@ -110,12 +137,12 @@ def validar_arquivo(arquivo, nome_campo):
         raise ValidationError(
             "Certifique-se de que o nome do arquivo no "
             "campo '" + nome_campo + "' tenha no máximo 200 caracteres "
-            "(ele possui {})".format(len(arquivo.name))
+                                     "(ele possui {})".format(len(arquivo.name))
         )
     if arquivo.size > MAX_DOC_UPLOAD_SIZE:
         raise ValidationError(
             "O arquivo " + nome_campo + " deve ser menor que "
-            "{0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb".format(
+                                        "{0:.1f} mb, o tamanho atual desse arquivo é {1:.1f} mb".format(
                 (MAX_DOC_UPLOAD_SIZE / 1024) / 1024,
                 (arquivo.size / 1024) / 1024
             )
@@ -145,7 +172,6 @@ def dont_break_out(value, max_part=50):
 
 
 def clear_thumbnails_cache(queryset, field):
-
     for r in queryset:
         assert hasattr(r, field), _(
             'Objeto da listagem não possui o campo informado')
@@ -209,6 +235,7 @@ def montar_row_autor(name):
                  css_class='btn btn-primary btn-sm'), 10)])
 
     return autor_row
+
 
 # TODO: Esta função é utilizada?
 
@@ -281,7 +308,6 @@ class SaplGenericRelation(GenericRelation):
     """
 
     def __init__(self, to, fields_search=(), **kwargs):
-
         assert 'related_query_name' in kwargs, _(
             'SaplGenericRelation não pode ser instanciada sem '
             'related_query_name.')
@@ -306,7 +332,7 @@ class SaplGenericRelation(GenericRelation):
 
 
 class ImageThumbnailFileInput(ClearableFileInput):
-    template_name = 'floppyforms/image_thumbnail.html'
+    template_name = 'widgets/image_thumbnail.html'
 
 
 class RangeWidgetOverride(forms.MultiWidget):
@@ -334,8 +360,8 @@ class RangeWidgetOverride(forms.MultiWidget):
                 )
             )
 
-        html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>'\
-            % tuple(rendered_widgets)
+        html = '<div class="col-sm-6">%s</div><div class="col-sm-6">%s</div>' \
+               % tuple(rendered_widgets)
         return '<div class="row">%s</div>' % html
 
 
@@ -352,8 +378,8 @@ class CustomSplitDateTimeWidget(SplitDateTimeWidget):
                 )
             )
 
-        html = '<div class="col-6">%s</div><div class="col-6">%s</div>'\
-            % tuple(rendered_widgets)
+        html = '<div class="col-6">%s</div><div class="col-6">%s</div>' \
+               % tuple(rendered_widgets)
         return '<div class="row">%s</div>' % html
 
 
@@ -414,7 +440,6 @@ YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
 
 
 def listify(function):
-
     @wraps(function)
     def f(*args, **kwargs):
         return list(function(*args, **kwargs))
@@ -610,7 +635,6 @@ TIPOS_IMG_PERMITIDOS = (
 
 
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
-
     def restringe_tipos_de_arquivo(value):
 
         filename = value.name if type(value) in (
@@ -646,7 +670,6 @@ def intervalos_tem_intersecao(a_inicio, a_fim, b_inicio, b_fim):
 
 
 class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
-
     choices = (
         ('', 'Selecione'),
         ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
@@ -672,7 +695,6 @@ class MateriaPesquisaOrderingFilter(django_filters.OrderingFilter):
 
 
 class NormaPesquisaOrderingFilter(django_filters.OrderingFilter):
-
     choices = (
         ('', 'Selecione'),
         ('dataC', 'Data, Tipo, Ano, Numero - Ordem Crescente'),
@@ -730,7 +752,6 @@ class FileFieldCheckMixin(BaseForm):
 
 
 class AnoNumeroOrderingFilter(django_filters.OrderingFilter):
-
     choices = (('DEC', 'Ordem Decrescente'),
                ('CRE', 'Ordem Crescente'),)
     order_by_mapping = {
@@ -771,8 +792,8 @@ def models_with_gr_for_model(model):
         lambda x: x.related_model,
         filter(
             lambda obj: obj.is_relation and
-            hasattr(obj, 'field') and
-            isinstance(obj, GenericRel),
+                        hasattr(obj, 'field') and
+                        isinstance(obj, GenericRel),
 
             model._meta.get_fields(include_hidden=True))
     ))
@@ -799,9 +820,9 @@ def generic_relations_for_model(model):
         lambda x: (x,
                    list(filter(
                        lambda field: (
-                           isinstance(
-                               field, SaplGenericRelation) and
-                           field.related_model == model),
+                               isinstance(
+                                   field, SaplGenericRelation) and
+                               field.related_model == model),
                        x._meta.get_fields(include_hidden=True)))),
         models_with_gr_for_model(model)
     ))
@@ -829,7 +850,7 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
     seguida para armazenar o arquivo.
     """
 
-    filename = re.sub('\s', '_', normalize(filename.strip()).lower())
+    filename = re.sub(r'\s', '_', normalize(filename.strip()).lower())
 
     from sapl.materia.models import Proposicao
     from sapl.protocoloadm.models import DocumentoAdministrativo
@@ -849,13 +870,13 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
         subpath = '_'
 
     path = str_path % \
-        {
-            'prefix': prefix,
-            'model_name': instance._meta.model_name,
-            'pk': instance.pk,
-            'subpath': subpath,
-            'filename': filename
-        }
+           {
+               'prefix': prefix,
+               'model_name': instance._meta.model_name,
+               'pk': instance.pk,
+               'subpath': subpath,
+               'filename': filename
+           }
 
     return path
 
@@ -1037,7 +1058,6 @@ def remover_acentos(string):
 
 
 def mail_service_configured(request=None):
-
     logger = logging.getLogger(__name__)
 
     if settings.EMAIL_RUNNING is None:
@@ -1073,10 +1093,29 @@ def timing(f):
         ts = time()
         result = f(*args, **kw)
         te = time()
-        logger.info('funcao:%r args:[%r, %r] took: %2.4f sec' %
+        logger.info('function:%r args:[%r, %r] took: %2.4f sec' %
                     (f.__name__, args, kw, te - ts))
         return result
+
     return wrap
+
+
+def cached_call(key, timeout=300):
+    def cache_decorator(f):
+        @wraps(f)
+        def wrap(*args, **kw):
+            result = cache.get(key)
+            if not result:
+                result = f(*args, **kw)
+                cache.set(key, result, timeout)
+            return result
+
+        return wrap
+    return cache_decorator
+
+
+def delete_cached_entry(key):
+    cache.delete(key)
 
 
 @timing
@@ -1129,12 +1168,12 @@ def from_date_to_datetime_utc(data):
 
 
 class OverwriteStorage(FileSystemStorage):
-    '''
+    """
     Solução derivada do gist: https://gist.github.com/fabiomontefuscolo/1584462
 
     Muda o comportamento padrão do Django e o faz sobrescrever arquivos de
     mesmo nome que foram carregados pelo usuário ao invés de renomeá-los.
-    '''
+    """
 
     def get_available_name(self, name, max_length=None):
         if self.exists(name):
@@ -1147,7 +1186,6 @@ def get_tempfile_dir():
 
 
 class GoogleRecapthaMixin:
-
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
@@ -1160,9 +1198,9 @@ class GoogleRecapthaMixin:
         row1 = to_row(
             [
                 (Div(
-                 css_class="g-recaptcha float-right",  # if not settings.DEBUG else '',
-                 data_sitekey=AppConfig.attr('google_recaptcha_site_key')
-                 ), 5),
+                    css_class="g-recaptcha float-right",  # if not settings.DEBUG else '',
+                    data_sitekey=AppConfig.attr('google_recaptcha_site_key')
+                ), 5),
                 ('email', 7),
 
             ]
@@ -1242,12 +1280,12 @@ def get_report_urls_map():
         dst_url = reverse(f"{NAMESPACE}{url.name}")
         url_map[dst_url] = {"name": url.name,
                             "public": True,
-                            "internal": True}  #TODO: get permissions from AppConfig and fine grained permissions
+                            "internal": True}  # TODO: get permissions from AppConfig and fine grained permissions
     return url_map
 
 
 def is_report_allowed(request, url_path=None):
-    from sapl.utils import get_report_urls_map # TODO: import global
+    from sapl.utils import get_report_urls_map  # TODO: import global
     url_map = get_report_urls_map()  # TODO: cache this!!! Globally
 
     path = url_path if url_path else request.path
@@ -1289,4 +1327,266 @@ def get_path_to_name_report_map():
             '/sistema/relatorios/historico-tramitacoesadm': 'Histórico de tramitações de documentos',
             '/sistema/relatorios/documentos_acessorios': 'Documentos Acessórios de Matérias Legislativas',
             '/sistema/relatorios/normas-por-autor': 'Normas Por Autor'
-    }
+            }
+
+
+class Row:
+    def __init__(self, cols, is_header = False):
+        self.cols = cols
+        self.is_header = is_header
+
+    def __repr__(self):
+        return f"Row(columns={self.cols}, is_header={self.is_header})"
+
+
+class Table:
+    def __init__(self, header = [], rows = []):
+        self.header = header
+        self.rows = rows
+
+    def add_header(self, header):
+        if header.is_header:
+            self.header = header
+        else:
+            raise Exception(f"Row {header} is not header!")
+
+    def append(self, row):
+        if not row.is_header:
+            self.rows.append(row)
+        else:
+            raise Exception(f"Row {row} is header!")
+
+    def to_list(self):
+        return [self.header.cols] + [r.cols for r in self.rows]
+
+    def size(self):
+        return len(self.rows)
+
+    def __repr__(self):
+        return f"Table(Header={self.header}, Rows={self.rows})"
+
+
+class MultiFormatOutputMixin:
+    formats_impl = ['csv', 'xlsx', 'json']
+
+    queryset_values_for_formats = True
+
+    export_fields = ()
+    fields_by_format = None
+
+    def get_export_fields(self):
+        names = getattr(self, "export_fields", []) or []
+        return names
+
+    def get_fields_by_format(self):
+        provided = getattr(self, "fields_by_format", None)
+        if provided:
+            return {fmt: v for fmt, v in provided.items()}
+        fields = self.get_export_fields()
+        return {fmt: fields for fmt in self.formats_impl}
+
+    def render_to_response(self, context, **response_kwargs):
+        format_result = getattr(self.request, self.request.method).get(
+            'format', None)
+
+        if format_result:
+            if format_result not in self.formats_impl:
+                raise ValidationError(
+                    'Formato Inválido e/ou não implementado!')
+
+            if 'object_list' in context:
+                object_list = context['object_list']
+                object_list.query.low_mark = 0
+                object_list.query.high_mark = 0
+
+            return getattr(self, f'render_to_{format_result}')(context)
+
+        return super().render_to_response(context, **response_kwargs)
+
+    def render_to_json(self, context):
+        object_list = context['object_list']
+
+        fmt_map = self.get_fields_by_format()
+        export_fields = fmt_map['json']
+        rows = [Row(cols=self._extract_row(obj, export_fields)) for obj in object_list]
+        table = Table(header=Row(export_fields, is_header=True), rows=rows)
+
+        headers = self._headers(export_fields)
+        if isinstance(export_fields, tuple):
+            export_fields = [f[0] for f in export_fields]
+
+        json_metadata = {
+            'headers': dict(zip(export_fields, headers)),
+            'results': [dict(zip(export_fields, row.cols)) for row in table.rows],
+        }
+        response = self._set_response_params(JsonResponse(json_metadata), 'json')
+        return response
+
+    def render_to_csv(self, context):
+        object_list = context['object_list']
+
+        fmt_map = self.get_fields_by_format()
+        export_fields = fmt_map['csv']
+        rows = [Row(self._extract_row(obj, export_fields)) for obj in object_list]
+        table = Table(header=Row(self._headers(export_fields), is_header=True), rows=rows)
+
+        response = self._set_response_params(HttpResponse(content_type='text/csv'), 'csv')
+        writer = csv.writer(response,
+                            delimiter=";",
+                            quoting=csv.QUOTE_NONNUMERIC)
+        writer.writerows(table.to_list())
+        return response
+
+    def render_to_xlsx(self, context):
+        object_list = context['object_list']
+
+        fmt_map = self.get_fields_by_format()
+        field_names = fmt_map['xlsx']
+        rows = [Row(self._extract_row(obj, field_names)) for obj in object_list]
+        table = Table(header=Row(self._headers(field_names), is_header=True), rows=rows)
+
+        output = io.BytesIO()
+        wb = Workbook(output, {'in_memory': True})
+        ws = wb.add_worksheet()
+
+        for row_idx, row in enumerate(table.to_list()):
+            for cell_idx, cell in enumerate(row):
+                ws.write(row_idx, cell_idx, cell)
+
+        ws.autofit()
+        wb.close()
+        output.seek(0)
+
+        response = self._set_response_params(
+            HttpResponse(output.read(),
+                         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            'xlsx'
+        )
+        output.close()
+        return response
+
+    def _extract_row(self, obj, columns):
+        """Versão mais simples que não chama métodos"""
+        for col_name in columns:
+            if isinstance(col_name, tuple):
+                col_name = col_name[0]
+
+            # Hook personalizado
+            if hasattr(self, f'hook_{col_name}'):
+                value = getattr(self, f'hook_{col_name}')(obj)
+                yield value
+                continue
+
+            # Dicionário
+            if isinstance(obj, dict):
+                yield obj.get(col_name, '')
+                continue
+
+            # Navegação SEM chamar callables
+            try:
+                field_parts = col_name.split('__')
+                value = obj
+                for part in field_parts:
+                    if value is None:
+                        value = ''
+                        break
+                    value = getattr(value, part)
+                    # NÃO chamamos callables - apenas pegamos o atributo
+
+                # Tratamento para relacionamentos
+                if hasattr(value, 'all'):
+                    items = value.all()
+                    value = ' - '.join(str(item) for item in items) if items.exists() else ''
+
+                yield str(value) if value is not None else ''
+
+            except AttributeError:
+                # Variações para relacionamentos reversos
+                base_field = col_name.split('__')[0]
+                variations = [f'{base_field}_set', f'{base_field}s']
+
+                found = False
+                for variation in variations:
+                    try:
+                        new_field = col_name.replace(base_field, variation, 1)
+                        field_parts = new_field.split('__')
+                        value = obj
+                        for part in field_parts:
+                            value = getattr(value, part)
+
+                        if hasattr(value, 'all'):
+                            items = value.all()
+                            value = ' - '.join(str(item) for item in items) if items.exists() else ''
+
+                        yield str(value) if value is not None else ''
+                        found = True
+                        break
+                    except AttributeError:
+                        continue
+
+                if not found:
+                    yield ''
+
+    def _set_response_params(self, response, extension):
+        response[
+            'Content-Disposition'] = f'attachment; filename="sapl_{self.request.resolver_match.url_name}.{extension}"'
+        response['Cache-Control'] = 'no-cache'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = 0
+        return response
+
+    def _headers(self, field_names):
+
+        for fname in field_names:
+
+            verbose_name = []
+
+            if hasattr(self, f'hook_header_{fname}'): # suporta extensao de funcionalidade
+                h = getattr(self, f'hook_header_{fname}')()
+                yield h
+                continue
+
+            if type(fname) is tuple:
+                verbose_name.append(fname[1])  # suporta (field_name, alias)
+            else:
+
+                fname = fname.split('__')
+
+                # nem sempre isso vai funcionar, pois o model base
+                # pode ser diferente. Exemplo: pauta usa SessaoPlenaria,
+                # mas retornamos campos de MateriaLegislativa
+                m = self.model
+                for fp in fname:
+
+                    f = m._meta.get_field(fp)
+
+                    vn = str(f.verbose_name) if hasattr(f, 'verbose_name') else fp
+                    if f.is_relation:
+                        m = f.related_model
+                        if m == self.model:
+                            m = f.field.model
+
+                        if vn == fp:
+                            vn = str(m._meta.verbose_name_plural)
+                    verbose_name.append(vn.strip())
+
+            verbose_name = '/'.join(verbose_name).strip()
+            yield f'{verbose_name}'
+
+
+class PautaMultiFormatOutputMixin(MultiFormatOutputMixin):
+
+    def __mutate_context(self, context):
+        context_materias = {
+            'object_list': context.get('materias_ordem', []) + context.get('materia_expediente', [])
+        }
+        return context_materias
+
+    def render_to_csv(self, context):
+        return super().render_to_csv(self.__mutate_context(context))
+
+    def render_to_json(self, context):
+        return super().render_to_json(self.__mutate_context(context))
+
+    def render_to_xlsx(self, context):
+        return super().render_to_xlsx(self.__mutate_context(context))

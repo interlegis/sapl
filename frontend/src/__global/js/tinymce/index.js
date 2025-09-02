@@ -20,11 +20,11 @@ window.initTextRichEditor = function (elements, readonly = false, paste_as_text 
     language: 'pt_BR',
     branding: false,
     forced_root_block: 'p',
-    toolbar: "...| removeformat | ...",
     paste_as_text,
     plugins: 'table lists advlist link code',
-    toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | code',
-    menubar: 'file edit view insert format table'
+    toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | code | removeformat ',
+    menubar: 'file edit view insert format table',
+    license_key: 'gpl'
   }
   if (readonly) {
     configTinymce.readonly = 1
