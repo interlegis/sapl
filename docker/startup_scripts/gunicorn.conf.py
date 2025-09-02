@@ -41,7 +41,7 @@ accesslog = "/var/log/sapl/access.log"
 errorlog = "/var/log/sapl/error.log"
 # errorlog = "-"          # send to stderr (so you see it in docker logs or terminal)
 # accesslog = "-"         # send to stdout
-capture_output = True   # capture print/tracebacks from app
+capture_output = True  # capture print/tracebacks from app
 
 # Worker/process lifecycle
 workers = NUM_WORKERS
@@ -74,6 +74,7 @@ def on_starting(server):
 def post_fork(server, worker):
     try:
         from django import db
+
         db.connections.close_all()
     except Exception:
         # Django not initialized yet or not available

@@ -9,40 +9,37 @@ from sapl.materia import models as materia
 from sapl.norma import models as norma
 from sapl.parlamentares import models as parlamentares
 from sapl.protocoloadm import models as protocoloadm
-from sapl.rules import SAPL_GROUP_GERAL, RP_ADD, __base__, __perms_publicas__, \
-    __listdetailchange__
+from sapl.rules import (
+    RP_ADD,
+    SAPL_GROUP_GERAL,
+    __base__,
+    __listdetailchange__,
+    __perms_publicas__,
+)
 from sapl.sessao import models as sessao
 
-
 rules_group_geral = {
-    'group': SAPL_GROUP_GERAL,
-    'rules': [
-        (base.AppConfig, __base__ + [
-            'menu_sistemas',
-            'view_tabelas_auxiliares'
-        ], set()),
-
-        (base.CasaLegislativa, __listdetailchange__ +
-         [RP_ADD], __perms_publicas__),
+    "group": SAPL_GROUP_GERAL,
+    "rules": [
+        (
+            base.AppConfig,
+            __base__ + ["menu_sistemas", "view_tabelas_auxiliares"],
+            set(),
+        ),
+        (base.CasaLegislativa, __listdetailchange__ + [RP_ADD], __perms_publicas__),
         (base.TipoAutor, __base__, __perms_publicas__),
         (base.Autor, __base__, __perms_publicas__),
         (base.OperadorAutor, __base__, set()),
         (base.AuditLog, __base__, set()),
         (base.Metadata, __base__, set()),
-
         (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),
         (protocoloadm.TipoDocumentoAdministrativo, __base__, set()),
-
         (comissoes.CargoComissao, __base__, __perms_publicas__),
         (comissoes.TipoComissao, __base__, __perms_publicas__),
         (comissoes.Periodo, __base__, __perms_publicas__),
-
-        (materia.AssuntoMateria, __base__,
-         __perms_publicas__),
-        (materia.MateriaAssunto, __base__,
-         __perms_publicas__),
-        (materia.MateriaLegislativa, [
-         'can_access_impressos'], __perms_publicas__),
+        (materia.AssuntoMateria, __base__, __perms_publicas__),
+        (materia.MateriaAssunto, __base__, __perms_publicas__),
+        (materia.MateriaLegislativa, ["can_access_impressos"], __perms_publicas__),
         (materia.TipoProposicao, __base__, __perms_publicas__),
         (materia.TipoMateriaLegislativa, __base__, __perms_publicas__),
         (materia.RegimeTramitacao, __base__, __perms_publicas__),
@@ -54,12 +51,10 @@ rules_group_geral = {
         (materia.StatusTramitacao, __base__, __perms_publicas__),
         (materia.UnidadeTramitacao, __base__, __perms_publicas__),
         (materia.ConfigEtiquetaMateriaLegislativa, __base__, set()),
-
         (norma.AssuntoNorma, __base__, __perms_publicas__),
         (norma.TipoNormaJuridica, __base__, __perms_publicas__),
         (norma.TipoVinculoNormaJuridica, __base__, __perms_publicas__),
         (norma.NormaEstatisticas, __base__, __perms_publicas__),
-
         (parlamentares.Legislatura, __base__, __perms_publicas__),
         (parlamentares.SessaoLegislativa, __base__, __perms_publicas__),
         (parlamentares.Coligacao, __base__, __perms_publicas__),
@@ -83,7 +78,6 @@ rules_group_geral = {
         (parlamentares.Bloco, __base__, __perms_publicas__),
         (parlamentares.BlocoCargo, __base__, __perms_publicas__),
         (parlamentares.BlocoMembro, __base__, __perms_publicas__),
-
         (sessao.CargoBancada, __base__, __perms_publicas__),
         (sessao.Bancada, __base__, __perms_publicas__),
         (sessao.TipoSessaoPlenaria, __base__, __perms_publicas__),
@@ -93,32 +87,24 @@ rules_group_geral = {
         (sessao.JustificativaAusencia, __base__, __perms_publicas__),
         (sessao.ResumoOrdenacao, __base__, __perms_publicas__),
         (sessao.TipoRetiradaPauta, __base__, __perms_publicas__),
-
         (lexml.LexmlProvedor, __base__, set()),
         (lexml.LexmlPublicador, __base__, set()),
-
         (compilacao.VeiculoPublicacao, __base__, __perms_publicas__),
         (compilacao.TipoTextoArticulado, __base__, __perms_publicas__),
         (compilacao.TipoNota, __base__, __perms_publicas__),
         (compilacao.TipoVide, __base__, __perms_publicas__),
         (compilacao.TipoPublicacao, __base__, __perms_publicas__),
-
         # este model é um espelho do model integrado e sua edição pode
         # confundir Autores, operadores de matéria e/ou norma.
         # Por isso está adicionado apenas para o operador geral
-        (compilacao.TextoArticulado,
-         __base__ + ['lock_unlock_textoarticulado'], set()),
-
+        (compilacao.TextoArticulado, __base__ + ["lock_unlock_textoarticulado"], set()),
         # estes tres models são complexos e a principio apenas o admin tem perm
         (compilacao.TipoDispositivo, __listdetailchange__, __perms_publicas__),
         (compilacao.TipoDispositivoRelationship, [], set()),
         (compilacao.PerfilEstruturalTextoArticulado, [], set()),
-
         (audiencia.AudienciaPublica, __base__, __perms_publicas__),
         (audiencia.TipoAudienciaPublica, __base__, __perms_publicas__),
-
         # permite consulta anônima pela api a lista de contenttypes
         (contenttypes.ContentType, [], __perms_publicas__),
-
-    ]
+    ],
 }

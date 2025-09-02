@@ -4,8 +4,7 @@ from django.contrib import admin
 from sapl.base.models import TipoAutor
 from sapl.comissoes.models import TipoComissao
 from sapl.materia.models import Proposicao
-from sapl.parlamentares.models import (SituacaoMilitar, TipoAfastamento,
-                                       TipoDependente)
+from sapl.parlamentares.models import SituacaoMilitar, TipoAfastamento, TipoDependente
 from sapl.utils import register_all_models_in_admin
 
 register_all_models_in_admin(__name__)
@@ -13,7 +12,6 @@ register_all_models_in_admin(__name__)
 if not settings.DEBUG:
 
     class RestricaoAdmin(admin.ModelAdmin):
-
         def has_add_permission(self, request, obj=None):
             return False
 
@@ -29,7 +27,7 @@ if not settings.DEBUG:
         TipoComissao,
         TipoAfastamento,
         SituacaoMilitar,
-        TipoDependente
+        TipoDependente,
     )
 
     for model in models:

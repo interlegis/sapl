@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,7 +12,7 @@ from drfautoapi.drfautoapi import ApiViewSetConstrutor
 logger = logging.getLogger(__name__)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAdminUser])
 def recria_token(request, pk):
     Token.objects.filter(user_id=pk).delete()
@@ -26,28 +26,30 @@ class AppVersionView(APIView):
 
     def get(self, request):
         content = {
-            'name': 'SAPL',
-            'description': 'Sistema de Apoio ao Processo Legislativo',
-            'version': settings.SAPL_VERSION,
-            'user': request.user.username,
-            'is_authenticated': request.user.is_authenticated,
+            "name": "SAPL",
+            "description": "Sistema de Apoio ao Processo Legislativo",
+            "version": settings.SAPL_VERSION,
+            "user": request.user.username,
+            "is_authenticated": request.user.is_authenticated,
         }
         return Response(content)
 
 
 SaplApiViewSetConstrutor = ApiViewSetConstrutor
-SaplApiViewSetConstrutor.import_modules([
-    'sapl.api.views_audiencia',
-    'sapl.api.views_base',
-    'sapl.api.views_comissoes',
-    'sapl.api.views_compilacao',
-    'sapl.api.views_materia',
-    'sapl.api.views_norma',
-    'sapl.api.views_painel',
-    'sapl.api.views_parlamentares',
-    'sapl.api.views_protocoloadm',
-    'sapl.api.views_sessao',
-])
+SaplApiViewSetConstrutor.import_modules(
+    [
+        "sapl.api.views_audiencia",
+        "sapl.api.views_base",
+        "sapl.api.views_comissoes",
+        "sapl.api.views_compilacao",
+        "sapl.api.views_materia",
+        "sapl.api.views_norma",
+        "sapl.api.views_painel",
+        "sapl.api.views_parlamentares",
+        "sapl.api.views_protocoloadm",
+        "sapl.api.views_sessao",
+    ]
+)
 
 
 """

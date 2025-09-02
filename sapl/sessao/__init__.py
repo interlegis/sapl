@@ -1,1 +1,1 @@
-default_app_config = 'sapl.sessao.apps.AppConfig'
+default_app_config = "sapl.sessao.apps.AppConfig"

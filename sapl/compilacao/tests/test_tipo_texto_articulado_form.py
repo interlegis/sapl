@@ -14,10 +14,10 @@ def test_valida_campos_obrigatorios_tipo_texto_articulado_form():
 
     errors = form.errors
 
-    assert errors['sigla'] == [_('Este campo é obrigatório.')]
-    assert errors['descricao'] == [_('Este campo é obrigatório.')]
-    assert errors['participacao_social'] == [_('Este campo é obrigatório.')]
-    assert errors['publicacao_func'] == [_('Este campo é obrigatório.')]
+    assert errors["sigla"] == [_("Este campo é obrigatório.")]
+    assert errors["descricao"] == [_("Este campo é obrigatório.")]
+    assert errors["participacao_social"] == [_("Este campo é obrigatório.")]
+    assert errors["publicacao_func"] == [_("Este campo é obrigatório.")]
 
     assert len(errors) == 4
 
@@ -29,12 +29,12 @@ def test_valida_campos_obrigatorios_nota_form():
 
     errors = form.errors
 
-    assert errors['texto'] == [_('Este campo é obrigatório')]
-    assert errors['publicidade'] == [_('Este campo é obrigatório.')]
-    assert errors['tipo'] == [_('Este campo é obrigatório.')]
-    assert errors['publicacao'] == [_('Este campo é obrigatório')]
-    assert errors['efetividade'] == [_('Este campo é obrigatório')]
-    assert errors['dispositivo'] == [_('Este campo é obrigatório.')]
+    assert errors["texto"] == [_("Este campo é obrigatório")]
+    assert errors["publicidade"] == [_("Este campo é obrigatório.")]
+    assert errors["tipo"] == [_("Este campo é obrigatório.")]
+    assert errors["publicacao"] == [_("Este campo é obrigatório")]
+    assert errors["efetividade"] == [_("Este campo é obrigatório")]
+    assert errors["dispositivo"] == [_("Este campo é obrigatório.")]
 
     assert len(errors) == 6
 
@@ -43,15 +43,18 @@ def test_valida_campos_obrigatorios_nota_form():
 def test_nota_form_invalido():
     tipo = baker.make(TipoNota)
 
-    form = forms.NotaForm(data={'titulo': 'titulo',
-                                'texto': 'teste',
-                                'url_externa': 'www.test.com',
-                                'publicidade': 'publicidade',
-                                'tipo': str(tipo.pk),
-                                'publicacao': '10/05/2017',
-                                'efetividade': '10/05/2017',
-                                'dispositivo': 'dispositivo',
-                                'pk': 'pk'
-                                })
+    form = forms.NotaForm(
+        data={
+            "titulo": "titulo",
+            "texto": "teste",
+            "url_externa": "www.test.com",
+            "publicidade": "publicidade",
+            "tipo": str(tipo.pk),
+            "publicacao": "10/05/2017",
+            "efetividade": "10/05/2017",
+            "dispositivo": "dispositivo",
+            "pk": "pk",
+        }
+    )
 
     assert not form.is_valid()

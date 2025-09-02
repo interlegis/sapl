@@ -12,10 +12,7 @@ from sapl.rules.group_protocolo import rules_group_protocolo
 from sapl.rules.group_sessao import rules_group_sessao
 from sapl.rules.group_votante import rules_group_votante
 
-rules_group_login_social = {
-    'group': SAPL_GROUP_LOGIN_SOCIAL,
-    'rules': []
-}
+rules_group_login_social = {"group": SAPL_GROUP_LOGIN_SOCIAL, "rules": []}
 """
 ESTRUTURA DAS RULES DEFINIDAS NOS ARQUIVOS GROUP_[DEFINICAO].PY
 
@@ -70,16 +67,18 @@ rules_group_exemplo['rules'][1]
 
 """
 
-rules_group_geral['rules'] = (rules_group_geral['rules'] +
-                              rules_group_administrativo['rules'] +
-                              rules_group_protocolo['rules'] +
-                              rules_group_comissoes['rules'] +
-                              rules_group_audiencia['rules'] +
-                              rules_group_materia['rules'] +
-                              rules_group_norma['rules'] +
-                              rules_group_sessao['rules'] +
-                              rules_group_painel['rules'] +
-                              rules_group_login_social['rules'])
+rules_group_geral["rules"] = (
+    rules_group_geral["rules"]
+    + rules_group_administrativo["rules"]
+    + rules_group_protocolo["rules"]
+    + rules_group_comissoes["rules"]
+    + rules_group_audiencia["rules"]
+    + rules_group_materia["rules"]
+    + rules_group_norma["rules"]
+    + rules_group_sessao["rules"]
+    + rules_group_painel["rules"]
+    + rules_group_login_social["rules"]
+)
 
 rules_patterns = [
     rules_group_audiencia,
@@ -93,26 +92,29 @@ rules_patterns = [
     rules_group_geral,
     rules_group_autor,
     rules_group_votante,
-
     rules_group_anonymous,  # anotação para validação do teste de rules
-    rules_group_login_social  # TODO não implementado
+    rules_group_login_social,  # TODO não implementado
 ]
 
 rules_patterns_public = {}
 
 
 def _get_registration_key(model):
-    return '%s:%s' % (model._meta.app_label, model._meta.model_name)
+    return "%s:%s" % (model._meta.app_label, model._meta.model_name)
 
 
 for rules_group in rules_patterns:
-    for rs in rules_group['rules']:
+    for rs in rules_group["rules"]:
         key = _get_registration_key(rs[0])
         if key not in rules_patterns_public:
             rules_patterns_public[key] = set()
 
-        r = set(map(lambda x, m=rs[0]: '{}{}{}'.format(
-            m._meta.app_label,
-            x,
-            m._meta.model_name), rs[2]))
+        r = set(
+            map(
+                lambda x, m=rs[0]: "{}{}{}".format(
+                    m._meta.app_label, x, m._meta.model_name
+                ),
+                rs[2],
+            )
+        )
         rules_patterns_public[key] = rules_patterns_public[key] | r

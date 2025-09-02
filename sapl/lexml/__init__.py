@@ -1,1 +1,1 @@
-default_app_config = 'sapl.lexml.apps.AppConfig'
+default_app_config = "sapl.lexml.apps.AppConfig"

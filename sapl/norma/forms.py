@@ -1,54 +1,65 @@
 import logging
 import re
 
-from crispy_forms.layout import (Button, Fieldset, HTML, Layout)
+import django_filters
+from crispy_forms.layout import HTML, Button, Fieldset, Layout
 from django import forms
 from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Q, F, Func, Value
+from django.db.models import F, Func, Q, Value
 from django.forms import ModelChoiceField, ModelForm, widgets
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-import django_filters
 
 from sapl.base.models import TipoAutor
-from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, to_row
-from sapl.materia.models import (MateriaLegislativa,
-                                 TipoMateriaLegislativa, Orgao)
+from sapl.crispy_layout_mixin import SaplFormHelper, form_actions, to_row
+from sapl.materia.models import MateriaLegislativa, Orgao, TipoMateriaLegislativa
 from sapl.parlamentares.models import Partido
-from sapl.utils import (autor_label, autor_modal, ANO_CHOICES, choice_anos_com_normas,
-                        FileFieldCheckMixin, FilterOverridesMetaMixin,
-                        NormaPesquisaOrderingFilter, validar_arquivo)
+from sapl.utils import (
+    ANO_CHOICES,
+    FileFieldCheckMixin,
+    FilterOverridesMetaMixin,
+    NormaPesquisaOrderingFilter,
+    autor_label,
+    autor_modal,
+    choice_anos_com_normas,
+    validar_arquivo,
+)
 
-from .models import (AnexoNormaJuridica, AssuntoNorma, AutoriaNorma,
-                     NormaJuridica, NormaRelacionada, TipoNormaJuridica)
+from .models import (
+    AnexoNormaJuridica,
+    AssuntoNorma,
+    AutoriaNorma,
+    NormaJuridica,
+    NormaRelacionada,
+    TipoNormaJuridica,
+)
 
 
 def get_esferas():
-    return [('E', 'Estadual'),
-            ('F', 'Federal'),
-            ('M', 'Municipal')]
+    return [("E", "Estadual"), ("F", "Federal"), ("M", "Municipal")]
 
 
-YES_NO_CHOICES = [('', '---------'),
-                  (True, _('Sim')),
-                  (False, _('Não'))]
+YES_NO_CHOICES = [("", "---------"), (True, _("Sim")), (False, _("Não"))]
 
-ORDENACAO_CHOICES = [('', '---------'),
-                     ('tipo,ano,numero', _('Tipo/Ano/Número')),
-                     ('data,tipo,ano,numero', _('Data/Tipo/Ano/Número'))]
+ORDENACAO_CHOICES = [
+    ("", "---------"),
+    ("tipo,ano,numero", _("Tipo/Ano/Número")),
+    ("data,tipo,ano,numero", _("Data/Tipo/Ano/Número")),
+]
 
 
 class AssuntoNormaFilterSet(django_filters.FilterSet):
-    assunto = django_filters.CharFilter(label=_("Assunto"),
-                                        method='multifield_filter')
+    assunto = django_filters.CharFilter(label=_("Assunto"), method="multifield_filter")
 
     class Meta:
         model = AssuntoNorma
         fields = ["assunto"]
 
     def multifield_filter(self, queryset, name, value):
-        return queryset.filter(Q(assunto__icontains=value) | Q(descricao__icontains=value))
+        return queryset.filter(
+            Q(assunto__icontains=value) | Q(descricao__icontains=value)
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,226 +71,292 @@ class AssuntoNormaFilterSet(django_filters.FilterSet):
         self.form.helper.layout = Layout(
             Fieldset(
                 _("Pesquisa de Assunto de Norma Jurídica"),
-                row0, form_actions(label="Pesquisar"))
+                row0,
+                form_actions(label="Pesquisar"),
+            )
         )
 
 
 class NormaFilterSet(django_filters.FilterSet):
+    ano = django_filters.ChoiceFilter(
+        required=False, label="Ano", choices=choice_anos_com_normas
+    )
 
-    ano = django_filters.ChoiceFilter(required=False,
-                                      label='Ano',
-                                      choices=choice_anos_com_normas)
-
-    numero = django_filters.CharFilter(
-        method='filter_numero',
-        label=_('Número'))
+    numero = django_filters.CharFilter(method="filter_numero", label=_("Número"))
 
     ementa = django_filters.CharFilter(
-        method='filter_ementa',
-        label=_('Pesquisar expressões na ementa da norma'))
+        method="filter_ementa", label=_("Pesquisar expressões na ementa da norma")
+    )
 
-    indexacao = django_filters.CharFilter(method='filter_indexacao',
-                                          label=_('Indexação'))
+    indexacao = django_filters.CharFilter(
+        method="filter_indexacao", label=_("Indexação")
+    )
 
-    assuntos = django_filters.ModelChoiceFilter(
-        queryset=AssuntoNorma.objects.all())
+    assuntos = django_filters.ModelChoiceFilter(queryset=AssuntoNorma.objects.all())
 
     autorianorma__autor = django_filters.CharFilter(widget=forms.HiddenInput())
     autorianorma__primeiro_autor = django_filters.BooleanFilter(
-        required=False,
-        label=_('Primeiro Autor'))
-    autorianorma__autor__parlamentar_set__filiacao__partido = django_filters.ModelChoiceFilter(
-        queryset=Partido.objects.all(),
-        label=_('Normas por Partido'))
+        required=False, label=_("Primeiro Autor")
+    )
+    autorianorma__autor__parlamentar_set__filiacao__partido = (
+        django_filters.ModelChoiceFilter(
+            queryset=Partido.objects.all(), label=_("Normas por Partido")
+        )
+    )
 
-    o = NormaPesquisaOrderingFilter(help_text='')
+    o = NormaPesquisaOrderingFilter(help_text="")
 
     class Meta(FilterOverridesMetaMixin):
         model = NormaJuridica
-        fields = ['orgao', 'tipo', 'numero', 'ano', 'data',
-                  'data_vigencia', 'data_publicacao', 'ementa', 'assuntos',
-                  'autorianorma__autor', 'autorianorma__primeiro_autor', 'autorianorma__autor__tipo']
+        fields = [
+            "orgao",
+            "tipo",
+            "numero",
+            "ano",
+            "data",
+            "data_vigencia",
+            "data_publicacao",
+            "ementa",
+            "assuntos",
+            "autorianorma__autor",
+            "autorianorma__primeiro_autor",
+            "autorianorma__autor__tipo",
+        ]
 
     def __init__(self, *args, **kwargs):
         super(NormaFilterSet, self).__init__(*args, **kwargs)
-        self.filters['autorianorma__autor__tipo'].label = _('Tipo de Autor')
+        self.filters["autorianorma__autor__tipo"].label = _("Tipo de Autor")
 
-        row1 = to_row([('tipo', 4), ('numero', 4), ('ano', 4)])
-        row2 = to_row([('data', 6), ('data_publicacao', 6)])
-        row3 = to_row([('ementa', 6), ('assuntos', 6)])
-        row4 = to_row([('data_vigencia', 6), ('orgao', 6), ])
-        row5 = to_row([('o', 6), ('indexacao', 6)])
-        row6 = to_row([
-            ('autorianorma__autor', 0),
-            (Button('pesquisar',
-                    'Pesquisar Autor',
-                    css_class='btn btn-primary btn-sm'), 2),
-            (Button('limpar',
-                    'Limpar Autor',
-                    css_class='btn btn-primary btn-sm'), 2),
-            ('autorianorma__primeiro_autor', 2),
-            ('autorianorma__autor__tipo', 3),
-            ('autorianorma__autor__parlamentar_set__filiacao__partido', 3)
-        ])
+        row1 = to_row([("tipo", 4), ("numero", 4), ("ano", 4)])
+        row2 = to_row([("data", 6), ("data_publicacao", 6)])
+        row3 = to_row([("ementa", 6), ("assuntos", 6)])
+        row4 = to_row(
+            [
+                ("data_vigencia", 6),
+                ("orgao", 6),
+            ]
+        )
+        row5 = to_row([("o", 6), ("indexacao", 6)])
+        row6 = to_row(
+            [
+                ("autorianorma__autor", 0),
+                (
+                    Button(
+                        "pesquisar",
+                        "Pesquisar Autor",
+                        css_class="btn btn-primary btn-sm",
+                    ),
+                    2,
+                ),
+                (
+                    Button(
+                        "limpar", "Limpar Autor", css_class="btn btn-primary btn-sm"
+                    ),
+                    2,
+                ),
+                ("autorianorma__primeiro_autor", 2),
+                ("autorianorma__autor__tipo", 3),
+                ("autorianorma__autor__parlamentar_set__filiacao__partido", 3),
+            ]
+        )
 
         self.form.helper = SaplFormHelper()
-        self.form.helper.form_method = 'GET'
+        self.form.helper.form_method = "GET"
         self.form.helper.layout = Layout(
-            Fieldset(_('Pesquisa de Norma'),
-                     row1, row2, row3, row4, row5,
-                     Fieldset(_('Pesquisa Avançada'),
-                              row6,
-                              HTML(autor_label),
-                              HTML(autor_modal)),
-                     form_actions(label='Pesquisar'))
+            Fieldset(
+                _("Pesquisa de Norma"),
+                row1,
+                row2,
+                row3,
+                row4,
+                row5,
+                Fieldset(
+                    _("Pesquisa Avançada"), row6, HTML(autor_label), HTML(autor_modal)
+                ),
+                form_actions(label="Pesquisar"),
+            )
         )
 
     def filter_numero(self, queryset, name, value):
-        p = r'(\W|_)'
-        value = re.sub(p, '', value, flags=re.IGNORECASE)
+        p = r"(\W|_)"
+        value = re.sub(p, "", value, flags=re.IGNORECASE)
         return queryset.annotate(
             numero_clean=Func(
-                F('numero'),
-                Value(p),
-                Value(''),
-                Value('g'),
-                function='REGEXP_REPLACE'
+                F("numero"), Value(p), Value(""), Value("g"), function="REGEXP_REPLACE"
             )
         ).filter(numero_clean=value)
 
     def filter_ementa(self, queryset, name, value):
-        return queryset.annotate(search=SearchVector('ementa',
-                                                     config='portuguese')).filter(search=value)
+        return queryset.annotate(
+            search=SearchVector("ementa", config="portuguese")
+        ).filter(search=value)
 
     def filter_indexacao(self, queryset, name, value):
-        return queryset.annotate(search=SearchVector('indexacao',
-                                                     config='portuguese')).filter(search=value)
+        return queryset.annotate(
+            search=SearchVector("indexacao", config="portuguese")
+        ).filter(search=value)
 
     def filter_autoria(self, queryset, name, value):
-        return queryset.filter(**{
-            name: value,
-        })
+        return queryset.filter(
+            **{
+                name: value,
+            }
+        )
 
 
 class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
-
     # Campos de MateriaLegislativa
     tipo_materia = forms.ModelChoiceField(
-        label='Matéria',
+        label="Matéria",
         required=False,
         queryset=TipoMateriaLegislativa.objects.all(),
-        empty_label='Selecione',
-        widget=forms.Select(attrs={'autocomplete': 'off'})
+        empty_label="Selecione",
+        widget=forms.Select(attrs={"autocomplete": "off"}),
     )
     numero_materia = forms.CharField(
-        label='Número Matéria',
+        label="Número Matéria",
         required=False,
-        widget=forms.TextInput(attrs={'autocomplete': 'off'})
+        widget=forms.TextInput(attrs={"autocomplete": "off"}),
     )
     ano_materia = forms.ChoiceField(
-        label='Ano Matéria',
+        label="Ano Matéria",
         required=False,
         choices=ANO_CHOICES,
-        widget=forms.Select(attrs={'autocomplete': 'off'})
+        widget=forms.Select(attrs={"autocomplete": "off"}),
     )
 
     logger = logging.getLogger(__name__)
 
     class Meta:
         model = NormaJuridica
-        fields = ['tipo',
-                  'numero',
-                  'ano',
-                  'orgao',
-                  'data',
-                  'esfera_federacao',
-                  'complemento',
-                  'tipo_materia',
-                  'numero_materia',
-                  'ano_materia',
-                  'data_publicacao',
-                  'data_vigencia',
-                  'veiculo_publicacao',
-                  'pagina_inicio_publicacao',
-                  'pagina_fim_publicacao',
-                  'ementa',
-                  'indexacao',
-                  'observacao',
-                  'texto_integral',
-                  'assuntos',
-                  'user',
-                  'ip',
-                  'ultima_edicao']
+        fields = [
+            "tipo",
+            "numero",
+            "ano",
+            "orgao",
+            "data",
+            "esfera_federacao",
+            "complemento",
+            "tipo_materia",
+            "numero_materia",
+            "ano_materia",
+            "data_publicacao",
+            "data_vigencia",
+            "veiculo_publicacao",
+            "pagina_inicio_publicacao",
+            "pagina_fim_publicacao",
+            "ementa",
+            "indexacao",
+            "observacao",
+            "texto_integral",
+            "assuntos",
+            "user",
+            "ip",
+            "ultima_edicao",
+        ]
 
-        widgets = {'assuntos': widgets.CheckboxSelectMultiple,
-                   'user': forms.HiddenInput(),
-                   'ip': forms.HiddenInput(),
-                   'ultima_edicao': forms.HiddenInput()}
+        widgets = {
+            "assuntos": widgets.CheckboxSelectMultiple,
+            "user": forms.HiddenInput(),
+            "ip": forms.HiddenInput(),
+            "ultima_edicao": forms.HiddenInput(),
+        }
 
     def clean(self):
-
         cleaned_data = super(NormaJuridicaForm, self).clean()
 
         if not self.is_valid():
             return cleaned_data
 
         import re
-        has_digits = re.sub(r'[^0-9]', '', cleaned_data['numero'])
-        if not has_digits:
-            self.logger.error("Número de norma ({}) não pode conter somente letras.".format(
-                cleaned_data['numero']))
-            raise ValidationError(
-                'Número de norma não pode conter somente letras')
 
-        if self.instance.numero != cleaned_data['numero']:
+        has_digits = re.sub(r"[^0-9]", "", cleaned_data["numero"])
+        if not has_digits:
+            self.logger.error(
+                "Número de norma ({}) não pode conter somente letras.".format(
+                    cleaned_data["numero"]
+                )
+            )
+            raise ValidationError("Número de norma não pode conter somente letras")
+
+        if self.instance.numero != cleaned_data["numero"]:
             params = {
-                'ano': cleaned_data['ano'],
-                'numero': cleaned_data['numero'],
-                'tipo': cleaned_data['tipo'],
+                "ano": cleaned_data["ano"],
+                "numero": cleaned_data["numero"],
+                "tipo": cleaned_data["tipo"],
             }
-            params['orgao'] = cleaned_data['orgao']
+            params["orgao"] = cleaned_data["orgao"]
             norma = NormaJuridica.objects.filter(**params).exists()
             if norma:
-                self.logger.warning("Já existe uma norma de mesmo Tipo ({}), Ano ({}) "
-                                    "e Número ({}) no sistema."
-                                    .format(cleaned_data['tipo'], cleaned_data['ano'], cleaned_data['numero']))
-                raise ValidationError("Já existe uma norma de mesmo Tipo, Ano, Órgão "
-                                      "e Número no sistema")
-        if (cleaned_data['tipo_materia'] and
-            cleaned_data['numero_materia'] and
-                cleaned_data['ano_materia']):
+                self.logger.warning(
+                    "Já existe uma norma de mesmo Tipo ({}), Ano ({}) "
+                    "e Número ({}) no sistema.".format(
+                        cleaned_data["tipo"],
+                        cleaned_data["ano"],
+                        cleaned_data["numero"],
+                    )
+                )
+                raise ValidationError(
+                    "Já existe uma norma de mesmo Tipo, Ano, Órgão "
+                    "e Número no sistema"
+                )
+        if (
+            cleaned_data["tipo_materia"]
+            and cleaned_data["numero_materia"]
+            and cleaned_data["ano_materia"]
+        ):
             try:
-                self.logger.debug("Tentando obter objeto MateriaLegislativa com tipo={}, numero={}, ano={}."
-                                  .format(cleaned_data['tipo_materia'], cleaned_data['numero_materia'], cleaned_data['ano_materia']))
+                self.logger.debug(
+                    "Tentando obter objeto MateriaLegislativa com tipo={}, numero={}, ano={}.".format(
+                        cleaned_data["tipo_materia"],
+                        cleaned_data["numero_materia"],
+                        cleaned_data["ano_materia"],
+                    )
+                )
                 materia = MateriaLegislativa.objects.get(
-                    tipo_id=cleaned_data['tipo_materia'],
-                    numero=cleaned_data['numero_materia'],
-                    ano=cleaned_data['ano_materia'])
+                    tipo_id=cleaned_data["tipo_materia"],
+                    numero=cleaned_data["numero_materia"],
+                    ano=cleaned_data["ano_materia"],
+                )
 
             except ObjectDoesNotExist:
-                self.logger.error("Matéria Legislativa %s/%s (%s) é inexistente." % (
-                    self.cleaned_data['numero_materia'],
-                    self.cleaned_data['ano_materia'],
-                    cleaned_data['tipo_materia'].descricao))
+                self.logger.error(
+                    "Matéria Legislativa %s/%s (%s) é inexistente."
+                    % (
+                        self.cleaned_data["numero_materia"],
+                        self.cleaned_data["ano_materia"],
+                        cleaned_data["tipo_materia"].descricao,
+                    )
+                )
                 raise forms.ValidationError(
-                    _("Matéria Legislativa %s/%s (%s) é inexistente." % (
-                        self.cleaned_data['numero_materia'],
-                        self.cleaned_data['ano_materia'],
-                        cleaned_data['tipo_materia'].descricao)))
+                    _(
+                        "Matéria Legislativa %s/%s (%s) é inexistente."
+                        % (
+                            self.cleaned_data["numero_materia"],
+                            self.cleaned_data["ano_materia"],
+                            cleaned_data["tipo_materia"].descricao,
+                        )
+                    )
+                )
             else:
-                self.logger.info("MateriaLegislativa com tipo={}, numero={}, ano={} obtida com sucesso."
-                                 .format(cleaned_data['tipo_materia'], cleaned_data['numero_materia'], cleaned_data['ano_materia']))
-                cleaned_data['materia'] = materia
+                self.logger.info(
+                    "MateriaLegislativa com tipo={}, numero={}, ano={} obtida com sucesso.".format(
+                        cleaned_data["tipo_materia"],
+                        cleaned_data["numero_materia"],
+                        cleaned_data["ano_materia"],
+                    )
+                )
+                cleaned_data["materia"] = materia
 
         else:
-            cleaned_data['materia'] = None
+            cleaned_data["materia"] = None
 
         return cleaned_data
 
     def clean_texto_integral(self):
         super(NormaJuridicaForm, self).clean()
 
-        texto_integral = self.cleaned_data.get('texto_integral', False)
+        texto_integral = self.cleaned_data.get("texto_integral", False)
 
         if texto_integral:
             validar_arquivo(texto_integral, "Texto Original")
@@ -289,49 +366,56 @@ class NormaJuridicaForm(FileFieldCheckMixin, ModelForm):
     def save(self, commit=False):
         norma = self.instance
         norma.timestamp = timezone.now()
-        norma.materia = self.cleaned_data['materia']
+        norma.materia = self.cleaned_data["materia"]
         norma = super(NormaJuridicaForm, self).save(commit=True)
 
         return norma
 
 
 class AutoriaNormaForm(ModelForm):
+    tipo_autor = ModelChoiceField(
+        label=_("Tipo Autor"),
+        required=False,
+        queryset=TipoAutor.objects.all(),
+        empty_label=_("Selecione"),
+    )
 
-    tipo_autor = ModelChoiceField(label=_('Tipo Autor'),
-                                  required=False,
-                                  queryset=TipoAutor.objects.all(),
-                                  empty_label=_('Selecione'),)
+    data_relativa = forms.DateField(widget=forms.HiddenInput(), required=False)
 
-    data_relativa = forms.DateField(
-        widget=forms.HiddenInput(), required=False)
-
-    legislatura_anterior = forms.BooleanField(label=_('Legislatura Anterior'),
-                                              required=False)
+    legislatura_anterior = forms.BooleanField(
+        label=_("Legislatura Anterior"), required=False
+    )
 
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
         super(AutoriaNormaForm, self).__init__(*args, **kwargs)
 
-        row1 = to_row([('tipo_autor', 4),
-                       ('autor', 4),
-                       ('primeiro_autor', 4)])
+        row1 = to_row([("tipo_autor", 4), ("autor", 4), ("primeiro_autor", 4)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
-            Fieldset(_('Autoria'),
-                     row1, 'data_relativa',
-                     form_actions(label='Salvar'),
-                     to_row([('legislatura_anterior', 12)])))
+            Fieldset(
+                _("Autoria"),
+                row1,
+                "data_relativa",
+                form_actions(label="Salvar"),
+                to_row([("legislatura_anterior", 12)]),
+            )
+        )
 
         if not self.instance:
-            self.fields['autor'].choices = []
+            self.fields["autor"].choices = []
 
     class Meta:
         model = AutoriaNorma
-        fields = ['tipo_autor', 'autor',
-                  'primeiro_autor', 'data_relativa',
-                  'legislatura_anterior']
+        fields = [
+            "tipo_autor",
+            "autor",
+            "primeiro_autor",
+            "data_relativa",
+            "legislatura_anterior",
+        ]
 
     def clean(self):
         cd = super(AutoriaNormaForm, self).clean()
@@ -340,32 +424,27 @@ class AutoriaNormaForm(ModelForm):
             return self.cleaned_data
 
         autorias = AutoriaNorma.objects.filter(
-            norma=self.instance.norma, autor=cd['autor'])
+            norma=self.instance.norma, autor=cd["autor"]
+        )
         pk = self.instance.pk
 
-        if ((not pk and autorias.exists()) or
-                (pk and autorias.exclude(pk=pk).exists())):
-            self.logger.error(
-                "Autor ({}) já foi cadastrado.".format(cd['autor']))
-            raise ValidationError(_('Esse Autor já foi cadastrado.'))
+        if (not pk and autorias.exists()) or (pk and autorias.exclude(pk=pk).exists()):
+            self.logger.error("Autor ({}) já foi cadastrado.".format(cd["autor"]))
+            raise ValidationError(_("Esse Autor já foi cadastrado."))
 
         return cd
 
 
 class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
-
     logger = logging.getLogger(__name__)
 
-    anexo_arquivo = forms.FileField(
-        required=True,
-        label="Arquivo Anexo"
-    )
+    anexo_arquivo = forms.FileField(required=True, label="Arquivo Anexo")
 
     class Meta:
         model = AnexoNormaJuridica
-        fields = ['norma', 'anexo_arquivo', 'assunto_anexo']
+        fields = ["norma", "anexo_arquivo", "assunto_anexo"]
         widgets = {
-            'norma': forms.HiddenInput(),
+            "norma": forms.HiddenInput(),
         }
 
     def clean(self):
@@ -374,7 +453,7 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
         if not self.is_valid():
             return cleaned_data
 
-        anexo_arquivo = self.cleaned_data.get('anexo_arquivo', False)
+        anexo_arquivo = self.cleaned_data.get("anexo_arquivo", False)
 
         if anexo_arquivo:
             validar_arquivo(anexo_arquivo, "Arquivo Anexo")
@@ -383,44 +462,40 @@ class AnexoNormaJuridicaForm(FileFieldCheckMixin, ModelForm):
 
     def save(self, commit=False):
         anexo = self.instance
-        anexo.ano = self.cleaned_data['norma'].ano
-        anexo.norma = self.cleaned_data['norma']
-        anexo.assunto_anexo = self.cleaned_data['assunto_anexo']
-        anexo.anexo_arquivo = self.cleaned_data['anexo_arquivo']
+        anexo.ano = self.cleaned_data["norma"].ano
+        anexo.norma = self.cleaned_data["norma"]
+        anexo.assunto_anexo = self.cleaned_data["assunto_anexo"]
+        anexo.anexo_arquivo = self.cleaned_data["anexo_arquivo"]
         anexo = super(AnexoNormaJuridicaForm, self).save(commit=True)
         return anexo
 
 
 class NormaRelacionadaForm(ModelForm):
-
     orgao = forms.ModelChoiceField(
-        label='Órgão',
+        label="Órgão",
         required=False,
         queryset=Orgao.objects.all(),
-        empty_label='----------',
+        empty_label="----------",
     )
     tipo = forms.ModelChoiceField(
-        label='Tipo',
+        label="Tipo",
         required=True,
         queryset=TipoNormaJuridica.objects.all(),
-        empty_label='----------',
+        empty_label="----------",
     )
-    numero = forms.CharField(label='Número', required=True)
-    ano = forms.CharField(label='Ano', required=True)
+    numero = forms.CharField(label="Número", required=True)
+    ano = forms.CharField(label="Ano", required=True)
     ementa = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'disabled': 'disabled'}))
+        required=False, widget=forms.Textarea(attrs={"disabled": "disabled"})
+    )
 
     logger = logging.getLogger(__name__)
 
     class Meta:
         model = NormaRelacionada
-        fields = ['orgao', 'tipo', 'numero', 'ano',
-                  'resumo', 'ementa', 'tipo_vinculo']
+        fields = ["orgao", "tipo", "numero", "ano", "resumo", "ementa", "tipo_vinculo"]
 
-        widgets = {
-            'resumo': forms.Textarea(
-                attrs={'id': 'texto-rico'})}
+        widgets = {"resumo": forms.Textarea(attrs={"id": "texto-rico"})}
 
     def __init__(self, *args, **kwargs):
         super(NormaRelacionadaForm, self).__init__(*args, **kwargs)
@@ -433,30 +508,51 @@ class NormaRelacionadaForm(ModelForm):
         cleaned_data = self.cleaned_data
 
         try:
-            self.logger.debug("Tentando obter objeto NormaJuridica com numero={}, ano={}, tipo={}, orgao={}.".format(
-                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo'], cleaned_data['orgao']))
+            self.logger.debug(
+                "Tentando obter objeto NormaJuridica com numero={}, ano={}, tipo={}, orgao={}.".format(
+                    cleaned_data["numero"],
+                    cleaned_data["ano"],
+                    cleaned_data["tipo"],
+                    cleaned_data["orgao"],
+                )
+            )
             norma_relacionada = NormaJuridica.objects.get(
-                numero=cleaned_data['numero'],
-                ano=cleaned_data['ano'],
-                tipo=cleaned_data['tipo'],
-                orgao=cleaned_data['orgao'])
+                numero=cleaned_data["numero"],
+                ano=cleaned_data["ano"],
+                tipo=cleaned_data["tipo"],
+                orgao=cleaned_data["orgao"],
+            )
         except ObjectDoesNotExist:
-            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={}, orgao={} não existe.".format(
-                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo'], cleaned_data['orgao']))
-            msg = _('A norma a ser relacionada não existe.')
+            self.logger.info(
+                "NormaJuridica com numero={}, ano={}, tipo={}, orgao={} não existe.".format(
+                    cleaned_data["numero"],
+                    cleaned_data["ano"],
+                    cleaned_data["tipo"],
+                    cleaned_data["orgao"],
+                )
+            )
+            msg = _("A norma a ser relacionada não existe.")
             raise ValidationError(msg)
         else:
-            self.logger.info("NormaJuridica com numero={}, ano={}, tipo={} , orgao={} obtida com sucesso.".format(
-                cleaned_data['numero'], cleaned_data['ano'], cleaned_data['tipo'], cleaned_data['orgao']))
-            cleaned_data['norma_relacionada'] = norma_relacionada
+            self.logger.info(
+                "NormaJuridica com numero={}, ano={}, tipo={} , orgao={} obtida com sucesso.".format(
+                    cleaned_data["numero"],
+                    cleaned_data["ano"],
+                    cleaned_data["tipo"],
+                    cleaned_data["orgao"],
+                )
+            )
+            cleaned_data["norma_relacionada"] = norma_relacionada
 
         return cleaned_data
 
     def save(self, commit=False):
         relacionada = super(NormaRelacionadaForm, self).save(commit)
-        relacionada.norma_relacionada = self.cleaned_data['norma_relacionada']
+        relacionada.norma_relacionada = self.cleaned_data["norma_relacionada"]
         if relacionada.tipo_vinculo.revoga_integralmente:
-            relacionada.norma_relacionada.data_vigencia = relacionada.norma_principal.data
+            relacionada.norma_relacionada.data_vigencia = (
+                relacionada.norma_principal.data
+            )
         relacionada.norma_relacionada.save()
         relacionada.save()
         return relacionada
@@ -467,45 +563,33 @@ class NormaPesquisaSimplesForm(forms.Form):
         label=TipoNormaJuridica._meta.verbose_name,
         queryset=TipoNormaJuridica.objects.all(),
         required=False,
-        empty_label='Selecione')
+        empty_label="Selecione",
+    )
 
     data_inicial = forms.DateField(
-        label='Data Inicial',
-        required=False,
-        widget=forms.DateInput(format='%d/%m/%Y')
+        label="Data Inicial", required=False, widget=forms.DateInput(format="%d/%m/%Y")
     )
 
     data_final = forms.DateField(
-        label='Data Final',
-        required=False,
-        widget=forms.DateInput(format='%d/%m/%Y')
+        label="Data Final", required=False, widget=forms.DateInput(format="%d/%m/%Y")
     )
 
     titulo = forms.CharField(
-        label='Título do Relatório',
-        required=False,
-        max_length=150)
+        label="Título do Relatório", required=False, max_length=150
+    )
 
     logger = logging.getLogger(__name__)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        row1 = to_row(
-            [('tipo_norma', 6),
-             ('data_inicial', 3),
-             ('data_final', 3)])
+        row1 = to_row([("tipo_norma", 6), ("data_inicial", 3), ("data_final", 3)])
 
-        row2 = to_row(
-            [('titulo', 12)])
+        row2 = to_row([("titulo", 12)])
 
         self.helper = SaplFormHelper()
         self.helper.layout = Layout(
-            Fieldset(
-                'Índice de Normas',
-                row1, row2,
-                form_actions(label='Pesquisar')
-            )
+            Fieldset("Índice de Normas", row1, row2, form_actions(label="Pesquisar"))
         )
 
     def clean(self):
@@ -515,19 +599,29 @@ class NormaPesquisaSimplesForm(forms.Form):
             return self.cleaned_data
 
         cleaned_data = self.cleaned_data
-        data_inicial = cleaned_data['data_inicial']
-        data_final = cleaned_data['data_final']
+        data_inicial = cleaned_data["data_inicial"]
+        data_final = cleaned_data["data_final"]
 
         if data_inicial or data_final:
-            if not(data_inicial and data_final):
-                self.logger.error("Caso pesquise por data, os campos de Data Inicial e "
-                                  "Data Final devem ser preenchidos obrigatoriamente")
-                raise ValidationError(_('Caso pesquise por data, os campos de Data Inicial e '
-                                        'Data Final devem ser preenchidos obrigatoriamente'))
-            elif data_inicial > data_final:
-                self.logger.error("Data Final ({}) menor que a Data Inicial ({}).".format(
-                    data_final, data_inicial))
+            if not (data_inicial and data_final):
+                self.logger.error(
+                    "Caso pesquise por data, os campos de Data Inicial e "
+                    "Data Final devem ser preenchidos obrigatoriamente"
+                )
                 raise ValidationError(
-                    _('A Data Final não pode ser menor que a Data Inicial'))
+                    _(
+                        "Caso pesquise por data, os campos de Data Inicial e "
+                        "Data Final devem ser preenchidos obrigatoriamente"
+                    )
+                )
+            elif data_inicial > data_final:
+                self.logger.error(
+                    "Data Final ({}) menor que a Data Inicial ({}).".format(
+                        data_final, data_inicial
+                    )
+                )
+                raise ValidationError(
+                    _("A Data Final não pode ser menor que a Data Inicial")
+                )
 
         return cleaned_data

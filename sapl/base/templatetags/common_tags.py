@@ -11,18 +11,18 @@ from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposic
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
 from sapl.sessao.models import SessaoPlenaria
-from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO, is_report_allowed
+from sapl.utils import SEPARADOR_HASH_PROPOSICAO, filiacao_data, is_report_allowed
 
 register = template.Library()
 
 
 def get_class(class_string):
-    if not hasattr(class_string, '__bases__'):
+    if not hasattr(class_string, "__bases__"):
         class_string = str(class_string)
-        dot = class_string.rindex('.')
-        mod_name, class_name = class_string[:dot], class_string[dot + 1:]
+        dot = class_string.rindex(".")
+        mod_name, class_name = class_string[:dot], class_string[dot + 1 :]
         if class_name:
-            return getattr(__import__(mod_name, {}, {}, [str('')]), class_name)
+            return getattr(__import__(mod_name, {}, {}, [str("")]), class_name)
 
 
 @register.simple_tag
@@ -66,7 +66,13 @@ def model_verbose_name_plural(class_name):
 
 @register.filter
 def obfuscate_value(value, key):
-    if key in ["hash", "google_recaptcha_secret_key", "password", "google_recaptcha_site_key", "hash_code"]:
+    if key in [
+        "hash",
+        "google_recaptcha_secret_key",
+        "password",
+        "google_recaptcha_site_key",
+        "hash_code",
+    ]:
         return "***************"
     return value
 
@@ -98,7 +104,7 @@ def meta_model_value(instance, attr):
     try:
         return getattr(instance._meta, attr)
     except:
-        return ''
+        return ""
 
 
 @register.filter
@@ -121,15 +127,16 @@ def sort_by_keys(value, key):
     transformed = []
     id_props = [x.id for x in value]
     qs = Proposicao.objects.filter(pk__in=id_props)
-    key_descricao = {'1': 'data_envio',
-                     '-1': '-data_envio',
-                     '2': 'tipo',
-                     '-2': '-tipo',
-                     '3': 'descricao',
-                     '-3': '-descricao',
-                     '4': 'autor',
-                     '-4': '-autor'
-                     }
+    key_descricao = {
+        "1": "data_envio",
+        "-1": "-data_envio",
+        "2": "tipo",
+        "-2": "-tipo",
+        "3": "descricao",
+        "-3": "-descricao",
+        "4": "autor",
+        "-4": "-autor",
+    }
 
     transformed = qs.order_by(key_descricao[key])
     return transformed
@@ -176,7 +183,7 @@ def isinst(value, class_str):
 @register.filter
 @stringfilter
 def strip_hash(value):
-    vet = value.split('/')
+    vet = value.split("/")
     if len(vet) == 2:
         return vet[0][1:]
     else:
@@ -193,7 +200,7 @@ def get_add_perm(value, arg):
     except AttributeError:
         return None
     nome_model = view.__class__.model.__name__.lower()
-    can_add = '.add_' + nome_model
+    can_add = ".add_" + nome_model
 
     return perm.__contains__(nome_app + can_add)
 
@@ -208,7 +215,7 @@ def get_change_perm(value, arg):
     except AttributeError:
         return None
     nome_model = view.__class__.model.__name__.lower()
-    can_change = '.change_' + nome_model
+    can_change = ".change_" + nome_model
 
     return perm.__contains__(nome_app + can_change)
 
@@ -223,7 +230,7 @@ def get_delete_perm(value, arg):
     except AttributeError:
         return None
     nome_model = view.__class__.model.__name__.lower()
-    can_delete = '.delete_' + nome_model
+    can_delete = ".delete_" + nome_model
 
     return perm.__contains__(nome_app + can_delete)
 
@@ -232,8 +239,9 @@ def get_delete_perm(value, arg):
 def ultima_filiacao(value):
     parlamentar = value
 
-    ultima_filiacao = Filiacao.objects.filter(
-        parlamentar=parlamentar).order_by('-data').first()
+    ultima_filiacao = (
+        Filiacao.objects.filter(parlamentar=parlamentar).order_by("-data").first()
+    )
 
     if ultima_filiacao:
         return ultima_filiacao.partido
@@ -249,28 +257,27 @@ def get_config_attr(attribute):
 @register.filter
 def str2intabs(value):
     if not isinstance(value, str):
-        return ''
+        return ""
     try:
         v = int(value)
         v = abs(v)
         return v
     except:
-        return ''
+        return ""
 
 
 @register.filter
 def has_iframe(request):
-
-    iframe = request.session.get('iframe', False)
-    if not iframe and 'iframe' in request.GET:
-        ival = request.GET['iframe']
+    iframe = request.session.get("iframe", False)
+    if not iframe and "iframe" in request.GET:
+        ival = request.GET["iframe"]
         if ival and int(ival) == 1:
-            request.session['iframe'] = True
+            request.session["iframe"] = True
             return True
-    elif 'iframe' in request.GET:
-        ival = request.GET['iframe']
+    elif "iframe" in request.GET:
+        ival = request.GET["iframe"]
         if ival and int(ival) == 0:
-            del request.session['iframe']
+            del request.session["iframe"]
             return False
 
     return iframe
@@ -278,7 +285,7 @@ def has_iframe(request):
 
 @register.filter
 def url(value):
-    if value.startswith('http://') or value.startswith('https://'):
+    if value.startswith("http://") or value.startswith("https://"):
         return True
     return False
 
@@ -308,33 +315,37 @@ def youtube_url(value):
 @register.filter
 def facebook_url(value):
     value = value.lower()
-    facebook_pattern = r"^((https?://)?((www|pt-br)\.)?facebook\.com(\/.+)?\/videos(\/.*)?)"
+    facebook_pattern = (
+        r"^((https?://)?((www|pt-br)\.)?facebook\.com(\/.+)?\/videos(\/.*)?)"
+    )
     r = re.findall(facebook_pattern, value)
     return True if r else False
 
 
 @register.filter
 def youtube_id(value):
-    from urllib.parse import urlparse, parse_qs
+    from urllib.parse import parse_qs, urlparse
+
     u_pars = urlparse(value)
-    quer_v = parse_qs(u_pars.query).get('v')
+    quer_v = parse_qs(u_pars.query).get("v")
     if quer_v:
         return quer_v[0]
-    return ''
+    return ""
 
 
 @register.filter
 def file_extension(value):
     import pathlib
-    return pathlib.Path(value).suffix.replace('.', '')
+
+    return pathlib.Path(value).suffix.replace(".", "")
 
 
 @register.filter
 def cronometro_to_seconds(value):
-    if not AppConfig.attr('cronometro_' + value):
+    if not AppConfig.attr("cronometro_" + value):
         return 0
 
-    return AppConfig.attr('cronometro_' + value).seconds
+    return AppConfig.attr("cronometro_" + value).seconds
 
 
 @register.filter
@@ -345,27 +356,25 @@ def to_list_pk(object_list):
 @register.filter
 def search_get_model(object):
     if type(object) == MateriaLegislativa:
-        return 'm'
+        return "m"
     elif type(object) == DocumentoAcessorio:
-        return 'd'
+        return "d"
     elif type(object) == NormaJuridica:
-        return 'n'
+        return "n"
     elif type(object) == SessaoPlenaria:
-        return 's'
+        return "s"
 
     return None
 
 
 @register.filter
 def urldetail_content_type(obj, value):
-    return '%s:%s_detail' % (
-        value._meta.app_config.name, obj.content_type.model)
+    return "%s:%s_detail" % (value._meta.app_config.name, obj.content_type.model)
 
 
 @register.filter
 def urldetail(obj):
-    return '%s:%s_detail' % (
-        obj._meta.app_config.name, obj._meta.model_name)
+    return "%s:%s_detail" % (obj._meta.app_config.name, obj._meta.model_name)
 
 
 @register.filter
@@ -373,7 +382,7 @@ def filiacao_data_filter(parlamentar, data_inicio):
     try:
         filiacao = filiacao_data(parlamentar, data_inicio)
     except Exception:
-        filiacao = ''
+        filiacao = ""
     return filiacao
 
 
@@ -382,7 +391,7 @@ def filiacao_intervalo_filter(parlamentar, date_range):
     try:
         filiacao = filiacao_data(parlamentar, date_range[0], date_range[1])
     except Exception:
-        filiacao = ''
+        filiacao = ""
     return filiacao
 
 
@@ -390,10 +399,11 @@ def filiacao_intervalo_filter(parlamentar, date_range):
 def render_chunk_vendors(extension=None):
     try:
         tags = utils.get_as_tags(
-            'chunk-vendors', extension=extension, config='DEFAULT', attrs='')
-        return mark_safe('\n'.join(tags))
+            "chunk-vendors", extension=extension, config="DEFAULT", attrs=""
+        )
+        return mark_safe("\n".join(tags))
     except:
-        return ''
+        return ""
 
 
 @register.filter(is_safe=True)

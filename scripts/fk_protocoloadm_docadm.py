@@ -12,12 +12,12 @@ def substitui():
         if d.numero_protocolo:
             try:
                 d.protocolo = Protocolo.objects.get(
-                    ano=d.ano,
-                    numero=d.numero_protocolo)
+                    ano=d.ano, numero=d.numero_protocolo
+                )
                 d.save()
             except ObjectDoesNotExist:
                 return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     substitui()

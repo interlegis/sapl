@@ -1,21 +1,31 @@
+import pytest
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
-import pytest
 
 from sapl.base.models import CasaLegislativa
-from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
-                                    TipoDispositivo,
-                                    TipoDispositivoRelationship)
+from sapl.compilacao.models import (
+    PerfilEstruturalTextoArticulado,
+    TipoDispositivo,
+    TipoDispositivoRelationship,
+)
 from sapl.materia.models import AcompanhamentoMateria
 from sapl.protocoloadm.models import AcompanhamentoDocumento
-from sapl.rules import __base__, SAPL_GROUPS, map_rules, RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE
+from sapl.rules import (
+    RP_ADD,
+    RP_CHANGE,
+    RP_DELETE,
+    RP_DETAIL,
+    RP_LIST,
+    SAPL_GROUPS,
+    __base__,
+    map_rules,
+)
 from sapl.test_urls import create_perms_post_migrate
-from scripts.lista_permissions_in_decorators import \
-    lista_permissions_in_decorators
+from scripts.lista_permissions_in_decorators import lista_permissions_in_decorators
 from scripts.lista_urls import lista_urls
 
 sapl_appconfs = [apps.get_app_config(n[5:]) for n in settings.SAPL_APPS]
@@ -26,78 +36,80 @@ for app in sapl_appconfs:
 sapl_models.reverse()
 
 
-@pytest.mark.parametrize('group_item', SAPL_GROUPS)
+@pytest.mark.parametrize("group_item", SAPL_GROUPS)
 def test_groups_in_rules_patterns(group_item):
-
     test = False
     for rules_group in map_rules.rules_patterns:
-        if rules_group['group'] == group_item:
+        if rules_group["group"] == group_item:
             test = True
 
-    assert test, _('O grupo (%s) não foi a rules_patterns.') % (group_item)
+    assert test, _("O grupo (%s) não foi a rules_patterns.") % (group_item)
 
 
-@pytest.mark.parametrize('model_item', sapl_models)
+@pytest.mark.parametrize("model_item", sapl_models)
 def test_models_in_rules_patterns(model_item):
-
     test = False
     for rules_group in map_rules.rules_patterns:
-        rules_model = rules_group['rules']
+        rules_model = rules_group["rules"]
         for rm in rules_model:
             if rm[0] == model_item:
                 test = True
                 break
 
-    assert test, _('O model %s (%s) não foi adicionado em nenhum '
-                   'grupo padrão para regras de acesso.') % (
-                       str(model_item),
-                       model_item._meta.verbose_name)
+    assert test, _(
+        "O model %s (%s) não foi adicionado em nenhum "
+        "grupo padrão para regras de acesso."
+    ) % (str(model_item), model_item._meta.verbose_name)
 
 
 # __falsos_positivos__
 __fp__in__test_permission_of_models_in_rules_patterns = {
-    RP_ADD: [CasaLegislativa,
-                       TipoDispositivo,
-                       TipoDispositivoRelationship,
-                       PerfilEstruturalTextoArticulado],
-
-    RP_CHANGE: [AcompanhamentoMateria,
-                          AcompanhamentoDocumento,
-                          TipoDispositivo,
-                          TipoDispositivoRelationship,
-                          PerfilEstruturalTextoArticulado],
-
-    RP_DELETE: [CasaLegislativa,
-                          TipoDispositivo,
-                          TipoDispositivoRelationship,
-                          PerfilEstruturalTextoArticulado],
-
-    RP_LIST: [AcompanhamentoMateria,
-                          AcompanhamentoDocumento,
-                        TipoDispositivo,
-                        TipoDispositivoRelationship,
-                        PerfilEstruturalTextoArticulado],
-
-    RP_DETAIL: [AcompanhamentoMateria,
-                          AcompanhamentoDocumento,
-                          TipoDispositivo,
-                          TipoDispositivoRelationship,
-                          PerfilEstruturalTextoArticulado]
-
+    RP_ADD: [
+        CasaLegislativa,
+        TipoDispositivo,
+        TipoDispositivoRelationship,
+        PerfilEstruturalTextoArticulado,
+    ],
+    RP_CHANGE: [
+        AcompanhamentoMateria,
+        AcompanhamentoDocumento,
+        TipoDispositivo,
+        TipoDispositivoRelationship,
+        PerfilEstruturalTextoArticulado,
+    ],
+    RP_DELETE: [
+        CasaLegislativa,
+        TipoDispositivo,
+        TipoDispositivoRelationship,
+        PerfilEstruturalTextoArticulado,
+    ],
+    RP_LIST: [
+        AcompanhamentoMateria,
+        AcompanhamentoDocumento,
+        TipoDispositivo,
+        TipoDispositivoRelationship,
+        PerfilEstruturalTextoArticulado,
+    ],
+    RP_DETAIL: [
+        AcompanhamentoMateria,
+        AcompanhamentoDocumento,
+        TipoDispositivo,
+        TipoDispositivoRelationship,
+        PerfilEstruturalTextoArticulado,
+    ],
 }
 
 
 @pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('model_item', sapl_models)
+@pytest.mark.parametrize("model_item", sapl_models)
 def test_permission_of_models_in_rules_patterns(model_item):
-
     create_perms_post_migrate(model_item._meta.app_config)
     permissions = __base__ + list(
         filter(
-            lambda perm: not perm.startswith(
-                'detail_') and not perm.startswith('list_'),
-            map(lambda x: x[0],
-                model_item._meta.permissions))
+            lambda perm: not perm.startswith("detail_")
+            and not perm.startswith("list_"),
+            map(lambda x: x[0], model_item._meta.permissions),
+        )
     )
 
     __fp__ = __fp__in__test_permission_of_models_in_rules_patterns
@@ -107,7 +119,7 @@ def test_permission_of_models_in_rules_patterns(model_item):
 
         test = False
         for rules_group in map_rules.rules_patterns:
-            rules_model = rules_group['rules']
+            rules_model = rules_group["rules"]
             for rm in rules_model:
                 model = rm[0]
                 rules = rm[1]
@@ -116,21 +128,20 @@ def test_permission_of_models_in_rules_patterns(model_item):
                         test = True
                         break
 
-        assert test, _('A permissão (%s) do model (%s) não foi adicionado em '
-                       'nenhum grupo padrão para regras de acesso.') % (
-                           perm,
-                           str(model_item))
+        assert test, _(
+            "A permissão (%s) do model (%s) não foi adicionado em "
+            "nenhum grupo padrão para regras de acesso."
+        ) % (perm, str(model_item))
 
 
 @pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('model_item', sapl_models)
+@pytest.mark.parametrize("model_item", sapl_models)
 def test_permission_of_rules_exists(model_item):
-
     print(model_item)
     create_perms_post_migrate(model_item._meta.app_config)
 
     for rules_group in map_rules.rules_patterns:
-        rules_model = rules_group['rules']
+        rules_model = rules_group["rules"]
         for rm in rules_model:
             model = rm[0]
             rules = rm[1]
@@ -140,26 +151,29 @@ def test_permission_of_rules_exists(model_item):
 
             for r in rules:
                 content_type = ContentType.objects.get_by_natural_key(
-                    app_label=model._meta.app_label,
-                    model=model._meta.model_name)
+                    app_label=model._meta.app_label, model=model._meta.model_name
+                )
 
-                codename = (r[1:] + model._meta.model_name)\
-                    if r[0] == '.' and r[-1] == '_' else r
+                codename = (
+                    (r[1:] + model._meta.model_name)
+                    if r[0] == "." and r[-1] == "_"
+                    else r
+                )
                 p = Permission.objects.filter(
-                    content_type=content_type,
-                    codename=codename).exists()
+                    content_type=content_type, codename=codename
+                ).exists()
 
-                assert p, _('Permissão (%s) associada ao model (%s) '
-                            'não está em _meta.permissions.') % (
-                    codename,
-                    model_item)
+                assert p, _(
+                    "Permissão (%s) associada ao model (%s) "
+                    "não está em _meta.permissions."
+                ) % (codename, model_item)
 
 
 _lista_urls = lista_urls()
 
 
 @pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('url_item', _lista_urls)
+@pytest.mark.parametrize("url_item", _lista_urls)
 def test_permission_required_of_views_exists(url_item):
     """
     testa se, nas views que possuem atributo permission_required,
@@ -174,17 +188,22 @@ def test_permission_required_of_views_exists(url_item):
         create_perms_post_migrate(app)
 
     key, url, var, app_name = url_item
-    url = '/' + (url % {v: 1 for v in var})
+    url = "/" + (url % {v: 1 for v in var})
 
-    assert '\n' not in url, """
+    assert (
+        "\n" not in url
+    ), """
         A url (%s) da app (%s) está mal formada.
-    """ % (app_name, url)
+    """ % (
+        app_name,
+        url,
+    )
 
     view = None
-    if hasattr(key, 'view_class'):
+    if hasattr(key, "view_class"):
         view = key.view_class
 
-        if hasattr(view, 'permission_required'):
+        if hasattr(view, "permission_required"):
             if isinstance(view.permission_required, six.string_types):
                 perms = (view.permission_required,)
             else:
@@ -194,46 +213,46 @@ def test_permission_required_of_views_exists(url_item):
                 return
 
             for perm in perms:
-                if perm[0] == '.' and perm[-1] == '_':
+                if perm[0] == "." and perm[-1] == "_":
                     model = None
-                    if hasattr(view, 'model') and view.model:
+                    if hasattr(view, "model") and view.model:
                         model = view.model
-                    elif hasattr(view, 'filterset_class'):
+                    elif hasattr(view, "filterset_class"):
                         model = view.fielterset_class._meta.model
-                    elif hasattr(view, 'form_class'):
+                    elif hasattr(view, "form_class"):
                         model = view.form_class._meta.model
 
-                    assert model, _('model %s não localizado em %s'
-                                    ) % (model, view)
+                    assert model, _("model %s não localizado em %s") % (model, view)
 
                     codename = perm[1:] + view.model._meta.model_name
                 else:
                     codename = perm
 
-                codename = codename.split('.')
+                codename = codename.split(".")
 
                 if len(codename) == 1:
                     content_type = ContentType.objects.get_by_natural_key(
-                        app_label=model._meta.app_label,
-                        model=model._meta.model_name)
+                        app_label=model._meta.app_label, model=model._meta.model_name
+                    )
                     p = Permission.objects.filter(
-                        content_type=content_type,
-                        codename=codename[0]).exists()
+                        content_type=content_type, codename=codename[0]
+                    ).exists()
                 elif len(codename) == 2:
                     p = Permission.objects.filter(
-                        content_type__app_label=codename[0],
-                        codename=codename[1]).exists()
+                        content_type__app_label=codename[0], codename=codename[1]
+                    ).exists()
 
-                assert p, _('Permissão (%s) na view (%s) não existe.') % (
+                assert p, _("Permissão (%s) na view (%s) não existe.") % (
                     codename,
-                    view)
+                    view,
+                )
 
 
 _lista_permissions_in_decorators = lista_permissions_in_decorators()
 
 
 @pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('permission', _lista_permissions_in_decorators)
+@pytest.mark.parametrize("permission", _lista_permissions_in_decorators)
 def test_permission_required_of_decorators(permission):
     """
     testa se, nos decorators permission_required com ou sem method_decorator
@@ -245,11 +264,12 @@ def test_permission_required_of_decorators(permission):
         # list e detail permissions
         create_perms_post_migrate(app)
 
-    codename = permission[0].split('.')
+    codename = permission[0].split(".")
     p = Permission.objects.filter(
-        content_type__app_label=codename[0],
-        codename=codename[1]).exists()
+        content_type__app_label=codename[0], codename=codename[1]
+    ).exists()
 
-    assert p, _('Permissão (%s) na view (%s) não existe.') % (
+    assert p, _("Permissão (%s) na view (%s) não existe.") % (
         permission[0],
-        permission[1])
+        permission[1],
+    )

@@ -40,16 +40,16 @@ SECURITY_FILE_TEMPLATE = """
     }
 """
 
-URL_PATTERN = 'https?://(([a-zA-Z0-9]+):([a-zA-Z0-9]+)@)?([a-zA-Z0-9.-]+)(:[0-9]{4})?'
+URL_PATTERN = "https?://(([a-zA-Z0-9]+):([a-zA-Z0-9]+)@)?([a-zA-Z0-9.-]+)(:[0-9]{4})?"
 
 
 def solr_hash_password(password: str, salt: str = None):
     """
-        Generates a password and salt to be used in Basic Auth Solr
+    Generates a password and salt to be used in Basic Auth Solr
 
-        password: clean text password string
-        salt (optional): base64 salt string
-        returns: sha256 hash of password and salt (both base64 strings)
+    password: clean text password string
+    salt (optional): base64 salt string
+    returns: sha256 hash of password and salt (both base64 strings)
     """
     logger.debug("Generating Solr password")
     m = sha256()
@@ -57,15 +57,15 @@ def solr_hash_password(password: str, salt: str = None):
         salt = secrets.token_bytes(32)
     else:
         salt = b64decode(salt)
-    m.update(salt + password.encode('utf-8'))
+    m.update(salt + password.encode("utf-8"))
     digest = m.digest()
 
     m = sha256()
     m.update(digest)
     digest = m.digest()
 
-    cypher = b64encode(digest).decode('utf-8')
-    salt = b64encode(salt).decode('utf-8')
+    cypher = b64encode(digest).decode("utf-8")
+    salt = b64encode(salt).decode("utf-8")
     return cypher, salt
 
 
@@ -81,18 +81,18 @@ def upload_security_file(zk_host):
     zk_port = 9983  # embedded ZK port
     logger.info(f"Uploading security file to Solr, ZK server={zk_host}:{zk_port}...")
     try:
-        with open('security.json', 'r') as f:
+        with open("security.json", "r") as f:
             data = f.read()
         zk = KazooClient(hosts=f"{zk_host}:{zk_port}")
         zk.start()
         logger.info("Uploading security.json file...")
-        if zk.exists('/security.json'):
+        if zk.exists("/security.json"):
             zk.set("/security.json", str.encode(data))
         else:
             zk.create("/security.json", str.encode(data))
-        data, stat = zk.get('/security.json')
+        data, stat = zk.get("/security.json")
         logger.info("file uploaded!")
-        logger.info(data.decode('utf-8'))
+        logger.info(data.decode("utf-8"))
         zk.stop()
     except Exception as e:
         logger.error(e)
@@ -103,14 +103,17 @@ class SolrClient:
     LIST_CONFIGSETS = "{}/solr/admin/configs?action=LIST&omitHeader=true&wt=json"
     UPLOAD_CONFIGSET = "{}/solr/admin/configs?action=UPLOAD&name={}&wt=json"
     LIST_COLLECTIONS = "{}/solr/admin/collections?action=LIST&wt=json"
-    STATUS_COLLECTION = "{}/solr/admin/collections?action=CLUSTERSTATUS" \
-                        "&collection={}&wt=json"
+    STATUS_COLLECTION = (
+        "{}/solr/admin/collections?action=CLUSTERSTATUS" "&collection={}&wt=json"
+    )
     STATUS_CORE = "{}/admin/cores?action=STATUS&name={}"
     EXISTS_COLLECTION = "{}/solr/{}/admin/ping?wt=json"
     OPTIMIZE_COLLECTION = "{}/solr/{}/update?optimize=true&wt=json"
-    CREATE_COLLECTION = "{}/solr/admin/collections?action=CREATE&name={}" \
-                        "&collection.configName={}&numShards={}" \
-                        "&replicationFactor={}&maxShardsPerNode={}&wt=json"
+    CREATE_COLLECTION = (
+        "{}/solr/admin/collections?action=CREATE&name={}"
+        "&collection.configName={}&numShards={}"
+        "&replicationFactor={}&maxShardsPerNode={}&wt=json"
+    )
     DELETE_COLLECTION = "{}/solr/admin/collections?action=DELETE&name={}&wt=json"
     DELETE_DATA = "{}/solr/{}/update?commitWithin=1000&overwrite=true&wt=json"
     QUERY_DATA = "{}/solr/{}/select?q=*:*"
@@ -130,7 +133,7 @@ class SolrClient:
                 dic = res.json()
                 return dic["response"]["numFound"]
             except Exception as e:
-                print(F"Erro no get_num_docs. Erro: {e}")
+                print(f"Erro no get_num_docs. Erro: {e}")
                 print(res.content)
 
         return 0
@@ -140,9 +143,9 @@ class SolrClient:
         res = requests.get(req_url)
         try:
             dic = res.json()
-            return dic['collections']
+            return dic["collections"]
         except Exception as e:
-            print(F"Erro no list_collections. Erro: {e}")
+            print(f"Erro no list_collections. Erro: {e}")
             print(res.content)
             return 0
 
@@ -156,8 +159,8 @@ class SolrClient:
 
             # zip files in memory
             _zipfile = BytesIO()
-            with zipfile.ZipFile(_zipfile, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                for file in base_path.rglob('*'):
+            with zipfile.ZipFile(_zipfile, "w", zipfile.ZIP_DEFLATED) as zipf:
+                for file in base_path.rglob("*"):
                     zipf.write(file, file.relative_to(base_path))
             return _zipfile
         except Exception as e:
@@ -169,23 +172,26 @@ class SolrClient:
         res = requests.get(req_url)
         try:
             dic = res.json()
-            configsets = dic['configSets']
+            configsets = dic["configSets"]
         except Exception as e:
-            print(F"Erro ao configurar configsets. Erro: {e}")
+            print(f"Erro ao configurar configsets. Erro: {e}")
             print(res.content)
 
         # UPLOAD configset
         if not self.CONFIGSET_NAME in configsets or force:
-
             # GENERATE in memory configset
             configset_zip = self.zip_configset()
             data = configset_zip.getvalue()
             configset_zip.close()
 
-            files = {'file': ('saplconfigset.zip',
-                              data,
-                              'application/octet-stream',
-                              {'Expires': '0'})}
+            files = {
+                "file": (
+                    "saplconfigset.zip",
+                    data,
+                    "application/octet-stream",
+                    {"Expires": "0"},
+                )
+            }
 
             req_url = self.UPLOAD_CONFIGSET.format(self.url, self.CONFIGSET_NAME)
 
@@ -193,16 +199,20 @@ class SolrClient:
             print(resp.content)
 
         else:
-            print('O %s já presente no servidor, NÃO enviando.' % self.CONFIGSET_NAME)
+            print("O %s já presente no servidor, NÃO enviando." % self.CONFIGSET_NAME)
 
-    def create_collection(self, collection_name, shards=1, replication_factor=1, max_shards_per_node=1):
+    def create_collection(
+        self, collection_name, shards=1, replication_factor=1, max_shards_per_node=1
+    ):
         self.maybe_upload_configset()
-        req_url = self.CREATE_COLLECTION.format(self.url,
-                                                collection_name,
-                                                self.CONFIGSET_NAME,
-                                                shards,
-                                                replication_factor,
-                                                max_shards_per_node)
+        req_url = self.CREATE_COLLECTION.format(
+            self.url,
+            collection_name,
+            self.CONFIGSET_NAME,
+            shards,
+            replication_factor,
+            max_shards_per_node,
+        )
         res = requests.post(req_url)
         if res.ok:
             print("Collection '%s' created succesfully" % collection_name)
@@ -210,15 +220,15 @@ class SolrClient:
             print("Error creating collection '%s'" % collection_name)
             try:
                 as_json = res.json()
-                print("Error %s: %s" % (res.status_code, as_json['error']['msg']))
+                print("Error %s: %s" % (res.status_code, as_json["error"]["msg"]))
             except Exception as e:
-                print(F"Erro ao verificar erro na resposta. Erro: {e}")
+                print(f"Erro ao verificar erro na resposta. Erro: {e}")
                 print(res.content)
             return False
         return True
 
     def delete_collection(self, collection_name):
-        if collection_name == '*':
+        if collection_name == "*":
             collections = self.list_collections()
         else:
             collections = [collection_name]
@@ -234,9 +244,11 @@ class SolrClient:
 
     def delete_index_data(self, collection_name):
         req_url = self.DELETE_DATA.format(self.url, collection_name)
-        res = requests.post(req_url,
-                            data='<delete><query>*:*</query></delete>',
-                            headers={'Content-Type': 'application/xml'})
+        res = requests.post(
+            req_url,
+            data="<delete><query>*:*</query></delete>",
+            headers={"Content-Type": "application/xml"},
+        )
         if not res.ok:
             print("Error deleting index for collection '%s'", collection_name)
             print("Code {}: {}".format(res.status_code, res.text))
@@ -257,33 +269,67 @@ def setup_embedded_zk(solr_url):
             create_security_file(solr_user, solr_pwd)
             upload_security_file(solr_host)
         else:
-            print(f"Missing Solr's username, password, and host: {solr_user}/{solr_pwd}/{solr_host}")
+            print(
+                f"Missing Solr's username, password, and host: {solr_user}/{solr_pwd}/{solr_host}"
+            )
             sys.exit(-1)
     else:
         print(f"Solr URL path doesn't match the required format: {solr_url}")
         sys.exit(-1)
 
 
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(description='Cria uma collection no Solr')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Cria uma collection no Solr")
 
     # required arguments
-    parser.add_argument('-u', type=str, metavar='URL', nargs=1, dest='url',
-                        required=True, help='Endereço do servidor Solr na forma http(s)://<address>[:port]')
-    parser.add_argument('-c', type=str, metavar='COLLECTION', dest='collection', nargs=1,
-                        required=True, help='Collection Solr a ser criada')
+    parser.add_argument(
+        "-u",
+        type=str,
+        metavar="URL",
+        nargs=1,
+        dest="url",
+        required=True,
+        help="Endereço do servidor Solr na forma http(s)://<address>[:port]",
+    )
+    parser.add_argument(
+        "-c",
+        type=str,
+        metavar="COLLECTION",
+        dest="collection",
+        nargs=1,
+        required=True,
+        help="Collection Solr a ser criada",
+    )
 
     # optional arguments
-    parser.add_argument('-s', type=int, dest='shards', nargs='?',
-                        help='Number of shards (default=1)', default=1)
-    parser.add_argument('-rf', type=int, dest='replication_factor', nargs='?',
-                        help='Replication factor (default=1)', default=1)
-    parser.add_argument('-ms', type=int, dest='max_shards_per_node', nargs='?',
-                        help='Max shards per node (default=1)', default=1)
+    parser.add_argument(
+        "-s",
+        type=int,
+        dest="shards",
+        nargs="?",
+        help="Number of shards (default=1)",
+        default=1,
+    )
+    parser.add_argument(
+        "-rf",
+        type=int,
+        dest="replication_factor",
+        nargs="?",
+        help="Replication factor (default=1)",
+        default=1,
+    )
+    parser.add_argument(
+        "-ms",
+        type=int,
+        dest="max_shards_per_node",
+        nargs="?",
+        help="Max shards per node (default=1)",
+        default=1,
+    )
 
-    parser.add_argument("--embedded_zk", default=False, action="store_true",
-                        help="Embedded ZooKeeper")
+    parser.add_argument(
+        "--embedded_zk", default=False, action="store_true", help="Embedded ZooKeeper"
+    )
 
     try:
         args = parser.parse_args()
@@ -305,10 +351,12 @@ if __name__ == '__main__':
     ## Add --clean option to clean uploadconfig and collection
     if not client.exists_collection(collection):
         print("Collection '%s' doesn't exists. Creating a new one..." % collection)
-        created = client.create_collection(collection,
-                                           shards=args.shards,
-                                           replication_factor=args.replication_factor,
-                                           max_shards_per_node=args.max_shards_per_node)
+        created = client.create_collection(
+            collection,
+            shards=args.shards,
+            replication_factor=args.replication_factor,
+            max_shards_per_node=args.max_shards_per_node,
+        )
         if not created:
             sys.exit(-1)
     else:

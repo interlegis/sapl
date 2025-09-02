@@ -1,13 +1,13 @@
-import sapl
-
 from django.http import HttpResponse
 from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import UpdateView
+
+import sapl
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, MasterDetailCrud
 
-from .forms import AudienciaForm, AnexoAudienciaPublicaForm
-from .models import AudienciaPublica, AnexoAudienciaPublica
+from .forms import AnexoAudienciaPublicaForm, AudienciaForm
+from .models import AnexoAudienciaPublica, AudienciaPublica
 
 
 def index(request):
@@ -16,11 +16,14 @@ def index(request):
 
 class AudienciaCrud(Crud):
     model = AudienciaPublica
-    public = [RP_LIST, RP_DETAIL, ]
+    public = [
+        RP_LIST,
+        RP_DETAIL,
+    ]
 
     class BaseMixin(Crud.BaseMixin):
-        list_field_names = ['numero', 'nome', 'tipo', 'materia', 'data']
-        ordering = '-ano', '-numero', '-data', 'nome', 'tipo'
+        list_field_names = ["numero", "nome", "tipo", "materia", "data"]
+        ordering = "-ano", "-numero", "-data", "nome", "tipo"
 
     class ListView(Crud.ListView):
         paginate_by = 10
@@ -28,20 +31,32 @@ class AudienciaCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            audiencia_materia = {str(a.id): (a.materia, a.numero, a.ano) for a in context['object_list']}
+            audiencia_materia = {
+                str(a.id): (a.materia, a.numero, a.ano) for a in context["object_list"]
+            }
 
-            for row in context['rows']:
-                audiencia_id = row[0][1].split('/')[-1]
-                tema = str(audiencia_materia[audiencia_id][1]).rjust(3, '0') + '/' + str(audiencia_materia[audiencia_id][2])
+            for row in context["rows"]:
+                audiencia_id = row[0][1].split("/")[-1]
+                tema = (
+                    str(audiencia_materia[audiencia_id][1]).rjust(3, "0")
+                    + "/"
+                    + str(audiencia_materia[audiencia_id][2])
+                )
                 row[0] = (tema, row[0][1])
-                coluna_materia = row[3]                             # Se mudar a ordem de listagem, mudar aqui.
+                coluna_materia = row[3]  # Se mudar a ordem de listagem, mudar aqui.
                 if coluna_materia[0]:
                     materia = audiencia_materia[audiencia_id][0]
                     if materia is not None:
-                        url_materia = reverse('sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
+                        url_materia = reverse(
+                            "sapl.materia:materialegislativa_detail",
+                            kwargs={"pk": materia.id},
+                        )
                     else:
                         url_materia = None
-                    row[3] = (coluna_materia[0], url_materia)       # Se mudar a ordem de listagem, mudar aqui.
+                    row[3] = (
+                        coluna_materia[0],
+                        url_materia,
+                    )  # Se mudar a ordem de listagem, mudar aqui.
             return context
 
     class CreateView(Crud.CreateView):
@@ -56,17 +71,16 @@ class AudienciaCrud(Crud):
         def get_initial(self):
             initial = super(UpdateView, self).get_initial()
             if self.object.materia:
-                initial['tipo_materia'] = self.object.materia.tipo.id
-                initial['numero_materia'] = self.object.materia.numero
-                initial['ano_materia'] = self.object.materia.ano
+                initial["tipo_materia"] = self.object.materia.tipo.id
+                initial["numero_materia"] = self.object.materia.numero
+                initial["ano_materia"] = self.object.materia.ano
             return initial
-     
+
     class DeleteView(Crud.DeleteView):
         pass
 
     class DetailView(Crud.DetailView):
-
-        layout_key = 'AudienciaPublicaDetail'
+        layout_key = "AudienciaPublicaDetail"
 
         @xframe_options_exempt
         def get(self, request, *args, **kwargs):
@@ -74,10 +88,9 @@ class AudienciaCrud(Crud):
 
 
 class AudienciaPublicaMixin:
-
     def has_permission(self):
         app_config = sapl.base.models.AppConfig.objects.last()
-        if app_config and app_config.documentos_administrativos == 'O':
+        if app_config and app_config.documentos_administrativos == "O":
             return True
 
         return super().has_permission()
@@ -85,12 +98,15 @@ class AudienciaPublicaMixin:
 
 class AnexoAudienciaPublicaCrud(MasterDetailCrud):
     model = AnexoAudienciaPublica
-    parent_field = 'audiencia'
-    help_topic = 'numeracao_docsacess'
-    public = [RP_LIST, RP_DETAIL, ]
+    parent_field = "audiencia"
+    help_topic = "numeracao_docsacess"
+    public = [
+        RP_LIST,
+        RP_DETAIL,
+    ]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['assunto']
+        list_field_names = ["assunto"]
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = AnexoAudienciaPublicaForm
@@ -100,11 +116,10 @@ class AnexoAudienciaPublicaCrud(MasterDetailCrud):
         form_class = AnexoAudienciaPublicaForm
 
     class ListView(AudienciaPublicaMixin, MasterDetailCrud.ListView):
-
         def get_queryset(self):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
-            kwargs = {self.crud.parent_field: self.kwargs['pk']}
-            return qs.filter(**kwargs).order_by('-data', '-id')
+            kwargs = {self.crud.parent_field: self.kwargs["pk"]}
+            return qs.filter(**kwargs).order_by("-data", "-id")
 
     class DetailView(AudienciaPublicaMixin, MasterDetailCrud.DetailView):
         pass

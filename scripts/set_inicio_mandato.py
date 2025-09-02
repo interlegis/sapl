@@ -7,5 +7,5 @@ def popula_campo_data_inicio():
         m.save()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     popula_campo_data_inicio()

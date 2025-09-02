@@ -1,1 +1,1 @@
-default_app_config = 'sapl.base.apps.AppConfig'
+default_app_config = "sapl.base.apps.AppConfig"

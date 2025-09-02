@@ -1,7 +1,7 @@
 from django.core.urlresolvers import reverse
 from model_bakery import baker
 
-                            get_field_display, make_pagination)
+from sapl.crud.base import get_field_display, make_pagination
 from sapl.crud.tests.stub_app.models import Continent, Country
 from sapl.crud.tests.stub_app.views import CountryCrud
 

@@ -1,1 +1,1 @@
-default_app_config = 'sapl.protocoloadm.apps.AppConfig'
+default_app_config = "sapl.protocoloadm.apps.AppConfig"

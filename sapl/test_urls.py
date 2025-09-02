@@ -1,3 +1,4 @@
+import pytest
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
@@ -5,14 +6,12 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
-import pytest
 
 from sapl.crud.base import PermissionRequiredForAppCrudMixin
 from sapl.rules.apps import AppConfig, update_groups
 from scripts.lista_urls import lista_urls
 
 from .settings import SAPL_APPS
-
 
 pytestmark = pytest.mark.django_db
 
@@ -28,13 +27,18 @@ def create_perms_post_migrate(sapl_app_config):
     for klass in list(sapl_app_config.get_models()):
         opts = klass._meta
         permissions = (
-            ("list_" + opts.model_name,
-             "{} {}".format(_('Visualização da lista de'), opts.verbose_name_plural)),
-            ("detail_" + opts.model_name,
-             "{} {}".format(_('Visualização dos detalhes de'), opts.verbose_name_plural)),
+            (
+                "list_" + opts.model_name,
+                "{} {}".format(_("Visualização da lista de"), opts.verbose_name_plural),
+            ),
+            (
+                "detail_" + opts.model_name,
+                "{} {}".format(
+                    _("Visualização dos detalhes de"), opts.verbose_name_plural
+                ),
+            ),
         )
-        opts.permissions = tuple(
-            set(list(permissions) + list(opts.permissions)))
+        opts.permissions = tuple(set(list(permissions) + list(opts.permissions)))
 
         if opts.proxy:
             # Force looking up the content types in the current database
@@ -42,11 +46,9 @@ def create_perms_post_migrate(sapl_app_config):
             app_label, model = opts.app_label, opts.model_name
 
             try:
-                ctype = ContentType.objects.get_by_natural_key(
-                    app_label, model)
+                ctype = ContentType.objects.get_by_natural_key(app_label, model)
             except:
-                ctype = ContentType.objects.create(
-                    app_label=app_label, model=model)
+                ctype = ContentType.objects.create(app_label=app_label, model=model)
         else:
             ctype = ContentType.objects.get_for_model(klass)
 
@@ -54,11 +56,11 @@ def create_perms_post_migrate(sapl_app_config):
         for perm in _get_all_permissions(klass._meta):
             searched_perms.append((ctype, perm))
 
-    all_perms = set(Permission.objects.filter(
-        content_type__in=ctypes,
-    ).values_list(
-        "content_type", "codename"
-    ))
+    all_perms = set(
+        Permission.objects.filter(
+            content_type__in=ctypes,
+        ).values_list("content_type", "codename")
+    )
 
     perms = [
         Permission(codename=codename, name=name, content_type=ct)
@@ -68,19 +70,18 @@ def create_perms_post_migrate(sapl_app_config):
     Permission.objects.bulk_create(perms)
 
 
-btn_login = ('<input class="btn btn-success btn-sm" '
-             'type="submit" value="login" />')
+btn_login = '<input class="btn btn-success btn-sm" ' 'type="submit" value="login" />'
 
 
-@pytest.mark.parametrize('url_item', _lista_urls)
+@pytest.mark.parametrize("url_item", _lista_urls)
 def test_crudaux_formato_inicio_urls_associadas(url_item):
     # Verifica se um crud é do tipo CrudAux, se sim, sua url deve começar
     # com /sistema/
     key, url, var, app_name = url_item
-    url = '/' + (url % {v: 1 for v in var})
+    url = "/" + (url % {v: 1 for v in var})
 
     view_class = None
-    if hasattr(key, 'view_class'):
+    if hasattr(key, "view_class"):
         view_class = key.view_class
 
     # se não tem view_class, possivelmente é não é uma classed base view
@@ -88,31 +89,34 @@ def test_crudaux_formato_inicio_urls_associadas(url_item):
         return
 
     # se não tem atributo crud, não é será nenhum tipo de crud
-    if not hasattr(view_class, 'crud'):
+    if not hasattr(view_class, "crud"):
         return
 
     # se o crud da view_class relativa a url a ser testada,
     # implementa a classe CrudAux, seu link deve iniciar com /sistema
     for string_class in list(map(str, type.mro(view_class.crud))):
-
-        if 'CrudAux' in string_class:
-            assert url.startswith('/sistema'), """
+        if "CrudAux" in string_class:
+            assert url.startswith(
+                "/sistema"
+            ), """
                         A url (%s) foi gerada a partir de um CrudAux,
                         o que diz que está é uma implementação de uma
                         tabela auxiliar, porém a url em questão, está fora
                         do padrão, que é iniciar com /sistema.
-                    """ % (url)
+                    """ % (
+                url
+            )
 
 
-@pytest.mark.parametrize('url_item', _lista_urls)
+@pytest.mark.parametrize("url_item", _lista_urls)
 def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
     # Verifica a url é de um CrudAux e, se for, testa se está
     # na página Tabelas Auxiliares
     key, url, var, app_name = url_item
-    url = '/' + (url % {v: 1 for v in var})
+    url = "/" + (url % {v: 1 for v in var})
 
     view_class = None
-    if hasattr(key, 'view_class'):
+    if hasattr(key, "view_class"):
         view_class = key.view_class
 
     # se não tem view_class, possivelmente não é uma classed base view
@@ -120,167 +124,171 @@ def test_crudaux_list_do_crud_esta_na_pagina_sistema(url_item, admin_client):
         return
 
     # se não tem atributo crud, não é será nenhum tipo de crud
-    if not hasattr(view_class, 'crud'):
+    if not hasattr(view_class, "crud"):
         return
 
     herancas_crud = list(map(str, type.mro(view_class.crud)))
     for string_class in herancas_crud:
-        if 'CrudAux' in string_class:
-
+        if "CrudAux" in string_class:
             herancas_view = list(map(str, type.mro(view_class)))
 
             for string_view_class in herancas_view:
                 # verifica se o link para manutenção do crud está em /sistema
-                if 'ListView' in string_view_class:
-                    response = admin_client.get('/sistema', {}, follow=True)
-                    assert url in str(response.content), """
+                if "ListView" in string_view_class:
+                    response = admin_client.get("/sistema", {}, follow=True)
+                    assert url in str(
+                        response.content
+                    ), """
                         A url (%s) não consta nas Tabelas Auxiliares,
                         porem é uma implementação de ListView de CrudAux.
                         Se encontra em %s.urls
-                    """ % (url, app_name)
+                    """ % (
+                        url,
+                        app_name,
+                    )
 
 
 apps_url_patterns_prefixs_and_users = {
-    'audiencia': {
-        'prefixs': [
-            '/audiencia',
-        ]},
-    'api': {
-        'prefixs': [
-            '/api/',
-        ]},
-    'base': {
-        'users': {'operador_geral': ['/sistema']},
-        'prefixs': [
-            '/sistema',
-            '/login',
-            '/logout',
-            '/ajuda',
-            '/email',
-            '/recuperar-senha',
-            '/sapl',
-            '/XSLT',
-        ],
-        'exact': ['/']
+    "audiencia": {
+        "prefixs": [
+            "/audiencia",
+        ]
     },
-    'comissoes': {
-        'users': {'operador_geral': ['/sistema', '/comissao'],
-                  'operador_comissoes': ['/comissao']},
-        'prefixs': [
-            '/comissao',
-            '/sistema'
-        ]},
-    'compilacao': {
-        'prefixs': [
-            '/ta',
-            '/sistema/ta',
-        ]},
-    'redireciona_urls': {
-        'prefixs': [
-            '/default_index_html',
-            '/consultas/parlamentar/parlamentar_',
-            '/consultas/comissao/comissao_',
-            '/consultas/pauta_sessao/pauta_sessao_',
-            '/consultas/sessao_plenaria/',
-
-            '/relatorios_administrativos/'
-            'relatorios_administrativos_index_html',
-
-            '/tramitacaoMaterias/tramitacaoMaterias',
-            '/tramitacaoMaterias/materia_mostrar_proc',
-            '/generico/materia_pesquisar_',
-            '/consultas/mesa_diretora/mesa_diretora_index_html',
-            '/consultas/mesa_diretora/parlamentar/parlamentar_',
-            '/generico/norma_juridica_pesquisar_',
-            '/consultas/norma_juridica/norma_juridica_mostrar_proc',
-            '/historicoTramitacoes/historicoTramitacoes',
-            '/atasSessao',
-            '/presencaSessao',
-            '/resumoPropositurasAutor',
-            '/propositurasAnoAutorTipo',
-        ]},
-    'lexml': {
-        'prefixs': [
-            '/lexml',
-            '/sistema'
-        ]},
-    'materia': {
-        'users': {'operador_geral': ['/sistema', '/materia'],
-                  'operador_autor': ['/proposicao'],
-                  'operador_materia': ['/materia']},
-        'prefixs': [
-            '/materia',
-            '/proposicao',
-            '/sistema'
-        ]},
-    'norma': {
-        'users': {'operador_geral': ['/sistema', '/norma'],
-                  'operador_norma': ['/norma']},
-        'prefixs': [
-            '/norma',
-            '/sistema'
-        ]},
-    'painel': {
-        'users': {'operador_geral': ['/sistema', '/painel'],
-                  'operador_painel': ['/painel']},
-        'prefixs': [
-            '/painel',
-            '/sistema',
-            '/voto-individual'
-        ]},
-    'parlamentares': {
-        'users': {'operador_geral': ['/sistema',
-                                     '/mesa-diretora',
-                                     '/parlamentar']},
-        'prefixs': [
-            '/parlamentar',
-            '/mesa-diretora',
-            '/sistema'
-        ]},
-    'protocoloadm': {
-        'users': {'operador_geral': ['/sistema',
-                                     '/docadm',
-                                     '/protocoloadm'],
-                  'operador_administrativo': ['/docadm'],
-                  'operador_protocoloadm': ['/protocoloadm']},
-        'prefixs': [
-            '/protocoloadm',
-            '/docadm',
-            '/sistema'
-        ]},
-    'relatorios': {
-        'prefixs': [
-            '/relatorios',
-        ]},
-    'sessao': {
-        'users': {'operador_geral': ['/sistema', 'sessao'],
-                  'operador_sessao': ['/sessao']},
-        'prefixs': [
-            '/sessao',
-            '/sistema',
-        ]},
+    "api": {
+        "prefixs": [
+            "/api/",
+        ]
+    },
+    "base": {
+        "users": {"operador_geral": ["/sistema"]},
+        "prefixs": [
+            "/sistema",
+            "/login",
+            "/logout",
+            "/ajuda",
+            "/email",
+            "/recuperar-senha",
+            "/sapl",
+            "/XSLT",
+        ],
+        "exact": ["/"],
+    },
+    "comissoes": {
+        "users": {
+            "operador_geral": ["/sistema", "/comissao"],
+            "operador_comissoes": ["/comissao"],
+        },
+        "prefixs": ["/comissao", "/sistema"],
+    },
+    "compilacao": {
+        "prefixs": [
+            "/ta",
+            "/sistema/ta",
+        ]
+    },
+    "redireciona_urls": {
+        "prefixs": [
+            "/default_index_html",
+            "/consultas/parlamentar/parlamentar_",
+            "/consultas/comissao/comissao_",
+            "/consultas/pauta_sessao/pauta_sessao_",
+            "/consultas/sessao_plenaria/",
+            "/relatorios_administrativos/" "relatorios_administrativos_index_html",
+            "/tramitacaoMaterias/tramitacaoMaterias",
+            "/tramitacaoMaterias/materia_mostrar_proc",
+            "/generico/materia_pesquisar_",
+            "/consultas/mesa_diretora/mesa_diretora_index_html",
+            "/consultas/mesa_diretora/parlamentar/parlamentar_",
+            "/generico/norma_juridica_pesquisar_",
+            "/consultas/norma_juridica/norma_juridica_mostrar_proc",
+            "/historicoTramitacoes/historicoTramitacoes",
+            "/atasSessao",
+            "/presencaSessao",
+            "/resumoPropositurasAutor",
+            "/propositurasAnoAutorTipo",
+        ]
+    },
+    "lexml": {"prefixs": ["/lexml", "/sistema"]},
+    "materia": {
+        "users": {
+            "operador_geral": ["/sistema", "/materia"],
+            "operador_autor": ["/proposicao"],
+            "operador_materia": ["/materia"],
+        },
+        "prefixs": ["/materia", "/proposicao", "/sistema"],
+    },
+    "norma": {
+        "users": {
+            "operador_geral": ["/sistema", "/norma"],
+            "operador_norma": ["/norma"],
+        },
+        "prefixs": ["/norma", "/sistema"],
+    },
+    "painel": {
+        "users": {
+            "operador_geral": ["/sistema", "/painel"],
+            "operador_painel": ["/painel"],
+        },
+        "prefixs": ["/painel", "/sistema", "/voto-individual"],
+    },
+    "parlamentares": {
+        "users": {"operador_geral": ["/sistema", "/mesa-diretora", "/parlamentar"]},
+        "prefixs": ["/parlamentar", "/mesa-diretora", "/sistema"],
+    },
+    "protocoloadm": {
+        "users": {
+            "operador_geral": ["/sistema", "/docadm", "/protocoloadm"],
+            "operador_administrativo": ["/docadm"],
+            "operador_protocoloadm": ["/protocoloadm"],
+        },
+        "prefixs": ["/protocoloadm", "/docadm", "/sistema"],
+    },
+    "relatorios": {
+        "prefixs": [
+            "/relatorios",
+        ]
+    },
+    "sessao": {
+        "users": {
+            "operador_geral": ["/sistema", "sessao"],
+            "operador_sessao": ["/sessao"],
+        },
+        "prefixs": [
+            "/sessao",
+            "/sistema",
+        ],
+    },
 }
 
 
-@pytest.mark.parametrize('url_item', _lista_urls)
+@pytest.mark.parametrize("url_item", _lista_urls)
 def test_urlpatterns(url_item, admin_client):
     key, url, var, app_name = url_item
-    url = '/' + (url % {v: 1 for v in var})
+    url = "/" + (url % {v: 1 for v in var})
 
-    assert '\n' not in url, """
+    assert (
+        "\n" not in url
+    ), """
         A url (%s) da app (%s) está mal formada.
-    """ % (app_name, url)
+    """ % (
+        app_name,
+        url,
+    )
 
     app_name = app_name[5:]
-    if app_name != 'redireciona_urls':
-        assert app_name in apps_url_patterns_prefixs_and_users, """
+    if app_name != "redireciona_urls":
+        assert (
+            app_name in apps_url_patterns_prefixs_and_users
+        ), """
             A app (%s) da url (%s) não consta na lista de prefixos do teste
-        """ % (app_name, url)
+        """ % (
+            app_name,
+            url,
+        )
 
         if app_name in apps_url_patterns_prefixs_and_users:
-            prefixs = apps_url_patterns_prefixs_and_users[app_name]['prefixs']
-            exacts = apps_url_patterns_prefixs_and_users[app_name].get(
-                'exact', [])
+            prefixs = apps_url_patterns_prefixs_and_users[app_name]["prefixs"]
+            exacts = apps_url_patterns_prefixs_and_users[app_name].get("exact", [])
 
             isvalid = False
             for prefix in prefixs:
@@ -297,82 +305,69 @@ def test_urlpatterns(url_item, admin_client):
                 O prefixo da url (%s) não está no padrão de sua app (%s).
                 Os prefixos permitidos são:
                 %s
-                """ % (url, app_name, prefixs)
+                """ % (
+                url,
+                app_name,
+                prefixs,
+            )
     else:
         # ignorando app de redirecionamento de urls no padrão do SAPL 2.5
         pass
 
 
 urls_publicas_excecoes = {
-    'all': {
-        '/sessao/1/expediente',
-        '/sessao/1/mesa',
-        '/sessao/1/presenca',
-        '/sessao/1/presencaordemdia',
-        '/sessao/1/reordenar-expediente',
-        '/sessao/1/reordenar-ordem',
-        '/sessao/1/resumo',
-
-        '/sessao/pauta-sessao',
-        '/sessao/pauta-sessao/1',
-        '/sessao/pauta-sessao/1/ordem/',
-        '/sessao/pauta-sessao/1/expediente/',
-        '/sessao/pauta-sessao/pesquisar-pauta',
-
-        '/sessao/pesquisar-sessao',
-        '/sessao/sessao-legislativa-legislatura-ajax/',
-
+    "all": {
+        "/sessao/1/expediente",
+        "/sessao/1/mesa",
+        "/sessao/1/presenca",
+        "/sessao/1/presencaordemdia",
+        "/sessao/1/reordenar-expediente",
+        "/sessao/1/reordenar-ordem",
+        "/sessao/1/resumo",
+        "/sessao/pauta-sessao",
+        "/sessao/pauta-sessao/1",
+        "/sessao/pauta-sessao/1/ordem/",
+        "/sessao/pauta-sessao/1/expediente/",
+        "/sessao/pauta-sessao/pesquisar-pauta",
+        "/sessao/pesquisar-sessao",
+        "/sessao/sessao-legislativa-legislatura-ajax/",
         # Usado na ed de Sessão Plenária, mas irrelevante ser acesso restrito
-        '/sessao/recuperar-numero-sessao/',
-
+        "/sessao/recuperar-numero-sessao/",
         # irrelevante o acesso restrito.
-        '/sessao/recuperar-materia/',
-
+        "/sessao/recuperar-materia/",
         # FIXME deve ser retirado de protocolo
-        '/protocoloadm/pesquisar-autor',
-
+        "/protocoloadm/pesquisar-autor",
         # FIXME Compilação deverá tratar
-        '/proposicao/1/ta',
-        '/materia/1/ta',
-        '/norma/1/ta',
-
-        '/comissao/1/materias-em-tramitacao',
-
-        '/sistema/relatorios/presenca',
-        '/sistema/relatorios/materia-por-tramitacao',
-        '/sistema/relatorios/materia-por-autor',
-        '/sistema/relatorios/materia-por-ano-autor-tipo',
-        '/sistema/relatorios/historico-tramitacoes',
-        '/sistema/relatorios/atas',
-        '/sistema/relatorios/',
-        '/sistema/ajuda/1',
-        '/sistema/ajuda/',
-        '/ajuda/',
-
-        '/email/validate/1/1',
-        '/materia/pesquisar-materia',
-
+        "/proposicao/1/ta",
+        "/materia/1/ta",
+        "/norma/1/ta",
+        "/comissao/1/materias-em-tramitacao",
+        "/sistema/relatorios/presenca",
+        "/sistema/relatorios/materia-por-tramitacao",
+        "/sistema/relatorios/materia-por-autor",
+        "/sistema/relatorios/materia-por-ano-autor-tipo",
+        "/sistema/relatorios/historico-tramitacoes",
+        "/sistema/relatorios/atas",
+        "/sistema/relatorios/",
+        "/sistema/ajuda/1",
+        "/sistema/ajuda/",
+        "/ajuda/",
+        "/email/validate/1/1",
+        "/materia/pesquisar-materia",
         # usado na edição de matérias mas com restrição irrelevante
-        '/materia/recuperar_materia',
-
-        '/mesa-diretora/',  # tratamento de permissão interno.
-        '/norma/pesquisa',
-        '/norma/pesquisa-resultado',
-
+        "/materia/recuperar_materia",
+        "/mesa-diretora/",  # tratamento de permissão interno.
+        "/norma/pesquisa",
+        "/norma/pesquisa-resultado",
         # FIXME Retirar da lista de exceções quando proposição refatorada
-        '/proposicao/',
-        '/proposicao/1',
-        '/proposicao/create',
-        '/proposicao/1/edit',
-        '/proposicao/1/delete'
-
+        "/proposicao/",
+        "/proposicao/1",
+        "/proposicao/create",
+        "/proposicao/1/edit",
+        "/proposicao/1/delete",
     },
-    'get': [
-
-    ],
-    'post': [
-
-    ]
+    "get": [],
+    "post": [],
 }
 
 """
@@ -399,14 +394,14 @@ for item in _lista_urls:
 
 @pytest.mark.skip(reason="TODO: Lento demais. Precisa ser refatorado")
 @pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('url_item', _lista_urls)
+@pytest.mark.parametrize("url_item", _lista_urls)
 def test_permissions_urls_for_users_by_apps(url_item, client):
     # username, url_item = request_com_oper_na_url
     key, url, var, app_name = url_item
 
-    url = '/' + (url % {v: 1 for v in var})
+    url = "/" + (url % {v: 1 for v in var})
 
-    if url in urls_publicas_excecoes['all']:
+    if url in urls_publicas_excecoes["all"]:
         return
 
     if not get_user_model().objects.exists():
@@ -417,13 +412,14 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
         # cria usuários de perfil do sapl
         update_groups(AppConfig)
 
-    users = get_user_model().objects.order_by(
-        'username').values_list('username', flat=True)
+    users = (
+        get_user_model().objects.order_by("username").values_list("username", flat=True)
+    )
 
-    app_labels = app_name.split('.')[1]
+    app_labels = app_name.split(".")[1]
 
     view = None
-    if hasattr(key, 'view_class'):
+    if hasattr(key, "view_class"):
         view = key.view_class()
 
         """
@@ -440,15 +436,16 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
         """
         if issubclass(key.view_class, PermissionRequiredForAppCrudMixin):
             # essa classe deve informar app_label
-            assert hasattr(key.view_class, 'app_label')
+            assert hasattr(key.view_class, "app_label")
             # app_label deve ter conteudo
             assert key.view_class.app_label
             app_labels = key.view_class.app_label
         else:
-
-            if hasattr(view, 'permission_required') and \
-                    view.permission_required is not None and \
-                    len(view.permission_required) == 0:
+            if (
+                hasattr(view, "permission_required")
+                and view.permission_required is not None
+                and len(view.permission_required) == 0
+            ):
                 """
                 condição do Crud, se tem permission_required e ele é igual [],
                 então é uma view pública, teste liberado.
@@ -470,36 +467,39 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
                 pass
 
     if isinstance(app_labels, str):
-        app_labels = app_labels,
+        app_labels = (app_labels,)
 
     for app in app_labels:
-
-        assert app in apps_url_patterns_prefixs_and_users, """
+        assert (
+            app in apps_url_patterns_prefixs_and_users
+        ), """
             O app_label (%s) associado a url (%s) não está na base de testes.
-            """ % (app_name, url)
+            """ % (
+            app_name,
+            url,
+        )
 
-        if 'users' not in apps_url_patterns_prefixs_and_users[app]:
+        if "users" not in apps_url_patterns_prefixs_and_users[app]:
             continue
 
-        users_for_url_atual_app = apps_url_patterns_prefixs_and_users[
-            app]['users']
+        users_for_url_atual_app = apps_url_patterns_prefixs_and_users[app]["users"]
 
         for username in users:
             print(app_name, username, users_for_url_atual_app, url)
-            client.login(username=username, password='interlegis')
+            client.login(username=username, password="interlegis")
 
             rg = None
-            rg_error_content = ''
+            rg_error_content = ""
             try:
-                if url not in urls_publicas_excecoes['get']:
+                if url not in urls_publicas_excecoes["get"]:
                     rg = client.get(url, {}, follow=True)
             except Exception as e:
                 rg_error_content = str(e)
 
             rp = None
-            rp_error_content = ''
+            rp_error_content = ""
             try:
-                if url not in urls_publicas_excecoes['post']:
+                if url not in urls_publicas_excecoes["post"]:
                     with transaction.atomic():
                         rp = client.post(url, {}, follow=True)
             except Exception as e:
@@ -523,15 +523,17 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
             """
 
             for _type, content in (
-                    ('get', str(rg.content if rg else rg_error_content)),
-                    ('post', str(rp.content if rp else rp_error_content))):
-
+                ("get", str(rg.content if rg else rg_error_content)),
+                ("post", str(rp.content if rp else rp_error_content)),
+            ):
                 if not content:
                     continue
 
                 def _assert_login(_in):
                     if _in:
-                        assert btn_login in content, """
+                        assert (
+                            btn_login in content
+                        ), """
             No teste de requisição "%s" a url (%s). App (%s)
             O usuário (%s) deveria ser redirecionado para tela de login.
             Observe que o teste é suspenso no primeiro usuário que o erro
@@ -541,9 +543,16 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
             abaixo localizada no arquivo que se encontra este teste:
 
                                 urls_publicas_excecoes
-            """ % (_type, url, app, username)
+            """ % (
+                            _type,
+                            url,
+                            app,
+                            username,
+                        )
                     else:
-                        assert btn_login not in content, """
+                        assert (
+                            btn_login not in content
+                        ), """
             No teste de requisição "%s" a url (%s). App (%s)
             O usuário (%s) não deveria ser redirecionado para tela de login.
             Observe que o teste é suspenso no primeiro usuário que o erro
@@ -553,7 +562,12 @@ def test_permissions_urls_for_users_by_apps(url_item, client):
             abaixo localizada no arquivo que se encontra este teste:
 
                                 urls_publicas_excecoes
-                            """ % (_type, url, app, username)
+                            """ % (
+                            _type,
+                            url,
+                            app,
+                            username,
+                        )
 
                 if username not in users_for_url_atual_app:
                     # se não é usuário da app deve ser redirecionado para login

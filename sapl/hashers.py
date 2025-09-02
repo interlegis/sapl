@@ -6,7 +6,7 @@ from django.utils.encoding import force_bytes
 
 
 def to_base64(source):
-    return base64.b64encode(source).decode('utf-8')
+    return base64.b64encode(source).decode("utf-8")
 
 
 class ZopeSHA1PasswordHasher(PBKDF2PasswordHasher):
@@ -40,14 +40,14 @@ def get_salt_from_zope_sha1(data):
     return to_base64(salt)
 
 
-ZOPE_SHA1_PREFIX = '{SSHA}'
+ZOPE_SHA1_PREFIX = "{SSHA}"
 
 
 def zope_encoded_password_to_django(encoded):
     "Migra um hash de senha do zope para uso com o ZopeSHA1PasswordHasher"
 
     if encoded and encoded.startswith(ZOPE_SHA1_PREFIX):
-        data = encoded[len(ZOPE_SHA1_PREFIX):]
+        data = encoded[len(ZOPE_SHA1_PREFIX) :]
         salt = get_salt_from_zope_sha1(data)
         hasher = ZopeSHA1PasswordHasher()
         return super(ZopeSHA1PasswordHasher, hasher).encode(data, salt)

@@ -1,1 +1,1 @@
-default_app_config = 'sapl.materia.apps.AppConfig'
+default_app_config = "sapl.materia.apps.AppConfig"

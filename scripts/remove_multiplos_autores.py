@@ -5,14 +5,28 @@ from sapl.parlamentares.models import Parlamentar
 
 
 def pega_autores():
-    return [[autor for autor in Autor.objects.filter(nome=nome)]
-            for nome in Autor.objects.values_list('nome', flat=True).annotate(qntd=Count('nome')).filter(qntd__gt=1)]
+    return [
+        [autor for autor in Autor.objects.filter(nome=nome)]
+        for nome in Autor.objects.values_list("nome", flat=True)
+        .annotate(qntd=Count("nome"))
+        .filter(qntd__gt=1)
+    ]
 
 
 def pega_parlamentares_autores():
-    parlamentares = [[parlamentar for parlamentar in Parlamentar.objects.filter(nome_parlamentar=nome_parlamentar)]
-                     for nome_parlamentar in Parlamentar.objects.values_list('nome_parlamentar', flat=True)
-                     .annotate(qntd=Count('nome_parlamentar')).filter(qntd__gt=1)]
+    parlamentares = [
+        [
+            parlamentar
+            for parlamentar in Parlamentar.objects.filter(
+                nome_parlamentar=nome_parlamentar
+            )
+        ]
+        for nome_parlamentar in Parlamentar.objects.values_list(
+            "nome_parlamentar", flat=True
+        )
+        .annotate(qntd=Count("nome_parlamentar"))
+        .filter(qntd__gt=1)
+    ]
 
     parlamentares_autores = []
 
@@ -80,5 +94,5 @@ def main():
     transfere_valores(autores)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,11 +1,10 @@
+import pytest
 from django.apps import apps
 from django.db.models import CharField, TextField
 from django.db.models.fields import BooleanField
 from model_bakery import baker
-import pytest
 
 from .settings import SAPL_APPS
-
 
 pytestmark = pytest.mark.django_db
 
@@ -18,10 +17,11 @@ def test_charfield_textfield():
             fields = model._meta.local_fields
             for field in fields:
                 if isinstance(field, (CharField, TextField)):
-                    assert not field.null, 'This %s is null: %s.%s' % (
+                    assert not field.null, "This %s is null: %s.%s" % (
                         type(field).__name__,
                         model.__name__,
-                        field.attname)
+                        field.attname,
+                    )
 
 
 def test_str_sanity():
@@ -33,8 +33,7 @@ def test_str_sanity():
             try:
                 str(obj)
             except Exception as exc:
-                msg = '%s.%s.__str__ is broken.' % (
-                    model.__module__, model.__name__)
+                msg = "%s.%s.__str__ is broken." % (model.__module__, model.__name__)
                 raise AssertionError(msg, exc)
 
 
@@ -44,11 +43,15 @@ def test_booleanfield_configure():
             for field in model._meta.get_fields():
                 if not isinstance(field, BooleanField):
                     continue
-                assert isinstance(field.default, bool), """
+                assert isinstance(
+                    field.default, bool
+                ), """
                     atributo 'default' não definido em:
                     Campo: %s
                     Model: %s
                     app: %s 
-                    """ % (field.name,
-                           model._meta.object_name,
-                           app.name)
+                    """ % (
+                    field.name,
+                    model._meta.object_name,
+                    app.name,
+                )

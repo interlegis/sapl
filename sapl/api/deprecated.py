@@ -7,13 +7,11 @@ from sapl.api.serializers import SessaoPlenariaECidadaniaSerializer
 from sapl.sessao.models import SessaoPlenaria
 
 
-class SessaoPlenariaViewSet(ListModelMixin,
-                            RetrieveModelMixin,
-                            GenericViewSet):
+class SessaoPlenariaViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     """
     Deprecated - Será eliminado na versão 3.2
 
-    * TODO: 
+    * TODO:
         * eliminar endpoint, transferido para SaplApiViewSetConstrutor
             * /api/sessao-planaria -> /api/sessao/sessaoplenaria/ecidadania
             * /api/sessao-planaria/{pk} -> /api/sessao/sessaoplenaria/{pk}/ecidadania
@@ -24,4 +22,4 @@ class SessaoPlenariaViewSet(ListModelMixin,
     serializer_class = SessaoPlenariaECidadaniaSerializer
     queryset = SessaoPlenaria.objects.all()
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('data_inicio', 'data_fim', 'interativa')
+    filter_fields = ("data_inicio", "data_fim", "interativa")

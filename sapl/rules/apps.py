@@ -1,5 +1,5 @@
-from builtins import LookupError
 import logging
+from builtins import LookupError
 
 import django
 from django.apps import apps
@@ -10,21 +10,27 @@ from django.db import models, router
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.rules import (SAPL_GROUP_ADMINISTRATIVO, SAPL_GROUP_COMISSOES,
-                        SAPL_GROUP_GERAL, SAPL_GROUP_MATERIA, SAPL_GROUP_NORMA,
-                        SAPL_GROUP_PAINEL, SAPL_GROUP_PROTOCOLO,
-                        SAPL_GROUP_SESSAO)
+from sapl.rules import (
+    SAPL_GROUP_ADMINISTRATIVO,
+    SAPL_GROUP_COMISSOES,
+    SAPL_GROUP_GERAL,
+    SAPL_GROUP_MATERIA,
+    SAPL_GROUP_NORMA,
+    SAPL_GROUP_PAINEL,
+    SAPL_GROUP_PROTOCOLO,
+    SAPL_GROUP_SESSAO,
+)
 
 
 class AppConfig(django.apps.AppConfig):
-    name = 'sapl.rules'
-    label = 'rules'
-    verbose_name = _('Regras de Acesso')
+    name = "sapl.rules"
+    label = "rules"
+    verbose_name = _("Regras de Acesso")
 
 
 def create_proxy_permissions(
-        app_config, verbosity=2, interactive=True,
-        using=DEFAULT_DB_ALIAS, **kwargs):
+    app_config, verbosity=2, interactive=True, using=DEFAULT_DB_ALIAS, **kwargs
+):
     if not app_config.models_module:
         return
     logger = logging.getLogger(__name__)
@@ -32,7 +38,7 @@ def create_proxy_permissions(
 
     try:
         logger.info("Tentando obter modelo de permissão do app.")
-        Permission = apps.get_model('auth', 'Permission')
+        Permission = apps.get_model("auth", "Permission")
     except LookupError as e:
         logger.error(str(e))
         return
@@ -42,7 +48,7 @@ def create_proxy_permissions(
 
     from django.contrib.contenttypes.models import ContentType
 
-    permission_name_max_length = Permission._meta.get_field('name').max_length
+    permission_name_max_length = Permission._meta.get_field("name").max_length
 
     # This will hold the permissions we're looking for as
     # (content_type, (codename, name))
@@ -52,13 +58,18 @@ def create_proxy_permissions(
     for klass in list(app_config.get_models()):
         opts = klass._meta
         permissions = (
-            ("list_" + opts.model_name,
-             "{} {}".format(_('Visualizaçao da lista de'), opts.verbose_name_plural)),
-            ("detail_" + opts.model_name,
-             "{} {}".format(_('Visualização dos detalhes de'), opts.verbose_name_plural)),
+            (
+                "list_" + opts.model_name,
+                "{} {}".format(_("Visualizaçao da lista de"), opts.verbose_name_plural),
+            ),
+            (
+                "detail_" + opts.model_name,
+                "{} {}".format(
+                    _("Visualização dos detalhes de"), opts.verbose_name_plural
+                ),
+            ),
         )
-        opts.permissions = tuple(
-            set(list(permissions) + list(opts.permissions)))
+        opts.permissions = tuple(set(list(permissions) + list(opts.permissions)))
 
         if opts.proxy:
             # Force looking up the content types in the current database
@@ -67,12 +78,14 @@ def create_proxy_permissions(
 
             try:
                 logger.info("Tentando obter db_manager.")
-                ctype = ContentType.objects.db_manager(
-                    using).get_by_natural_key(app_label, model)
+                ctype = ContentType.objects.db_manager(using).get_by_natural_key(
+                    app_label, model
+                )
             except Exception as e:
                 logger.error(str(e))
-                ctype = ContentType.objects.db_manager(
-                    using).create(app_label=app_label, model=model)
+                ctype = ContentType.objects.db_manager(using).create(
+                    app_label=app_label, model=model
+                )
         else:
             ctype = ContentType.objects.db_manager(using).get_for_model(klass)
 
@@ -86,11 +99,13 @@ def create_proxy_permissions(
     # Find all the Permissions that have a content_type for a model we're
     # looking for.  We don't need to check for codenames since we already have
     # a list of the ones we're going to create.
-    all_perms = set(Permission.objects.using(using).filter(
-        content_type__in=ctypes,
-    ).values_list(
-        "content_type", "codename"
-    ))
+    all_perms = set(
+        Permission.objects.using(using)
+        .filter(
+            content_type__in=ctypes,
+        )
+        .values_list("content_type", "codename")
+    )
 
     perms = [
         Permission(codename=codename, name=name, content_type=ct)
@@ -101,16 +116,20 @@ def create_proxy_permissions(
     # error when the name is longer than 255 characters
     for perm in perms:
         if len(perm.name) > permission_name_max_length:
-            logger.error("The permission name %s of %s.%s "
-                         "is longer than %s characters" % (
-                             perm.name,
-                             perm.content_type.app_label,
-                             perm.content_type.model,
-                             permission_name_max_length,
-                         ))
+            logger.error(
+                "The permission name %s of %s.%s "
+                "is longer than %s characters"
+                % (
+                    perm.name,
+                    perm.content_type.app_label,
+                    perm.content_type.model,
+                    permission_name_max_length,
+                )
+            )
             raise exceptions.ValidationError(
-                'The permission name %s of %s.%s '
-                'is longer than %s characters' % (
+                "The permission name %s of %s.%s "
+                "is longer than %s characters"
+                % (
                     perm.name,
                     perm.content_type.app_label,
                     perm.content_type.model,
@@ -124,28 +143,28 @@ def create_proxy_permissions(
 
 
 def get_rules():
-
-    from sapl.rules.map_rules import rules_patterns
     from django.contrib.auth.models import Group, Permission
     from django.contrib.contenttypes.models import ContentType
 
-    class Rules:
+    from sapl.rules.map_rules import rules_patterns
 
+    class Rules:
         def __init__(self, rules_patterns):
             self.rules_patterns = rules_patterns
 
         def associar(self, g, model, tipo):
             for t in tipo:
                 content_type = ContentType.objects.get_by_natural_key(
-                    app_label=model._meta.app_label,
-                    model=model._meta.model_name)
+                    app_label=model._meta.app_label, model=model._meta.model_name
+                )
 
-                codename = (t[1:] + model._meta.model_name)\
-                    if t[0] == '.' and t[-1] == '_' else t
+                codename = (
+                    (t[1:] + model._meta.model_name)
+                    if t[0] == "." and t[-1] == "_"
+                    else t
+                )
 
-                p = Permission.objects.get(
-                    content_type=content_type,
-                    codename=codename)
+                p = Permission.objects.get(content_type=content_type, codename=codename)
                 g.permissions.add(p)
             g.save()
 
@@ -158,7 +177,7 @@ def get_rules():
 
             try:
                 logger.info("Tentando associar grupos.")
-                print(' ', group_name)
+                print(" ", group_name)
                 for model, perms, perms_publicas in rules_list:
                     self.associar(group, model, perms)
             except Exception as e:
@@ -166,22 +185,23 @@ def get_rules():
                 print(group_name, e)
 
         def groups_add_user(self, user, groups_name):
-
             if not isinstance(groups_name, list):
-                groups_name = [groups_name, ]
+                groups_name = [
+                    groups_name,
+                ]
             for group_name in groups_name:
-                if not group_name or user.groups.filter(
-                        name=group_name).exists():
+                if not group_name or user.groups.filter(name=group_name).exists():
                     continue
                 g = Group.objects.get_or_create(name=group_name)[0]
                 user.groups.add(g)
 
         def groups_remove_user(self, user, groups_name):
             if not isinstance(groups_name, list):
-                groups_name = [groups_name, ]
+                groups_name = [
+                    groups_name,
+                ]
             for group_name in groups_name:
-                if not group_name or not user.groups.filter(
-                        name=group_name).exists():
+                if not group_name or not user.groups.filter(name=group_name).exists():
                     continue
                 g = Group.objects.get_or_create(name=group_name)[0]
                 user.groups.remove(g)
@@ -189,41 +209,39 @@ def get_rules():
         def cria_usuario(self, nome, grupo):
             nome_usuario = nome
             param_username = {get_user_model().USERNAME_FIELD: nome_usuario}
-            usuario = get_user_model().objects.get_or_create(
-                **param_username)[0]
-            usuario.set_password('interlegis')
+            usuario = get_user_model().objects.get_or_create(**param_username)[0]
+            usuario.set_password("interlegis")
             usuario.save()
             g = Group.objects.get_or_create(name=grupo)[0]
             g.user_set.add(usuario)
 
         def cria_usuarios_padrao(self):
             for group, user in (
-                (SAPL_GROUP_ADMINISTRATIVO, 'operador_administrativo'),
-                (SAPL_GROUP_PROTOCOLO, 'operador_protocoloadm'),
-                (SAPL_GROUP_COMISSOES, 'operador_comissoes'),
-                (SAPL_GROUP_MATERIA, 'operador_materia'),
-                (SAPL_GROUP_NORMA, 'operador_norma'),
-                (SAPL_GROUP_SESSAO, 'operador_sessao'),
-                (SAPL_GROUP_PAINEL, 'operador_painel'),
-                (SAPL_GROUP_GERAL, 'operador_geral'),
+                (SAPL_GROUP_ADMINISTRATIVO, "operador_administrativo"),
+                (SAPL_GROUP_PROTOCOLO, "operador_protocoloadm"),
+                (SAPL_GROUP_COMISSOES, "operador_comissoes"),
+                (SAPL_GROUP_MATERIA, "operador_materia"),
+                (SAPL_GROUP_NORMA, "operador_norma"),
+                (SAPL_GROUP_SESSAO, "operador_sessao"),
+                (SAPL_GROUP_PAINEL, "operador_painel"),
+                (SAPL_GROUP_GERAL, "operador_geral"),
             ):
                 self.cria_usuario(user, group)
 
         def update_groups(self):
-            print('')
-            print("\033[93m\033[1m{}\033[0m".format(
-                _('Atualizando grupos do SAPL:')))
+            print("")
+            print("\033[93m\033[1m{}\033[0m".format(_("Atualizando grupos do SAPL:")))
             for rules_group in self.rules_patterns:
-                group_name = rules_group['group']
-                rules_list = rules_group['rules']
+                group_name = rules_group["group"]
+                rules_list = rules_group["rules"]
                 self._config_group(group_name, rules_list)
 
     return Rules(rules_patterns)
 
 
-def update_groups(app_config, verbosity=2, interactive=True,
-                  using=DEFAULT_DB_ALIAS, **kwargs):
-
+def update_groups(
+    app_config, verbosity=2, interactive=True, using=DEFAULT_DB_ALIAS, **kwargs
+):
     if app_config != AppConfig and not isinstance(app_config, AppConfig):
         return
 
@@ -238,4 +256,6 @@ def cria_usuarios_padrao():
 
 models.signals.post_migrate.connect(receiver=update_groups)
 models.signals.post_migrate.connect(
-    receiver=create_proxy_permissions, dispatch_uid="django.contrib.auth.management.create_permissions")
+    receiver=create_proxy_permissions,
+    dispatch_uid="django.contrib.auth.management.create_permissions",
+)

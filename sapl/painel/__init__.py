@@ -1,1 +1,1 @@
-default_app_config = 'sapl.painel.apps.AppConfig'
+default_app_config = "sapl.painel.apps.AppConfig"

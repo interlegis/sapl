@@ -1,7 +1,6 @@
 import os
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     import django
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sapl.settings")
@@ -12,14 +11,11 @@ if True:
     from django.urls.resolvers import URLResolver
 
 
-class ListaUrls():
-
+class ListaUrls:
     def lista_urls(self, _urls):
         urls = []
         for item in _urls:
-            if isinstance(item, URLResolver) and \
-                    item.app_name.startswith('sapl'):
-
+            if isinstance(item, URLResolver) and item.app_name.startswith("sapl"):
                 for key, value in item.reverse_dict.items():
                     if not isinstance(key, str):
                         if value:
@@ -37,14 +33,13 @@ class ListaUrls():
 
 
 lista_urls = ListaUrls()
-if __name__ == '__main__':
+if __name__ == "__main__":
     _lista_urls = lista_urls()
     for url_item in _lista_urls:
-
         params = {}
 
         for v in url_item[2]:
             params[v] = 1
 
-        u = '/' + url_item[1] % params
+        u = "/" + url_item[1] % params
         print(url_item[3], u)
