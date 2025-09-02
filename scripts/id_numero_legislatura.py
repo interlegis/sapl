@@ -7,5 +7,5 @@ def popula_numero_legislatura_id():
         l.save()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     popula_numero_legislatura_id()

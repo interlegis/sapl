@@ -1,29 +1,23 @@
-
 from django.apps.registry import apps
 
-from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
-    customize, wrapper_queryset_response_for_drf_action
+from drfautoapi.drfautoapi import (ApiViewSetConstrutor, customize,
+                                   wrapper_queryset_response_for_drf_action)
 from sapl.api.permissions import SaplModelPermissions
-from sapl.base.models import AppConfig, DOC_ADM_OSTENSIVO
-from sapl.protocoloadm.models import DocumentoAdministrativo, \
-    DocumentoAcessorioAdministrativo, TramitacaoAdministrativo, Anexado
+from sapl.base.models import DOC_ADM_OSTENSIVO, AppConfig
+from sapl.protocoloadm.models import (Anexado,
+                                      DocumentoAcessorioAdministrativo,
+                                      DocumentoAdministrativo,
+                                      TramitacaoAdministrativo)
 
-
-ApiViewSetConstrutor.build_class(
-    [
-        apps.get_app_config('protocoloadm')
-    ]
-)
+ApiViewSetConstrutor.build_class([apps.get_app_config("protocoloadm")])
 
 
 @customize(DocumentoAdministrativo)
 class _DocumentoAdministrativoViewSet:
-
     class DocumentoAdministrativoPermission(SaplModelPermissions):
-
         def has_permission(self, request, view):
-            if request.method == 'GET':
-                comportamento = AppConfig.attr('documentos_administrativos')
+            if request.method == "GET":
+                comportamento = AppConfig.attr("documentos_administrativos")
                 if comportamento == DOC_ADM_OSTENSIVO:
                     return True
                     """
@@ -54,9 +48,9 @@ class _DocumentoAdministrativoViewSet:
 
 @customize(DocumentoAcessorioAdministrativo)
 class _DocumentoAcessorioAdministrativoViewSet:
-
     permission_classes = (
-        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,)
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,
+    )
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -72,10 +66,11 @@ class _TramitacaoAdministrativoViewSet:
     # tramitacação de adm possui regras previstas de limitação de origem
     # destino
 
-    http_method_names = ['get', 'head', 'options', 'trace']
+    http_method_names = ["get", "head", "options", "trace"]
 
     permission_classes = (
-        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,)
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,
+    )
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -89,10 +84,11 @@ class _TramitacaoAdministrativoViewSet:
 class _AnexadoViewSet:
     # TODO: Implementar regras de manutenção post, put, patch
     # anexado deve possuir controle que impeça anexação cíclica
-    http_method_names = ['get', 'head', 'options', 'trace']
+    http_method_names = ["get", "head", "options", "trace"]
 
     permission_classes = (
-        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,)
+        _DocumentoAdministrativoViewSet.DocumentoAdministrativoPermission,
+    )
 
     def get_queryset(self):
         qs = super().get_queryset()

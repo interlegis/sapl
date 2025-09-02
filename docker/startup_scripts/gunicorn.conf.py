@@ -35,9 +35,9 @@ wsgi_app = WSGI_APP
 
 # Logs
 loglevel = "debug"
-errorlog = "-"          # send to stderr (so you see it in docker logs or terminal)
-accesslog = "-"         # send to stdout
-capture_output = True   # capture print/tracebacks from app
+errorlog = "-"  # send to stderr (so you see it in docker logs or terminal)
+accesslog = "-"  # send to stdout
+capture_output = True  # capture print/tracebacks from app
 # accesslog = "/var/log/sapl/access.log"
 # errorlog = "/var/log/sapl/error.log"
 
@@ -68,6 +68,7 @@ def on_starting(server):
 def post_fork(server, worker):
     try:
         from django import db
+
         db.connections.close_all()
     except Exception:
         # Django not initialized yet or not available

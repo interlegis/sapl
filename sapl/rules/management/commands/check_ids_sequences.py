@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Check ids sequences and update them'
+    help = "Check ids sequences and update them"
 
     def handle(self, *args, **kwargs):
         models = apps.get_models()
@@ -28,7 +28,9 @@ def fn_check_sequence_for_model(model):
         except Exception as e:
             if f"function {SP_NAME}(unknown) does not exist" not in str(e):
                 # Se ocorreu um erro e não é por inexistência da SP
-                logger.error(f"Falha na execução da Store Procedure para a tabela {model._meta.db_table}. {str(e)}")
+                logger.error(
+                    f"Falha na execução da Store Procedure para a tabela {model._meta.db_table}. {str(e)}"
+                )
             else:
                 # se a execução da SP falhou por ela não existir
                 try:
@@ -54,14 +56,20 @@ def fn_check_sequence_for_model(model):
                     )
                 except Exception as e:
                     # se falhou na criação
-                    logger.error(f"Falha na criação da Store Procedure {SP_NAME} para o tabela {model._meta.db_table}. {str(e)}")
-                    logger.error(f"Falha na criação da Store Procedure {SP_NAME} para o tabela {model._meta.db_table}. {str(e)}")
+                    logger.error(
+                        f"Falha na criação da Store Procedure {SP_NAME} para o tabela {model._meta.db_table}. {str(e)}"
+                    )
+                    logger.error(
+                        f"Falha na criação da Store Procedure {SP_NAME} para o tabela {model._meta.db_table}. {str(e)}"
+                    )
                 try:
                     # tenta executá-la após criação.
                     c.callproc(SP_NAME, [model._meta.db_table])
                 except Exception as e:
                     # se falhou na execução
-                    logger.error(f"Falha na execução da Store Procedure {SP_NAME} para o tabela {model._meta.db_table}. {str(e)}")
+                    logger.error(
+                        f"Falha na execução da Store Procedure {SP_NAME} para o tabela {model._meta.db_table}. {str(e)}"
+                    )
 
         finally:
             c.close()

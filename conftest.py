@@ -3,18 +3,17 @@ from django_webtest import DjangoTestApp, WebTestMixin
 
 
 class OurTestApp(DjangoTestApp):
-
     def __init__(self, *args, **kwargs):
-        self.default_user = kwargs.pop('default_user', None)
+        self.default_user = kwargs.pop("default_user", None)
         super(OurTestApp, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
-        kwargs.setdefault('user', self.default_user)
-        kwargs.setdefault('auto_follow', True)
+        kwargs.setdefault("user", self.default_user)
+        kwargs.setdefault("auto_follow", True)
         return super(OurTestApp, self).get(*args, **kwargs)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def app(request, admin_user):
     """WebTest's TestApp.
 

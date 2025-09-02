@@ -13,7 +13,6 @@ register_all_models_in_admin(__name__)
 if not settings.DEBUG:
 
     class RestricaoAdmin(admin.ModelAdmin):
-
         def has_add_permission(self, request, obj=None):
             return False
 
@@ -29,7 +28,7 @@ if not settings.DEBUG:
         TipoComissao,
         TipoAfastamento,
         SituacaoMilitar,
-        TipoDependente
+        TipoDependente,
     )
 
     for model in models:

@@ -1,21 +1,15 @@
-
 from django.apps.registry import apps
 from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
-    customize, wrapper_queryset_response_for_drf_action
+from drfautoapi.drfautoapi import (ApiViewSetConstrutor, customize,
+                                   wrapper_queryset_response_for_drf_action)
 from sapl.api.permissions import SaplModelPermissions
-from sapl.materia.models import TipoMateriaLegislativa, Tramitacao,\
-    MateriaLegislativa, Proposicao
+from sapl.materia.models import (MateriaLegislativa, Proposicao,
+                                 TipoMateriaLegislativa, Tramitacao)
 
-
-ApiViewSetConstrutor.build_class(
-    [
-        apps.get_app_config('materia')
-    ]
-)
+ApiViewSetConstrutor.build_class([apps.get_app_config("materia")])
 
 
 @customize(Proposicao)
@@ -46,9 +40,8 @@ class _ProposicaoViewSet:
     """
 
     class ProposicaoPermission(SaplModelPermissions):
-
         def has_permission(self, request, view):
-            if request.method == 'GET':
+            if request.method == "GET":
                 return True
                 # se a solicitação é list ou detail, libera o teste de permissão
                 # e deixa o get_queryset filtrar de acordo com a regra de
@@ -68,7 +61,6 @@ class _ProposicaoViewSet:
 
         q = Q(data_recebimento__isnull=False, object_id__isnull=False)
         if not self.request.user.is_anonymous:
-
             autor_do_usuario_logado = self.request.user.autor_set.first()
 
             # se usuário logado é operador de algum autor
@@ -76,9 +68,8 @@ class _ProposicaoViewSet:
                 q = Q(autor=autor_do_usuario_logado)
 
             # se é operador de protocolo, ve qualquer coisa enviada
-            if self.request.user.has_perm('protocoloadm.list_protocolo'):
-                q = Q(data_envio__isnull=False) | Q(
-                    data_devolucao__isnull=False)
+            if self.request.user.has_perm("protocoloadm.list_protocolo"):
+                q = Q(data_envio__isnull=False) | Q(data_devolucao__isnull=False)
 
         qs = qs.filter(q)
         return qs
@@ -86,26 +77,26 @@ class _ProposicaoViewSet:
 
 @customize(MateriaLegislativa)
 class _MateriaLegislativaViewSet:
-
     class Meta:
-        ordering = ['-ano', 'tipo', 'numero']
+        ordering = ["-ano", "tipo", "numero"]
 
-    @action(detail=True, methods=['GET'])
+    @action(detail=True, methods=["GET"])
     def ultima_tramitacao(self, request, *args, **kwargs):
-
         materia = self.get_object()
         if not materia.tramitacao_set.exists():
             return Response({})
 
         ultima_tramitacao = materia.tramitacao_set.order_by(
-            '-data_tramitacao', '-id').first()
+            "-data_tramitacao", "-id"
+        ).first()
 
         serializer_class = ApiViewSetConstrutor.get_viewset_for_model(
-            Tramitacao).serializer_class(ultima_tramitacao)
+            Tramitacao
+        ).serializer_class(ultima_tramitacao)
 
         return Response(serializer_class.data)
 
-    @action(detail=True, methods=['GET'])
+    @action(detail=True, methods=["GET"])
     def anexadas(self, request, *args, **kwargs):
         self.queryset = self.get_object().anexadas.all()
         return self.list(request, *args, **kwargs)
@@ -113,17 +104,13 @@ class _MateriaLegislativaViewSet:
 
 @customize(TipoMateriaLegislativa)
 class _TipoMateriaLegislativaViewSet:
-
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=["POST"])
     def change_position(self, request, *args, **kwargs):
-        result = {
-            'status': 200,
-            'message': 'OK'
-        }
+        result = {"status": 200, "message": "OK"}
         d = request.data
-        if 'pos_ini' in d and 'pos_fim' in d:
-            if d['pos_ini'] != d['pos_fim']:
-                pk = kwargs['pk']
-                TipoMateriaLegislativa.objects.reposicione(pk, d['pos_fim'])
+        if "pos_ini" in d and "pos_fim" in d:
+            if d["pos_ini"] != d["pos_fim"]:
+                pk = kwargs["pk"]
+                TipoMateriaLegislativa.objects.reposicione(pk, d["pos_fim"])
 
         return Response(result)

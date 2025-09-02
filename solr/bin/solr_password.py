@@ -20,39 +20,39 @@ from base64 import b64encode, b64decode
 
 def solr_hash_password(password: str, salt: str = None):
     """
-        Generates a password and salt to be used in Basic Auth Solr
+    Generates a password and salt to be used in Basic Auth Solr
 
-        password: clean text password string
-        salt (optional): base64 salt string
-        returns: sha256 hash of password and salt (both base64 strings)
+    password: clean text password string
+    salt (optional): base64 salt string
+    returns: sha256 hash of password and salt (both base64 strings)
     """
     m = sha256()
     if salt is None:
         salt = secrets.token_bytes(32)
     else:
         salt = b64decode(salt)
-    m.update(salt + password.encode('utf-8'))
+    m.update(salt + password.encode("utf-8"))
     digest = m.digest()
 
     m = sha256()
     m.update(digest)
     digest = m.digest()
 
-    cypher = b64encode(digest).decode('utf-8')
-    salt = b64encode(salt).decode('utf-8')
+    cypher = b64encode(digest).decode("utf-8")
+    salt = b64encode(salt).decode("utf-8")
     return cypher, salt
 
 
 def check_solr_hash(password: str, cypher: str, salt: str) -> bool:
     m = sha256()
-    m.update(b64decode(salt) + password.encode('utf-8'))
+    m.update(b64decode(salt) + password.encode("utf-8"))
     digest = m.digest()
 
     m = sha256()
     m.update(digest)
     digest = m.digest()
 
-    return b64encode(digest).decode('utf-8') == cypher
+    return b64encode(digest).decode("utf-8") == cypher
 
 
 def test_hash_password():
@@ -74,9 +74,9 @@ def test_hash_check():
     assert check_solr_hash(password, cypher, salt), "Sha256 password check failed!"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print('Usage: %s <password> [salt_base64]' % sys.argv[0])
+        print("Usage: %s <password> [salt_base64]" % sys.argv[0])
         sys.exit(0)
 
     if len(sys.argv) == 3:

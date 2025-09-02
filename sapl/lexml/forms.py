@@ -1,13 +1,14 @@
-from django.core.exceptions import ValidationError
-from django.forms import ModelForm
-from sapl.settings import PROJECT_DIR
-from django.utils.translation import gettext_lazy as _
-
-from io import StringIO
-from lxml import etree
 import os
 import re
 import xml.dom.minidom as dom
+from io import StringIO
+
+from django.core.exceptions import ValidationError
+from django.forms import ModelForm
+from django.utils.translation import gettext_lazy as _
+from lxml import etree
+
+from sapl.settings import PROJECT_DIR
 
 from .models import LexmlProvedor
 
@@ -21,7 +22,7 @@ class LexmlProvedorForm(ModelForm):
             "id_responsavel",
             "nome_responsavel",
             "email_responsavel",
-            "xml"
+            "xml",
         ]
 
     def clean(self):
@@ -44,14 +45,17 @@ def validar_xml(xml):
     try:
         dom.parse(xml)
     except Exception as e:
-        raise ValidationError(_(F"XML mal formatado. Error: {e}"))
+        raise ValidationError(_(f"XML mal formatado. Error: {e}"))
+
 
 def validar_schema(xml):
-    xml_schema = open(os.path.join(PROJECT_DIR, 'sapl/templates/lexml/schema.xsd'), 'rb').read()
+    xml_schema = open(
+        os.path.join(PROJECT_DIR, "sapl/templates/lexml/schema.xsd"), "rb"
+    ).read()
     schema_root = etree.XML(xml_schema)
     schema = etree.XMLSchema(schema_root)
     parser = etree.XMLParser(schema=schema)
     try:
         root = etree.fromstring(xml.encode(), parser)
     except Exception as e:
-        raise ValidationError(_(F"XML mal formatado. Error: {e}"))
+        raise ValidationError(_(f"XML mal formatado. Error: {e}"))

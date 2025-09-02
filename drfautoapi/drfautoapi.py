@@ -36,25 +36,22 @@ class SplitStringCharFilter(django_filters.CharFilter):
             return qs
         if self.distinct:
             qs = qs.distinct()
-        lookup = '%s__%s' % (self.field_name, self.lookup_expr)
+        lookup = "%s__%s" % (self.field_name, self.lookup_expr)
 
         values = [value]
-        if self.lookup_expr == 'icontains':
+        if self.lookup_expr == "icontains":
             if not '"' in value:
-                values = value.split(' ')
+                values = value.split(" ")
             else:
                 values = list(
                     filter(
-                        lambda x: x and x != ' ' and x[0] != '"',
-                        self._re.findall(value)
+                        lambda x: x and x != " " and x[0] != '"',
+                        self._re.findall(value),
                     )
                 ) + list(
                     map(
                         lambda x: x[1:-1],
-                        filter(
-                            lambda x: x and x[0] == '"',
-                            self._re.findall(value)
-                        )
+                        filter(lambda x: x and x[0] == '"', self._re.findall(value)),
                     )
                 )
 
@@ -66,36 +63,34 @@ class SplitStringCharFilter(django_filters.CharFilter):
 
 
 class ApiFilterSetMixin(FilterSet):
-
-    o = CharFilter(method='filter_o')
+    o = CharFilter(method="filter_o")
 
     class Meta:
-        fields = '__all__'
+        fields = "__all__"
         filter_overrides = {
             FileField: {
-                'filter_class': django_filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': 'exact',
+                "filter_class": django_filters.CharFilter,
+                "extra": lambda f: {
+                    "lookup_expr": "exact",
                 },
             },
             CharField: {
-                'filter_class': SplitStringCharFilter,
+                "filter_class": SplitStringCharFilter,
             },
             TextField: {
-                'filter_class': SplitStringCharFilter,
+                "filter_class": SplitStringCharFilter,
             },
             JSONField: {
-                'filter_class': django_filters.CharFilter,
-                'extra': lambda f: {
-                    'lookup_expr': 'exact',
+                "filter_class": django_filters.CharFilter,
+                "extra": lambda f: {
+                    "lookup_expr": "exact",
                 },
             },
         }
 
     def filter_o(self, queryset, name, value):
         try:
-            return queryset.order_by(
-                *map(str.strip, value.split(',')))
+            return queryset.order_by(*map(str.strip, value.split(",")))
         except:
             return queryset
 
@@ -113,29 +108,34 @@ class ApiFilterSetMixin(FilterSet):
 
         for f_str in fields_model:
             if f_str not in fields:
-
                 f = model._meta.get_field(f_str)
 
                 if f.many_to_many:
-                    fields[f_str] = ['exact']
+                    fields[f_str] = ["exact"]
                     continue
 
-                fields[f_str] = ['exact']
+                fields[f_str] = ["exact"]
 
                 def get_keys_lookups(cl, sub_f):
                     r = []
                     for lk, lv in cl.items():
-
-                        if lk in ('contained_by', 'trigram_similar', 'unaccent', 'search'):
+                        if lk in (
+                            "contained_by",
+                            "trigram_similar",
+                            "unaccent",
+                            "search",
+                        ):
                             continue
 
                         sflk = f'{sub_f}{"__" if sub_f else ""}{lk}'
                         r.append(sflk)
 
-                        if hasattr(lv, 'get_lookups'):
+                        if hasattr(lv, "get_lookups"):
                             r += get_keys_lookups(lv.get_lookups(), sflk)
 
-                        if hasattr(lv, 'output_field') and hasattr(lv, 'output_field.get_lookups'):
+                        if hasattr(lv, "output_field") and hasattr(
+                            lv, "output_field.get_lookups"
+                        ):
                             r.append(f'{sflk}{"__" if sflk else ""}range')
 
                             r += get_keys_lookups(lv.output_field.class_lookups, sflk)
@@ -143,31 +143,30 @@ class ApiFilterSetMixin(FilterSet):
                     return r
 
                 fields[f_str] = list(
-                    set(fields[f_str] + get_keys_lookups(f.get_lookups(), '')))
+                    set(fields[f_str] + get_keys_lookups(f.get_lookups(), ""))
+                )
 
         # Remove excluded fields
         exclude = exclude or []
 
-        fields = [(f, lookups)
-                  for f, lookups in fields.items() if f not in exclude]
+        fields = [(f, lookups) for f, lookups in fields.items() if f not in exclude]
 
         return OrderedDict(fields)
 
     @classmethod
-    def filter_for_field(cls, f, name, lookup_expr='exact'):
+    def filter_for_field(cls, f, name, lookup_expr="exact"):
         # Redefine método estático para ignorar filtro para
         # fields que não possuam lookup_expr informado
 
         f, lookup_type = resolve_field(f, lookup_expr)
 
         default = {
-            'field_name': name,
-            'label': capfirst(f.verbose_name),
-            'lookup_expr': lookup_expr
+            "field_name": name,
+            "label": capfirst(f.verbose_name),
+            "lookup_expr": lookup_expr,
         }
 
-        filter_class, params = cls.filter_for_lookup(
-            f, lookup_type)
+        filter_class, params = cls.filter_for_lookup(f, lookup_type)
         default.update(params)
         if filter_class is not None:
             return filter_class(**default)
@@ -175,7 +174,7 @@ class ApiFilterSetMixin(FilterSet):
 
 
 class BusinessRulesNotImplementedMixin:
-    http_method_names = ['get', 'head', 'options', 'trace']
+    http_method_names = ["get", "head", "options", "trace"]
 
     def create(self, request, *args, **kwargs):
         raise Exception(_("POST Create não implementado"))
@@ -187,8 +186,7 @@ class BusinessRulesNotImplementedMixin:
         raise Exception(_("DELETE Delete não implementado"))
 
 
-class ApiViewSetConstrutor():
-
+class ApiViewSetConstrutor:
     _built_sets = {}
 
     class ApiViewSet(ModelViewSet):
@@ -214,13 +212,14 @@ class ApiViewSetConstrutor():
             app_label = getattr(app, "label", app.name.split(".")[-1])
             for model, viewset in built_sets.items():
                 router.register(
-                    f'{app.label}/{model._meta.model_name}', viewset,
-                    basename=f"{app_label}-{model._meta.model_name}")
+                    f"{app.label}/{model._meta.model_name}",
+                    viewset,
+                    basename=f"{app_label}-{model._meta.model_name}",
+                )
         return router
 
     @classmethod
     def build_class(cls, apps_or_models):
-
         DRFAUTOAPI = settings.DRFAUTOAPI
 
         serializers_classes = {}
@@ -231,35 +230,38 @@ class ApiViewSetConstrutor():
 
         try:
             if DRFAUTOAPI:
-                if 'DEFAULT_SERIALIZER_MODULE' in DRFAUTOAPI:
+                if "DEFAULT_SERIALIZER_MODULE" in DRFAUTOAPI:
                     serializers = importlib.import_module(
-                        DRFAUTOAPI['DEFAULT_SERIALIZER_MODULE']
+                        DRFAUTOAPI["DEFAULT_SERIALIZER_MODULE"]
                     )
                     serializers_classes = inspect.getmembers(serializers)
-                    serializers_classes = {i[0]: i[1] for i in filter(
-                        lambda x: x[0].endswith('Serializer'),
-                        serializers_classes
-                    )}
+                    serializers_classes = {
+                        i[0]: i[1]
+                        for i in filter(
+                            lambda x: x[0].endswith("Serializer"), serializers_classes
+                        )
+                    }
 
-                if 'DEFAULT_FILTER_MODULE' in DRFAUTOAPI:
+                if "DEFAULT_FILTER_MODULE" in DRFAUTOAPI:
                     filters = importlib.import_module(
-                        DRFAUTOAPI['DEFAULT_FILTER_MODULE']
+                        DRFAUTOAPI["DEFAULT_FILTER_MODULE"]
                     )
                     filters_classes = inspect.getmembers(filters)
-                    filters_classes = {i[0]: i[1] for i in filter(
-                        lambda x: x[0].endswith('FilterSet'),
-                        filters_classes
-                    )}
+                    filters_classes = {
+                        i[0]: i[1]
+                        for i in filter(
+                            lambda x: x[0].endswith("FilterSet"), filters_classes
+                        )
+                    }
 
-                if 'GLOBAL_SERIALIZER_MIXIN' in DRFAUTOAPI:
-                    cs = DRFAUTOAPI['GLOBAL_SERIALIZER_MIXIN'].split('.')
-                    module = importlib.import_module(
-                        '.'.join(cs[0:-1]))
+                if "GLOBAL_SERIALIZER_MIXIN" in DRFAUTOAPI:
+                    cs = DRFAUTOAPI["GLOBAL_SERIALIZER_MIXIN"].split(".")
+                    module = importlib.import_module(".".join(cs[0:-1]))
                     global_serializer_mixin = getattr(module, cs[-1])
 
-                if 'GLOBAL_FILTERSET_MIXIN' in DRFAUTOAPI:
-                    cs = DRFAUTOAPI['GLOBAL_FILTERSET_MIXIN'].split('.')
-                    m = importlib.import_module('.'.join(cs[0:-1]))
+                if "GLOBAL_FILTERSET_MIXIN" in DRFAUTOAPI:
+                    cs = DRFAUTOAPI["GLOBAL_FILTERSET_MIXIN"].split(".")
+                    m = importlib.import_module(".".join(cs[0:-1]))
                     global_filter_class = getattr(m, cs[-1])
 
         except Exception as e:
@@ -270,45 +272,50 @@ class ApiViewSetConstrutor():
         def build(_model):
             object_name = _model._meta.object_name
 
-            serializer_name = f'{object_name}Serializer'
+            serializer_name = f"{object_name}Serializer"
             _serializer_class = serializers_classes.get(
-                serializer_name, global_serializer_mixin)
+                serializer_name, global_serializer_mixin
+            )
 
-            filter_name = f'{object_name}FilterSet'
-            _filterset_class = filters_classes.get(
-                filter_name, global_filter_class)
+            filter_name = f"{object_name}FilterSet"
+            _filterset_class = filters_classes.get(filter_name, global_filter_class)
 
             def create_class():
-
-                _meta_serializer = object if not hasattr(
-                    _serializer_class, 'Meta') else _serializer_class.Meta
+                _meta_serializer = (
+                    object
+                    if not hasattr(_serializer_class, "Meta")
+                    else _serializer_class.Meta
+                )
 
                 class ApiSerializer(_serializer_class):
-
                     class Meta(_meta_serializer):
-                        if not hasattr(_meta_serializer, 'ref_name'):
-                            ref_name = f'{object_name}Serializer'
+                        if not hasattr(_meta_serializer, "ref_name"):
+                            ref_name = f"{object_name}Serializer"
 
-                        if not hasattr(_meta_serializer, 'model'):
+                        if not hasattr(_meta_serializer, "model"):
                             model = _model
 
-                        if hasattr(_meta_serializer, 'exclude'):
+                        if hasattr(_meta_serializer, "exclude"):
                             exclude = _meta_serializer.exclude
                         else:
-                            if not hasattr(_meta_serializer, 'fields'):
-                                fields = '__all__'
-                            elif _meta_serializer.fields != '__all__':
+                            if not hasattr(_meta_serializer, "fields"):
+                                fields = "__all__"
+                            elif _meta_serializer.fields != "__all__":
                                 fields = list(_meta_serializer.fields)
                             else:
                                 fields = _meta_serializer.fields
 
-                _meta_filterset = object if not hasattr(
-                    _filterset_class, 'Meta') else _filterset_class.Meta
+                _meta_filterset = (
+                    object
+                    if not hasattr(_filterset_class, "Meta")
+                    else _filterset_class.Meta
+                )
 
                 class ApiFilterSet(_filterset_class):
-
-                    class Meta(_meta_filterset, ):
-                        if not hasattr(_meta_filterset, 'model'):
+                    class Meta(
+                        _meta_filterset,
+                    ):
+                        if not hasattr(_meta_filterset, "model"):
                             model = _model
 
                 class ModelApiViewSet(ApiViewSetConstrutor.ApiViewSet):
@@ -319,11 +326,10 @@ class ApiViewSetConstrutor():
                 return ModelApiViewSet
 
             viewset = create_class()
-            viewset.__name__ = '%sModelViewSet' % _model.__name__
+            viewset.__name__ = "%sModelViewSet" % _model.__name__
             return viewset
 
         for am in apps_or_models:
-
             if isinstance(am, ModelBase):
                 app = am._meta.app_config
             else:
@@ -353,17 +359,16 @@ class ApiViewSetConstrutor():
 
 
 class wrapper_queryset_response_for_drf_action(object):
-
     def __init__(self, model):
         self.model = model
 
     def __call__(self, cls):
-
         def wrapper(instance_view, *args, **kwargs):
             # recupera a viewset do model anotado
             iv = instance_view
             viewset_from_model = ApiViewSetConstrutor._built_sets[
-                self.model._meta.app_config][self.model]
+                self.model._meta.app_config
+            ][self.model]
 
             # apossa da instancia da viewset mae do action
             # em uma viewset que processa dados do model passado no decorator
@@ -371,41 +376,38 @@ class wrapper_queryset_response_for_drf_action(object):
             iv.serializer_class = viewset_from_model.serializer_class
             iv.filterset_class = viewset_from_model.filterset_class
 
-            iv.queryset = instance_view.filter_queryset(
-                iv.get_queryset())
+            iv.queryset = instance_view.filter_queryset(iv.get_queryset())
 
             # chama efetivamente o metodo anotado que deve devolver um queryset
             # com os filtros específicos definido pelo programador customizador
             qs = cls(instance_view, *args, **kwargs)
 
             page = iv.paginate_queryset(qs)
-            data = iv.get_serializer(
-                page if page is not None else qs, many=True).data
+            data = iv.get_serializer(page if page is not None else qs, many=True).data
 
-            return iv.get_paginated_response(
-                data) if page is not None else Response(data)
+            return (
+                iv.get_paginated_response(data) if page is not None else Response(data)
+            )
 
         return wrapper
 
 
 # decorator para recuperar e transformar o default
 class customize(object):
-
     def __init__(self, model):
         self.model = model
 
     def __call__(self, cls):
-
         class _ApiViewSet(
             cls,
-                ApiViewSetConstrutor._built_sets[
-                    self.model._meta.app_config][self.model]
+            ApiViewSetConstrutor._built_sets[self.model._meta.app_config][self.model],
         ):
             pass
 
-        if hasattr(_ApiViewSet, 'build'):
+        if hasattr(_ApiViewSet, "build"):
             _ApiViewSet = _ApiViewSet.build()
 
-        ApiViewSetConstrutor._built_sets[
-            self.model._meta.app_config][self.model] = _ApiViewSet
+        ApiViewSetConstrutor._built_sets[self.model._meta.app_config][
+            self.model
+        ] = _ApiViewSet
         return _ApiViewSet

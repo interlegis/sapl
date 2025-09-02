@@ -11,22 +11,18 @@ from drfautoapi.drfautoapi import ApiViewSetConstrutor, customize
 from sapl.api.forms import AutoresPossiveisFilterSet
 from sapl.api.serializers import ChoiceSerializer
 from sapl.base.models import Autor, TipoAutor
-from sapl.utils import models_with_gr_for_model, SaplGenericRelation
-
+from sapl.utils import SaplGenericRelation, models_with_gr_for_model
 
 logger = logging.getLogger(__name__)
 
 ApiViewSetConstrutor.build_class(
-    [
-        apps.get_app_config('contenttypes'),
-        apps.get_app_config('base')
-    ]
+    [apps.get_app_config("contenttypes"), apps.get_app_config("base")]
 )
 
 
 @customize(ContentType)
 class _ContentTypeSet:
-    http_method_names = ['get', 'head', 'options', 'trace']
+    http_method_names = ["get", "head", "options", "trace"]
 
 
 @customize(Autor)
@@ -74,7 +70,6 @@ class _AutorViewSet:
 
     @classmethod
     def build(cls):
-
         models_with_gr_for_autor = models_with_gr_for_model(Autor)
 
         for _model in models_with_gr_for_autor:
@@ -87,10 +82,10 @@ class _AutorViewSet:
                 return self.list_for_content_type(content_type)
 
             func = actionclass
-            func.mapping['get'] = func.kwargs['name']
-            func.url_name = func.kwargs['name']
-            func.url_path = func.kwargs['name']
-            func.__name__ = func.kwargs['name']
+            func.mapping["get"] = func.kwargs["name"]
+            func.url_name = func.kwargs["name"]
+            func.url_path = func.kwargs["name"]
+            func.__name__ = func.kwargs["name"]
             func.__model = _model
 
             setattr(cls, _model._meta.model_name, func)
@@ -103,7 +98,6 @@ class _AutorViewSet:
 
     @action(detail=False)
     def provaveis(self, request, *args, **kwargs):
-
         self.get_queryset = self.provaveis__get_queryset
 
         self.filter_backends = []
@@ -112,15 +106,15 @@ class _AutorViewSet:
         return self.list(request, *args, **kwargs)
 
     def provaveis__get_queryset(self):
-        params = {'content_type__isnull': False}
+        params = {"content_type__isnull": False}
         username = self.request.user.username
-        tipo = ''
+        tipo = ""
         try:
-            tipo = int(self.request.GET.get('tipo', ''))
+            tipo = int(self.request.GET.get("tipo", ""))
             if tipo:
-                params['id'] = tipo
+                params["id"] = tipo
         except Exception as e:
-            logger.error('user= ' + username + '. ' + str(e))
+            logger.error("user= " + username + ". " + str(e))
             pass
 
         tipos = TipoAutor.objects.filter(**params)
@@ -130,14 +124,17 @@ class _AutorViewSet:
 
         r = []
         for tipo in tipos:
-            q = self.request.GET.get('q', '').strip()
+            q = self.request.GET.get("q", "").strip()
 
             model_class = tipo.content_type.model_class()
 
-            fields = list(filter(
-                lambda field: isinstance(field, SaplGenericRelation) and
-                field.related_model == Autor,
-                model_class._meta.get_fields(include_hidden=True)))
+            fields = list(
+                filter(
+                    lambda field: isinstance(field, SaplGenericRelation)
+                    and field.related_model == Autor,
+                    model_class._meta.get_fields(include_hidden=True),
+                )
+            )
 
             """
                 fields - é um array de SaplGenericRelation que deve possuir o
@@ -145,11 +142,13 @@ class _AutorViewSet:
                      a estrutura de fields_search.
                 """
 
-            assert len(fields) >= 1, (_(
-                'Não foi encontrado em %(model)s um atributo do tipo '
-                'SaplGenericRelation que use o model %(model_autor)s') % {
-                'model': model_class._meta.verbose_name,
-                'model_autor': Autor._meta.verbose_name})
+            assert len(fields) >= 1, _(
+                "Não foi encontrado em %(model)s um atributo do tipo "
+                "SaplGenericRelation que use o model %(model_autor)s"
+            ) % {
+                "model": model_class._meta.verbose_name,
+                "model_autor": Autor._meta.verbose_name,
+            }
 
             qs = model_class.objects.all()
 
@@ -160,19 +159,18 @@ class _AutorViewSet:
                         continue
                     q_fs = Q()
                     for field in item.fields_search:
-                        q_fs = q_fs | Q(**{'%s%s' % (
-                            field[0],
-                            field[1]): q})
+                        q_fs = q_fs | Q(**{"%s%s" % (field[0], field[1]): q})
                     q_filter = q_filter & q_fs
 
-                qs = qs.filter(q_filter).distinct(
-                    fields[0].fields_search[0][0]).order_by(
-                        fields[0].fields_search[0][0])
+                qs = (
+                    qs.filter(q_filter)
+                    .distinct(fields[0].fields_search[0][0])
+                    .order_by(fields[0].fields_search[0][0])
+                )
             else:
                 qs = qs.order_by(fields[0].fields_search[0][0])
 
-            qs = qs.values_list(
-                'id', fields[0].fields_search[0][0])
+            qs = qs.values_list("id", fields[0].fields_search[0][0])
             r += list(qs)
 
         if tipos.count() > 1:

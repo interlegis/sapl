@@ -3,6 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class AppConfig(apps.AppConfig):
-    name = 'sapl.norma'
-    label = 'norma'
-    verbose_name = _('Norma Jurídica')
+    name = "sapl.norma"
+    label = "norma"
+    verbose_name = _("Norma Jurídica")

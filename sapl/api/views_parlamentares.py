@@ -1,34 +1,25 @@
-
 from django.apps.registry import apps
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from drfautoapi.drfautoapi import customize, ApiViewSetConstrutor, \
-    wrapper_queryset_response_for_drf_action
-
+from drfautoapi.drfautoapi import (ApiViewSetConstrutor, customize,
+                                   wrapper_queryset_response_for_drf_action)
 from sapl.api.permissions import SaplModelPermissions
-from sapl.api.serializers import ParlamentarSerializerVerbose, \
-    ParlamentarSerializerPublic
+from sapl.api.serializers import (ParlamentarSerializerPublic,
+                                  ParlamentarSerializerVerbose)
 from sapl.materia.models import Proposicao
-from sapl.parlamentares.models import Mandato, Legislatura
-from sapl.parlamentares.models import Parlamentar
+from sapl.parlamentares.models import Legislatura, Mandato, Parlamentar
 
-ApiViewSetConstrutor.build_class(
-    [
-        apps.get_app_config('parlamentares')
-    ]
-)
+ApiViewSetConstrutor.build_class([apps.get_app_config("parlamentares")])
 
 
 @customize(Parlamentar)
 class _ParlamentarViewSet:
-
     class ParlamentarPermission(SaplModelPermissions):
-
         def has_permission(self, request, view):
-            if request.method == 'GET':
+            if request.method == "GET":
                 return True
             else:
                 perm = super().has_permission(request, view)
@@ -37,7 +28,7 @@ class _ParlamentarViewSet:
     permission_classes = (ParlamentarPermission,)
 
     def get_serializer(self, *args, **kwargs):
-        if not self.request.user.has_perm('parlamentares.add_parlamentar'):
+        if not self.request.user.has_perm("parlamentares.add_parlamentar"):
             self.serializer_class = ParlamentarSerializerPublic
         return super().get_serializer(*args, **kwargs)
 
@@ -58,35 +49,30 @@ class _ParlamentarViewSet:
 
     @wrapper_queryset_response_for_drf_action(model=Proposicao)
     def get_proposicoes(self, **kwargs):
-
         return self.get_queryset().filter(
             data_envio__isnull=False,
             data_recebimento__isnull=False,
             cancelado=False,
-            autor__object_id=kwargs['pk'],
-            autor__content_type=ContentType.objects.get_for_model(Parlamentar)
+            autor__object_id=kwargs["pk"],
+            autor__content_type=ContentType.objects.get_for_model(Parlamentar),
         )
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=["GET"])
     def search_parlamentares(self, request, *args, **kwargs):
-        nome = request.query_params.get('nome_parlamentar', '')
-        parlamentares = Parlamentar.objects.filter(
-            nome_parlamentar__icontains=nome)
+        nome = request.query_params.get("nome_parlamentar", "")
+        parlamentares = Parlamentar.objects.filter(nome_parlamentar__icontains=nome)
         serializer_class = ParlamentarSerializerVerbose(
-            parlamentares, many=True, context={'request': request})
+            parlamentares, many=True, context={"request": request}
+        )
         return Response(serializer_class.data)
 
 
 @customize(Legislatura)
 class _LegislaturaViewSet:
-
     @action(detail=True)
     def parlamentares(self, request, *args, **kwargs):
-
         def get_serializer_context():
-            return {
-                'request': self.request, 'legislatura': kwargs['pk']
-            }
+            return {"request": self.request, "legislatura": kwargs["pk"]}
 
         def get_serializer_class():
             return ParlamentarSerializerVerbose
@@ -98,22 +84,21 @@ class _LegislaturaViewSet:
 
     @wrapper_queryset_response_for_drf_action(model=Parlamentar)
     def get_parlamentares(self):
-
         try:
-            legislatura = Legislatura.objects.get(pk=self.kwargs['pk'])
+            legislatura = Legislatura.objects.get(pk=self.kwargs["pk"])
         except ObjectDoesNotExist:
             return Response("")
 
         filter_params = {
-            'legislatura': legislatura,
-            'data_inicio_mandato__gte': legislatura.data_inicio,
-            'data_fim_mandato__lte': legislatura.data_fim,
+            "legislatura": legislatura,
+            "data_inicio_mandato__gte": legislatura.data_inicio,
+            "data_fim_mandato__lte": legislatura.data_fim,
         }
 
-        mandatos = Mandato.objects.filter(
-            **filter_params).order_by('-data_inicio_mandato')
+        mandatos = Mandato.objects.filter(**filter_params).order_by(
+            "-data_inicio_mandato"
+        )
 
-        parlamentares = self.get_queryset().filter(
-            mandato__in=mandatos).distinct()
+        parlamentares = self.get_queryset().filter(mandato__in=mandatos).distinct()
 
         return parlamentares

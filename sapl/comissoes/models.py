@@ -4,261 +4,276 @@ from model_utils import Choices
 
 from sapl.base.models import Autor
 from sapl.parlamentares.models import Parlamentar
-from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
-                        restringe_tipos_de_arquivo_txt, texto_upload_path,
-                        OverwriteStorage)
+from sapl.utils import (YES_NO_CHOICES, OverwriteStorage, SaplGenericRelation,
+                        restringe_tipos_de_arquivo_txt, texto_upload_path)
 
 
 class TipoComissao(models.Model):
-    NATUREZA_CHOICES = Choices(('T', 'temporaria', _('Temporária')),
-                               ('P', 'permanente', _('Permanente')))
-    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+    NATUREZA_CHOICES = Choices(
+        ("T", "temporaria", _("Temporária")), ("P", "permanente", _("Permanente"))
+    )
+    nome = models.CharField(max_length=50, verbose_name=_("Nome"))
     natureza = models.CharField(
-        max_length=1, verbose_name=_('Natureza'), choices=NATUREZA_CHOICES)
-    sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
+        max_length=1, verbose_name=_("Natureza"), choices=NATUREZA_CHOICES
+    )
+    sigla = models.CharField(max_length=10, verbose_name=_("Sigla"))
     dispositivo_regimental = models.CharField(
-        max_length=50,
-        blank=True,
-        verbose_name=_('Dispositivo Regimental'))
+        max_length=50, blank=True, verbose_name=_("Dispositivo Regimental")
+    )
 
     class Meta:
-        verbose_name = _('Tipo de Comissão')
-        verbose_name_plural = _('Tipos de Comissão')
-        ordering = ('id',)
+        verbose_name = _("Tipo de Comissão")
+        verbose_name_plural = _("Tipos de Comissão")
+        ordering = ("id",)
 
     def __str__(self):
         return self.nome
 
 
 class Comissao(models.Model):
-    tipo = models.ForeignKey(TipoComissao,
-                             on_delete=models.PROTECT,
-                             verbose_name=_('Tipo'))
-    nome = models.CharField(max_length=100, verbose_name=_('Nome'))
-    sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
-    data_criacao = models.DateField(verbose_name=_('Data de Criação'))
+    tipo = models.ForeignKey(
+        TipoComissao, on_delete=models.PROTECT, verbose_name=_("Tipo")
+    )
+    nome = models.CharField(max_length=100, verbose_name=_("Nome"))
+    sigla = models.CharField(max_length=10, verbose_name=_("Sigla"))
+    data_criacao = models.DateField(verbose_name=_("Data de Criação"))
     data_extincao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data de Extinção'))
+        blank=True, null=True, verbose_name=_("Data de Extinção")
+    )
     apelido_temp = models.CharField(
-        max_length=100, blank=True, verbose_name=_('Apelido'))
+        max_length=100, blank=True, verbose_name=_("Apelido")
+    )
     data_instalacao_temp = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Instalação'))
+        blank=True, null=True, verbose_name=_("Data Instalação")
+    )
     data_final_prevista_temp = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Prevista Término'))
+        blank=True, null=True, verbose_name=_("Data Prevista Término")
+    )
     data_prorrogada_temp = models.DateField(
-        blank=True, null=True, verbose_name=_('Novo Prazo'))
+        blank=True, null=True, verbose_name=_("Novo Prazo")
+    )
     data_fim_comissao = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Término'))
+        blank=True, null=True, verbose_name=_("Data Término")
+    )
     secretario = models.CharField(
-        max_length=30, blank=True, verbose_name=_('Secretário'))
+        max_length=30, blank=True, verbose_name=_("Secretário")
+    )
     telefone_reuniao = models.CharField(
-        max_length=15, blank=True,
-        verbose_name=_('Tel. Sala Reunião'))
+        max_length=15, blank=True, verbose_name=_("Tel. Sala Reunião")
+    )
     endereco_secretaria = models.CharField(
-        max_length=100, blank=True,
-        verbose_name=_('Endereço Secretaria'))
+        max_length=100, blank=True, verbose_name=_("Endereço Secretaria")
+    )
     telefone_secretaria = models.CharField(
-        max_length=15, blank=True,
-        verbose_name=_('Tel. Secretaria'))
+        max_length=15, blank=True, verbose_name=_("Tel. Secretaria")
+    )
     fax_secretaria = models.CharField(
-        max_length=15, blank=True, verbose_name=_('Fax Secretaria'))
+        max_length=15, blank=True, verbose_name=_("Fax Secretaria")
+    )
     agenda_reuniao = models.CharField(
-        max_length=100, blank=True,
-        verbose_name=_('Data/Hora Reunião'))
+        max_length=100, blank=True, verbose_name=_("Data/Hora Reunião")
+    )
     local_reuniao = models.CharField(
-        max_length=100, blank=True, verbose_name=_('Local Reunião'))
-    finalidade = models.TextField(
-        blank=True, verbose_name=_('Finalidade'))
-    email = models.EmailField(max_length=100,
-                              blank=True,
-                              verbose_name=_('E-mail'))
+        max_length=100, blank=True, verbose_name=_("Local Reunião")
+    )
+    finalidade = models.TextField(blank=True, verbose_name=_("Finalidade"))
+    email = models.EmailField(max_length=100, blank=True, verbose_name=_("E-mail"))
     unidade_deliberativa = models.BooleanField(
-        choices=YES_NO_CHOICES,
-        verbose_name=_('Unidade Deliberativa'),
-        default=False)
+        choices=YES_NO_CHOICES, verbose_name=_("Unidade Deliberativa"), default=False
+    )
     ativa = models.BooleanField(
-        default=False,
-        choices=YES_NO_CHOICES,
-        verbose_name=_('Comissão Ativa?'))
-    autor = SaplGenericRelation(Autor,
-                                related_query_name='comissao_set',
-                                fields_search=(
-                                    ('nome', '__icontains'),
-                                    ('sigla', '__icontains')
-                                ))
+        default=False, choices=YES_NO_CHOICES, verbose_name=_("Comissão Ativa?")
+    )
+    autor = SaplGenericRelation(
+        Autor,
+        related_query_name="comissao_set",
+        fields_search=(("nome", "__icontains"), ("sigla", "__icontains")),
+    )
 
     class Meta:
-        verbose_name = _('Comissão')
-        verbose_name_plural = _('Comissões')
-        ordering = ['nome']
+        verbose_name = _("Comissão")
+        verbose_name_plural = _("Comissões")
+        ordering = ["nome"]
 
     def __str__(self):
-        return self.sigla + ' - ' + self.nome
+        return self.sigla + " - " + self.nome
 
 
 class Periodo(models.Model):  # PeriodoCompComissao
-    data_inicio = models.DateField(verbose_name=_('Data Início'))
-    data_fim = models.DateField(
-        blank=True, null=True, verbose_name=_('Data Fim'))
+    data_inicio = models.DateField(verbose_name=_("Data Início"))
+    data_fim = models.DateField(blank=True, null=True, verbose_name=_("Data Fim"))
 
     class Meta:
-        verbose_name = _('Período de composição de Comissão')
-        verbose_name_plural = _('Períodos de composição de Comissão')
-        ordering = ['-data_inicio', '-data_fim']
+        verbose_name = _("Período de composição de Comissão")
+        verbose_name_plural = _("Períodos de composição de Comissão")
+        ordering = ["-data_inicio", "-data_fim"]
 
     def __str__(self):
         if self.data_inicio and self.data_fim:
-            return '%s - %s' % (self.data_inicio.strftime("%d/%m/%Y"),
-                                self.data_fim.strftime("%d/%m/%Y"))
+            return "%s - %s" % (
+                self.data_inicio.strftime("%d/%m/%Y"),
+                self.data_fim.strftime("%d/%m/%Y"),
+            )
         elif self.data_inicio and not self.data_fim:
-            return '%s - ' % self.data_inicio.strftime("%d/%m/%Y")
+            return "%s - " % self.data_inicio.strftime("%d/%m/%Y")
         else:
-            return '-'
+            return "-"
 
 
 class CargoComissao(models.Model):
     id_ordenacao = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name=_('Posição na Ordenação'),
+        blank=True,
+        null=True,
+        verbose_name=_("Posição na Ordenação"),
     )
-    nome = models.CharField(max_length=50, verbose_name=_('Nome do Cargo'))
+    nome = models.CharField(max_length=50, verbose_name=_("Nome do Cargo"))
     unico = models.BooleanField(
-        choices=YES_NO_CHOICES, verbose_name=_('Cargo Único'), default=True
+        choices=YES_NO_CHOICES, verbose_name=_("Cargo Único"), default=True
     )
 
     class Meta:
-        verbose_name = _('Cargo de Comissão')
-        verbose_name_plural = _('Cargos de Comissão')
-        ordering = ['id_ordenacao']
+        verbose_name = _("Cargo de Comissão")
+        verbose_name_plural = _("Cargos de Comissão")
+        ordering = ["id_ordenacao"]
 
     def __str__(self):
         return self.nome
 
 
 class Composicao(models.Model):  # IGNORE
-    comissao = models.ForeignKey(Comissao,
-                                 on_delete=models.CASCADE,
-                                 verbose_name=_('Comissão'))
-    periodo = models.ForeignKey(Periodo,
-                                on_delete=models.PROTECT,
-                                verbose_name=_('Período'))
+    comissao = models.ForeignKey(
+        Comissao, on_delete=models.CASCADE, verbose_name=_("Comissão")
+    )
+    periodo = models.ForeignKey(
+        Periodo, on_delete=models.PROTECT, verbose_name=_("Período")
+    )
 
     class Meta:
-        verbose_name = _('Composição de Comissão')
-        verbose_name_plural = _('Composições de Comissão')
-        ordering = ['periodo']
+        verbose_name = _("Composição de Comissão")
+        verbose_name_plural = _("Composições de Comissão")
+        ordering = ["periodo"]
 
     def __str__(self):
-        return '%s: %s' % (self.comissao.sigla, self.periodo)
+        return "%s: %s" % (self.comissao.sigla, self.periodo)
 
 
 class Participacao(models.Model):  # ComposicaoComissao
-    composicao = models.ForeignKey(Composicao,
-                                   related_name='participacao_set',
-                                   on_delete=models.CASCADE,
-                                   verbose_name=_('Composição'))
-    parlamentar = models.ForeignKey(Parlamentar,
-                                    on_delete=models.PROTECT,
-                                    verbose_name='Parlamentar')
-    cargo = models.ForeignKey(CargoComissao,
-                              on_delete=models.PROTECT,
-                              verbose_name='Cargo')
+    composicao = models.ForeignKey(
+        Composicao,
+        related_name="participacao_set",
+        on_delete=models.CASCADE,
+        verbose_name=_("Composição"),
+    )
+    parlamentar = models.ForeignKey(
+        Parlamentar, on_delete=models.PROTECT, verbose_name="Parlamentar"
+    )
+    cargo = models.ForeignKey(
+        CargoComissao, on_delete=models.PROTECT, verbose_name="Cargo"
+    )
     titular = models.BooleanField(
-        verbose_name=_('Titular'),
-        default=False,
-        choices=YES_NO_CHOICES)
-    data_designacao = models.DateField(verbose_name=_('Data Designação'))
-    data_desligamento = models.DateField(blank=True,
-                                         null=True,
-                                         verbose_name=_('Data Desligamento'))
+        verbose_name=_("Titular"), default=False, choices=YES_NO_CHOICES
+    )
+    data_designacao = models.DateField(verbose_name=_("Data Designação"))
+    data_desligamento = models.DateField(
+        blank=True, null=True, verbose_name=_("Data Desligamento")
+    )
     motivo_desligamento = models.TextField(
-        blank=True, verbose_name=_('Motivo Desligamento'))
-    observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
+        blank=True, verbose_name=_("Motivo Desligamento")
+    )
+    observacao = models.TextField(blank=True, verbose_name=_("Observação"))
 
     class Meta:
-        verbose_name = _('Participação em Comissão')
-        verbose_name_plural = _('Participações em Comissão')
-        ordering = ['-titular', 'cargo__id_ordenacao']
+        verbose_name = _("Participação em Comissão")
+        verbose_name_plural = _("Participações em Comissão")
+        ordering = ["-titular", "cargo__id_ordenacao"]
 
     def __str__(self):
-        return '%s : %s' % (self.cargo, self.parlamentar)
+        return "%s : %s" % (self.cargo, self.parlamentar)
 
 
 def get_comissao_media_path(instance, subpath, filename):
-    return './sapl/comissao/%s/%s/%s' % (instance.numero, subpath, filename)
+    return "./sapl/comissao/%s/%s/%s" % (instance.numero, subpath, filename)
 
 
 def pauta_upload_path(instance, filename):
-
-    return texto_upload_path(instance, filename, subpath='pauta', pk_first=True)
+    return texto_upload_path(instance, filename, subpath="pauta", pk_first=True)
 
 
 def ata_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='ata', pk_first=True)
+    return texto_upload_path(instance, filename, subpath="ata", pk_first=True)
 
 
 def anexo_upload_path(instance, filename):
-    return texto_upload_path(instance, filename, subpath='anexo', pk_first=True)
+    return texto_upload_path(instance, filename, subpath="anexo", pk_first=True)
 
 
 class Reuniao(models.Model):
-    periodo = models. ForeignKey(
+    periodo = models.ForeignKey(
         Periodo,
         null=True,
         on_delete=models.PROTECT,
-        verbose_name=_('Periodo da Composicão da Comissão'))
+        verbose_name=_("Periodo da Composicão da Comissão"),
+    )
     comissao = models.ForeignKey(
-        Comissao,
-        on_delete=models.CASCADE,
-        verbose_name=_('Comissão'))
-    numero = models.PositiveIntegerField(verbose_name=_('Número'))
-    nome = models.CharField(
-        max_length=150, verbose_name=_('Nome da Reunião'))
+        Comissao, on_delete=models.CASCADE, verbose_name=_("Comissão")
+    )
+    numero = models.PositiveIntegerField(verbose_name=_("Número"))
+    nome = models.CharField(max_length=150, verbose_name=_("Nome da Reunião"))
     tema = models.CharField(
-        max_length=150, blank=True, verbose_name=_('Tema da Reunião'))
-    data = models.DateField(verbose_name=_('Data'))
+        max_length=150, blank=True, verbose_name=_("Tema da Reunião")
+    )
+    data = models.DateField(verbose_name=_("Data"))
     hora_inicio = models.TimeField(
-        null=True,
-        verbose_name=_('Horário de Início (hh:mm)'))
+        null=True, verbose_name=_("Horário de Início (hh:mm)")
+    )
     hora_fim = models.TimeField(
-        blank=True,
-        null=True,
-        verbose_name=_('Horário de Término (hh:mm)'))
+        blank=True, null=True, verbose_name=_("Horário de Término (hh:mm)")
+    )
     local_reuniao = models.CharField(
-        max_length=100, blank=True, verbose_name=_('Local da Reunião'))
-    observacao = models.TextField(
-        blank=True, verbose_name=_('Observação'))
+        max_length=100, blank=True, verbose_name=_("Local da Reunião")
+    )
+    observacao = models.TextField(blank=True, verbose_name=_("Observação"))
     url_audio = models.URLField(
-        max_length=150, blank=True,
-        verbose_name=_('URL do Arquivo de Áudio (Formatos MP3 / AAC)'))
+        max_length=150,
+        blank=True,
+        verbose_name=_("URL do Arquivo de Áudio (Formatos MP3 / AAC)"),
+    )
     url_video = models.URLField(
-        max_length=150, blank=True,
-        verbose_name=_('URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)'))
+        max_length=150,
+        blank=True,
+        verbose_name=_("URL do Arquivo de Vídeo (Formatos MP4 / FLV / WebM)"),
+    )
     upload_pauta = models.FileField(
         max_length=300,
-        blank=True, null=True,
+        blank=True,
+        null=True,
         upload_to=pauta_upload_path,
-        verbose_name=_('Pauta da Reunião'),
+        verbose_name=_("Pauta da Reunião"),
         storage=OverwriteStorage(),
-        validators=[restringe_tipos_de_arquivo_txt])
+        validators=[restringe_tipos_de_arquivo_txt],
+    )
     upload_ata = models.FileField(
         max_length=300,
-        blank=True, null=True,
+        blank=True,
+        null=True,
         upload_to=ata_upload_path,
-        verbose_name=_('Ata da Reunião'),
+        verbose_name=_("Ata da Reunião"),
         storage=OverwriteStorage(),
-        validators=[restringe_tipos_de_arquivo_txt])
+        validators=[restringe_tipos_de_arquivo_txt],
+    )
     upload_anexo = models.FileField(
         max_length=300,
-        blank=True, null=True,
+        blank=True,
+        null=True,
         upload_to=anexo_upload_path,
         storage=OverwriteStorage(),
-        verbose_name=_('Anexo da Reunião'))
+        verbose_name=_("Anexo da Reunião"),
+    )
 
     class Meta:
-        verbose_name = _('Reunião de Comissão')
-        verbose_name_plural = _('Reuniões de Comissão')
-        ordering = ('-data', '-nome')
+        verbose_name = _("Reunião de Comissão")
+        verbose_name_plural = _("Reuniões de Comissão")
+        ordering = ("-data", "-nome")
 
     def __str__(self):
         return self.nome
@@ -281,67 +296,68 @@ class Reuniao(models.Model):
 
         return result
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-
-        if not self.pk and (self.upload_pauta or self.upload_ata or
-                            self.upload_anexo):
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        if not self.pk and (self.upload_pauta or self.upload_ata or self.upload_anexo):
             upload_pauta = self.upload_pauta
             upload_ata = self.upload_ata
             upload_anexo = self.upload_anexo
             self.upload_pauta = None
             self.upload_ata = None
             self.upload_anexo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
+            models.Model.save(
+                self,
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
 
             self.upload_pauta = upload_pauta
             self.upload_ata = upload_ata
             self.upload_anexo = upload_anexo
 
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return models.Model.save(
+            self,
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
 
 class DocumentoAcessorio(models.Model):
-    reuniao = models.ForeignKey(Reuniao,
-                                related_name='documentoacessorio_set',
-                                on_delete=models.PROTECT)
-    nome = models.CharField(max_length=50, verbose_name=_('Nome'))
+    reuniao = models.ForeignKey(
+        Reuniao, related_name="documentoacessorio_set", on_delete=models.PROTECT
+    )
+    nome = models.CharField(max_length=50, verbose_name=_("Nome"))
 
-    data = models.DateField(blank=True, null=True,
-                            default=None, verbose_name=_('Data'))
-    autor = models.CharField(
-        max_length=200,  verbose_name=_('Autor'))
-    ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
+    data = models.DateField(blank=True, null=True, default=None, verbose_name=_("Data"))
+    autor = models.CharField(max_length=200, verbose_name=_("Autor"))
+    ementa = models.TextField(blank=True, verbose_name=_("Ementa"))
     indexacao = models.TextField(blank=True)
     arquivo = models.FileField(
         max_length=300,
         blank=True,
         null=True,
         upload_to=anexo_upload_path,
-        verbose_name=_('Texto Integral'),
+        verbose_name=_("Texto Integral"),
         storage=OverwriteStorage(),
-        validators=[restringe_tipos_de_arquivo_txt])
+        validators=[restringe_tipos_de_arquivo_txt],
+    )
 
     data_ultima_atualizacao = models.DateTimeField(
-        blank=True, null=True,
-        auto_now=True,
-        verbose_name=_('Data'))
+        blank=True, null=True, auto_now=True, verbose_name=_("Data")
+    )
 
     class Meta:
-        verbose_name = _('Documento Acessório')
-        verbose_name_plural = _('Documentos Acessórios')
-        ordering = ('data', 'id')
+        verbose_name = _("Documento Acessório")
+        verbose_name_plural = _("Documentos Acessórios")
+        ordering = ("data", "id")
 
     def __str__(self):
-        return _('%(nome)s por %(autor)s') % {
-            'nome': self.nome,
-            'autor': self.autor}
+        return _("%(nome)s por %(autor)s") % {"nome": self.nome, "autor": self.autor}
 
     def delete(self, using=None, keep_parents=False):
         arquivo = self.arquivo
@@ -352,19 +368,25 @@ class DocumentoAcessorio(models.Model):
 
         return result
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
         if not self.pk and self.arquivo:
             arquivo = self.arquivo
             self.arquivo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
+            models.Model.save(
+                self,
+                force_insert=force_insert,
+                force_update=force_update,
+                using=using,
+                update_fields=update_fields,
+            )
             self.arquivo = arquivo
 
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return models.Model.save(
+            self,
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )

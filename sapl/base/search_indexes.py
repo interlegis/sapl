@@ -21,7 +21,6 @@ from sapl.utils import RemoveTag
 
 
 class TextExtractField(CharField):
-
     backend = None
     logger = logging.getLogger(__name__)
 
@@ -30,39 +29,40 @@ class TextExtractField(CharField):
         assert self.model_attr
 
         if not isinstance(self.model_attr, (list, tuple)):
-            self.model_attr = (self.model_attr, )
+            self.model_attr = (self.model_attr,)
 
     def solr_extraction(self, arquivo):
         if not self.backend:
-            self.backend = connections['default'].get_backend()
+            self.backend = connections["default"].get_backend()
         try:
-            with open(arquivo.path, 'rb') as f:
+            with open(arquivo.path, "rb") as f:
                 content = self.backend.extract_file_contents(f)
-                data = ''
+                data = ""
                 if content:
                     # update from Solr 7.5 to 8.9
-                    if content['contents']:
-                        data += content['contents']
-                    if content['file']:
-                        data += content['file']
+                    if content["contents"]:
+                        data += content["contents"]
+                    if content["file"]:
+                        data += content["file"]
                 return data
         except Exception as e:
-            print('erro processando arquivo: ' % arquivo.path)
+            print("erro processando arquivo: " % arquivo.path)
             self.logger.error(arquivo.path)
-            self.logger.error('erro processando arquivo: ' % arquivo.path)
-            data = ''
+            self.logger.error("erro processando arquivo: " % arquivo.path)
+            data = ""
         return data
 
     def print_error(self, arquivo, error):
-        msg = 'Erro inesperado processando arquivo %s erro: %s' % (
-            arquivo.path, error)
+        msg = "Erro inesperado processando arquivo %s erro: %s" % (arquivo.path, error)
         print(msg, error)
         self.logger.error(msg, error)
 
     def file_extractor(self, arquivo):
-        if not os.path.exists(arquivo.path) or \
-                not os.path.splitext(arquivo.path)[1][:1]:
-            return ''
+        if (
+            not os.path.exists(arquivo.path)
+            or not os.path.splitext(arquivo.path)[1][:1]
+        ):
+            return ""
 
         # Em ambiente de produção utiliza-se o SOLR
         if SOLR_URL:
@@ -71,33 +71,34 @@ class TextExtractField(CharField):
             except Exception as err:
                 print(str(err))
                 self.print_error(arquivo, err)
-        return ''
+        return ""
 
     def ta_extractor(self, value):
         r = []
-        for ta in value.filter(privacidade__in=[
-                STATUS_TA_PUBLIC,
-                STATUS_TA_IMMUTABLE_PUBLIC]):
-            dispositivos = Dispositivo.objects.filter(
-                Q(ta=ta) | Q(ta_publicado=ta)
-            ).order_by(
-                'ordem'
-            ).annotate(
-                rotulo_texto=Concat(
-                    F('rotulo'), Value(' '), F('texto'),
-                    output_field=TextField(),
+        for ta in value.filter(
+            privacidade__in=[STATUS_TA_PUBLIC, STATUS_TA_IMMUTABLE_PUBLIC]
+        ):
+            dispositivos = (
+                Dispositivo.objects.filter(Q(ta=ta) | Q(ta_publicado=ta))
+                .order_by("ordem")
+                .annotate(
+                    rotulo_texto=Concat(
+                        F("rotulo"),
+                        Value(" "),
+                        F("texto"),
+                        output_field=TextField(),
+                    )
                 )
-            ).values_list(
-                'rotulo_texto', flat=True)
+                .values_list("rotulo_texto", flat=True)
+            )
             r += list(filter(lambda x: x.strip(), dispositivos))
-        return ' '.join(r)
+        return " ".join(r)
 
     def string_extractor(self, value):
         return value
 
     def extract_data(self, obj):
-
-        data = ''
+        data = ""
 
         for attr, func in self.model_attr:
             if not hasattr(obj, attr) or not hasattr(self, func):
@@ -106,32 +107,33 @@ class TextExtractField(CharField):
             value = getattr(obj, attr)
             if not value:
                 continue
-            data += getattr(self, func)(value) + '  '
+            data += getattr(self, func)(value) + "  "
 
-        data = data.replace('\\n', ' ')
+        data = data.replace("\\n", " ")
 
         return data
 
     def prepare_template(self, obj):
         app_label, model_name = get_model_ct_tuple(obj)
-        template_names = ['search/indexes/%s/%s_%s.txt' %
-                          (app_label, model_name, self.instance_name)]
+        template_names = [
+            "search/indexes/%s/%s_%s.txt" % (app_label, model_name, self.instance_name)
+        ]
 
         t = loader.select_template(template_names)
 
-        return t.render({'object': obj,
-                         'extracted': self.extract_data(obj)})
+        return t.render({"object": obj, "extracted": self.extract_data(obj)})
 
 
 class DocumentoAcessorioIndex(SearchIndex, Indexable):
     model = DocumentoAcessorio
     text = TextExtractField(
-        document=True, use_template=True,
+        document=True,
+        use_template=True,
         model_attr=(
-            ('arquivo', 'file_extractor'),
-            ('ementa', 'string_extractor'),
-            ('indexacao', 'string_extractor'),
-        )
+            ("arquivo", "file_extractor"),
+            ("ementa", "string_extractor"),
+            ("indexacao", "string_extractor"),
+        ),
     )
 
     def __init__(self, **kwargs):
@@ -145,44 +147,47 @@ class DocumentoAcessorioIndex(SearchIndex, Indexable):
         return self.get_model().objects.all()
 
     def get_updated_field(self):
-        return 'data_ultima_atualizacao'
+        return "data_ultima_atualizacao"
 
 
 class NormaJuridicaIndex(DocumentoAcessorioIndex):
     model = NormaJuridica
     text = TextExtractField(
-        document=True, use_template=True,
+        document=True,
+        use_template=True,
         model_attr=(
-            ('texto_integral', 'file_extractor'),
-            ('texto_articulado', 'ta_extractor'),
-            ('ementa', 'string_extractor'),
-            ('indexacao', 'string_extractor'),
-            ('observacao', 'string_extractor'),
-        )
+            ("texto_integral", "file_extractor"),
+            ("texto_articulado", "ta_extractor"),
+            ("ementa", "string_extractor"),
+            ("indexacao", "string_extractor"),
+            ("observacao", "string_extractor"),
+        ),
     )
 
 
 class MateriaLegislativaIndex(DocumentoAcessorioIndex):
     model = MateriaLegislativa
     text = TextExtractField(
-        document=True, use_template=True,
+        document=True,
+        use_template=True,
         model_attr=(
-            ('texto_original', 'file_extractor'),
-            ('texto_articulado', 'ta_extractor'),
-            ('ementa', 'string_extractor'),
-            ('indexacao', 'string_extractor'),
-            ('observacao', 'string_extractor'),
-        )
+            ("texto_original", "file_extractor"),
+            ("texto_articulado", "ta_extractor"),
+            ("ementa", "string_extractor"),
+            ("indexacao", "string_extractor"),
+            ("observacao", "string_extractor"),
+        ),
     )
 
 
 class SessaoPlenariaIndex(DocumentoAcessorioIndex):
     model = SessaoPlenaria
     text = TextExtractField(
-        document=True, use_template=True,
+        document=True,
+        use_template=True,
         model_attr=(
-            ('upload_ata', 'file_extractor'),
-            ('upload_anexo', 'file_extractor'),
-            ('upload_pauta', 'file_extractor'),
-        )
+            ("upload_ata", "file_extractor"),
+            ("upload_anexo", "file_extractor"),
+            ("upload_pauta", "file_extractor"),
+        ),
     )

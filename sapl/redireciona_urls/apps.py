@@ -3,6 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class AppConfig(apps.AppConfig):
-    name = 'sapl.redireciona_urls'
-    label = 'redireciona_urls'
-    verbose_name = _('Redirecionador de URLs')
+    name = "sapl.redireciona_urls"
+    label = "redireciona_urls"
+    verbose_name = _("Redirecionador de URLs")

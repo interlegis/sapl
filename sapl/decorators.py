@@ -18,26 +18,21 @@ def vigencia_atual(decorated_method):
     def display_atual(self):
         string_displayed = decorated_method(self)
 
-        if hasattr(self, 'data_inicio') and hasattr(self, 'data_fim'):
+        if hasattr(self, "data_inicio") and hasattr(self, "data_fim"):
             today = timezone.now().today().date()
             e_atual = self.data_inicio <= today <= self.data_fim
             string_displayed = "{} {}".format(
-                string_displayed, "(Atual)" if e_atual else "")
+                string_displayed, "(Atual)" if e_atual else ""
+            )
         else:
             instancia_sem_atributo = "{} [{}, {}].".format(
-                'Instância não possui os atributos',
-                'data_inicio',
-                'data_fim')
+                "Instância não possui os atributos", "data_inicio", "data_fim"
+            )
 
             mensagem_decorator = "Decorator @{} foi desabilitado.".format(
                 vigencia_atual.__name__()
             )
-            print(_('{} {}'.format(
-                _(instancia_sem_atributo),
-                _(mensagem_decorator)
-            )
-            )
-            )
+            print(_("{} {}".format(_(instancia_sem_atributo), _(mensagem_decorator))))
 
         return string_displayed
 
@@ -59,13 +54,13 @@ def receiver_multi_senders(signal, **kwargs):
     """
 
     def _decorator(func):
-        senders = kwargs.get('senders', [])
+        senders = kwargs.get("senders", [])
         if isinstance(signal, (list, tuple)):
             if not senders:
                 for s in signal:
                     s.connect(func, **kwargs)
             else:
-                senders = kwargs.pop('senders')
+                senders = kwargs.pop("senders")
                 for sender in senders:
                     for s in signal:
                         s.connect(func, sender=sender, **kwargs)
@@ -74,7 +69,7 @@ def receiver_multi_senders(signal, **kwargs):
             if not senders:
                 signal.connect(func, **kwargs)
             else:
-                senders = kwargs.pop('senders')
+                senders = kwargs.pop("senders")
                 for sender in senders:
                     signal.connect(func, sender=sender, **kwargs)
 

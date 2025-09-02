@@ -34,105 +34,98 @@ PROJECT_DIR = Path(__file__).ancestor(2)
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='32jk1h412l3kjh421lkj4hlkj234')
+SECRET_KEY = config("SECRET_KEY", default="32jk1h412l3kjh421lkj4hlkj234")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
-LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/login/?next='
+LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/login/?next="
 
-SAPL_VERSION = '3.1.164-RC1'
+SAPL_VERSION = "3.1.164-RC1"
 
 if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # SAPL business apps in dependency order
 SAPL_APPS = (
-    'sapl.audiencia',
-    'sapl.base',
-    'sapl.crud',
-    'sapl.parlamentares',
-    'sapl.comissoes',
-    'sapl.materia',
-    'sapl.norma',
-    'sapl.sessao',
-    'sapl.lexml',
-    'sapl.painel',
-    'sapl.protocoloadm',
-    'sapl.redireciona_urls',
-    'sapl.compilacao',
-    'sapl.api',
-    'sapl.rules'
+    "sapl.audiencia",
+    "sapl.base",
+    "sapl.crud",
+    "sapl.parlamentares",
+    "sapl.comissoes",
+    "sapl.materia",
+    "sapl.norma",
+    "sapl.sessao",
+    "sapl.lexml",
+    "sapl.painel",
+    "sapl.protocoloadm",
+    "sapl.redireciona_urls",
+    "sapl.compilacao",
+    "sapl.api",
+    "sapl.rules",
 )
 
 INSTALLED_APPS = (
-                     'django_admin_bootstrapped',  # must come before django.contrib.admin
-                     'django.contrib.admin',
-                     'django.contrib.auth',
-                     'django.contrib.contenttypes',
-                     'django.contrib.sessions',
-                     'django.contrib.messages',
-                     'django.contrib.staticfiles',
-                     'django.forms',
-
-                     'django_extensions',
-
-                     'crispy_forms',
-                     'crispy_bootstrap4',
-
-                     'waffle',
-
-                     'drf_spectacular',
-                     'rest_framework',
-                     'rest_framework.authtoken',
-                     'django_filters',
-
-                     'easy_thumbnails',
-                     'image_cropping',
-
-                     'haystack',
-                     'django.contrib.postgres',
-
-                     'webpack_loader',
-
-                     'django_prometheus',
-
-                 ) + SAPL_APPS
+    "django_admin_bootstrapped",  # must come before django.contrib.admin
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.forms",
+    "django_extensions",
+    "crispy_forms",
+    "crispy_bootstrap4",
+    "waffle",
+    "drf_spectacular",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "django_filters",
+    "easy_thumbnails",
+    "image_cropping",
+    "haystack",
+    "django.contrib.postgres",
+    "webpack_loader",
+    "django_prometheus",
+) + SAPL_APPS
 
 # FTS = Full Text Search
 # Desabilita a indexação textual até encontramos uma solução para a issue
 # https://github.com/interlegis/sapl/issues/2055
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.BaseSignalProcessor'  # Disable auto index
-SEARCH_BACKEND = ''
-SEARCH_URL = ['', '']
+HAYSTACK_SIGNAL_PROCESSOR = "haystack.signals.BaseSignalProcessor"  # Disable auto index
+SEARCH_BACKEND = ""
+SEARCH_URL = ["", ""]
 
 # SOLR
-USE_SOLR = config('USE_SOLR', cast=bool, default=False)
-SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
-SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
+USE_SOLR = config("USE_SOLR", cast=bool, default=False)
+SOLR_URL = config("SOLR_URL", cast=str, default="http://localhost:8983")
+SOLR_COLLECTION = config("SOLR_COLLECTION", cast=str, default="sapl")
 
 # FOR HAYSTACK 3.3.1 (Django >= 3)
 # SOLR_USER = config('SOLR_USER', cast=str)
 # SOLR_PASSWORD = config('SOLR_PASSWORD', cast=str)
 
 if USE_SOLR:
-    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'  # enable auto-index
-    SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
-    SEARCH_URL = ('URL', '{}/solr/{}'.format(SOLR_URL, SOLR_COLLECTION))
+    HAYSTACK_SIGNAL_PROCESSOR = (
+        "haystack.signals.RealtimeSignalProcessor"  # enable auto-index
+    )
+    SEARCH_BACKEND = "haystack.backends.solr_backend.SolrEngine"
+    SEARCH_URL = ("URL", "{}/solr/{}".format(SOLR_URL, SOLR_COLLECTION))
 
 #  BATCH_SIZE: default is 1000 if omitted, avoid Too Large Entity Body errors
 HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': SEARCH_BACKEND,
+    "default": {
+        "ENGINE": SEARCH_BACKEND,
         SEARCH_URL[0]: SEARCH_URL[1],
-        'BATCH_SIZE': 1000,
-        'TIMEOUT': 20,
+        "BATCH_SIZE": 1000,
+        "TIMEOUT": 20,
         # 'KWARGS': {
         #     'timeout': 60,
         #     'auth': (SOLR_USER, SOLR_PASSWORD),  # <-- for basic auth
@@ -141,104 +134,99 @@ HAYSTACK_CONNECTIONS = {
 }
 
 MIDDLEWARE = [
-    'django_prometheus.middleware.PrometheusBeforeMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'sapl.endpoint_restriction_middleware.EndpointRestrictionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django_prometheus.middleware.PrometheusAfterMiddleware',
-    'waffle.middleware.WaffleMiddleware',
-    'sapl.middleware.CheckWeakPasswordMiddleware',
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "sapl.endpoint_restriction_middleware.EndpointRestrictionMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
+    "waffle.middleware.WaffleMiddleware",
+    "sapl.middleware.CheckWeakPasswordMiddleware",
 ]
 if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar',)
-    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
-    INTERNAL_IPS = ('127.0.0.1')
+    INSTALLED_APPS += ("debug_toolbar",)
+    MIDDLEWARE += [
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+    ]
+    INTERNAL_IPS = "127.0.0.1"
 
-SITE_URL = config('SITE_URL', cast=str, default='')
+SITE_URL = config("SITE_URL", cast=str, default="")
 
 REST_FRAMEWORK = {
     "UNICODE_JSON": False,
     "DEFAULT_PARSER_CLASSES": (
         "rest_framework.parsers.JSONParser",
-        "rest_framework.parsers.MultiPartParser"
+        "rest_framework.parsers.MultiPartParser",
     ),
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "sapl.api.permissions.SaplModelPermissions",
-    ),
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_PERMISSION_CLASSES": ("sapl.api.permissions.SaplModelPermissions",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        'rest_framework.authentication.TokenAuthentication',
+        "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
-
-    'DEFAULT_SCHEMA_CLASS': 'sapl.api.schema.Schema',
-
+    "DEFAULT_SCHEMA_CLASS": "sapl.api.schema.Schema",
     "DEFAULT_PAGINATION_CLASS": "sapl.api.pagination.StandardPagination",
-
     "DEFAULT_FILTER_BACKENDS": (
         "rest_framework.filters.SearchFilter",
-        'django_filters.rest_framework.DjangoFilterBackend',
+        "django_filters.rest_framework.DjangoFilterBackend",
     ),
 }
 
 DRFAUTOAPI = {
-    'DEFAULT_SERIALIZER_MODULE': 'sapl.api.serializers',
-    'DEFAULT_FILTER_MODULE': 'sapl.api.forms',
-    'GLOBAL_SERIALIZER_MIXIN': 'sapl.api.serializers.SaplSerializerMixin',
-    'GLOBAL_FILTERSET_MIXIN': 'sapl.api.forms.SaplFilterSetMixin'
+    "DEFAULT_SERIALIZER_MODULE": "sapl.api.serializers",
+    "DEFAULT_FILTER_MODULE": "sapl.api.forms",
+    "GLOBAL_SERIALIZER_MIXIN": "sapl.api.serializers.SaplSerializerMixin",
+    "GLOBAL_FILTERSET_MIXIN": "sapl.api.forms.SaplFilterSetMixin",
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Sapl API - docs',
-    'DESCRIPTION': 'Sapl API  - Docs',
-    'VERSION': '1.0.0',
+    "TITLE": "Sapl API - docs",
+    "DESCRIPTION": "Sapl API  - Docs",
+    "VERSION": "1.0.0",
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-        'OPTIONS': {"MAX_ENTRIES": 10000},
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": "/var/tmp/django_cache",
+        "OPTIONS": {"MAX_ENTRIES": 10000},
     }
 }
 
-ROOT_URLCONF = 'sapl.urls'
+ROOT_URLCONF = "sapl.urls"
 
-FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
+FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['sapl/templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": ["sapl/templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.media",
                 "django.template.context_processors.static",
-                'django.contrib.messages.context_processors.messages',
-                'sapl.context_processors.parliament_info',
-                'sapl.context_processors.mail_service_configured',
-                'sapl.context_processors.google_recaptcha_configured',
-                'sapl.context_processors.enable_sapn',
+                "django.contrib.messages.context_processors.messages",
+                "sapl.context_processors.parliament_info",
+                "sapl.context_processors.mail_service_configured",
+                "sapl.context_processors.google_recaptcha_configured",
+                "sapl.context_processors.enable_sapn",
             ],
-            'debug': DEBUG
+            "debug": DEBUG,
         },
     },
 ]
 
-WSGI_APPLICATION = 'sapl.wsgi.application'
+WSGI_APPLICATION = "sapl.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
@@ -247,9 +235,7 @@ WSGI_APPLICATION = 'sapl.wsgi.application'
 # dj-database-url==0.5.0 is the latest compatible with Django 2.2, later versions required Django >= 4
 # but it doesn't support OPTIONS tag, so we need setup_db_tz
 # This should be removed once we are able to upgrade to Django >= 4
-DATABASES = {
-    "default": config("DATABASE_URL", cast=db_url)
-}
+DATABASES = {"default": config("DATABASE_URL", cast=db_url)}
 
 
 def setup_db_tz():
@@ -283,27 +269,25 @@ setup_db_tz()
 
 IMAGE_CROPPING_JQUERY_URL = None
 THUMBNAIL_PROCESSORS = (
-                           'image_cropping.thumbnail_processors.crop_corners',
-                       ) + thumbnail_settings.THUMBNAIL_PROCESSORS
+    "image_cropping.thumbnail_processors.crop_corners",
+) + thumbnail_settings.THUMBNAIL_PROCESSORS
 
-THUMBNAIL_SOURCE_GENERATORS = (
-    'sapl.utils.pil_image',
-)
+THUMBNAIL_SOURCE_GENERATORS = ("sapl.utils.pil_image",)
 
 # troque no caso de reimplementação da classe User conforme
 # https://docs.djangoproject.com/en/1.9/topics/auth/customizing/#substituting-a-custom-user-model
-AUTH_USER_MODEL = 'auth.User'
+AUTH_USER_MODEL = "auth.User"
 
-X_FRAME_OPTIONS = 'ALLOWALL'
+X_FRAME_OPTIONS = "ALLOWALL"
 
-EMAIL_HOST = config('EMAIL_HOST', default='localhost')
-EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
-EMAIL_SEND_USER = config('EMAIL_SEND_USER', cast=str, default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', cast=str, default='')
-SERVER_EMAIL = config('SERVER_EMAIL', cast=str, default='')
+EMAIL_HOST = config("EMAIL_HOST", default="localhost")
+EMAIL_PORT = config("EMAIL_PORT", cast=int, default=587)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
+EMAIL_SEND_USER = config("EMAIL_SEND_USER", cast=str, default="")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", cast=str, default="")
+SERVER_EMAIL = config("SERVER_EMAIL", cast=str, default="")
 EMAIL_RUNNING = None
 
 # Feature Flag
@@ -321,72 +305,68 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
-LANGUAGE_CODE = 'pt-br'
-LANGUAGES = (
-    ('pt-br', 'Português'),
-)
+LANGUAGE_CODE = "pt-br"
+LANGUAGES = (("pt-br", "Português"),)
 
-TIME_ZONE = config('TZ', default='America/Sao_Paulo')
+TIME_ZONE = config("TZ", default="America/Sao_Paulo")
 if not TIME_ZONE:
     raise ValueError(
-        'TIMEZONE env variable undefined in .env settings file! Leaving...')
+        "TIMEZONE env variable undefined in .env settings file! Leaving..."
+    )
 
 USE_I18N = True
 USE_TZ = True
 
 # DATE_FORMAT = 'N j, Y'
-DATE_FORMAT = 'd/m/Y'
-SHORT_DATE_FORMAT = 'd/m/Y'
-DATETIME_FORMAT = 'd/m/Y H:i:s'
-SHORT_DATETIME_FORMAT = 'd/m/Y H:i'
-DATE_INPUT_FORMATS = ('%d/%m/%Y', '%m-%d-%Y', '%Y-%m-%d')
+DATE_FORMAT = "d/m/Y"
+SHORT_DATE_FORMAT = "d/m/Y"
+DATETIME_FORMAT = "d/m/Y H:i:s"
+SHORT_DATETIME_FORMAT = "d/m/Y H:i"
+DATE_INPUT_FORMATS = ("%d/%m/%Y", "%m-%d-%Y", "%Y-%m-%d")
 
-LOCALE_PATHS = (
-    'locale',
-)
+LOCALE_PATHS = ("locale",)
 
 WEBPACK_LOADER = {
-    'DEFAULT': {
-        'CACHE': not DEBUG,
-        'BUNDLE_DIR_NAME': 'sapl/static/sapl/frontend',
-        'STATS_FILE': PROJECT_DIR.child('frontend').child(f'{"dev-" if DEBUG else ""}webpack-stats.json'),
-        'POLL_INTERVAL': 0.1,
-        'TIMEOUT': None,
-        'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
+    "DEFAULT": {
+        "CACHE": not DEBUG,
+        "BUNDLE_DIR_NAME": "sapl/static/sapl/frontend",
+        "STATS_FILE": PROJECT_DIR.child("frontend").child(
+            f'{"dev-" if DEBUG else ""}webpack-stats.json'
+        ),
+        "POLL_INTERVAL": 0.1,
+        "TIMEOUT": None,
+        "IGNORE": [r".+\.hot-update.js", r".+\.map"],
     }
 }
-if DEBUG and not WEBPACK_LOADER['DEFAULT']['STATS_FILE'].exists():
-    WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = PROJECT_DIR.child(
-        'frontend').child(f'webpack-stats.json')
+if DEBUG and not WEBPACK_LOADER["DEFAULT"]["STATS_FILE"].exists():
+    WEBPACK_LOADER["DEFAULT"]["STATS_FILE"] = PROJECT_DIR.child("frontend").child(
+        f"webpack-stats.json"
+    )
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 STATIC_ROOT = PROJECT_DIR.child("collected_static")
 
-STATICFILES_DIRS = (
-    BASE_DIR.child('static'),
-)
+STATICFILES_DIRS = (BASE_DIR.child("static"),)
 
 STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 )
 
 MEDIA_ROOT = PROJECT_DIR.child("media")
-MEDIA_URL = '/media/'
+MEDIA_URL = "/media/"
 
 FILE_UPLOAD_PERMISSIONS = 0o644
 
-DAB_FIELD_RENDERER = \
-    'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+DAB_FIELD_RENDERER = "django_admin_bootstrapped.renderers.BootstrapFieldRenderer"
+CRISPY_TEMPLATE_PACK = "bootstrap4"
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
 CRISPY_FAIL_SILENTLY = False
 
 # suprime texto de ajuda default do django-filter
 FILTERS_HELP_TEXT_FILTER = False
 
-LOGGING_CONSOLE_VERBOSE = config(
-    'LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
+LOGGING_CONSOLE_VERBOSE = config("LOGGING_CONSOLE_VERBOSE", cast=bool, default=False)
 
 LOGGING = {
     "version": 1,
@@ -396,10 +376,10 @@ LOGGING = {
     },
     "root": {  # everything falls back here
         "handlers": ["console"],
-        "level": 'DEBUG',
+        "level": "DEBUG",
     },
     "loggers": {
-        "django.request": {   # 500s go here
+        "django.request": {  # 500s go here
             "handlers": ["console"],
             "level": "ERROR",
             "propagate": False,
@@ -408,8 +388,8 @@ LOGGING = {
 }
 
 PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # default
-    'sapl.hashers.ZopeSHA1PasswordHasher',
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",  # default
+    "sapl.hashers.ZopeSHA1PasswordHasher",
 ]
 
-LOGOUT_REDIRECT_URL = '/login'
+LOGOUT_REDIRECT_URL = "/login"

@@ -1,6 +1,5 @@
 from django.utils.translation import gettext_lazy as _
 
-
 """
 Todas as permissões do django framework seguem o padrão
 
@@ -46,8 +45,13 @@ NESTE ARQUIVO ESTÃO DEFINIDOS OS RADICAIS E OS GRUPOS DEFAULT DO SAPL
 
 """
 
-RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE = \
-    '.list_', '.detail_', '.add_', '.change_', '.delete_',
+RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE = (
+    ".list_",
+    ".detail_",
+    ".add_",
+    ".change_",
+    ".delete_",
+)
 
 __base__ = [RP_LIST, RP_DETAIL, RP_ADD, RP_CHANGE, RP_DELETE]
 __listdetailchange__ = [RP_LIST, RP_DETAIL, RP_CHANGE]
@@ -72,7 +76,7 @@ SAPL_GROUP_LOGIN_SOCIAL = _("Usuários com Login Social")
 # ANONYMOUS não é um grupo mas é uma variável usadas nas rules para anotar
 # explicitamente models que podem ter ação de usuários anônimos
 # como por exemplo AcompanhamentoMateria
-SAPL_GROUP_ANONYMOUS = ''
+SAPL_GROUP_ANONYMOUS = ""
 
 SAPL_GROUPS = [
     SAPL_GROUP_ADMINISTRATIVO,
@@ -89,6 +93,4 @@ SAPL_GROUPS = [
     SAPL_GROUP_ANONYMOUS,
 ]
 
-SAPL_GROUPS_DELETE = [
-
-]
+SAPL_GROUPS_DELETE = []
