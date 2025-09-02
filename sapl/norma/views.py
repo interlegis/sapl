@@ -152,14 +152,9 @@ class NormaPesquisaView(MultiFormatOutputMixin, FilterView):
     filterset_class = NormaFilterSet
     paginate_by = 50
 
-    fields_base_report = [
+    export_fields = [
         'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'texto_integral', 'ementa'
     ]
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
 
     def hook_texto_integral(self, obj):
         url = self.request.build_absolute_uri('/')[:-1]

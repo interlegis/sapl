@@ -992,7 +992,6 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super(CreateView, self).get_context_data(**kwargs)
         autores_ativos = self.autores_ativos()
-
         autores = []
         autores.append(['0', '------'])
         for a in autores_ativos:
@@ -1042,14 +1041,9 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
     paginate_by = 10
     permission_required = ('protocoloadm.list_documentoadministrativo', )
 
-    fields_base_report = [
+    export_fields = [
         'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'assunto'
     ]
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,
