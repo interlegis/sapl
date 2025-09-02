@@ -448,7 +448,7 @@ class DocumentoAdministrativoCrud(Crud):
 
         def form_valid(self, form):
             form.instance.complemento = re.sub(
-                '\s+', '', form.instance.complemento).upper()
+                r'\s+', '', form.instance.complemento).upper()
             return super().form_valid(form)
 
     class UpdateView(Crud.UpdateView):
@@ -481,7 +481,7 @@ class DocumentoAdministrativoCrud(Crud):
                     break
 
             form.instance.complemento = re.sub(
-                '\s+', '', form.instance.complemento).upper()
+                r'\s+', '', form.instance.complemento).upper()
 
             return super().form_valid(form)
 

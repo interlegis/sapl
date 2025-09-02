@@ -287,7 +287,7 @@ class TextoArticulado(TimestampedMixin):
             return _('%(tipo)s nº %(numero)s, de %(data)s') % {
                 'tipo': self.tipo_ta,
                 'numero': numero,
-                'data': defaultfilters.date(self.data, "d \d\e F \d\e Y").lower()}
+                'data': defaultfilters.date(self.data, r"d \d\e F \d\e Y").lower()}
 
     def hash(self):
         from django.core import serializers
@@ -943,7 +943,7 @@ class Publicacao(TimestampedMixin):
     def __str__(self):
         return _('%s realizada em %s \n <small>%s</small>') % (
             self.tipo_publicacao,
-            defaultfilters.date(self.data, "d \d\e F \d\e Y"),
+            defaultfilters.date(self.data, r"d \d\e F \d\e Y"),
             self.ta)
 
 

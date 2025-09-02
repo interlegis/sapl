@@ -489,7 +489,7 @@ def recuperar_numero_norma(request):
     norma = NormaJuridica.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', flat=True)
     if norma:
-        numeros = sorted([int(re.sub("[^0-9].*", '', n)) for n in norma])
+        numeros = sorted([int(re.sub(r"[^0-9].*", '', n)) for n in norma])
         next_num = numeros.pop() + 1
         response = JsonResponse({'numero': next_num,
                                  'ano': param['ano']})

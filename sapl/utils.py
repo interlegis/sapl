@@ -850,7 +850,7 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
     seguida para armazenar o arquivo.
     """
 
-    filename = re.sub('\s', '_', normalize(filename.strip()).lower())
+    filename = re.sub(r'\s', '_', normalize(filename.strip()).lower())
 
     from sapl.materia.models import Proposicao
     from sapl.protocoloadm.models import DocumentoAdministrativo
