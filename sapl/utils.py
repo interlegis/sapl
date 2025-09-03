@@ -594,7 +594,6 @@ TIPOS_TEXTO_PERMITIDOS = (
     'application/x-vnd.oasis.opendocument.text',
     'application/pdf',
     'application/x-pdf',
-    'application/zip',
     'application/acrobat',
     'applications/vnd.pdf',
     'text/pdf',
@@ -608,9 +607,7 @@ TIPOS_TEXTO_PERMITIDOS = (
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/xml',
-    'application/octet-stream',
     'text/xml',
-    'text/html',
 )
 
 TIPOS_IMG_PERMITIDOS = (
