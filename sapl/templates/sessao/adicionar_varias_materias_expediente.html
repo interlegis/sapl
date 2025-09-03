@@ -38,6 +38,16 @@
           {% elif paginator.count == 1 %}
             <h3>{% trans 'Pesquisa concluída com sucesso! Foi encontrada 1 matéria.'%}</h3>
           {% endif %}
+          <tr>
+              <td>
+                {{ form.todos }} {{ form.todos.label }}
+              </td>
+              <td>
+                {% for tipo in form.tipo_votacao %}
+                  {{ tipo }}<br />
+                {% endfor %}
+              </td>
+          </tr>
           {% for m in page_obj %}
             <tr>
               <td>
@@ -126,5 +136,17 @@
 		$(window).on('beforeunload', function() {
       $("input[type=submit], input[type=button]").prop("disabled", "disabled")
     });
+
+    function checkAll(elem) {
+      $('input[name="materia_id"]:checkbox').prop('checked', elem.checked);
+    }
+
+    function marcaTipoVotacao() {
+      $('input[name="materia_id"]:checked').each(function() {
+        var tipoVotacao = $('input[name="tipo_votacao"]:checked').val();
+        var idMateria = "#tipo_votacao_" + $(this).val() + "_" + tipoVotacao;
+        $(idMateria).prop('checked', true);
+      });
+    }
 	</script>
 {% endblock extra_js %}

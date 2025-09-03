@@ -22,7 +22,8 @@ from sapl.materia.models import (MateriaLegislativa, StatusTramitacao,
 from sapl.parlamentares.models import Mandato, Parlamentar
 from sapl.protocoloadm.models import TipoDocumentoAdministrativo,\
     DocumentoAdministrativo
-from sapl.sessao.models import Correspondencia
+from sapl.sessao.models import Correspondencia, AbstractOrdemDia
+
 from sapl.utils import (autor_label, autor_modal,
                         choice_anos_com_sessaoplenaria,
                         FileFieldCheckMixin,
@@ -561,6 +562,22 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
                      row1,
                      form_actions(label='Pesquisar'))
         )
+
+
+class AdicionarVariasMateriasForm(forms.Form):
+    todos = forms.BooleanField(
+        label='Marcar/Desmarcar Todos',
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={'onchange':'checkAll(this)'}),
+    )
+
+    tipo_votacao = forms.ChoiceField(required=False,
+        choices= AbstractOrdemDia.TIPO_VOTACAO_CHOICES,
+        initial=False,
+        widget=forms.RadioSelect(
+            attrs={'onchange':'marcaTipoVotacao()'}),
+    )
 
 
 class AdicionarVariasMateriasFilterSet(MateriaLegislativaFilterSet):
