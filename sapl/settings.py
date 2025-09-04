@@ -149,9 +149,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django_prometheus.middleware.PrometheusAfterMiddleware',
     'waffle.middleware.WaffleMiddleware',
     'sapl.middleware.CheckWeakPasswordMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
