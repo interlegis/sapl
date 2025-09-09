@@ -1,4 +1,16 @@
 
+3.1.164-RC2 / 2025-09-08
+========================
+
+  * Restaura prod settings de docker-compose
+  * Restringe tipos de arquivos para upload (#3794)
+  * feat: cria script para remocao de proposicoes de um autor (#3703)
+  * HOT-Fix: Conserta erro introduzido no PR #3785
+  * Atualização da imagem base Docker (#3787)
+  * Ajustes solicitados - Relatório de Votações Nominais (#3785)
+  * Refatora lógica de geração de CSV/json/xlsx (#3786)
+  * Remove btn libras de media print (#3777)
+
 3.1.164-RC1 / 2025-08-05
 ========================
 
