@@ -402,6 +402,53 @@ class AbstractOrdemDia(models.Model):
     def ementa(self):
         return self.materia.ementa
 
+    @property
+    def turno_vigente(self):
+        """
+        Retorna o código do turno vigente para esta inclusão na pauta.
+        Prioriza o campo `tramitacao` gravado na inclusão. Caso não haja,
+        busca a última tramitação com timestamp anterior ao início da sessão.
+        """
+        # Usa a tramitação registrada na inclusão, se houver
+        if self.tramitacao and getattr(self.tramitacao, 'turno', None):
+            return self.tramitacao.turno
+
+        # Caso não haja tramitação registrada, calcula em função da sessão
+        try:
+            from django.conf import settings
+            import pytz
+            from datetime import datetime
+        except Exception:
+            return None
+
+        if not self.sessao_plenaria or not self.sessao_plenaria.data_inicio:
+            return None
+
+        # Monta datetime local da sessão a partir de data_inicio e hora_inicio
+        data_sessao = self.sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
+        hora = self.sessao_plenaria.hora_inicio or "00:00"
+        try:
+            data_hora_sessao = datetime.strptime(
+                data_sessao + hora, "%Y-%m-%d %H:%M")
+        except Exception:
+            return None
+
+        try:
+            tz_local = pytz.timezone(getattr(settings, 'TIME_ZONE', 'UTC'))
+            data_hora_sessao_utc = tz_local.localize(data_hora_sessao).astimezone(pytz.utc)
+        except Exception:
+            data_hora_sessao_utc = None
+
+        qs = self.materia.tramitacao_set.all()
+        if data_hora_sessao_utc is not None:
+            qs = qs.filter(timestamp__lt=data_hora_sessao_utc)
+
+        # Respeita a ordenação padrão de Tramitacao ('-data_tramitacao', '-id')
+        tr = qs.first()
+        if tr and getattr(tr, 'turno', None):
+            return tr.turno
+        return None
+
     def __str__(self):
         return 'Ordem do Dia/Expediente: %s - %s em %s' % (
             self.numero_ordem, self.materia, self.sessao_plenaria)
