@@ -5068,11 +5068,28 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
             context.update({'expedientes': expedientes})
 
         total_presentes = presentes.count()
-        context.update({'parlamentares': self.get_parlamentares(),
+
+        # Preserva votos selecionados pelo usuário ao retornar com erro
+        presentes_list = [p.parlamentar for p in presentes]
+        votos_post = {}
+        for votos in self.request.POST.getlist('voto_parlamentar'):
+            try:
+                voto, parlamentar_id = votos.split(':', 1)
+                votos_post[int(parlamentar_id)] = voto
+            except ValueError:
+                continue
+
+        parlamentares_ctx = []
+        for parlamentar in Parlamentar.objects.filter(ativo=True):
+            if parlamentar in presentes_list:
+                parlamentares_ctx.append([parlamentar, votos_post.get(parlamentar.id)])
+
+        context.update({'parlamentares': parlamentares_ctx,
                         'total_presentes': total_presentes,
                         'resultado_votacao': TipoResultadoVotacao.objects.all(),
                         'form': form,
-                        'origem': self.request.POST['origem']})
+                        'origem': self.request.POST['origem'],
+                        'votos_from_post': True})
 
         return self.render_to_response(context)
 
