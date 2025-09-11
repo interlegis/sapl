@@ -2,12 +2,24 @@
 set -Eeuo pipefail
 IFS=$'\n\t'
 
+APP_DIR="/var/interlegis/sapl"
 DATA_DIR="/var/interlegis/sapl/data"
-APP_DIR="/var/interlegis/sapl/sapl"
+MEDIA_DIR="/var/interlegis/sapl/media"
+RUN_DIR="/var/interlegis/sapl/run"
+GUNICORN_DIR="/run/gunicorn"
+
 ENV_FILE="$APP_DIR/.env"
 SECRET_FILE="$DATA_DIR/secret.key"
 
-mkdir -p "$DATA_DIR" "$APP_DIR"
+chown -R root:nginx "$RUN_DIR" || true
+chown -R root:nginx "$MEDIA_DIR" || true
+chown -R root:nginx "$GUNICORN_DIR" || true
+chmod -R g+rwX "$RUN_DIR" || true
+chmod -R g+rwX "$MEDIA_DIR" || true
+chmod -R g+rwX "$GUNICORN_DIR" || true
+
+# setgid bit on our writable trees (not data/)
+find "$RUN_DIR" "$MEDIA_DIR" -type d -exec chmod g+s {} + 2>/dev/null || true
 
 log() { printf '[%s] %s\n' "$(date -Is)" "$*"; }
 err() { printf '[%s] ERROR: %s\n' "$(date -Is)" "$*" >&2; }
@@ -76,7 +88,6 @@ create_secret() {
     SECRET_KEY="$(python3 genkey.py)"
     umask 177
     printf '%s\n' "$SECRET_KEY" > "$SECRET_FILE"
-    chmod 600 "$SECRET_FILE"
   fi
   export SECRET_KEY
 }
@@ -225,9 +236,7 @@ fix_logging_and_socket_perms() {
 
   # dirs
   mkdir -p "$APP_DIR/run"
-  chown -R root:nginx "$APP_DIR"
-  chmod 2775 "$APP_DIR" "$APP_DIR/run"
-  chmod -R g+rwX "$APP_DIR"
+  chmod 2775 "$APP_DIR/run"
 
   # new files/sockets → 660
   umask 0007

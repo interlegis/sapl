@@ -46,13 +46,11 @@ function change_files {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # MacOS (BSD sed)
         sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" docker/docker-compose.yaml
-        sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
         sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
         sed -E -i "" "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
     else
         # Linux (GNU sed)
         sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" docker/docker-compose.yaml
-        sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" setup.py
         sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/templates/base.html
         sed -i -E "s|$OLD_VERSION|$FINAL_VERSION|g" sapl/settings.py
     fi
@@ -93,7 +91,7 @@ prompt_yes_no() {
 
 function commit_and_push {
    echo -e "${green_color}Committing new release $FINAL_VERSION...${color_reset}"
-   git add docker/docker-compose.yaml setup.py sapl/settings.py sapl/templates/base.html
+   git add docker/docker-compose.yaml sapl/settings.py sapl/templates/base.html
    git changelog --tag $FINAL_VERSION --prune-old -x > latest_changes.md
    cat latest_changes.md CHANGES.md > CHANGES.tmp
    mv CHANGES.tmp CHANGES.md
