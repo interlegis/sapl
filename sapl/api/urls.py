@@ -1,15 +1,13 @@
-
 from django.conf.urls import include, url
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, \
     SpectacularRedocView
 from rest_framework.authtoken.views import obtain_auth_token
 
 from sapl.api.deprecated import SessaoPlenariaViewSet
-from sapl.api.views import AppVersionView, recria_token,\
-    SaplApiViewSetConstrutor
+from sapl.api.views import recria_token, SaplApiViewSetConstrutor
 
 from .apps import AppConfig
-
+from .views_health import HealthzView, ReadyzView
 
 app_name = AppConfig.name
 
@@ -38,7 +36,6 @@ urlpatterns = [
     url(r'^api/', include(urlpatterns_api_doc)),
     url(r'^api/', include(urlpatterns_router)),
 
-    url(r'^api/version', AppVersionView.as_view()),
     url(r'^api/auth/token$', obtain_auth_token),
     url(r'^api/recriar-token/(?P<pk>\d*)$', recria_token, name="recria_token"),
 ]
