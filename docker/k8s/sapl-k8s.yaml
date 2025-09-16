@@ -1,0 +1,218 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sapl
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sapldb
+  namespace: sapl
+spec:
+  selector:
+    app: sapldb
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sapldb-data
+  namespace: sapl
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi   # or 1Gi for solr-configsets
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sapldb
+  namespace: sapl
+spec:
+  serviceName: sapldb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sapldb
+  template:
+    metadata:
+      labels:
+        app: sapldb
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.5-alpine
+          env:
+            - name: POSTGRES_PASSWORD
+              value: "sapl"
+            - name: POSTGRES_USER
+              value: "sapl"
+            - name: POSTGRES_DB
+              value: "sapl"
+            - name: PGDATA
+              value: /var/lib/postgresql/data/
+            - name: TZ
+              value: UTC
+            - name: PG_TZ
+              value: UTC
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: sapldb-data
+              mountPath: /var/lib/postgresql/data/
+      volumes:
+        - name: sapldb-data
+          persistentVolumeClaim:
+            claimName: sapldb-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: saplsolr
+  namespace: sapl
+spec:
+  selector:
+    app: saplsolr
+  ports:
+    - name: solr
+      port: 8983
+      targetPort: 8983
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: solr-data
+  namespace: sapl
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi   # or 1Gi for solr-configsets
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: solr-configsets
+  namespace: sapl
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi   # or 1Gi for solr-configsets
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: saplsolr
+  namespace: sapl
+spec:
+  serviceName: saplsolr
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saplsolr
+  template:
+    metadata:
+      labels:
+        app: saplsolr
+    spec:
+      containers:
+        - name: solr
+          image: solr:8.11
+          command: ["bash","-lc","bin/solr start -c -f"]
+          ports:
+            - containerPort: 8983
+          volumeMounts:
+            - name: solr-data
+              mountPath: /var/solr
+            - name: solr-configsets
+              mountPath: /opt/solr/server/solr/configsets
+      volumes:
+        - name: solr-data
+          persistentVolumeClaim:
+            claimName: solr-data
+        - name: solr-configsets
+          persistentVolumeClaim:
+            claimName: solr-configsets
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sapl-media
+  namespace: sapl
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi   # or 1Gi for solr-configsets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sapl
+  namespace: sapl
+spec:
+  selector:
+    app: sapl
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sapl
+  namespace: sapl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sapl
+  template:
+    metadata:
+      labels:
+        app: sapl
+    spec:
+      containers:
+        - name: sapl
+          image: eribeiro/sapl:debug-k8s-1
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: data
+              mountPath: /var/interlegis/sapl/data
+              readOnly: true              # secrets are always mounted read-only
+      volumes:
+        - name: data
+          secret:
+            secretName: sapl-secretkey
+            defaultMode: 0440             # ensures read-only
+          env:
+            - name: ADMIN_PASSWORD
+              value: "interlegis"
+            - name: ADMIN_EMAIL
+              value: "email@dominio.net"
+            - name: DEBUG
+              value: "False"
+            - name: EMAIL_PORT
+              value: "587"
+            - name: EMAIL_USE_TLS
+              value: "False"
+            - name: EMAIL_HOST
+              value: "smtp.dominio.net"
+            - name: EMAIL_HOST_USER
+              value: "usuariosmtp"
+            - name: EMAIL_SEND_USER
+
+

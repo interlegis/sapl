@@ -62,7 +62,7 @@ RUN set -eux; \
 
 # Usuários/grupos (idempotente)
 RUN useradd --system --no-create-home --shell /usr/sbin/nologin sapl || true \
- && groupadd -r nginx || true \
+ && groupadd -g 101 -r nginx || true \
  && usermod -aG nginx www-data || true \
  && usermod -aG nginx sapl || true
 
