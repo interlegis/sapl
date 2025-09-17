@@ -28,6 +28,9 @@ from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
 import pytz
 
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
@@ -3794,6 +3797,7 @@ class SessaoListView(ListView):
         return context
 
 
+@method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
 class PautaSessaoView(TemplateView):
     model = SessaoPlenaria
     template_name = "sessao/pauta_inexistente.html"
@@ -3809,6 +3813,7 @@ class PautaSessaoView(TemplateView):
             reverse('sapl.sessao:pauta_sessao_detail', kwargs={'pk': sessao.pk}))
 
 
+@method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
 class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
     template_name = "sessao/pauta_sessao_detail.html"
     model = SessaoPlenaria
