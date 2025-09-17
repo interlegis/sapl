@@ -68,7 +68,7 @@ class IndexView(TemplateView):
 
 
 @method_decorator(ratelimit(key=lambda group, request: get_client_ip(request),
-                            rate='20/m',
+                            rate='10/m',
                             method=ratelimit.UNSAFE,
                             block=True), name='dispatch')
 class LoginSapl(views.LoginView):

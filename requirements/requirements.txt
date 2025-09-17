@@ -22,8 +22,7 @@ pytz==2019.3
 python-magic==0.4.15
 unipath==1.1
 Pillow==10.3.0
-rlPyCairo==0.3.0
-reportlab==4.2.0
+reportlab==3.6.13
 WeasyPrint==66
 trml2pdf==0.6
 gunicorn==23.0.0
