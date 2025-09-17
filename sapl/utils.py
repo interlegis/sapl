@@ -419,21 +419,25 @@ def get_base_url(request):
     return "{0}://{1}".format(protocol, current_domain)
 
 
-def create_barcode(value, width=170, height=50):
-    '''
-        creates a base64 encoded barcode PNG image
-    '''
+def create_barcode(value, width=170, height=50, dpi=72):
+    """
+    creates a base64 encoded barcode PNG image
+    """
     from base64 import b64encode
     from reportlab.graphics.barcode import createBarcodeDrawing
+
     value_bytes = bytes(value, "ascii")
-    barcode = createBarcodeDrawing('Code128',
-                                   value=value_bytes,
-                                   barWidth=width,
-                                   height=height,
-                                   fontSize=2,
-                                   humanReadable=True)
-    data = b64encode(barcode.asString('png'))
-    return data.decode('utf-8')
+    barcode = createBarcodeDrawing(
+        'Code128',
+        value=value_bytes,
+        barWidth=width,
+        height=height,
+        fontSize=2,
+        humanReadable=True
+    )
+    # Lower DPI prevents Cairo surface from blowing up
+    png_bytes = barcode.asString("png", dpi=dpi)
+    return b64encode(png_bytes).decode("utf-8")
 
 
 YES_NO_CHOICES = [(True, _('Sim')), (False, _('Não'))]
