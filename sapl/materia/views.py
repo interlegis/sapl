@@ -24,13 +24,15 @@ from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 from django.utils import formats, timezone
-from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
+
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
@@ -1908,6 +1910,7 @@ class MateriaLegislativaCrud(Crud):
         def get_success_url(self):
             return self.search_url
 
+    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
@@ -1920,6 +1923,7 @@ class MateriaLegislativaCrud(Crud):
                 pk=self.kwargs['pk'])
             return context
 
+    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
     class ListView(Crud.ListView, RedirectView):
 
         def get_redirect_url(self, *args, **kwargs):

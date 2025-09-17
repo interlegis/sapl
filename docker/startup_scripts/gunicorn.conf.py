@@ -52,7 +52,8 @@ graceful_timeout = 30
 keepalive = 10
 backlog = 2048
 max_requests = MAX_REQUESTS
-max_requests_jitter = 100
+max_requests_jitter = 200
+worker_max_memory_per_child = 300 * 1024 * 1024  # 300 MB cap
 
 # Environment (same as exporting before running)
 raw_env = [
