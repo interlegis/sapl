@@ -1,4 +1,11 @@
 
+3.1.164-RC3 / 2025-09-16
+========================
+
+  * Health and Ready endpoints (#3788)
+  * Fix read-only mount on k8s
+  * Remove setup.py do projeto SAPL
+
 3.1.164-RC2 / 2025-09-08
 ========================
 

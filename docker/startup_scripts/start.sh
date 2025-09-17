@@ -6,17 +6,14 @@ APP_DIR="/var/interlegis/sapl"
 DATA_DIR="/var/interlegis/sapl/data"
 MEDIA_DIR="/var/interlegis/sapl/media"
 RUN_DIR="/var/interlegis/sapl/run"
-GUNICORN_DIR="/run/gunicorn"
 
 ENV_FILE="$APP_DIR/.env"
 SECRET_FILE="$DATA_DIR/secret.key"
 
 chown -R root:nginx "$RUN_DIR" || true
 chown -R root:nginx "$MEDIA_DIR" || true
-chown -R root:nginx "$GUNICORN_DIR" || true
 chmod -R g+rwX "$RUN_DIR" || true
 chmod -R g+rwX "$MEDIA_DIR" || true
-chmod -R g+rwX "$GUNICORN_DIR" || true
 
 # setgid bit on our writable trees (not data/)
 find "$RUN_DIR" "$MEDIA_DIR" -type d -exec chmod g+s {} + 2>/dev/null || true

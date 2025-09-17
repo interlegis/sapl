@@ -43,7 +43,7 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
-SAPL_VERSION = '3.1.164-RC2'
+SAPL_VERSION = '3.1.164-RC3'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -149,9 +149,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django_prometheus.middleware.PrometheusAfterMiddleware',
     'waffle.middleware.WaffleMiddleware',
     'sapl.middleware.CheckWeakPasswordMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)

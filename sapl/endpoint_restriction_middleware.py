@@ -18,7 +18,7 @@ ALLOWED_IPS = [
     'ff00::/8'
 ]
 
-RESTRICTED_ENDPOINTS = ['/metrics']
+RESTRICTED_ENDPOINTS = ['/metrics', '/health', '/ready', '/version']
 
 
 class EndpointRestrictionMiddleware:
