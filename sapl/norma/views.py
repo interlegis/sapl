@@ -19,6 +19,9 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
 
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+
 from sapl import settings
 import sapl
 from sapl.base.models import AppConfig
@@ -280,6 +283,7 @@ class NormaCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
+    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
     class DetailView(Crud.DetailView):
         def get(self, request, *args, **kwargs):
             estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
@@ -337,6 +341,7 @@ class NormaCrud(Crud):
 
         layout_key = 'NormaJuridicaCreate'
 
+    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
     class ListView(Crud.ListView):
 
         def get(self, request, *args, **kwargs):
