@@ -565,7 +565,7 @@ class SessaoPlenariaFilterSet(django_filters.FilterSet):
 
 
 class AdicionarVariasMateriasForm(forms.Form):
-    todos = forms.BooleanField(
+    check_all = forms.BooleanField(
         label='Marcar/Desmarcar Todos',
         required=False,
         widget=forms.CheckboxInput(
