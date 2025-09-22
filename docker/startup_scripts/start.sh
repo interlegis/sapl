@@ -4,19 +4,16 @@ IFS=$'\n\t'
 
 APP_DIR="/var/interlegis/sapl"
 DATA_DIR="/var/interlegis/sapl/data"
-MEDIA_DIR="/var/interlegis/sapl/media"
 RUN_DIR="/var/interlegis/sapl/run"
 
 ENV_FILE="$APP_DIR/.env"
 SECRET_FILE="$DATA_DIR/secret.key"
 
 chown -R root:nginx "$RUN_DIR" || true
-chown -R root:nginx "$MEDIA_DIR" || true
 chmod -R g+rwX "$RUN_DIR" || true
-chmod -R g+rwX "$MEDIA_DIR" || true
 
 # setgid bit on our writable trees (not data/)
-find "$RUN_DIR" "$MEDIA_DIR" -type d -exec chmod g+s {} + 2>/dev/null || true
+find "$RUN_DIR" -type d -exec chmod g+s {} + 2>/dev/null || true
 
 log() { printf '[%s] %s\n' "$(date -Is)" "$*"; }
 err() { printf '[%s] ERROR: %s\n' "$(date -Is)" "$*" >&2; }

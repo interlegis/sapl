@@ -150,6 +150,7 @@ class NormaRelacionadaCrud(MasterDetailCrud):
         layout_key = 'NormaRelacionadaDetail'
 
 
+@method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
 class NormaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = NormaJuridica
     filterset_class = NormaFilterSet
@@ -235,6 +236,7 @@ class AnexoNormaJuridicaCrud(MasterDetailCrud):
             initial['ano'] = self.object.ano
             return initial
 
+    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
     class DetailView(MasterDetailCrud.DetailView):
         form_class = AnexoNormaJuridicaForm
         layout_key = 'AnexoNormaJuridica'

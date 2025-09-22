@@ -1461,6 +1461,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
             return initial
 
+    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
     class ListView(MasterDetailCrud.ListView):
 
         def get_queryset(self):
@@ -1533,6 +1534,7 @@ class TramitacaoCrud(MasterDetailCrud):
 
                 return HttpResponseRedirect(url)
 
+    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
     class DetailView(MasterDetailCrud.DetailView):
 
         template_name = "materia/tramitacao_detail.html"
@@ -2044,6 +2046,7 @@ class AcompanhamentoExcluirView(TemplateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+@method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
 class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaFilterSet
