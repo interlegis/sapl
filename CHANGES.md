@@ -1,4 +1,10 @@
 
+3.1.164-RC4 / 2025-09-22
+========================
+
+  * Fix recibo proposição e adiciona rate limiter em matéria e norma
+  * Release: 3.1.164-RC3
+
 3.1.164-RC3 / 2025-09-16
 ========================
 
