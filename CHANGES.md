@@ -1,4 +1,15 @@
 
+3.1.164-RC5 / 2025-09-22
+========================
+
+  * Adiciona smoke test for rate limiter
+  * Hot-fix: rate limiter get ip
+
+3.1.164-RC4 / 2025-09-22
+========================
+
+  * Fix recibo proposição e adiciona rate limiter em matéria e norma
+
 3.1.164-RC3 / 2025-09-16
 ========================
 

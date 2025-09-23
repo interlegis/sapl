@@ -402,12 +402,20 @@ def xstr(s):
 
 
 def get_client_ip(request):
+    from ratelimit.core import ip_mask
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
     else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+        ip = request.META.get('HTTP_X_REAL_IP') or request.META.get('REMOTE_ADDR') or '0.0.0.0'
+    return ip_mask(ip)
+
+
+def ratelimit_ip(group, request):
+    """
+        Ignore group param in django-ratelimit==3.0.1
+    """
+    return get_client_ip(request)
 
 
 def get_base_url(request):

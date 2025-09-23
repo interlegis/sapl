@@ -30,8 +30,8 @@ from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Orgao
-from sapl.utils import show_results_filter_set, get_client_ip,\
-    sapn_is_enabled, MultiFormatOutputMixin
+from sapl.utils import show_results_filter_set, get_client_ip, \
+    sapn_is_enabled, MultiFormatOutputMixin, ratelimit_ip
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm,
@@ -150,7 +150,10 @@ class NormaRelacionadaCrud(MasterDetailCrud):
         layout_key = 'NormaRelacionadaDetail'
 
 
-@method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate='10/m',
+                            block=True),
+                  name='dispatch')
 class NormaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = NormaJuridica
     filterset_class = NormaFilterSet
@@ -236,7 +239,10 @@ class AnexoNormaJuridicaCrud(MasterDetailCrud):
             initial['ano'] = self.object.ano
             return initial
 
-    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate='10/m',
+                                block=True),
+                      name='dispatch')
     class DetailView(MasterDetailCrud.DetailView):
         form_class = AnexoNormaJuridicaForm
         layout_key = 'AnexoNormaJuridica'
@@ -285,7 +291,10 @@ class NormaCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
-    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate='10/m',
+                                block=True),
+                      name='dispatch')
     class DetailView(Crud.DetailView):
         def get(self, request, *args, **kwargs):
             estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas
@@ -343,7 +352,10 @@ class NormaCrud(Crud):
 
         layout_key = 'NormaJuridicaCreate'
 
-    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate='10/m',
+                                block=True),
+                      name='dispatch')
     class ListView(Crud.ListView):
 
         def get(self, request, *args, **kwargs):

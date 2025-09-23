@@ -51,7 +51,7 @@ from sapl.sessao.models import (Bancada, SessaoPlenaria)
 from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, google_recaptcha_configured,
-                        get_client_ip, sapn_is_enabled, is_weak_password)
+                        get_client_ip, sapn_is_enabled, is_weak_password, ratelimit_ip)
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, EstatisticasAcessoNormasForm)
 from .models import AppConfig, CasaLegislativa
 
@@ -67,10 +67,11 @@ class IndexView(TemplateView):
         return TemplateView.get(self, request, *args, **kwargs)
 
 
-@method_decorator(ratelimit(key=lambda group, request: get_client_ip(request),
+@method_decorator(ratelimit(key=ratelimit_ip,
                             rate='10/m',
                             method=ratelimit.UNSAFE,
-                            block=True), name='dispatch')
+                            block=True),
+                  name='dispatch')
 class LoginSapl(views.LoginView):
     template_name = 'base/login.html'
     authentication_form = LoginForm

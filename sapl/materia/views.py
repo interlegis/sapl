@@ -56,7 +56,7 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_u
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, get_tempfile_dir,
-                        google_recaptcha_configured, MultiFormatOutputMixin)
+                        google_recaptcha_configured, MultiFormatOutputMixin, ratelimit_ip)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -1461,7 +1461,10 @@ class TramitacaoCrud(MasterDetailCrud):
 
             return initial
 
-    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate='10/m',
+                                block=True),
+                      name='dispatch')
     class ListView(MasterDetailCrud.ListView):
 
         def get_queryset(self):
@@ -1534,7 +1537,10 @@ class TramitacaoCrud(MasterDetailCrud):
 
                 return HttpResponseRedirect(url)
 
-    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate='10/m',
+                                block=True),
+                      name='dispatch')
     class DetailView(MasterDetailCrud.DetailView):
 
         template_name = "materia/tramitacao_detail.html"
@@ -1912,7 +1918,10 @@ class MateriaLegislativaCrud(Crud):
         def get_success_url(self):
             return self.search_url
 
-    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate='10/m',
+                                block=True),
+                      name='dispatch')
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
@@ -1925,7 +1934,10 @@ class MateriaLegislativaCrud(Crud):
                 pk=self.kwargs['pk'])
             return context
 
-    @method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate='10/m',
+                                block=True),
+                      name='dispatch')
     class ListView(Crud.ListView, RedirectView):
 
         def get_redirect_url(self, *args, **kwargs):
@@ -2046,7 +2058,10 @@ class AcompanhamentoExcluirView(TemplateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-@method_decorator(ratelimit(key='ip', rate='10/m', block=True), name='dispatch')
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate='10/m',
+                            block=True),
+                  name='dispatch')
 class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaFilterSet
