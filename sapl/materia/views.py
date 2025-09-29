@@ -51,7 +51,7 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT
+from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT, RATE_LIMITER_RATE
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
@@ -134,6 +134,10 @@ def proposicao_texto(request, pk):
     raise Http404
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
     app_label = sapl.materia.apps.AppConfig.label
     filterset_class = AdicionarVariasAutoriasFilterSet
@@ -394,6 +398,10 @@ class StatusTramitacaoCrud(CrudAux):
             return reverse('sapl.materia:pesquisar_statustramitacao')
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarStatusTramitacaoView(FilterView):
     model = StatusTramitacao
     filterset_class = StatusTramitacaoFilterSet
@@ -1461,10 +1469,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
             return initial
 
-    @method_decorator(ratelimit(key=ratelimit_ip,
-                                rate='10/m',
-                                block=True),
-                      name='dispatch')
     class ListView(MasterDetailCrud.ListView):
 
         def get_queryset(self):
@@ -1537,10 +1541,6 @@ class TramitacaoCrud(MasterDetailCrud):
 
                 return HttpResponseRedirect(url)
 
-    @method_decorator(ratelimit(key=ratelimit_ip,
-                                rate='10/m',
-                                block=True),
-                      name='dispatch')
     class DetailView(MasterDetailCrud.DetailView):
 
         template_name = "materia/tramitacao_detail.html"
@@ -1918,10 +1918,6 @@ class MateriaLegislativaCrud(Crud):
         def get_success_url(self):
             return self.search_url
 
-    @method_decorator(ratelimit(key=ratelimit_ip,
-                                rate='10/m',
-                                block=True),
-                      name='dispatch')
     class DetailView(Crud.DetailView):
 
         layout_key = 'MateriaLegislativaDetail'
@@ -1934,10 +1930,6 @@ class MateriaLegislativaCrud(Crud):
                 pk=self.kwargs['pk'])
             return context
 
-    @method_decorator(ratelimit(key=ratelimit_ip,
-                                rate='10/m',
-                                block=True),
-                      name='dispatch')
     class ListView(Crud.ListView, RedirectView):
 
         def get_redirect_url(self, *args, **kwargs):
@@ -2059,7 +2051,7 @@ class AcompanhamentoExcluirView(TemplateView):
 
 
 @method_decorator(ratelimit(key=ratelimit_ip,
-                            rate='10/m',
+                            rate=RATE_LIMITER_RATE,
                             block=True),
                   name='dispatch')
 class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
@@ -2323,6 +2315,10 @@ class AcompanhamentoMateriaView(CreateView):
                        kwargs={'pk': self.kwargs['pk']})
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AcessorioEmLoteFilterSet
     template_name = 'materia/em_lote/acessorio.html'
@@ -2435,6 +2431,10 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         return self.get(request, self.kwargs)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AnexadaEmLoteFilterSet
     template_name = 'materia/em_lote/anexada.html'
@@ -2559,6 +2559,10 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         return HttpResponseRedirect(success_url)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteFilterSet
     template_name = 'materia/em_lote/tramitacao.html'

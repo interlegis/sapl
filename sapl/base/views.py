@@ -48,7 +48,7 @@ from sapl.parlamentares.models import (
 from sapl.protocoloadm.models import (Anexado, Protocolo)
 from sapl.relatorios.views import (relatorio_estatisticas_acesso_normas)
 from sapl.sessao.models import (Bancada, SessaoPlenaria)
-from sapl.settings import EMAIL_SEND_USER
+from sapl.settings import EMAIL_SEND_USER, RATE_LIMITER_RATE
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, google_recaptcha_configured,
                         get_client_ip, sapn_is_enabled, is_weak_password, ratelimit_ip)
@@ -68,7 +68,7 @@ class IndexView(TemplateView):
 
 
 @method_decorator(ratelimit(key=ratelimit_ip,
-                            rate='10/m',
+                            rate=RATE_LIMITER_RATE,
                             method=ratelimit.UNSAFE,
                             block=True),
                   name='dispatch')
@@ -1400,6 +1400,10 @@ class SaplSearchView(SearchView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarAuditLogView(PermissionRequiredMixin, FilterView):
     model = AuditLog
     filterset_class = AuditLogFilterSet

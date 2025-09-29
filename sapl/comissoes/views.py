@@ -28,10 +28,15 @@ from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud,
                             RP_LIST)
 from sapl.materia.models import (MateriaEmTramitacao, MateriaLegislativa,
                                  PautaReuniao, Tramitacao)
-from sapl.utils import show_results_filter_set
+from sapl.utils import show_results_filter_set, ratelimit_ip
 
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
                      Participacao, Periodo, Reuniao, TipoComissao)
+
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+
+from ..settings import RATE_LIMITER_RATE
 
 
 def pegar_url_composicao(pk):
@@ -333,6 +338,10 @@ class RemovePautaView(PermissionRequiredMixin, CreateView):
         return HttpResponseRedirect(success_url)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class AdicionaPautaView(PermissionRequiredMixin, FilterView):
     filterset_class = PautaReuniaoFilterSet
     template_name = 'comissoes/pauta.html'
