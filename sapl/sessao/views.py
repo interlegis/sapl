@@ -47,7 +47,7 @@ from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm, \
     CorrespondenciaForm, CorrespondenciaEmLoteFilterSet
 from sapl.sessao.models import Correspondencia
-from sapl.settings import TIME_ZONE
+from sapl.settings import TIME_ZONE, RATE_LIMITER_RATE
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, \
     MultiFormatOutputMixin, PautaMultiFormatOutputMixin, ratelimit_ip
 
@@ -3798,7 +3798,7 @@ class SessaoListView(ListView):
 
 
 @method_decorator(ratelimit(key=ratelimit_ip,
-                            rate='10/m',
+                            rate=RATE_LIMITER_RATE,
                             block=True),
                   name='dispatch')
 class PautaSessaoView(TemplateView):
@@ -3817,7 +3817,7 @@ class PautaSessaoView(TemplateView):
 
 
 @method_decorator(ratelimit(key=ratelimit_ip,
-                            rate='10/m',
+                            rate=RATE_LIMITER_RATE,
                             block=True),
                   name='dispatch')
 class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
@@ -4001,6 +4001,10 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
             return self.render_to_response(context)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
     model = SessaoPlenaria
     filterset_class = SessaoPlenariaFilterSet
@@ -4086,6 +4090,7 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
         self.logger.debug('user=' + username + '. Pesquisa de SessaoPlenaria.')
 
         return r
+
 
 
 class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
@@ -5388,6 +5393,10 @@ class CorrespondenciaCrud(MasterDetailCrud):
             return obj
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class CorrespondenciaEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = CorrespondenciaEmLoteFilterSet
     template_name = 'sessao/em_lote/correspondencia.html'
