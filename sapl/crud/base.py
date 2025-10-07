@@ -26,7 +26,11 @@ from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                         RP_LIST)
-from sapl.utils import normalize
+from sapl.settings import RATE_LIMITER_RATE
+from sapl.utils import normalize, ratelimit_ip
+
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 logger = logging.getLogger(settings.BASE_DIR.name)
 
@@ -101,7 +105,6 @@ variáveis do crud:
 
 
 class SearchMixin(models.Model):
-
     search = models.TextField(blank=True, default='')
     logger = logging.getLogger(__name__)
 
@@ -238,7 +241,7 @@ class PermissionRequiredContainerCrudMixin(PermissionRequiredMixin):
 
     @property
     def container_field_set(self):
-        if hasattr(self, 'crud') and\
+        if hasattr(self, 'crud') and \
                 not hasattr(self.crud, 'container_field_set'):
             self.crud.container_field_set = ''
         if hasattr(self, 'crud'):
@@ -267,12 +270,11 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
             obj.public = []
 
         if hasattr(self, 'permission_required') and self.permission_required:
-
             self.permission_required = tuple(
                 (
                     self.permission(pr) for pr in (
                         set(self.permission_required) - set(obj.public)
-                    )
+                )
                 )
             )
 
@@ -337,9 +339,9 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
         if not obj.DetailView.permission_required:
             return self.resolve_url(ACTION_DETAIL, args=(self.object.id,))
         else:
-            return self.resolve_url(ACTION_DETAIL, args=(self.object.id,))\
+            return self.resolve_url(ACTION_DETAIL, args=(self.object.id,)) \
                 if self.request.user.has_perm(
-                    self.permission(RP_DETAIL)) else ''
+                self.permission(RP_DETAIL)) else ''
 
     @property
     def update_url(self):
@@ -347,9 +349,9 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
         if not obj.UpdateView.permission_required:
             return self.resolve_url(ACTION_UPDATE, args=(self.object.id,))
         else:
-            return self.resolve_url(ACTION_UPDATE, args=(self.object.id,))\
+            return self.resolve_url(ACTION_UPDATE, args=(self.object.id,)) \
                 if self.request.user.has_perm(
-                    self.permission(RP_CHANGE)) else ''
+                self.permission(RP_CHANGE)) else ''
 
     @property
     def delete_url(self):
@@ -357,9 +359,9 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
         if not obj.DeleteView.permission_required:
             return self.resolve_url(ACTION_DELETE, args=(self.object.id,))
         else:
-            return self.resolve_url(ACTION_DELETE, args=(self.object.id,))\
+            return self.resolve_url(ACTION_DELETE, args=(self.object.id,)) \
                 if self.request.user.has_perm(
-                    self.permission(RP_DELETE)) else ''
+                self.permission(RP_DELETE)) else ''
 
     @property
     def openapi_url(self):
@@ -388,6 +390,10 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
         return self.model._meta.verbose_name_plural
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
     permission_required = (RP_LIST,)
     logger = logging.getLogger(__name__)
@@ -496,7 +502,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                         if m:
                             ss = get_field_display(m, n[-1])[1]
                             ss = (
-                                ('<br>' if '<ul>' in ss else ' - ') + ss) \
+                                    ('<br>' if '<ul>' in ss else ' - ') + ss) \
                                 if ss and j != 0 and s else ss
                     except:
                         pass
@@ -516,7 +522,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         um formulário de pesquisa herdado ou o próprio ListWithSearchForm.
         Só pode ser usado se o model relativo herdar de SearchMixin"""
         if hasattr(self, 'form_search_class'):
-            q = str(self.request.GET.get('q'))\
+            q = str(self.request.GET.get('q')) \
                 if 'q' in self.request.GET else ''
 
             o = self.request.GET['o'] if 'o' in self.request.GET else '1'
@@ -551,13 +557,13 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
         if 'page' in qr:
             del qr['page']
         context['filter_url'] = (
-            '&' + qr.urlencode()) if len(qr) > 0 else ''
+                '&' + qr.urlencode()) if len(qr) > 0 else ''
 
         if self.ordered_list:
             if 'o' in qr:
                 del qr['o']
             context['ordering_url'] = (
-                '&' + qr.urlencode()) if len(qr) > 0 else ''
+                    '&' + qr.urlencode()) if len(qr) > 0 else ''
         return context
 
     def get_queryset(self):
@@ -612,7 +618,7 @@ class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
                             )
                             pass
 
-                        if fm and hasattr(fm, 'related_model')\
+                        if fm and hasattr(fm, 'related_model') \
                                 and fm.related_model:
                             rmo = fm.related_model._meta.ordering
                             if rmo:
@@ -710,7 +716,7 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
                           'sem estar em um Container %s'
                           ) % container_model._meta.verbose_name)
 
-                if hasattr(self, 'crud') and\
+                if hasattr(self, 'crud') and \
                         hasattr(self.crud, 'is_m2m') and self.crud.is_m2m:
                     setattr(
                         self.object, container[1], getattr(
@@ -724,9 +730,12 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
         return super().form_valid(form)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class CrudDetailView(PermissionRequiredContainerCrudMixin,
                      DetailView, MultipleObjectMixin):
-
     permission_required = (RP_DETAIL,)
     no_entries_msg = _('Nenhum registro Associado.')
     paginate_by = 10
@@ -749,9 +758,9 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
                     self.object, obj.model_set).model._meta.get_field(
                     fieldname).verbose_name
                  if hasattr(self.object, fieldname) else
-                    getattr(
-                    self.object, obj.model_set).model._meta.get_field(
-                    fieldname).related_model._meta.verbose_name_plural)
+                 getattr(
+                     self.object, obj.model_set).model._meta.get_field(
+                     fieldname).related_model._meta.verbose_name_plural)
                 for fieldname in self.list_field_names_set]
         except Exception as e:
             username = self.request.user.username
@@ -773,7 +782,7 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
             self.object, obj.model_set).model._meta.app_config.name
         return reverse('%s:%s' % (
             namespace, self.url_model_set_name(suffix)),
-            args=args)
+                       args=args)
 
     def _as_row(self, obj):
         try:
@@ -940,7 +949,7 @@ class CrudDeleteView(PermissionRequiredContainerCrudMixin,
 
             username = request.user.username
             self.logger.error("user=" + username + ". Registro não pode ser removido, pois "
-                              "é referenciado por outros registros: " + error_msg2)
+                                                   "é referenciado por outros registros: " + error_msg2)
             messages.add_message(request,
                                  messages.ERROR,
                                  error_msg)
@@ -976,9 +985,8 @@ class Crud:
                     view.permission_required and \
                     hasattr(cls, 'public') and \
                     cls.public:
-
-                #print(view.permission_required, view)
-                #print(cls.public, cls)
+                # print(view.permission_required, view)
+                # print(cls.public, cls)
 
                 pr = pr - set(cls.public)
 
@@ -1036,7 +1044,6 @@ class Crud:
     def build(cls, _model, _help_topic, _model_set=None, list_field_names=[]):
 
         def create_class(_list_field_names):
-
             class ModelCrud(cls):
                 model = _model
                 model_set = _model_set
@@ -1080,7 +1087,6 @@ class CrudAux(Crud):
 
     @classonlymethod
     def build(cls, _model, _help_topic, _model_set=None, list_field_names=[]):
-
         ModelCrud = Crud.build(
             _model, _help_topic, _model_set, list_field_names)
 
@@ -1101,7 +1107,7 @@ class MasterDetailCrud(Crud):
             obj = self.crud if hasattr(self, 'crud') else self
             if not obj.ListView:
                 return ''
-            return self.resolve_url(ACTION_LIST, args=(self.kwargs['pk'],))\
+            return self.resolve_url(ACTION_LIST, args=(self.kwargs['pk'],)) \
                 if self.request.user.has_perm(self.permission(RP_LIST)) else ''
 
         @property
@@ -1109,7 +1115,7 @@ class MasterDetailCrud(Crud):
             obj = self.crud if hasattr(self, 'crud') else self
             if not obj.CreateView:
                 return ''
-            return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],))\
+            return self.resolve_url(ACTION_CREATE, args=(self.kwargs['pk'],)) \
                 if self.request.user.has_perm(self.permission(RP_ADD)) else ''
 
         @property
@@ -1118,9 +1124,9 @@ class MasterDetailCrud(Crud):
             if not obj.DetailView:
                 return ''
             pkk = self.request.GET['pkk'] if 'pkk' in self.request.GET else ''
-            return (super().detail_url + (('?pkk=' + pkk) if pkk else ''))\
+            return (super().detail_url + (('?pkk=' + pkk) if pkk else '')) \
                 if self.request.user.has_perm(
-                    self.permission(RP_DETAIL)) else ''
+                self.permission(RP_DETAIL)) else ''
 
         @property
         def update_url(self):
@@ -1128,18 +1134,18 @@ class MasterDetailCrud(Crud):
             if not obj.UpdateView:
                 return ''
             pkk = self.request.GET['pkk'] if 'pkk' in self.request.GET else ''
-            return (super().update_url + (('?pkk=' + pkk) if pkk else ''))\
+            return (super().update_url + (('?pkk=' + pkk) if pkk else '')) \
                 if self.request.user.has_perm(
-                    self.permission(RP_CHANGE)) else ''
+                self.permission(RP_CHANGE)) else ''
 
         @property
         def delete_url(self):
             obj = self.crud if hasattr(self, 'crud') else self
             if not obj.DeleteView:
                 return ''
-            return super().delete_url\
+            return super().delete_url \
                 if self.request.user.has_perm(
-                    self.permission(RP_DELETE)) else ''
+                self.permission(RP_DELETE)) else ''
 
         def get_context_data(self, **kwargs):
             obj = self.crud if hasattr(self, 'crud') else self
@@ -1168,7 +1174,7 @@ class MasterDetailCrud(Crud):
 
                 root_pk = parent_object.pk
             else:
-                root_pk = self.kwargs['pk'] if 'pkk' not in self.request.GET\
+                root_pk = self.kwargs['pk'] if 'pkk' not in self.request.GET \
                     else self.request.GET['pkk']
             kwargs.setdefault('root_pk', root_pk)
 
@@ -1182,6 +1188,10 @@ class MasterDetailCrud(Crud):
                 context['title'] = title
             return context
 
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate=RATE_LIMITER_RATE,
+                                block=True),
+                      name='dispatch')
     class ListView(Crud.ListView):
         permission_required = RP_LIST,
         logger = logging.getLogger(__name__)
@@ -1410,10 +1420,14 @@ class MasterDetailCrud(Crud):
                 return reverse('%s:%s' % (
                     namespace,
                     '%s_%s' % (parent_object._meta.model_name, ACTION_DETAIL)),
-                    args=(pk,))
+                               args=(pk,))
             else:
                 return self.resolve_url(ACTION_LIST, args=(pk,))
 
+    @method_decorator(ratelimit(key=ratelimit_ip,
+                                rate=RATE_LIMITER_RATE,
+                                block=True),
+                      name='dispatch')
     class DetailView(Crud.DetailView):
         permission_required = RP_DETAIL,
         template_name = 'crud/detail_detail.html'
@@ -1429,7 +1443,7 @@ class MasterDetailCrud(Crud):
             if not obj.ListView:
                 return ''
 
-            if obj.ListView.permission_required not in obj.public or\
+            if obj.ListView.permission_required not in obj.public or \
                     self.request.user.has_perm(self.permission(RP_LIST)):
                 if '__' in obj.parent_field:
                     fields = obj.parent_field.split('__')
@@ -1499,9 +1513,9 @@ class MasterDetailCrud(Crud):
         @property
         def detail_set_create_url(self):
             obj = self.crud if hasattr(self, 'crud') else self
-            if hasattr(obj, 'model_set') and obj.model_set\
+            if hasattr(obj, 'model_set') and obj.model_set \
                     and self.request.user.has_perm(
-                        self.permission_set(RP_ADD)):
+                self.permission_set(RP_ADD)):
                 root_pk = self.object.pk
                 pk = root_pk
 

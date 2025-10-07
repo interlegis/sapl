@@ -19,3 +19,6 @@ class CheckWeakPasswordMiddleware:
             return redirect('sapl.base:alterar_senha')
 
         return self.get_response(request)
+
+
+

@@ -48,16 +48,19 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_oradores_explicacoes_pessoais, get_consideracoes_finais,
                                get_ocorrencias_da_sessao, get_assinaturas,
                                get_correspondencias)
-from sapl.settings import MEDIA_URL
+from sapl.settings import MEDIA_URL, RATE_LIMITER_RATE
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
-    num_materias_por_tipo, parlamentares_ativos, MultiFormatOutputMixin
+    num_materias_por_tipo, parlamentares_ativos, MultiFormatOutputMixin, ratelimit_ip
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
 from sapl.crud.base import make_pagination
+
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 
 def get_kwargs_params(request, fields):
@@ -1841,6 +1844,10 @@ class RelatorioMixin:
             return self.render_to_response(context)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
     model = DocumentoAcessorio
     filterset_class = RelatorioDocumentosAcessoriosFilterSet
@@ -1885,6 +1892,10 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioVotacoesNominaisView(RelatorioMixin, MultiFormatOutputMixin, FilterView):
     model = VotoParlamentar
     filterset_class = RelatorioVotacoesNominaisFilterSet
@@ -1954,6 +1965,10 @@ class RelatorioVotacoesNominaisView(RelatorioMixin, MultiFormatOutputMixin, Filt
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioAtasView(RelatorioMixin, FilterView):
     model = SessaoPlenaria
     filterset_class = RelatorioAtasFilterSet
@@ -1979,6 +1994,10 @@ class RelatorioAtasView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
     logger = logging.getLogger(__name__)
     model = SessaoPlenaria
@@ -2213,6 +2232,10 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioHistoricoTramitacaoView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioHistoricoTramitacaoFilterSet
@@ -2270,6 +2293,10 @@ class RelatorioHistoricoTramitacaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
     model = MateriaEmTramitacao
     filterset_class = RelatorioDataFimPrazoTramitacaoFilterSet
@@ -2333,6 +2360,10 @@ class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioReuniaoView(RelatorioMixin, FilterView):
     model = Reuniao
     filterset_class = RelatorioReuniaoFilterSet
@@ -2367,6 +2398,10 @@ class RelatorioReuniaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioAudienciaView(RelatorioMixin, FilterView):
     model = AudienciaPublica
     filterset_class = RelatorioAudienciaFilterSet
@@ -2401,6 +2436,10 @@ class RelatorioAudienciaView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
     model = MateriaEmTramitacao
     filterset_class = RelatorioMateriasTramitacaoFilterSet
@@ -2515,6 +2554,10 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioMateriasPorAnoAutorTipoView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasPorAnoAutorTipoFilterSet
@@ -2594,6 +2637,10 @@ class RelatorioMateriasPorAnoAutorTipoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasPorAutorFilterSet
@@ -2665,6 +2712,10 @@ class RelatorioMateriaAnoAssuntoView(ListView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioNormasPublicadasMesView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasMesFilterSet
@@ -2705,6 +2756,10 @@ class RelatorioNormasPublicadasMesView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasVigenciaFilterSet
@@ -2769,6 +2824,10 @@ class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
     model = DocumentoAdministrativo
     filterset_class = RelatorioHistoricoTramitacaoAdmFilterSet
@@ -2819,6 +2878,10 @@ class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasPorAutorFilterSet

@@ -1,0 +1,5 @@
+{
+  "interval": 300,
+  "requests-per-second": 5,
+  "burst": 10
+}
