@@ -58,11 +58,11 @@ def votacao_aberta(request):
                         kwargs={'pk': v.id}),
                 v.__str__()))
         logger.info('user=' + username + '. Existe mais de uma votações aberta. Elas se encontram '
-                    'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
-                    'Para votar, peça para que o Operador feche-as.')
+                                         'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
+                                                                                              'Para votar, peça para que o Operador feche-as.')
         msg = _('Existe mais de uma votações aberta. Elas se encontram '
                 'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
-                'Para votar, peça para que o Operador feche-as.')
+                                                                     'Para votar, peça para que o Operador feche-as.')
         messages.add_message(request, messages.INFO, msg)
         return None, msg
 
@@ -78,9 +78,9 @@ def votacao_aberta(request):
         if numero_materias_abertas > 1:
             logger.info('user=' + username + '. Existe mais de uma votação aberta na Sessão: ' +
                         ('''<li><a href="%s">%s</a></li>''' % (
-                        reverse('sapl.sessao:sessaoplenaria_detail',
-                                kwargs={'pk': votacoes_abertas.first().id}),
-                        votacoes_abertas.first().__str__())))
+                            reverse('sapl.sessao:sessaoplenaria_detail',
+                                    kwargs={'pk': votacoes_abertas.first().id}),
+                            votacoes_abertas.first().__str__())))
             msg = _('Existe mais de uma votação aberta na Sessão: ' +
                     ('''<li><a href="%s">%s</a></li>''' % (
                         reverse('sapl.sessao:sessaoplenaria_detail',
@@ -102,8 +102,8 @@ def votacao(context, context_vars):
         context_vars.update({'parlamentar': parlamentar})
     else:
         context.update({'error_message':
-                        'Não há presentes na Sessão com a '
-                        'matéria em votação.'})
+                            'Não há presentes na Sessão com a '
+                            'matéria em votação.'})
 
     if parlamentar_presente:
         voto = []
@@ -123,13 +123,13 @@ def votacao(context, context_vars):
                 logger.error("Voto do parlamentar {} não computado.".format(context_vars['parlamentar']))
                 context.update(
                     {'voto_parlamentar': 'Voto não '
-                     'computado.'})
+                                         'computado.'})
     else:
         logger.error("Parlamentar com id={} não está presente na "
-                    "Ordem do Dia/Expediente em votação.".format(parlamentar.id))
+                     "Ordem do Dia/Expediente em votação.".format(parlamentar.id))
         context.update({'error_message':
-                        'Você não está presente na '
-                        'Ordem do Dia/Expediente em votação.'})
+                            'Você não está presente na '
+                            'Ordem do Dia/Expediente em votação.'})
     return context, context_vars
 
 def sessao_votacao(context,context_vars):
@@ -143,9 +143,9 @@ def sessao_votacao(context,context_vars):
     presentes = []
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
-    errors_msgs = {'materia':'Não há nenhuma matéria aberta.',
-            'registro':'A votação para esta matéria já encerrou.',
-            'tipo':'A matéria aberta não é do tipo votação nominal.'}
+    errors_msgs = {'materia': 'Não há nenhuma matéria aberta.',
+                   'registro': 'A votação para esta matéria já encerrou.',
+                   'tipo': 'A matéria aberta não é do tipo votação nominal.'}
 
     materia_aberta = None
     if ordem_dia:
@@ -160,8 +160,8 @@ def sessao_votacao(context,context_vars):
             'parlamentar_id', flat=True).distinct()
 
     context_vars.update({'ordem_dia': ordem_dia,
-                        'expediente':expediente,
-                        'presentes': presentes})
+                         'expediente': expediente,
+                         'presentes': presentes})
 
     # Verifica votação aberta
     # Se aberta, verifica se é nominal. ID nominal == 2
@@ -188,7 +188,7 @@ def can_vote(context, context_vars, request):
 
     # Pega sessão
     sessao, msg = votacao_aberta(request)
-    context_vars.update({'sessao':sessao})
+    context_vars.update({'sessao': sessao})
     if sessao and not msg:
         context, context_vars = sessao_votacao(context, context_vars)
     elif not sessao and msg:
@@ -202,7 +202,7 @@ def can_vote(context, context_vars, request):
 def votante_view(request):
     logger = logging.getLogger(__name__)
     username = request.user.username if request.user.is_authenticated else 'AnonymousUser'
- 
+
     # Pega o votante relacionado ao usuário
     template_name = 'painel/voto_individual.html'
     context = {}
@@ -215,9 +215,11 @@ def votante_view(request):
         else:
             raise ObjectDoesNotExist
     except ObjectDoesNotExist:
-        logger.error(f"user={username}. Usuário (user={request.user}) não cadastrado como votante na tela de parlamentares. " 
-                     "Contate a administração de sua Casa Legislativa!")
-        msg = _("Usuário não cadastrado como votante na tela de parlamentares. Contate a administração de sua Casa Legislativa!")
+        logger.error(
+            f"user={username}. Usuário (user={request.user}) não cadastrado como votante na tela de parlamentares. "
+            "Contate a administração de sua Casa Legislativa!")
+        msg = _(
+            "Usuário não cadastrado como votante na tela de parlamentares. Contate a administração de sua Casa Legislativa!")
         context.update({'error_message': msg})
 
         return render(request, template_name, context)
@@ -227,7 +229,8 @@ def votante_view(request):
     # Verifica se usuário possui permissão para votar
     if 'parlamentares.can_vote' in request.user.get_all_permissions():
         context, context_vars = can_vote(context, context_vars, request)
-        logger.debug("user=" + username + ". Verificando se usuário {} possui permissão para votar.".format(request.user))
+        logger.debug(
+            "user=" + username + ". Verificando se usuário {} possui permissão para votar.".format(request.user))
     else:
         logger.error("user=" + username + ". Usuário {} sem permissão para votar.".format(request.user))
         context.update({'permissao': False,
@@ -237,16 +240,16 @@ def votante_view(request):
     if request.method == 'POST':
         if context_vars['ordem_dia']:
             try:
-                logger.info("user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e "
-                                                 "ordem={}. "
-                            .format(context_vars['parlamentar'], context_vars['ordem_dia']))
+                logger.info(
+                    "user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e ordem={}."
+                    .format(context_vars['parlamentar'], context_vars['ordem_dia']))
                 voto = VotoParlamentar.objects.get(
                     parlamentar=context_vars['parlamentar'],
                     ordem=context_vars['ordem_dia'])
             except ObjectDoesNotExist:
-                logger.error("user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e ordem={}. "
-                                                  "Criando objeto. "
-                             .format(context_vars['parlamentar'], context_vars['ordem_dia']))
+                logger.error(
+                    "user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e ordem={}. Criando objeto."
+                    .format(context_vars['parlamentar'], context_vars['ordem_dia']))
                 voto = VotoParlamentar.objects.create(
                     parlamentar=context_vars['parlamentar'],
                     voto=request.POST['voto'],
@@ -263,14 +266,16 @@ def votante_view(request):
 
         elif context_vars['expediente']:
             try:
-                logger.info("user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e expediente={}."
-                            .format(context_vars['parlamentar'], context_vars['expediente']))
+                logger.info(
+                    "user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e expediente={}."
+                    .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto = VotoParlamentar.objects.get(
                     parlamentar=context_vars['parlamentar'],
                     expediente=context_vars['expediente'])
             except ObjectDoesNotExist:
-                logger.error("user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e expediente={}. Criando objeto."
-                             .format(context_vars['parlamentar'], context_vars['expediente']))
+                logger.error(
+                    "user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e expediente={}. Criando objeto."
+                    .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto = VotoParlamentar.objects.create(
                     parlamentar=context_vars['parlamentar'],
                     voto=request.POST['voto'],
@@ -278,8 +283,9 @@ def votante_view(request):
                     ip=get_client_ip(request),
                     expediente=context_vars['expediente'])
             else:
-                logger.info("user=" + username + ". VotoParlamentar para parlamentar={} e expediente={} obtido com sucesso."
-                            .format(context_vars['parlamentar'], context_vars['expediente']))
+                logger.info(
+                    "user=" + username + ". VotoParlamentar para parlamentar={} e expediente={} obtido com sucesso."
+                    .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto.voto = request.POST['voto']
                 voto.ip = get_client_ip(request)
                 voto.user = request.user
@@ -296,7 +302,7 @@ def painel_view(request, pk):
     now = timezone.localtime(timezone.now())
     utc_offset = now.utcoffset().total_seconds() / 60
 
-    context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk, 'utc_offset': utc_offset }
+    context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk, 'utc_offset': utc_offset}
     return render(request, 'painel/index.html', context)
 
 
@@ -626,3 +632,73 @@ def get_dados_painel(request, pk):
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(get_presentes(pk, response, None))
+
+
+def websocket_view(request, controller_id):
+    now = timezone.localtime(timezone.now())
+    utc_offset = now.utcoffset().total_seconds() / 60
+    context = {'head_title': str(_('Painel Plenário')),
+               'utc_offset': utc_offset,
+               'enable_live_ws': True,
+               'controller_id': controller_id,  # aka, sessao_plenaria_id
+               }
+    return render(request, "painel/painel_v2.html", context)
+
+
+VALID_SW_IDS = ["discurso", "aparte", "questao", "consideracao"]  # recover from BD?
+VALID_SW_ACTIONS = ["start", "stop", "reset", "set"]
+
+
+@user_passes_test(check_permission)
+def stopwatch_controller(request, controller_id):
+    """
+        http://localhost:8000/painel/v2/controller/<sessao_id>/stopwatch?id=discurso&action=start
+        http://localhost:8000/painel/v2/controller/<sessao_id>/stopwatch?id=discurso&action=stop
+        http://localhost:8000/painel/v2/controller/<sessao_id>/stopwatch?id=discurso&action=reset
+        http://localhost:8000/painel/v2/controller/<sessao_id>/stopwatch?id=discurso&action=set&time=30
+    """
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+
+    logger = logging.getLogger(__name__)
+
+    print(f"stopwatch for {controller_id}")
+    stopwatch_id = request.GET.get("id")
+    if stopwatch_id not in VALID_SW_IDS:
+        return JsonResponse({"type": "error",
+                             f"message": f"Invalid stopwatch id: {stopwatch_id}"})
+
+    stopwatch_action = request.GET.get("action")
+    if stopwatch_action not in VALID_SW_ACTIONS:
+        return JsonResponse({"type": "error",
+                             f"message": f"Invalid stopwatch action: {stopwatch_action}"})
+
+    stopwatch_time = request.GET.get("time", 300)
+
+    # TODO: check stopwatch state transition
+
+    layer = get_channel_layer()
+    group = f"controller_{controller_id}"
+    print(group)
+
+    notification = {
+        "type": "stopwatch.update",
+        "id": f"sw:{stopwatch_id}",
+        "action": stopwatch_action,
+        "time": stopwatch_time,
+    }
+
+    async_to_sync(layer.group_send)(group, notification)
+    return JsonResponse(notification)
+
+
+# def push_to_me(request):
+#     from asgiref.sync import async_to_sync
+#     from channels.layers import get_channel_layer
+#
+#     layer = get_channel_layer()
+#     group = f"user_{request.user.pk}"
+#     async_to_sync(layer.group_send)(
+#         group, {"type": "notify", "data": {"text": "server says hi!"}}
+#     )
+#     return JsonResponse({"ok": True})

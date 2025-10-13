@@ -1,0 +1,78 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping%}
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
+{% block vue_content %}
+<style>[v-cloak]{display:none}</style>
+<div id="votacao">
+    <fieldset class="form-group">
+        <legend>[[ tipo_votacao_descricao ]]</legend>
+        [[ error_message ]]
+
+        <!-- Component 1 -->
+        <div>
+			<b>Matéria:</b> [[ materia ]]
+			<br/>
+			<b>Ementa:</b> [[ ementa ]]
+			<br/>
+		</div>
+        <br/>
+        <!-- Votacao Nominal -->
+        <fieldset class="form-group" v-if="tipo_votacao == 1">
+            <legend><strong>Votos</strong></legend>
+            <div class="row" v-for="p in parlamentares">
+                    <div class="col-md-4" id="nome_parlamentar">[[ p.nome_parlamentar ]]</div>
+                    <div class="col-md-2" id="filiacao">[[ p.filiacao ]]</div>
+                    <div class="col-md-4" v-if="edit_votes">
+                        <span v-for="o in options" :key="o.value">
+                            <input type="radio" :id="o.value" :value="o.text" :name="p.parlamentar_id" v-model="votos_parlamentares[p.parlamentar_id].voto"/>
+                            <label :for="o.value"> [[ o.text ]]</label>
+                            &nbsp;
+                        </span>
+                    </div>
+                    <div v-else>
+                        [[ votos_parlamentares[p.parlamentar_id].voto ]]
+                    </div>
+            </div>
+            <br/>
+            <br/>
+        </fieldset>
+            <legend><strong>Total de votos:</strong></legend>
+            <div id="total_votos" v-for="voto in total_votos">
+                <div class='row'><div class='col-md-12'>[[ voto.tipo ]]: [[ voto.total ]]</div></div>
+            </div>
+            <br/>
+            <!-- component -->
+            <div class="col-md-6">
+                <b>Resultado da Votação: </b>
+                  <select v-model="resultado_selected" class="select form-control" :disabled="disable_resultado" >
+                      <option :key="t.id" :value="t.id" v-for="t in tipos_resultados">[[ t.nome ]]</option>
+                  </select>
+            </div>
+            <!-- component -->
+            <div class="row">
+                <div class="col-md-12">
+                    Observações:
+                    <textarea v-model="observacoes" cols="10" rows="10" class="form-control"></textarea>
+                </div>
+            </div>
+        <div class="alert alert-info alert-dismissible " role="alert" v-else>
+            <div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
+        </div>
+    </fieldset>
+</div>
+{% endblock vue_content %}
+
+{% block webpack_loader_css %}
+    {{ block.super }}
+    {% render_bundle 'votacao' 'css' %}
+{% endblock %}
+
+{% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}
+    {% render_bundle 'votacao' 'js' %}
+{% endblock %}

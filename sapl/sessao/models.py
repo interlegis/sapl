@@ -1,6 +1,9 @@
+import datetime
+from enum import Enum
 from operator import xor
 
 from django.core.exceptions import ValidationError
+from django.contrib.postgres.fields.jsonb import JSONField
 from django.db import models
 from django.db.models import Q, F
 from django.utils import timezone, formats
@@ -1050,3 +1053,125 @@ class Correspondencia(models.Model):
 
     def __str__(self):
         return _('Correspondência: {}').format(self.documento)
+
+
+##
+## Painel 2.0
+##
+class SessaoPresencasView(models.Model):
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.DO_NOTHING,
+                                        verbose_name=_('Sessão Plenária'))
+    parlamentar = models.ForeignKey(Parlamentar,
+                                    on_delete=models.DO_NOTHING,
+                                    verbose_name=_('Parlamentar'))
+    etapa_sessao = models.CharField(max_length=15)
+    nome_parlamentar = models.CharField(max_length=50,
+                                        verbose_name=_('Nome Parlamentar'))
+    filiacao = models.CharField(max_length=50,
+                                verbose_name=_('Filiacao'))
+    ativo = models.BooleanField(verbose_name=_('Ativo na Casa?'))
+
+    class Meta:
+        managed = False
+        db_table = "sessao_presencas_view"
+        ordering = ('sessao_plenaria_id', 'etapa_sessao', 'nome_parlamentar')
+
+    def __str__(self):
+        return f"{self.sessao_plenaria} - {self.etapa_sessao} - {self.parlamentar}"
+
+
+class SessaoOradoresView(models.Model):
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.DO_NOTHING,
+                                        verbose_name=_('Sessão Plenária'))
+
+    parlamentar = models.ForeignKey(Parlamentar,
+                                    on_delete=models.DO_NOTHING,
+                                    verbose_name=_('Parlamentar'))
+
+    etapa_sessao = models.CharField(max_length=15)
+    nome_parlamentar = models.CharField(max_length=50,
+                                        verbose_name=_('Nome Parlamentar'))
+
+    ordem_pronunciamento = models.PositiveIntegerField(verbose_name=_('Ordem Pronunciamento'))
+
+    filiacao = models.CharField(max_length=20, verbose_name=_('Sigla'))
+
+    class Meta:
+        managed = False
+        db_table = "sessao_oradores_view"
+        ordering = ('sessao_plenaria_id', 'etapa_sessao', 'ordem_pronunciamento', 'nome_parlamentar')
+
+    def __str__(self):
+        return f"{self.sessao_plenaria} - {self.etapa_sessao} - {self.ordem_pronunciamento} - {self.parlamentar}"
+
+
+class SessaoMateriasVotacoesView(models.Model):
+    sessao_plenaria = models.ForeignKey(SessaoPlenaria,
+                                        on_delete=models.DO_NOTHING,
+                                        verbose_name=_('Sessão Plenária'))
+    materia = models.ForeignKey(MateriaLegislativa,
+                                on_delete=models.DO_NOTHING,
+                                verbose_name=_('Matéria Legislativa'))
+    etapa_sessao = models.CharField(max_length=15)
+
+    numero_ordem = models.PositiveIntegerField(verbose_name=_('Número de Ordem'))
+
+    numero_votos = JSONField(null=True, verbose_name=_('Total Votos'))
+
+    votos_parlamentares = JSONField(null=True, verbose_name=_('Votos Parlamentares'))
+
+    votacao_aberta = models.BooleanField(default=False)
+
+    tipo_votacao = models.PositiveIntegerField(verbose_name=_('Tipo Votação'))
+
+    tipo_votacao_descricao = models.CharField(max_length=15)
+
+    resultado = models.CharField(
+        max_length=256,
+        blank=True,
+        verbose_name=_('Resultado'))
+
+    resultado_votacao = models.CharField(
+        max_length=256,
+        blank=True,
+        verbose_name=_('Resultado Votação'))
+
+    class Meta:
+        managed = False
+        db_table = "sessao_materias_votacoes_view"
+        ordering = ('sessao_plenaria_id', 'etapa_sessao', 'numero_ordem')
+
+    def __str__(self):
+        return f"{self.sessao_plenaria} - {self.etapa_sessao} - " \
+               f"{self.tipo_votacao_descricao} - {self.votos_parlamentares}"
+
+#
+# class StatusCronometro( models.TextChoices):
+#     RUNNING = 'running', 'Running'
+#     STOPPED = 'stopped', 'Stopped'
+#     PAUSED = 'paused', 'Paused'
+#
+#
+# class Cronometro(models.Model):
+#     titulo = models.CharField(max_length=50, verbose_name=_('Título do cronômetro'))
+#     status = models.CharField(max_length=10,
+#                               choices=StatusCronometro.choices,
+#                               default=StatusCronometro.STOPPED,
+#                               verbose_name=_('Status do Cronômetro'))  # stopped, running, paused, reset(?), resume(?)
+#
+#     started_at_ms = models.DateTimeField(verbose_name=_('Data e Hora da Inicialização'), blank=True, null=True)
+#
+#     class Meta:
+#         verbose_name = _('Cronômetro de Votação')
+#         verbose_name_plural = _('Cronômetros de Votação')
+#         ordering = ('id',)
+#
+#     @property
+#     def time_elapsed_ms(self):
+#         return datetime.datetime.now() - started_at_ms
+#
+#     def __str__(self):
+#         return self.titulo
+#

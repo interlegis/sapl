@@ -1,0 +1,106 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
+{% block actions %} {% endblock %}
+
+{% block title %}
+{% endblock %}
+
+{% block vue_content %}
+  <div id="painel-controle">
+	<h1 class="page-header">
+		Painel Eletrônico <small>([[ sessao_plenaria ]])</small>
+	</h1>
+    [[ message ]]
+      <div class="row">
+        <div class="col-md-6"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=800, height=800, scrollbars=yes'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
+        <div class="col-md-3"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active" style="display: none">Abrir Painel</button></div>
+        <div class="col-md-3"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-danger btn-sm active" style="display: none;">Fechar Painel</button></div>
+      </div>
+        <br />
+
+        <h1>Operação do Painel Eletrônico</h1>
+        <h2><span id="relogio"></span></h2>
+        <br />
+      <div class="row">
+        <div class="col-md-12 mb-2"><h3>Cronômetro do Discurso</h3></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-2"><input size="2" id="discurso" name="discurso" value="" readyonly="true" class="form-control"></div>
+      </div>
+        <br />
+
+      <div class="row">
+        <div class="col-md-6"><button type="button" id="discursoStart" class="btn btn-success">Iniciar</button></div>
+        <div class="col-md-6"><button type="button" id="discursoReset" class="btn btn-success">Reiniciar</button></div>
+      </div>
+
+        <br /><br >
+      <div class="row">
+        <div class="col-md-12 mb-2"><h3>Cronômetro do Aparte</h3></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-2"><input size="2" id="aparte" name="aparte" value="" readyonly="true" class="form-control"></div>
+      </div>
+        <br />
+
+      <div class="row">
+        <div class="col-md-6"><button type="button" id="aparteStart" class="btn btn-success">Iniciar</button></div>
+        <div class="col-md-6"><button type="button" id="aparteReset" class="btn btn-success" class="btn btn-success">Reiniciar</button></div>
+      </div>
+
+        <br /><br >
+      <div class="row">
+        <div class="col-md-12 mb-2"><h3>Cronômetro da Questão de Ordem </h3></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-2"><input size="2" id="ordem" name="ordem" value="" readyonly="true" class="form-control"></div>
+      </div>
+        <br />
+
+      <div class="row">
+        <div class="col-md-6"><button type="button" id="ordemStart" class="btn btn-success">Iniciar</button></div>
+        <div class="col-md-6"><button type="button" id="ordemReset" class="btn btn-success">Reiniciar</button></div>
+      </div>
+
+      <br/>
+      <br/>
+
+      <div class="row">
+        <div class="col-md-12 mb-2"><h3>Cronômetro de Considerações Finais</h3></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4"><input size="2" id="consideracoes" name="consideracoes" value="" readyonly="true" class="form-control"></div>
+      </div>
+      <br />
+
+      <div class="row">
+        <div class="col-md-6"><button type="button" id="consideracoesStart" class="btn btn-success">Iniciar</button></div>
+        <div class="col-md-6"><button type="button" id="consideracoesReset" class="btn btn-success">Reiniciar</button></div>
+      </div>
+      <br /><br >
+
+      <div class="row">
+        <div class="col-md-6"><button type="button" id="sinalSonoro" class="btn btn-success" onclick="document.getElementById('audio').play();">Sinal Sonoro</button></div>
+      </div>
+  </div>
+{% endblock vue_content %}
+
+{% block webpack_loader_css %}
+    {{ block.super }}
+    {% render_bundle 'votacao' 'css' %}
+{% endblock %}
+
+{% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}
+    {% render_bundle 'painel-controle' 'js' %}
+{% endblock %}

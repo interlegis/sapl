@@ -14,6 +14,7 @@ See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
 import logging
+import os
 import socket
 import sys
 
@@ -83,6 +84,8 @@ INSTALLED_APPS = (
 
                      'crispy_forms',
 
+                     'channels',
+
                      'waffle',
 
                      'drf_spectacular',
@@ -101,6 +104,23 @@ INSTALLED_APPS = (
                      'django_prometheus',
 
                  ) + SAPL_APPS
+
+
+# Web-sockets
+ASGI_APPLICATION = 'sapl.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [config("REDIS_URL", cast=str, default="redis://127.0.0.1:6379/0")],
+            "prefix": f"{host}",
+            "capacity": 1000,
+            "expiry": 60,
+        },
+    },
+}
+
 
 # FTS = Full Text Search
 # Desabilita a indexação textual até encontramos uma solução para a issue

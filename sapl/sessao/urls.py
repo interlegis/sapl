@@ -42,6 +42,8 @@ from sapl.sessao.views import (AdicionarVariasMateriasExpediente,
                                CorrespondenciaCrud, recuperar_documento)
 
 
+from django.views.generic import TemplateView
+
 from .apps import AppConfig
 
 app_name = AppConfig.name
@@ -149,6 +151,7 @@ urlpatterns = [
     url(r'^sessao/(?P<pk>\d+)/presencaordemdia$',
         PresencaOrdemDiaView.as_view(),
         name='presencaordemdia'),
+    # VOTACAO - LEITURA
     url(r'^sessao/(?P<pk>\d+)/votacao_bloco_ordemdia$',
         VotacaoEmBlocoOrdemDia.as_view(),
         name='votacao_bloco_ordemdia'),
@@ -169,8 +172,19 @@ urlpatterns = [
         ResumoView.as_view(), name='resumo'),
     url(r'^sessao/(?P<pk>\d+)/resumo_ata$',
         ResumoAtaView.as_view(), name='resumo_ata'),
+    ##
+
     url(r'^sessao/pesquisar-sessao$',
         PesquisarSessaoPlenariaView.as_view(), name='pesquisar_sessao'),
+
+    # VOTACAO
+    # TODO: create proper view
+    url(r'^sessao/(?P<pk>\d+)/v2/votacao$',
+        TemplateView.as_view(template_name='sessao/votacao/votacao_v2.html'),
+        name='votacaonominal'),
+    url(r'^sessao/(?P<pk>\d+)/v2/painel$',
+        TemplateView.as_view(template_name='sessao/painel_v2.html')),
+
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votnom/(?P<oid>\d+)/(?P<mid>\d+)$',
         VotacaoNominalView.as_view(), name='votacaonominal'),
     url(r'^sessao/(?P<pk>\d+)/matordemdia/votnom/edit/(?P<oid>\d+)/(?P<mid>\d+)$',

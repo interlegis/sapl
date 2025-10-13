@@ -259,6 +259,8 @@ setup_cache_dir() {
 start_services() {
   log "Starting gunicorn..."
   gunicorn -c gunicorn.conf.py &
+  log "Starting websockets..."
+  daphne --unix-socket "$RUN_DIR/daphne.sock" sapl.asgi:application &
   log "Starting nginx..."
   exec /usr/sbin/nginx -g "daemon off;"
 }
