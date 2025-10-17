@@ -212,26 +212,6 @@ class BusinessRulesNotImplementedMixin:
         raise Exception(_("DELETE Delete não implementado"))
 
 
-class DrfautoapiRouter(DefaultRouter):
-
-    def get_urls(self):
-        """
-        Generate the list of URL patterns, including a default root view
-        for the API, and appending `.json` style format suffixes.
-        """
-        urls = super(DefaultRouter, self).get_urls()
-
-        if self.include_root_view:
-            view = self.get_api_root_view(api_urls = urls)
-            root_url = path('', view, name = self.root_view_name)
-            urls.append(root_url)
-
-        if self.include_format_suffixes:
-            urls = format_suffix_patterns(urls, allowed = ['[a-zA-Z.0-9]+'])
-
-        return urls
-
-
 class ApiViewSetConstrutor():
 
     _built_sets = {}
@@ -253,14 +233,12 @@ class ApiViewSetConstrutor():
             importlib.import_module(m)
 
     @classmethod
-    def router(cls, router_class = DrfautoapiRouter):
+    def router(cls, router_class = DefaultRouter):
         router = router_class()
         for app, built_sets in cls._built_sets.items():
             for model, viewset in built_sets.items():
                 router.register(
-                    f'{app.label}/{model._meta.model_name}',
-                    viewset,
-                    basename=f'{app.label}_{model._meta.model_name}')
+                    f'{app.label}/{model._meta.model_name}', viewset)
         return router
 
     @classmethod
