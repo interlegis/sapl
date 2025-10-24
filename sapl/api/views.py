@@ -9,6 +9,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor
+from django.views.decorators.http import condition as django_condition
+
+from sapl.base.models import AuditLog
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +24,80 @@ def recria_token(request, pk):
 
     return Response({"message": "Token recriado com sucesso!", "token": token.key})
 
+class LastModifiedDecorator:
+    """ - Decorator para adicionar suporte a Last-Modified em ViewSets
+        - Baseado em django.views.decorators.http.condition
+
+        - Por padrão utiliza o AuditLog para determinar a data do last_modified
+        - Pode ser sobrescrito na customização do ViewSet caso necessário
+        - Existe um exemplo de sobrescrita em sapl/api/views_materia.py
+
+        - Devolve Last-Modified baseado no timestamp do último AuditLog
+        - Se for uma listagem, considera o último AuditLog de todos os objetos
+          retornados na listagem levando em consideração resultado de FilterSet.
+        - Retorna 304 Not Modified se o recurso não foi modificado
+
+    """
+    def __init__(self):
+        pass
+
+    def __call__(self, cls):
+
+        original_dispatch = cls.dispatch
+        self.model = cls.queryset.model
+
+        def wrapped_dispatch(view, request, *args, **kwargs):
+            drf_request = request
+            wsgi_request = view.initialize_request(request, *args, **kwargs)
+
+            last_modified_func = self.last_modified_func if not hasattr(view, 'last_modified_func') else view.last_modified_func
+
+            def patched_viewset_method(*_args, **_kwargs):
+                return original_dispatch(view, drf_request, *_args, **_kwargs)
+
+            django_decorator = django_condition(last_modified_func=last_modified_func)
+            decorated_viewset_method = django_decorator(patched_viewset_method)
+            return decorated_viewset_method(wsgi_request, *args, view=view, **kwargs)
+
+        cls.dispatch = wrapped_dispatch
+        return cls
+
+    def last_modified_func(self, request, *args, **kwargs):
+        try:
+            if 'pk' in kwargs:
+                obj_id = kwargs['pk']
+                last_log = AuditLog.objects.filter(
+                    model_name=self.model._meta.model_name,
+                    object_id=obj_id
+                ).order_by('-timestamp').values_list('timestamp', flat=True).first()
+            else:
+                view = kwargs.get('view', None)
+                if view:
+                    for backend in list(view.filter_backends):
+                        queryset = backend().filter_queryset(request, view.queryset, view)
+                    if queryset.exists():
+                        last_log = AuditLog.objects.filter(
+                            model_name=self.model._meta.model_name,
+                            object_id__in=queryset.values_list('pk', flat=True)
+                        ).order_by('-timestamp').values_list('timestamp', flat=True).first()
+                    else:
+                        last_log = None
+                else:
+                    last_log = AuditLog.objects.filter(
+                        model_name=self.model._meta.model_name,
+                        object_id__in=self.model.objects.values_list('pk', flat=True)
+                    ).order_by('-timestamp').values_list('timestamp', flat=True).first()
+
+            if last_log:
+                return last_log
+
+        except Exception as e:
+            logger.error(f"Erro ao obter last_modified: {e}")
+
+        return None
 
 SaplApiViewSetConstrutor = ApiViewSetConstrutor
+SaplApiViewSetConstrutor.last_modified_method(LastModifiedDecorator)
 SaplApiViewSetConstrutor.import_modules([
     'sapl.api.views_audiencia',
     'sapl.api.views_base',
@@ -39,7 +114,7 @@ SaplApiViewSetConstrutor.import_modules([
 
 """
 1. ApiViewSetConstrutor constroi uma rest_framework.viewsets.ModelViewSet
-     para todos os models de todas as app_configs passadas no list 
+     para todos os models de todas as app_configs passadas no list
 2. Define DjangoFilterBackend como ferramenta de filtro dos campos
 3. Define Serializer como a seguir:
     3.1   - Define um Serializer genérico para cada módel
@@ -47,7 +122,7 @@ SaplApiViewSetConstrutor.import_modules([
             recupera Serializer customizados no módulo DEFAULT_SERIALIZER_MODULE
     3.2 - Para todo model é opcional a existência de {model}Serializer.
           Caso não seja definido um Serializer customizado, utiliza-se o genérico
-    3.3 - Caso exista GLOBAL_SERIALIZER_MIXIN definido, 
+    3.3 - Caso exista GLOBAL_SERIALIZER_MIXIN definido,
           utiliza este Serializer para construir o genérico de 3.1
 4. Define um FilterSet como a seguir:
     4.1 -   Define um FilterSet genérico para cada módel
@@ -55,13 +130,13 @@ SaplApiViewSetConstrutor.import_modules([
             recupera o FilterSet customizado no módulo DEFAULT_FILTER_MODULE
     4.2 - Para todo model é opcional a existência de {model}FilterSet.
           Caso não seja definido um FilterSet customizado, utiliza-se o genérico
-    4.3 - Caso exista GLOBAL_FILTERSET_MIXIN definido, 
+    4.3 - Caso exista GLOBAL_FILTERSET_MIXIN definido,
           utiliza este FilterSet para construir o genérico de 4.1
-    4.4 - Caso não exista GLOBAL_FILTERSET_MIXIN, será aplicado 
+    4.4 - Caso não exista GLOBAL_FILTERSET_MIXIN, será aplicado
           drfautoapi.drjautoapi.ApiFilterSetMixin que inclui parametro para:
           - order_by: através do parâmetro "o"
-          - amplia os lookups aceitos pelo FilterSet default 
-            para os aceitos pelo django sem a necessidade de criar 
+          - amplia os lookups aceitos pelo FilterSet default
+            para os aceitos pelo django sem a necessidade de criar
             fields específicos em um FilterSet customizado.
 
 5. ApiViewSetConstrutor não cria padrões e/ou exige conhecimento alem dos

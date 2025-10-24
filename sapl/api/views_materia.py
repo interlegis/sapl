@@ -110,6 +110,12 @@ class _MateriaLegislativaViewSet:
         self.queryset = self.get_object().anexadas.all()
         return self.list(request, *args, **kwargs)
 
+    def last_modified_func(self, request, *args, **kwargs):
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(request, self.queryset, self)
+
+        timestamp = queryset.order_by('-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True).first()
+        return timestamp
 
 @customize(TipoMateriaLegislativa)
 class _TipoMateriaLegislativaViewSet:
