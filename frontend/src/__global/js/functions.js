@@ -66,7 +66,8 @@ window.autorModal = function () {
 
     $('#pesquisar').click(function () {
       const json_data = {
-        q: $('#q').val()
+        q: $('#q').val(),
+        utc_time: Date.now(),
         // get_all: true
       }
       $.get('/api/base/autor', json_data, function (data) {

@@ -226,7 +226,7 @@ class ApiViewSetConstrutor():
             return cls
 
     @classmethod
-    def last_modified_method(cls, klass):
+    def last_modified_class(cls, klass):
         cls.LastModifiedDecorator = klass
         return cls
 

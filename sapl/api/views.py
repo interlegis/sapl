@@ -36,11 +36,7 @@ class LastModifiedDecorator:
         - Se for uma listagem, considera o último AuditLog de todos os objetos
           retornados na listagem levando em consideração resultado de FilterSet.
         - Retorna 304 Not Modified se o recurso não foi modificado
-
     """
-    def __init__(self):
-        pass
-
     def __call__(self, cls):
 
         original_dispatch = cls.dispatch
@@ -53,7 +49,7 @@ class LastModifiedDecorator:
             last_modified_func = self.last_modified_func if not hasattr(view, 'last_modified_func') else view.last_modified_func
 
             def patched_viewset_method(*_args, **_kwargs):
-                return original_dispatch(view, drf_request, *_args, **_kwargs)
+                return original_dispatch(view, drf_request, *args, **kwargs)
 
             django_decorator = django_condition(last_modified_func=last_modified_func)
             decorated_viewset_method = django_decorator(patched_viewset_method)
@@ -63,6 +59,10 @@ class LastModifiedDecorator:
         return cls
 
     def last_modified_func(self, request, *args, **kwargs):
+        """ - Método padrão para obter o last_modified baseado no AuditLog
+            - Pode ser sobrescrito na customização do ViewSet caso necessário
+            - Existe um exemplo de sobrescrita em sapl/api/views_materia.py
+        """
         try:
             if 'pk' in kwargs:
                 obj_id = kwargs['pk']
@@ -75,6 +75,7 @@ class LastModifiedDecorator:
                 if view:
                     for backend in list(view.filter_backends):
                         queryset = backend().filter_queryset(request, view.queryset, view)
+
                     if queryset.exists():
                         last_log = AuditLog.objects.filter(
                             model_name=self.model._meta.model_name,
@@ -97,7 +98,7 @@ class LastModifiedDecorator:
         return None
 
 SaplApiViewSetConstrutor = ApiViewSetConstrutor
-SaplApiViewSetConstrutor.last_modified_method(LastModifiedDecorator)
+SaplApiViewSetConstrutor.last_modified_class(LastModifiedDecorator)
 SaplApiViewSetConstrutor.import_modules([
     'sapl.api.views_audiencia',
     'sapl.api.views_base',
