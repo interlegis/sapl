@@ -111,6 +111,11 @@ class _MateriaLegislativaViewSet:
         return self.list(request, *args, **kwargs)
 
     def last_modified_func(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if pk:
+            return MateriaLegislativa.objects.filter(pk=pk).values_list('data_ultima_atualizacao', flat=True).first()
+
+        queryset = self.get_queryset()
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(request, self.queryset, self)
 
