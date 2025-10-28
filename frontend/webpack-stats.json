@@ -271,25 +271,25 @@
       "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/img/user.png",
       "publicPath": "/static/sapl/frontend/img/user.png"
     },
-    "js/chunk-vendors.e8ab4373.js": {
-      "name": "js/chunk-vendors.e8ab4373.js",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.e8ab4373.js",
-      "publicPath": "/static/sapl/frontend/js/chunk-vendors.e8ab4373.js"
+    "js/chunk-vendors.f2d6067d.js": {
+      "name": "js/chunk-vendors.f2d6067d.js",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.f2d6067d.js",
+      "publicPath": "/static/sapl/frontend/js/chunk-vendors.f2d6067d.js"
     },
-    "js/chunk-vendors.e8ab4373.js.gz": {
-      "name": "js/chunk-vendors.e8ab4373.js.gz",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.e8ab4373.js.gz",
-      "publicPath": "/static/sapl/frontend/js/chunk-vendors.e8ab4373.js.gz"
+    "js/chunk-vendors.f2d6067d.js.gz": {
+      "name": "js/chunk-vendors.f2d6067d.js.gz",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.f2d6067d.js.gz",
+      "publicPath": "/static/sapl/frontend/js/chunk-vendors.f2d6067d.js.gz"
     },
-    "js/chunk-vendors.e8ab4373.js.LICENSE.txt": {
-      "name": "js/chunk-vendors.e8ab4373.js.LICENSE.txt",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.e8ab4373.js.LICENSE.txt",
-      "publicPath": "/static/sapl/frontend/js/chunk-vendors.e8ab4373.js.LICENSE.txt"
+    "js/chunk-vendors.f2d6067d.js.LICENSE.txt": {
+      "name": "js/chunk-vendors.f2d6067d.js.LICENSE.txt",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.f2d6067d.js.LICENSE.txt",
+      "publicPath": "/static/sapl/frontend/js/chunk-vendors.f2d6067d.js.LICENSE.txt"
     },
-    "js/chunk-vendors.e8ab4373.js.LICENSE.txt.gz": {
-      "name": "js/chunk-vendors.e8ab4373.js.LICENSE.txt.gz",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.e8ab4373.js.LICENSE.txt.gz",
-      "publicPath": "/static/sapl/frontend/js/chunk-vendors.e8ab4373.js.LICENSE.txt.gz"
+    "js/chunk-vendors.f2d6067d.js.LICENSE.txt.gz": {
+      "name": "js/chunk-vendors.f2d6067d.js.LICENSE.txt.gz",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/chunk-vendors.f2d6067d.js.LICENSE.txt.gz",
+      "publicPath": "/static/sapl/frontend/js/chunk-vendors.f2d6067d.js.LICENSE.txt.gz"
     },
     "js/compilacao.148cb66b.js": {
       "name": "js/compilacao.148cb66b.js",
@@ -301,20 +301,20 @@
       "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/compilacao.148cb66b.js.gz",
       "publicPath": "/static/sapl/frontend/js/compilacao.148cb66b.js.gz"
     },
-    "js/global.bb3e904b.js": {
-      "name": "js/global.bb3e904b.js",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.bb3e904b.js",
-      "publicPath": "/static/sapl/frontend/js/global.bb3e904b.js"
+    "js/global.d557d20c.js": {
+      "name": "js/global.d557d20c.js",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.d557d20c.js",
+      "publicPath": "/static/sapl/frontend/js/global.d557d20c.js"
     },
-    "js/global.bb3e904b.js.gz": {
-      "name": "js/global.bb3e904b.js.gz",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.bb3e904b.js.gz",
-      "publicPath": "/static/sapl/frontend/js/global.bb3e904b.js.gz"
+    "js/global.d557d20c.js.gz": {
+      "name": "js/global.d557d20c.js.gz",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.d557d20c.js.gz",
+      "publicPath": "/static/sapl/frontend/js/global.d557d20c.js.gz"
     },
-    "js/global.bb3e904b.js.LICENSE.txt": {
-      "name": "js/global.bb3e904b.js.LICENSE.txt",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.bb3e904b.js.LICENSE.txt",
-      "publicPath": "/static/sapl/frontend/js/global.bb3e904b.js.LICENSE.txt"
+    "js/global.d557d20c.js.LICENSE.txt": {
+      "name": "js/global.d557d20c.js.LICENSE.txt",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/global.d557d20c.js.LICENSE.txt",
+      "publicPath": "/static/sapl/frontend/js/global.d557d20c.js.LICENSE.txt"
     },
     "js/painel.f3190acc.js": {
       "name": "js/painel.f3190acc.js",
@@ -326,15 +326,15 @@
       "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/painel.f3190acc.js.gz",
       "publicPath": "/static/sapl/frontend/js/painel.f3190acc.js.gz"
     },
-    "js/parlamentar.a1a4b65b.js": {
-      "name": "js/parlamentar.a1a4b65b.js",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/parlamentar.a1a4b65b.js",
-      "publicPath": "/static/sapl/frontend/js/parlamentar.a1a4b65b.js"
+    "js/parlamentar.f63027a7.js": {
+      "name": "js/parlamentar.f63027a7.js",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/parlamentar.f63027a7.js",
+      "publicPath": "/static/sapl/frontend/js/parlamentar.f63027a7.js"
     },
-    "js/parlamentar.a1a4b65b.js.gz": {
-      "name": "js/parlamentar.a1a4b65b.js.gz",
-      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/parlamentar.a1a4b65b.js.gz",
-      "publicPath": "/static/sapl/frontend/js/parlamentar.a1a4b65b.js.gz"
+    "js/parlamentar.f63027a7.js.gz": {
+      "name": "js/parlamentar.f63027a7.js.gz",
+      "path": "/home/leandrojatai/desenvolvimento/envs/sapl/sapl/static/sapl/frontend/js/parlamentar.f63027a7.js.gz",
+      "publicPath": "/static/sapl/frontend/js/parlamentar.f63027a7.js.gz"
     },
     "js/skins/content/dark/content.css": {
       "name": "js/skins/content/dark/content.css",
@@ -1000,27 +1000,27 @@
   "chunks": {
     "compilacao": [
       "css/chunk-vendors.045ec640.css",
-      "js/chunk-vendors.e8ab4373.js",
+      "js/chunk-vendors.f2d6067d.js",
       "css/compilacao.0baf3580.css",
       "js/compilacao.148cb66b.js"
     ],
     "global": [
       "css/chunk-vendors.045ec640.css",
-      "js/chunk-vendors.e8ab4373.js",
+      "js/chunk-vendors.f2d6067d.js",
       "css/global.042f6737.css",
-      "js/global.bb3e904b.js"
+      "js/global.d557d20c.js"
     ],
     "painel": [
       "css/chunk-vendors.045ec640.css",
-      "js/chunk-vendors.e8ab4373.js",
+      "js/chunk-vendors.f2d6067d.js",
       "css/painel.e2b9504e.css",
       "js/painel.f3190acc.js"
     ],
     "parlamentar": [
       "css/chunk-vendors.045ec640.css",
-      "js/chunk-vendors.e8ab4373.js",
+      "js/chunk-vendors.f2d6067d.js",
       "css/parlamentar.cd5dc5a8.css",
-      "js/parlamentar.a1a4b65b.js"
+      "js/parlamentar.f63027a7.js"
     ]
   },
   "publicPath": "/static/sapl/frontend/"
