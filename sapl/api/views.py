@@ -59,6 +59,47 @@ class LastModifiedDecorator:
         return cls
 
     def last_modified_func(self, request, *args, **kwargs):
+
+        default_fields_for_timestamp = (
+            'data_ultima_atualizacao',
+            'ultima_edicao'
+        )
+
+        # tenta encontrar um dos campos acima para usar como last_modified
+        fields = tuple(
+            filter(
+                lambda f: f in default_fields_for_timestamp,
+                map(
+                    lambda f: f.name, self.model._meta.get_fields()
+                )
+            )
+        )
+        field_name = fields[0] if fields else None
+
+        # Retornando None. que indica para o decorator retornar 200 OK sem Last-Modified
+        # Na prática, desativando o AuditLog como last_modified
+        # Porém, mantendo a estrutura para possível uso futuro
+        if not field_name:
+            # sem campo definido para last_modified, usa AuditLog
+            return None # self.last_modified_func__auditlog(request, *args, **kwargs)
+
+        pk = kwargs.get('pk', None)
+        if pk:
+            return self.model.objects.filter(pk=pk).values_list(field_name, flat=True)[:1].first()
+
+        view = kwargs.get('view', None)
+
+        if view:
+            queryset = view.get_queryset()
+            for backend in list(view.filter_backends):
+                queryset = backend().filter_queryset(request, queryset, view)
+        else:
+            queryset = self.model.objects.all()
+
+        timestamp = queryset.order_by(f'-{field_name}').values_list(field_name, flat=True)[:1].first()
+        return timestamp
+
+    def last_modified_func__auditlog(self, request, *args, **kwargs):
         """ - Método padrão para obter o last_modified baseado no AuditLog
             - Pode ser sobrescrito na customização do ViewSet caso necessário
             - Existe um exemplo de sobrescrita em sapl/api/views_materia.py
@@ -69,7 +110,7 @@ class LastModifiedDecorator:
                 last_log = AuditLog.objects.filter(
                     model_name=self.model._meta.model_name,
                     object_id=obj_id
-                ).order_by('-timestamp').values_list('timestamp', flat=True).first()
+                ).order_by('-timestamp').values_list('timestamp', flat=True)[:1].first()
             else:
                 view = kwargs.get('view', None)
                 if view:
@@ -80,14 +121,14 @@ class LastModifiedDecorator:
                         last_log = AuditLog.objects.filter(
                             model_name=self.model._meta.model_name,
                             object_id__in=queryset.values_list('pk', flat=True)
-                        ).order_by('-timestamp').values_list('timestamp', flat=True).first()
+                        ).order_by('-timestamp').values_list('timestamp', flat=True)[:1].first()
                     else:
                         last_log = None
                 else:
                     last_log = AuditLog.objects.filter(
                         model_name=self.model._meta.model_name,
                         object_id__in=self.model.objects.values_list('pk', flat=True)
-                    ).order_by('-timestamp').values_list('timestamp', flat=True).first()
+                    ).order_by('-timestamp').values_list('timestamp', flat=True)[:1].first()
 
             if last_log:
                 return last_log
