@@ -399,7 +399,8 @@ def get_presentes(pk, response, materia):
                  'parlamentar_id': p.parlamentar.id,
                  'nome': p.parlamentar.nome_parlamentar,
                  'partido': partido,
-                 'voto': ''
+                 'voto': '',
+                 'fotografia': p.parlamentar.fotografia.url
                  })
 
         elif not p.parlamentar.ativo or not mandatos:
@@ -525,8 +526,16 @@ def get_votos(response, materia, mostrar_voto):
             for i, p in enumerate(response['presentes']):
                 try:
                     logger.debug("Tentando obter votos do parlamentar (id={}).".format(p['parlamentar_id']))
-                    response['presentes'][i]['voto'] = votos_parlamentares.get(
-                        parlamentar_id=p['parlamentar_id']).voto
+                    # presidente_sessao = [
+                    #     integrante.parlamentar for integrante in
+                    #     materia.sessao_plenaria.integrantemesa_set.filter(cargo__descricao='Presidente')
+                    # ]
+                    # is_presidente = votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).parlamentar in presidente_sessao
+                    voto = votos_parlamentares.get(parlamentar_id=p['parlamentar_id']).voto
+                    # if voto == 'Não Votou' and is_presidente:
+                    #     response['presentes'][i]['voto'] = 'Presidente'
+                    # else:
+                    response['presentes'][i]['voto'] = voto
                 except ObjectDoesNotExist:
                     logger.error("Votos do parlamentar (id={}) não encontrados. Retornado None.".format(p['parlamentar_id']))
                     response['presentes'][i]['voto'] = None

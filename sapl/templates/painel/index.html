@@ -305,7 +305,8 @@
 
 
                     if (parlamentar.voto == 'Voto Informado' && mostrar_voto == false){
-                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
+                      $('#parlamentares_list').append('<tr><td><img src="' +
+                          parlamentar.fotografia + ' /><td style="padding-right:20px; color:yellow"> ' +
                           parlamentar.nome +
                           '</td> <td style="padding-right:20px; color:yellow">' +
                           parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
@@ -503,7 +504,8 @@
           color = 'red'
       }
 
-      return ('<tr> <td style="padding-right:20px">' +
+      return ('<tr> <td style="width: 5%">' +
+                `<img width="100%" style="padding-bottom:5px" src="${parlamentar.fotografia}" /> </td> ><td style="padding-right:20px">` +
                 `<font color="`+color+`">${parlamentar.nome}</font> </td> <td style="padding-right:20px">` +
                 `<font color="`+color+`">${parlamentar.partido}</font> </td> <td style="padding-right:20px">` +
                 `<font color="`+color+`">${parlamentar.voto}</font> </td></tr>`)

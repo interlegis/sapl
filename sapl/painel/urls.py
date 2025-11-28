@@ -12,7 +12,7 @@ urlpatterns = [
         name="painel_principal"),
     url(r'^painel/(?P<pk>\d+)/dados$', get_dados_painel, name='dados_painel'),
     url(r'^painel/mensagem$', painel_mensagem_view, name="painel_mensagem"),
-    url(r'^painel/parlamentar$', painel_parlamentar_view,
+    url(r'^painel/(?P<pk>\d+)/parlamentar$', painel_parlamentar_view,
         name='painel_parlamentar'),
     url(r'^painel/switch-painel$', switch_painel,
         name="switch_painel"),
