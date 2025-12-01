@@ -206,9 +206,9 @@ class Parlamentar(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Situação Militar'))
     nome_completo = models.CharField(
-        max_length=50, verbose_name=_('Nome Completo'))
+        max_length=80, verbose_name=_('Nome Completo'))
     nome_parlamentar = models.CharField(
-        max_length=50,
+        max_length=80,
         verbose_name=_('Nome Parlamentar'))
     sexo = models.CharField(
         max_length=1, verbose_name=_('Sexo'), choices=SEXO_CHOICE)
