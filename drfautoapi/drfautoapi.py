@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from functools import cached_property
 import django_filters
 import importlib
 import inspect
@@ -6,14 +7,16 @@ import logging
 import re
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields.jsonb import JSONField
+from django.contrib.auth import get_user_model
 from django.db.models.base import ModelBase
 from django.db.models.fields import TextField, CharField
 from django.db.models.fields.files import FileField
 from django.db.models.fields.related import ManyToManyField
 from django.template.defaultfilters import capfirst
 from django.utils.translation import ugettext_lazy as _
-from django.urls.conf import path
+from django.urls import reverse
 from django_filters.constants import ALL_FIELDS, EMPTY_VALUES
 from django_filters.fields import ModelMultipleChoiceField
 from django_filters.filters import CharFilter
@@ -21,6 +24,7 @@ from django_filters.filterset import FilterSet
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.utils import resolve_field, get_all_model_fields
 from rest_framework import serializers as rest_serializers
+from rest_framework.relations import ManyRelatedField
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 from rest_framework.viewsets import ModelViewSet
@@ -85,6 +89,7 @@ class M2MFilter(django_filters.ModelMultipleChoiceFilter):
 class ApiFilterSetMixin(FilterSet):
 
     o = CharFilter(method='filter_o')
+    id__in = CharFilter(method='filter_id__in')
 
     class Meta:
         fields = '__all__'
@@ -108,6 +113,13 @@ class ApiFilterSetMixin(FilterSet):
                 },
             },
         }
+
+    def filter_id__in(self, queryset, name, value):
+        try:
+            ids = [int(v.strip()) for v in value.split(',')]
+            return queryset.filter(id__in=ids)
+        except:
+            return queryset
 
     def filter_o(self, queryset, name, value):
         try:
@@ -434,3 +446,181 @@ class customize(object):
         return _ApiViewSet
 
 
+class DrfAutoApiSerializerMixin(rest_serializers.ModelSerializer):
+    """
+        Mixin de Serializer que implementa expansão dinâmica de campos
+        via parâmetros de query string:
+        - `expand`: expande os campos informados
+        - `include`: inclui apenas os campos informados
+        - `exclude`: exclui os campos informados
+
+        Exemplo:
+        - ?expand=campo1;campo2.sub_campo1,sub_campo2;campo3.sub_campo1.sub_sub_campo1,sub_sub_campo2
+        - ?include=campo1;campo2.sub_campo1,sub_campo2;campo3.sub_campo1.sub_sub_campo1,sub_sub_campo2
+        - ?exclude=campo1;campo2.sub_campo1,sub_campo2;campo3.sub_campo1.sub_sub_campo1,sub_sub_campo2
+        - ?expand=campo1&include=campo1.id,name&exclude=campo1.secret_field
+
+        Onde:
+        - campo1, campo2, campo3 são campos do model raiz
+        - sub_campo1, sub_campo2 são campos relacionados do campo2
+        - sub_sub_campo1, sub_sub_campo2 são campos relacionados do sub_campo1
+
+        Ou seja:
+        ";" separa campos independentes do nível atual
+        "," separa campos relacionados do mesmo campo pai
+        "." indica o nível de profundidade dos campos relacionados
+
+        e ainda:
+        - `expand` pode ser usado para expansão direta, ou seja, campo1.sub_campo1 já expande campo1
+        - `expand`, `include` e `exclude` podem ser usados juntos na mesma requisição
+        - `include` e `exclude` só funcionam em subniveis se o campo pai estiver expandido
+        - `include` tem precedência sobre `exclude` e já remove todo o resto
+        - `exclude` remove o campo do resultado final, mesmo que esteja em `include`
+        - Se nenhum dos parâmetros for informado, nenhum campo será expandido
+        - Filtros da API, paginação (`page` e `page_size`) e ordenação (`o`)
+            podem ser usados normalmente para filtrar os resultados
+
+        Atenção:
+        - A expansão não é aplicada para o model User do Django
+        - A expansão não é aplicada para campos customizados que utilizam SerializerMethodField
+        - Uma exceção é lançada e registrada no log caso ocorra algum erro na expansão de algum campo,
+            inclusive devido a recursão infinita
+        - A expansão automática de todos os campos relacionados (expand=all) está desabilitada
+            por necessidade de controle mais refinado.
+        - A expansão de campos relacionados ForeignKey e OneToOne é suportada.
+        - A expansão de campos relacionados ManyToMany é suportada.
+        - A expansão de campos relacionados reversos (related_name) não é suportada, mas pode ser implementada manualmente no serializer customizado, ou vir a ser implementada no futuro.
+    """
+
+    __str__ = rest_serializers.SerializerMethodField()
+
+    class Meta:
+        fields = '__all__'
+
+    def get___str__(self, obj) -> str:
+        return str(obj)
+
+    @cached_property
+    def user_model(self):
+        return get_user_model()
+
+    def get_control_fields(self, control_field='expand'):
+        request = self.context.get('request', None)
+        if request:
+            param = request.query_params.get(control_field, '')
+            param = [e.strip() for e in param.split(';') if e.strip()]
+            param = [e.split('.') for e in param]
+            return param
+        return []
+
+    def get_fields(self):
+        fields = super().get_fields()
+
+        if not hasattr(self.root, 'drf_expand_fields'):
+            self.root.drf_expand_fields = self.get_control_fields('expand')
+            self.root.drf_include_fields = self.get_control_fields('include')
+            self.root.drf_exclude_fields = self.get_control_fields('exclude')
+            if not (self.root.drf_expand_fields or self.root.drf_include_fields or self.root.drf_exclude_fields):
+                return fields
+
+        model = self.Meta.model
+        expand_fields = self.root.drf_expand_fields
+        include_fields = self.root.drf_include_fields
+        exclude_fields = self.root.drf_exclude_fields
+
+        expand_all = False #['all'] in expand_fields
+
+        #if expand_all:
+        #    request = self.context.get('request', None)
+        #    user = getattr(request, 'user', None)
+        #    expand_all = user and user.is_superuser
+
+        def parents(nd):
+            if not nd:
+                return []
+            return parents(nd.parent) + [nd.field_name]
+
+        sources = parents(self)
+        sources = list(filter(lambda x: x, sources))
+
+        if expand_fields:
+            exps = []
+            for exp in expand_fields:
+                if len(exp) > len(sources) and exp[0:len(sources)] == sources:
+                    exps.extend(exp[len(sources)].split(','))
+            expand_fields = exps
+
+        if include_fields:
+            incls = []
+            for inf in include_fields:
+                if len(inf) - 1 == len(sources) and inf[:-1] == sources:
+                    incls.extend(inf[-1].split(','))
+            if incls:
+                fields = OrderedDict(
+                    [(k, v) for k, v in fields.items() if k in incls]
+                )
+
+        if exclude_fields:
+            excls = []
+            for inf in exclude_fields:
+                if len(inf) - 1 == len(sources) and inf[:-1] == sources:
+                    excls.extend(inf[-1].split(','))
+            if excls:
+                fields = OrderedDict(
+                    [(k, v) for k, v in fields.items() if k not in excls]
+                )
+
+        fields_with_relations_map_model = {f.name: f.related_model for f in model._meta.get_fields()
+                                  if f.is_relation and f.name in fields}
+
+        set_fields_with_relations = set(fields_with_relations_map_model.keys())
+        set_expand_fields = set(expand_fields)
+        set_fields_serialized = set(
+            map(
+                lambda kv: kv[0],
+                filter(
+                    lambda kv: not isinstance(kv[1], rest_serializers.SerializerMethodField),
+                    fields.items()
+                )
+            )
+        )
+
+        expand_fields = set_fields_with_relations.intersection(set_fields_serialized)
+
+        if not expand_all:
+            expand_fields = expand_fields.intersection(set_expand_fields)
+
+        # remove o User model da expansão
+        if self.user_model in fields_with_relations_map_model.values():
+            expand_fields = [f for f in expand_fields
+                             if fields_with_relations_map_model[f] != self.user_model]
+
+        if not expand_fields:
+            return fields
+
+        for field_name in expand_fields:
+            field = fields[field_name]
+
+            model = fields_with_relations_map_model[field_name]
+
+            if model:
+                try:
+                    serializer_class = ApiViewSetConstrutor.get_viewset_for_model(model).serializer_class
+                    if hasattr(field, 'many') and field.many or isinstance(field, ManyRelatedField):
+                        serializer_class = serializer_class(
+                            many=True,
+                            read_only=True,
+                            context=self.context
+                        )
+                    else:
+                        serializer_class = serializer_class(
+                            read_only=True,
+                            context=self.context
+                        )
+
+                    fields[field_name] = serializer_class
+
+                except Exception as e:
+                    logger.error(f'Erro ao expandir campo {field_name} do model {model}: {e}')
+
+        return fields
