@@ -51,7 +51,7 @@ from sapl.settings import TIME_ZONE, RATE_LIMITER_RATE
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, \
     MultiFormatOutputMixin, PautaMultiFormatOutputMixin, ratelimit_ip
 
-from .forms import (AdicionarVariasMateriasFilterSet, BancadaForm,
+from .forms import (AdicionarVariasMateriasFilterSet, AdicionarVariasMateriasForm, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
@@ -4190,6 +4190,8 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 
         qr = self.request.GET.copy()
 
+        form = AdicionarVariasMateriasForm
+        context['form'] = form
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
         context['pk_sessao'] = self.kwargs['pk']
 
