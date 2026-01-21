@@ -132,9 +132,6 @@
 {% render_bundle  'painel' 'js' %}      
     
 <script type="text/javascript">
-  var d = new Date();
-  var n = d.toLocaleDateString();
-  document.getElementById("date").innerHTML = n;
 
   $(window).on('beforeunload', function () {
     $("input[type=submit], input[type=button]").prop("disabled", "disabled");
@@ -177,12 +174,14 @@
     m = checkTime(m);
     s = checkTime(s);
     $("#relogio").text(h+":"+m+":"+s)
-    var t = setTimeout(function(){
-        startTime()
-    }, 500);
+    var t = setInterval(() => startTime(), 500);
   }
 
   $(document).ready(function(){
+    var d = new Date();
+    var n = d.toLocaleDateString();
+    $("#date").text(n);
+
     startTime();
     
     setTimeout(function() {

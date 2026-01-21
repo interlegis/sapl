@@ -65,9 +65,9 @@ class AudienciaPublica(models.Model):
     ano = models.PositiveSmallIntegerField(verbose_name=_('Ano'),
                                            choices=RANGE_ANOS)
     nome = models.CharField(
-        max_length=100, verbose_name=_('Nome da Audiência Pública'))
+        max_length=250, verbose_name=_('Nome da Audiência Pública'))
     tema = models.CharField(
-        max_length=100, verbose_name=_('Tema da Audiência Pública'))
+        max_length=250, verbose_name=_('Tema da Audiência Pública'))
     data = models.DateField(verbose_name=_('Data'))
     hora_inicio = models.CharField(
         max_length=5, verbose_name=_('Horário Início(hh:mm)'))
