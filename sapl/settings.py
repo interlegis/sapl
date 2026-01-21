@@ -138,11 +138,12 @@ HAYSTACK_CONNECTIONS = {
 }
 
 MIDDLEWARE = [
+    'sapl.middleware.request_id.RequestIdMiddleware',
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'sapl.endpoint_restriction_middleware.EndpointRestrictionMiddleware',
+    'sapl.middleware.endpoint_restriction.EndpointRestrictionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -150,7 +151,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'waffle.middleware.WaffleMiddleware',
-    'sapl.middleware.CheckWeakPasswordMiddleware',
+    'sapl.middleware.check_password.CheckWeakPasswordMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 if DEBUG:
@@ -421,32 +422,37 @@ LOGGING = {
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
         },
+        'request_id': {
+            "()": 'sapl.logging.filters.RequestIdFilter',
+        },
     },
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s ' + host + ' %(pathname)s %(name)s:%(funcName)s:%(lineno)d %(message)s'
+            'format': '%(levelname)s %(asctime)s [%(request_id)s] ' + host + '%(pathname)s %(name)s:%(funcName)s:%('
+                                                                            'lineno)d %(message)s '
         },
         'simple': {
-            'format': '%(levelname)s %(asctime)s - %(message)s'
+            'format': '%(levelname)s %(asctime)s [%(request_id)s] - %(message)s'
         },
     },
     'handlers': {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
+            'filters': ['request_id', 'require_debug_true'],
             'formatter': 'simple',
         },
         'console_verbose': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
+            'filters': ['request_id', 'require_debug_true'],
             'formatter': 'verbose',
         },
         'applogfile': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': 'sapl.log',
+            'filters': ['request_id'],
             'maxBytes': 1024 * 1024 * 15,  # 15MB
             'backupCount': 10,
             'formatter': 'verbose',

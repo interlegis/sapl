@@ -70,16 +70,16 @@ class RelatorioDocumentosAcessoriosFilterSet(django_filters.FilterSet):
         )
 
 
-def ordem_or_expediente(queryset, name, value):
-    if value is None:
-        return queryset
-    value = getattr(value, "pk", value)
-    ordem_q = f"ordem__materia__{name}"
-    expediente_q = f"expediente__materia__{name}"
-    return queryset.filter(Q(**{ordem_q: value}) | Q(**{expediente_q: value}))
-
-
 class RelatorioVotacoesNominaisFilterSet(django_filters.FilterSet):
+
+    def ordem_or_expediente(self, queryset, name, value):
+        if value is None:
+            return queryset
+        value = getattr(value, "pk", value)
+        ordem_q = f"ordem__materia__{name}"
+        expediente_q = f"expediente__materia__{name}"
+        return queryset.filter(Q(**{ordem_q: value}) | Q(**{expediente_q: value}))
+
     tipo_id = django_filters.ModelChoiceFilter(
         queryset=TipoMateriaLegislativa.objects.all(),
         method='ordem_or_expediente',

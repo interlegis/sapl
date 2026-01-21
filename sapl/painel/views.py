@@ -93,7 +93,7 @@ def votacao_aberta(request):
     return votacoes_abertas.first(), None
 
 
-def votacao(context,context_vars):
+def votacao(context, context_vars):
     logger = logging.getLogger(__name__)
     parlamentar = context_vars['votante'].parlamentar
     parlamentar_presente = False
@@ -204,7 +204,7 @@ def votante_view(request):
     username = request.user.username if request.user.is_authenticated else 'AnonymousUser'
  
     # Pega o votante relacionado ao usuário
-    template_name = 'painel/voto_nominal.html'
+    template_name = 'painel/voto_individual.html'
     context = {}
     context_vars = {}
 
@@ -237,13 +237,15 @@ def votante_view(request):
     if request.method == 'POST':
         if context_vars['ordem_dia']:
             try:
-                logger.info("user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e ordem={}."
+                logger.info("user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e "
+                                                 "ordem={}. "
                             .format(context_vars['parlamentar'], context_vars['ordem_dia']))
                 voto = VotoParlamentar.objects.get(
                     parlamentar=context_vars['parlamentar'],
                     ordem=context_vars['ordem_dia'])
             except ObjectDoesNotExist:
-                logger.error("user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e ordem={}. Criando objeto."
+                logger.error("user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e ordem={}. "
+                                                  "Criando objeto. "
                              .format(context_vars['parlamentar'], context_vars['ordem_dia']))
                 voto = VotoParlamentar.objects.create(
                     parlamentar=context_vars['parlamentar'],
