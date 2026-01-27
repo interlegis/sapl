@@ -441,12 +441,20 @@ class MateriaLegislativa(models.Model):
         else:
             numero = {'numero__max': 0}
 
+        # Converte o número preferido para inteiro, se possível
+        numero_preferido_int = None
+        if numero_preferido:
+            try:
+                numero_preferido_int = int(numero_preferido)
+            except (TypeError, ValueError):
+                numero_preferido_int = None
+
         # Verifica se o número preferido está disponível
-        if numero_preferido and not MateriaLegislativa.objects.filter(
+        if numero_preferido_int is not None and not MateriaLegislativa.objects.filter(
                 tipo=tipo,
                 ano=ano,
-                numero=numero_preferido).exists():
-            return int(numero_preferido), ano
+                numero=numero_preferido_int).exists():
+            return numero_preferido_int, ano
 
         # Retorna o próximo número sequencial
         max_numero = numero['numero__max']
