@@ -11,7 +11,6 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
 from sapl.base.models import Autor, CasaLegislativa, Metadata
-from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
 from sapl.sessao.models import OrdemDia, SessaoPlenaria
 
