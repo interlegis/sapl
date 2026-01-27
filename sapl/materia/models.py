@@ -411,6 +411,9 @@ class MateriaLegislativa(models.Model):
         except AttributeError:
             pass
 
+        if not isinstance(tipo, TipoMateriaLegislativa):
+            tipo = TipoMateriaLegislativa.objects.get(pk=tipo)
+
         # O tipo pode sobrescrever a configuração global
         if tipo.sequencia_numeracao:
             numeracao = tipo.sequencia_numeracao
@@ -443,7 +446,7 @@ class MateriaLegislativa(models.Model):
                 tipo=tipo,
                 ano=ano,
                 numero=numero_preferido).exists():
-            return int(numero_preferido)
+            return int(numero_preferido), ano
 
         # Retorna o próximo número sequencial
         max_numero = numero['numero__max']

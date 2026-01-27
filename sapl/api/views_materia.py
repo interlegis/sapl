@@ -1,7 +1,9 @@
 
+from copy import deepcopy
 from django.apps.registry import apps
 from django.db.models import Q
 from rest_framework.decorators import action
+from rest_framework.status import HTTP_201_CREATED
 from rest_framework.response import Response
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
@@ -89,6 +91,30 @@ class _MateriaLegislativaViewSet:
 
     class Meta:
         ordering = ['-ano', 'tipo', 'numero']
+
+    def create(self, request, *args, **kwargs):
+        data = deepcopy(request.data)
+        tipo = data.get('tipo', None)
+        numero = data.get('numero', None)
+        ano = data.get('ano', None)
+
+        if tipo:
+            numero, ano = MateriaLegislativa.get_proximo_numero(
+                tipo=tipo,
+                ano=ano,
+                numero_preferido=numero
+            )
+        data['numero'] = numero
+        data['ano'] = ano
+
+        serializer = self.get_serializer(data=data)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
+
+
 
     @action(detail=True, methods=['GET'])
     def ultima_tramitacao(self, request, *args, **kwargs):
