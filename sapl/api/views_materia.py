@@ -104,8 +104,8 @@ class _MateriaLegislativaViewSet:
                 ano=ano,
                 numero_preferido=numero
             )
-        data['numero'] = numero
-        data['ano'] = ano
+            data['numero'] = numero
+            data['ano'] = ano
 
         serializer = self.get_serializer(data=data)
 
