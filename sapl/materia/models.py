@@ -412,7 +412,13 @@ class MateriaLegislativa(models.Model):
             pass
 
         if not isinstance(tipo, TipoMateriaLegislativa):
-            tipo = TipoMateriaLegislativa.objects.get(pk=tipo)
+            try:
+                tipo = TipoMateriaLegislativa.objects.get(pk=tipo)
+            except TipoMateriaLegislativa.DoesNotExist:
+                # Fornece uma mensagem mais informativa quando o tipo não é encontrado
+                raise TipoMateriaLegislativa.DoesNotExist(
+                    _("TipoMateriaLegislativa with pk '%s' does not exist.") % tipo
+                )
 
         # O tipo pode sobrescrever a configuração global
         if tipo.sequencia_numeracao:
