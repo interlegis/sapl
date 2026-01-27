@@ -394,7 +394,7 @@ class MateriaLegislativa(models.Model):
             numero_preferido: int - número preferido/desejado (opcional)
 
         Returns:
-            int: O próximo número disponível para a matéria
+            tuple[int, int]: Uma tupla contendo (numero, ano) da matéria.
         """
         from django.db.models import Max
         from sapl.parlamentares.models import Legislatura
