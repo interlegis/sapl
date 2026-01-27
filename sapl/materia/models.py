@@ -3,6 +3,7 @@ from datetime import datetime
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Concat
 from django.template import defaultfilters
@@ -412,14 +413,21 @@ class MateriaLegislativa(models.Model):
             pass
 
         if not isinstance(tipo, TipoMateriaLegislativa):
-            try:
-                tipo = TipoMateriaLegislativa.objects.get(pk=tipo)
-            except TipoMateriaLegislativa.DoesNotExist:
-                # Fornece uma mensagem mais informativa quando o tipo não é encontrado
-                raise TipoMateriaLegislativa.DoesNotExist(
-                    _("TipoMateriaLegislativa with pk '%s' does not exist.") % tipo
-                )
+            if tipo is None:
+                raise ValidationError(_("O tipo é obrigatório."))
 
+            try:
+                tipo_id = int(tipo)
+            except (ValueError, TypeError):
+                raise ValidationError(_("Tipo inválido: '%s'") % tipo)
+
+            try:
+                tipo = TipoMateriaLegislativa.objects.get(pk=tipo_id)
+            except TipoMateriaLegislativa.DoesNotExist:
+                raise TipoMateriaLegislativa.DoesNotExist(
+                    _("TipoMateriaLegislativa with pk '%s' does not exist.") % tipo_id
+                )
+            
         # O tipo pode sobrescrever a configuração global
         if tipo.sequencia_numeracao:
             numeracao = tipo.sequencia_numeracao
