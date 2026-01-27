@@ -382,6 +382,74 @@ class MateriaLegislativa(models.Model):
                                  using=using,
                                  update_fields=update_fields)
 
+    @staticmethod
+    def get_proximo_numero(tipo, ano=None, numero_preferido=None):
+        """
+        Retorna o próximo número disponível para uma MateriaLegislativa
+        baseado no tipo e nas configurações de numeração.
+
+        Args:
+            tipo: TipoMateriaLegislativa - o tipo da matéria
+            ano: int - o ano da matéria (default: ano atual)
+            numero_preferido: int - número preferido/desejado (opcional)
+
+        Returns:
+            int: O próximo número disponível para a matéria
+        """
+        from django.db.models import Max
+        from sapl.parlamentares.models import Legislatura
+        import sapl.base.models
+
+        if ano is None:
+            ano = timezone.now().year
+
+        # Obtém a configuração de numeração
+        numeracao = None
+        try:
+            numeracao = sapl.base.models.AppConfig.objects.last(
+            ).sequencia_numeracao_protocolo
+        except AttributeError:
+            pass
+
+        # O tipo pode sobrescrever a configuração global
+        if tipo.sequencia_numeracao:
+            numeracao = tipo.sequencia_numeracao
+
+        # Calcula o próximo número baseado no tipo de numeração
+        if numeracao == 'A':  # Por ano
+            numero = MateriaLegislativa.objects.filter(
+                ano=ano, tipo=tipo).aggregate(Max('numero'))
+        elif numeracao == 'L':  # Por legislatura
+            legislatura = Legislatura.objects.filter(
+                data_inicio__year__lte=ano,
+                data_fim__year__gte=ano).first()
+            if legislatura:
+                data_inicio = legislatura.data_inicio
+                data_fim = legislatura.data_fim
+                numero = MateriaLegislativa.objects.filter(
+                    data_apresentacao__gte=data_inicio,
+                    data_apresentacao__lte=data_fim,
+                    tipo=tipo).aggregate(Max('numero'))
+            else:
+                numero = {'numero__max': 0}
+        elif numeracao == 'U':  # Único/Universal
+            numero = MateriaLegislativa.objects.filter(
+                tipo=tipo).aggregate(Max('numero'))
+        else:
+            numero = {'numero__max': 0}
+
+        # Verifica se o número preferido está disponível
+        if numero_preferido and not MateriaLegislativa.objects.filter(
+                tipo=tipo,
+                ano=ano,
+                numero=numero_preferido).exists():
+            return int(numero_preferido)
+
+        # Retorna o próximo número sequencial
+        max_numero = numero['numero__max']
+        return ((max_numero + 1) if max_numero else 1), ano
+
+
 
 class Autoria(models.Model):
     autor = models.ForeignKey(Autor,
