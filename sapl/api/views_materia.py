@@ -1,6 +1,7 @@
 
 from copy import deepcopy
 from django.apps.registry import apps
+from django.db import transaction
 from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.status import HTTP_201_CREATED
@@ -92,6 +93,7 @@ class _MateriaLegislativaViewSet:
     class Meta:
         ordering = ['-ano', 'tipo', 'numero']
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         data = deepcopy(request.data)
         tipo = data.get('tipo', None)
