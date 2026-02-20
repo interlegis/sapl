@@ -1,4 +1,21 @@
 
+3.1.165-RC0 / 2026-02-20
+========================
+
+  * Implementa Header LastModified na Api (#3808)
+  * Impl expansão dinâmica de campos na API (#3809)
+  * Seleciona tipo de votação para múltiplas matérias ao incluir na Ordem do Dia ou Expediente (#3781)
+  * Adiciona requestId em requisições
+  * Hot-fix: conserta erro em JS de voto individual
+  * Coloca negrito em resultado de votação
+  * Inversão da ordem de ano e número em Adicionar Norma
+  * Aumento de nome de parlamentar
+  * Aumento do tamanho de Nome e Tema da Audiência Pública
+  * Conserta bug na pesquisa do Relatório de Votações Nominais (#3803)
+  * feat: impl filtro m2m com lookup '__in' para buscas com multiplos ids (#3807)
+  * Refatora rate limiter
+  * Release: 3.1.164-RC5
+
 3.1.164-RC5 / 2025-09-22
 ========================
 
