@@ -33,11 +33,11 @@ services:
     networks:
       - sapl-net
   sapl:
-    image: interlegis/sapl:3.1.165-RC0
+    image: interlegis/sapl:3.1.165-RC1
 #    build:
 #      context: ../
 #      dockerfile: ./docker/Dockerfile
-#    container_name: sapl
+    container_name: sapl
     labels:
        NAME: "sapl"
     restart: always
