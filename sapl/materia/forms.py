@@ -2462,7 +2462,7 @@ class ConfirmarProposicaoForm(ProposicaoForm):
             max_numero, ano = MateriaLegislativa.get_proximo_numero(
                 tipo=tipo,
                 ano=None,
-                numero_preferido=cd.get('numero_materia_futuro', None)
+                numero_candidato=cd.get('numero_materia_futuro', None)
             )
 
             # dados básicos
