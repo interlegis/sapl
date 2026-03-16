@@ -5,14 +5,17 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Max
 from django.db.models.functions import Concat
 from django.template import defaultfilters
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor
+
+from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor, AppConfig as BaseAppConfig
 from sapl.comissoes.models import Comissao, Reuniao
+from sapl.parlamentares.models import Legislatura
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)
 from sapl.parlamentares.models import Parlamentar
@@ -389,17 +392,21 @@ class MateriaLegislativa(models.Model):
         Retorna o próximo número disponível para uma MateriaLegislativa
         baseado no tipo e nas configurações de numeração.
 
+        IMPORTANTE: Este método utiliza select_for_update() e DEVE ser
+        chamado dentro de uma transação (transaction.atomic) para garantir
+        proteção contra race conditions em acessos concorrentes.
+
         Args:
-            tipo: TipoMateriaLegislativa - o tipo da matéria
+            tipo: TipoMateriaLegislativa ou int/str - o tipo da matéria
             ano: int - o ano da matéria (default: ano atual)
-            numero_preferido: int - número preferido/desejado (opcional)
+            numero_preferido: int - número preferido/desejado (opcional).
+                Se fornecido e disponível, será retornado. Caso contrário,
+                retorna o próximo sequencial.
 
         Returns:
             tuple[int, int]: Uma tupla contendo (numero, ano) da matéria.
         """
-        from django.db.models import Max
-        from sapl.parlamentares.models import Legislatura
-        import sapl.base.models
+
 
         if ano is None:
             ano = timezone.now().year
@@ -407,7 +414,7 @@ class MateriaLegislativa(models.Model):
         # Obtém a configuração de numeração
         numeracao = None
         try:
-            numeracao = sapl.base.models.AppConfig.objects.last(
+            numeracao = BaseAppConfig.objects.last(
             ).sequencia_numeracao_protocolo
         except AttributeError:
             pass
@@ -427,7 +434,12 @@ class MateriaLegislativa(models.Model):
                 raise TipoMateriaLegislativa.DoesNotExist(
                     _("TipoMateriaLegislativa with pk '%s' does not exist.") % tipo_id
                 )
-            
+
+        # Lock na linha do TipoMateriaLegislativa para serializar
+        # gerações concorrentes de número do mesmo tipo.
+        # Requer que o chamador esteja dentro de transaction.atomic().
+        TipoMateriaLegislativa.objects.select_for_update().get(pk=tipo.pk)
+
         # O tipo pode sobrescrever a configuração global
         if tipo.sequencia_numeracao:
             numeracao = tipo.sequencia_numeracao
