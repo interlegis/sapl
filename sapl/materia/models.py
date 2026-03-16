@@ -387,7 +387,7 @@ class MateriaLegislativa(models.Model):
                                  update_fields=update_fields)
 
     @staticmethod
-    def get_proximo_numero(tipo, ano=None, numero_preferido=None):
+    def get_proximo_numero(tipo, ano=None, numero_candidato=None):
         """
         Retorna o próximo número disponível para uma MateriaLegislativa
         baseado no tipo e nas configurações de numeração.
@@ -399,14 +399,13 @@ class MateriaLegislativa(models.Model):
         Args:
             tipo: TipoMateriaLegislativa ou int/str - o tipo da matéria
             ano: int - o ano da matéria (default: ano atual)
-            numero_preferido: int - número preferido/desejado (opcional).
+            numero_candidato: int - número candidato/desejado (opcional).
                 Se fornecido e disponível, será retornado. Caso contrário,
                 retorna o próximo sequencial.
 
         Returns:
             tuple[int, int]: Uma tupla contendo (numero, ano) da matéria.
         """
-
 
         if ano is None:
             ano = timezone.now().year
@@ -467,20 +466,20 @@ class MateriaLegislativa(models.Model):
         else:
             numero = {'numero__max': 0}
 
-        # Converte o número preferido para inteiro, se possível
-        numero_preferido_int = None
-        if numero_preferido:
+        # Converte o número candidato para inteiro, se possível
+        numero_candidato_int = None
+        if numero_candidato is not None:
             try:
-                numero_preferido_int = int(numero_preferido)
+                numero_candidato_int = int(numero_candidato)
             except (TypeError, ValueError):
-                numero_preferido_int = None
+                numero_candidato_int = None
 
-        # Verifica se o número preferido está disponível
-        if numero_preferido_int is not None and not MateriaLegislativa.objects.filter(
+        # Verifica se o número candidato está disponível
+        if numero_candidato_int is not None and not MateriaLegislativa.objects.filter(
                 tipo=tipo,
                 ano=ano,
-                numero=numero_preferido_int).exists():
-            return numero_preferido_int, ano
+                numero=numero_candidato_int).exists():
+            return numero_candidato_int, ano
 
         # Retorna o próximo número sequencial
         max_numero = numero['numero__max']
