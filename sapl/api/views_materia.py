@@ -94,7 +94,6 @@ class _MateriaLegislativaViewSet:
 
     _MAX_RETRIES_NUMERO = 3
 
-    @transaction.atomic
     def create(self, request, *args, **kwargs):
         data = dict(request.data)
         tipo = data.get('tipo', None)
