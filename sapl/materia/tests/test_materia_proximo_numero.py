@@ -171,29 +171,29 @@ def test_proximo_numero_legislatura_inexistente(tipo_materia_legislatura,
 
 
 # ===========================================================================
-#  Testes de get_proximo_numero – numero_preferido
+#  Testes de get_proximo_numero – numero_candidato
 # ===========================================================================
 
 @pytest.mark.django_db(transaction=False)
-def test_numero_preferido_disponivel(tipo_materia_anual, regime, app_config):
-    """Se o número preferido está disponível, deve ser retornado."""
+def test_numero_candidato_disponivel(tipo_materia_anual, regime, app_config):
+    """Se o número candidato está disponível, deve ser retornado."""
     _criar_materia(tipo_materia_anual, 1, 2024, regime)
 
     with transaction.atomic():
         numero, _ = MateriaLegislativa.get_proximo_numero(
-            tipo=tipo_materia_anual, ano=2024, numero_preferido=5)
+            tipo=tipo_materia_anual, ano=2024, numero_candidato=5)
     assert numero == 5
 
 
 @pytest.mark.django_db(transaction=False)
-def test_numero_preferido_em_uso_retorna_sequencial(tipo_materia_anual,
+def test_numero_candidato_em_uso_retorna_sequencial(tipo_materia_anual,
                                                      regime, app_config):
-    """Se o número preferido já existe, retorna o sequencial."""
+    """Se o número candidato já existe, retorna o sequencial."""
     _criar_materia(tipo_materia_anual, 5, 2024, regime)
 
     with transaction.atomic():
         numero, _ = MateriaLegislativa.get_proximo_numero(
-            tipo=tipo_materia_anual, ano=2024, numero_preferido=5)
+            tipo=tipo_materia_anual, ano=2024, numero_candidato=5)
     assert numero == 6
 
 
