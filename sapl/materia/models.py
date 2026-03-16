@@ -444,8 +444,9 @@ class MateriaLegislativa(models.Model):
             numeracao = tipo.sequencia_numeracao
 
         # Calcula o próximo número baseado no tipo de numeração
+        materias_select_for_update = MateriaLegislativa.objects.select_for_update()
         if numeracao == 'A':  # Por ano
-            numero = MateriaLegislativa.objects.filter(
+            numero = materias_select_for_update.filter(
                 ano=ano, tipo=tipo).aggregate(Max('numero'))
         elif numeracao == 'L':  # Por legislatura
             legislatura = Legislatura.objects.filter(
@@ -454,14 +455,14 @@ class MateriaLegislativa(models.Model):
             if legislatura:
                 data_inicio = legislatura.data_inicio
                 data_fim = legislatura.data_fim
-                numero = MateriaLegislativa.objects.filter(
+                numero = materias_select_for_update.filter(
                     data_apresentacao__gte=data_inicio,
                     data_apresentacao__lte=data_fim,
                     tipo=tipo).aggregate(Max('numero'))
             else:
                 numero = {'numero__max': 0}
         elif numeracao == 'U':  # Único/Universal
-            numero = MateriaLegislativa.objects.filter(
+            numero = materias_select_for_update.filter(
                 tipo=tipo).aggregate(Max('numero'))
         else:
             numero = {'numero__max': 0}
@@ -475,7 +476,7 @@ class MateriaLegislativa(models.Model):
                 numero_candidato_int = None
 
         # Verifica se o número candidato está disponível
-        if numero_candidato_int is not None and not MateriaLegislativa.objects.filter(
+        if numero_candidato_int is not None and not materias_select_for_update.filter(
                 tipo=tipo,
                 ano=ano,
                 numero=numero_candidato_int).exists():
