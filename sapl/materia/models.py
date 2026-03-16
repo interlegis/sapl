@@ -486,7 +486,6 @@ class MateriaLegislativa(models.Model):
         return ((max_numero + 1) if max_numero else 1), ano
 
 
-
 class Autoria(models.Model):
     autor = models.ForeignKey(Autor,
                               verbose_name=_('Autor'),

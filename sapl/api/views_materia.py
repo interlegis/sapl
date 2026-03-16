@@ -147,7 +147,6 @@ class _MateriaLegislativaViewSet:
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
 
-
     @action(detail=True, methods=['GET'])
     def ultima_tramitacao(self, request, *args, **kwargs):
 
