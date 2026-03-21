@@ -338,8 +338,8 @@ class ProposicaoTaView(IntegracaoTaView):
         else:
             return self.get_redirect_deactivated()
 
-
 @transaction.atomic
+@permission_required('materia.detail_materialegislativa')
 def recuperar_materia(request):
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
     ano = request.GET.get('ano', None)
