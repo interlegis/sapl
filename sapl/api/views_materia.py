@@ -1,7 +1,9 @@
 
 from django.apps.registry import apps
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from rest_framework.decorators import action
+from rest_framework.status import HTTP_201_CREATED, HTTP_409_CONFLICT
 from rest_framework.response import Response
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
@@ -89,6 +91,60 @@ class _MateriaLegislativaViewSet:
 
     class Meta:
         ordering = ['-ano', 'tipo', 'numero']
+
+    _MAX_RETRIES_NUMERO = 3
+
+    def create(self, request, *args, **kwargs):
+        data = dict(request.data)
+        tipo = data.get('tipo', None)
+        numero = data.get('numero', None)
+        ano = data.get('ano', None)
+
+        if tipo and not numero:
+            # Número não fornecido pelo cliente: auto-gerar próximo disponível.
+            # select_for_update() em get_proximo_numero previne race conditions.
+            # Retry como camada extra de segurança contra IntegrityError residual.
+            for tentativa in range(self._MAX_RETRIES_NUMERO):
+                try:
+                    with transaction.atomic():
+                        numero_gerado, ano_gerado = MateriaLegislativa.get_proximo_numero(
+                            tipo=tipo, ano=ano
+                        )
+                        data['numero'] = numero_gerado
+                        data['ano'] = ano_gerado
+
+                        serializer = self.get_serializer(data=data)
+                        serializer.is_valid(raise_exception=True)
+                        self.perform_create(serializer)
+                        headers = self.get_success_headers(serializer.data)
+                        return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
+                except IntegrityError:
+                    if tentativa == self._MAX_RETRIES_NUMERO - 1:
+                        return Response(
+                            {'detail': 'Não foi possível gerar um número único após '
+                                       '%d tentativas. Tente novamente.' % self._MAX_RETRIES_NUMERO},
+                            status=HTTP_409_CONFLICT
+                        )
+                    continue
+
+        # Número fornecido pelo cliente (ou tipo ausente):
+        # respeitar os dados enviados. Se houver conflito de unicidade,
+        # retornar erro explícito em vez de sobrescrever silenciosamente.
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            with transaction.atomic():
+                self.perform_create(serializer)
+        except IntegrityError:
+            return Response(
+                {'numero': [
+                    'O número %s já está em uso para este tipo/ano. '
+                    'Remova o campo "numero" para auto-gerar o próximo disponível.' % numero
+                ]},
+                status=HTTP_409_CONFLICT
+            )
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=HTTP_201_CREATED, headers=headers)
 
     @action(detail=True, methods=['GET'])
     def ultima_tramitacao(self, request, *args, **kwargs):

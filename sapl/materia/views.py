@@ -16,6 +16,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError
+from django.db import transaction
 from django.db.models import Max, Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
@@ -337,56 +338,18 @@ class ProposicaoTaView(IntegracaoTaView):
         else:
             return self.get_redirect_deactivated()
 
-
+@transaction.atomic
 @permission_required('materia.detail_materialegislativa')
 def recuperar_materia(request):
-    logger = logging.getLogger(__name__)
-    username = request.user.username
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
-    ano = request.GET.get('ano', '')
+    ano = request.GET.get('ano', None)
 
-    if not (tipo and ano):
-        return JsonResponse({'numero': '', 'ano': ''})
-
-    numeracao = None
-    try:
-        logger.debug("user=" + username +
-                     ". Tentando obter numeração da matéria.")
-        numeracao = sapl.base.models.AppConfig.objects.last(
-        ).sequencia_numeracao_protocolo
-    except AttributeError as e:
-        logger.error("user=" + username + ". " + str(e) +
-                     " Numeracao da matéria definida como None.")
-        pass
-
-    if tipo.sequencia_numeracao:
-        numeracao = tipo.sequencia_numeracao
-
-    if numeracao == 'A':
-        numero = MateriaLegislativa.objects.filter(
-            ano=ano, tipo=tipo).aggregate(Max('numero'))
-    elif numeracao == 'L':
-        legislatura = Legislatura.objects.filter(
-            data_inicio__year__lte=ano,
-            data_fim__year__gte=ano).first()
-        data_inicio = legislatura.data_inicio
-        data_fim = legislatura.data_fim
-        numero = MateriaLegislativa.objects.filter(
-            data_apresentacao__gte=data_inicio,
-            data_apresentacao__lte=data_fim,
-            tipo=tipo).aggregate(
-            Max('numero'))
-    elif numeracao == 'U':
-        numero = MateriaLegislativa.objects.filter(
-            tipo=tipo).aggregate(Max('numero'))
-
-    if numeracao is None:
-        numero['numero__max'] = 0
-
-    max_numero = numero['numero__max'] + 1 if numero['numero__max'] else 1
+    max_numero, ano = MateriaLegislativa.get_proximo_numero(
+        tipo=tipo,
+        ano=int(ano) if ano else None
+    )
 
     response = JsonResponse({'numero': max_numero, 'ano': ano})
-
     return response
 
 

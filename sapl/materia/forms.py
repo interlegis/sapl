@@ -2458,47 +2458,12 @@ class ConfirmarProposicaoForm(ProposicaoForm):
         if self.instance.tipo.content_type.model_class(
         ) == TipoMateriaLegislativa:
 
-            numeracao = None
-            try:
-                self.logger.debug(
-                    "Tentando obter modelo de sequência de numeração.")
-                numeracao = BaseAppConfig.objects.last(
-                ).sequencia_numeracao_protocolo
-            except AttributeError as e:
-                self.logger.error("Erro ao obter modelo. " + str(e))
-                pass
-
             tipo = self.instance.tipo.tipo_conteudo_related
-            if tipo.sequencia_numeracao:
-                numeracao = tipo.sequencia_numeracao
-            ano = timezone.now().year
-            if numeracao == 'A':
-                numero = MateriaLegislativa.objects.filter(
-                    ano=ano, tipo=tipo).aggregate(Max('numero'))
-            elif numeracao == 'L':
-                legislatura = Legislatura.objects.filter(
-                    data_inicio__year__lte=ano,
-                    data_fim__year__gte=ano).first()
-                data_inicio = legislatura.data_inicio
-                data_fim = legislatura.data_fim
-                numero = MateriaLegislativa.objects.filter(
-                    data_apresentacao__gte=data_inicio,
-                    data_apresentacao__lte=data_fim,
-                    tipo=tipo).aggregate(
-                    Max('numero'))
-            elif numeracao == 'U':
-                numero = MateriaLegislativa.objects.filter(
-                    tipo=tipo).aggregate(Max('numero'))
-            if numeracao is None:
-                numero['numero__max'] = 0
-
-            if cd['numero_materia_futuro'] and not MateriaLegislativa.objects.filter(tipo=tipo,
-                                                                                     ano=ano,
-                                                                                     numero=cd['numero_materia_futuro']):
-                max_numero = cd['numero_materia_futuro']
-            else:
-                max_numero = numero['numero__max'] + \
-                    1 if numero['numero__max'] else 1
+            max_numero, ano = MateriaLegislativa.get_proximo_numero(
+                tipo=tipo,
+                ano=None,
+                numero_candidato=cd.get('numero_materia_futuro', None)
+            )
 
             # dados básicos
             materia = MateriaLegislativa()
