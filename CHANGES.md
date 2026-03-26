@@ -1,4 +1,10 @@
 
+3.1.165-RC2 / 2026-03-26
+========================
+
+  * Aumenta RATE_LIMITER_RATE default de 10/m para 35/m (#3824)
+  * #3821 centralizar geração próximo número para create de matérias legislativas (#3822)
+
 3.1.165-RC1 / 2026-02-24
 ========================
 
