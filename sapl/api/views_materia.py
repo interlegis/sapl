@@ -95,7 +95,7 @@ class _MateriaLegislativaViewSet:
     _MAX_RETRIES_NUMERO = 3
 
     def create(self, request, *args, **kwargs):
-        data = dict(request.data)
+        data = request.data.copy()
         tipo = data.get('tipo', None)
         numero = data.get('numero', None)
         ano = data.get('ano', None)
