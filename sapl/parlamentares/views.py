@@ -35,7 +35,7 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.rules import SAPL_GROUP_VOTANTE
 from sapl.utils import (parlamentares_ativos, show_results_filter_set, ratelimit_ip)
 
-from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
+from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm, MesaDiretoraFilterSet,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
                     ParlamentarFilterSet, PartidoFilterSet, VincularParlamentarForm,
                     BlocoForm, FrenteParlamentarForm, BlocoMembroForm)
@@ -1019,11 +1019,26 @@ class MesaDiretoraCrud(Crud):
                 context['subnav_template_name'] = 'parlamentares/subnav_mesa.yaml'
             return context
 
-    class ListView(Crud.ListView):
+    class ListView(FilterView, Crud.ListView):
+        filterset_class = MesaDiretoraFilterSet
+
+        def get_filterset_kwargs(self, filterset_class):
+            fk = super().get_filterset_kwargs(filterset_class)
+            if 'legislatura' not in self.request.GET:
+                legislatura = Legislatura.objects.filter(
+                    data_inicio__lte=timezone.now()).order_by('-data_inicio').values_list('id', flat=True).first()
+                if legislatura:
+                    fk['data'] = {'legislatura': legislatura}
+            return fk
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
+            context['title'] = ' '
             return context
+
+        def get(self, request, *args, **kwargs):
+            return FilterView.get(self, request, *args, **kwargs)
 
     class CreateView(Crud.CreateView):
         def get_context_data(self, **kwargs):

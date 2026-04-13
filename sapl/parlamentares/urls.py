@@ -104,7 +104,7 @@ urlpatterns = [
     url(r'^sistema/mesa-diretora/cargo-mesa/',
         include(CargoMesaCrud.get_urls())),
 
-    url(r'^mesadiretora/', include(
+    url(r'^mesa-diretora/', include(
         MesaDiretoraCrud.get_urls() + ComposicaoMesaCrud.get_urls()
     )),
 ]

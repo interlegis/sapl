@@ -1,7 +1,7 @@
 from datetime import timedelta
 import logging
 
-from crispy_forms.layout import Fieldset, Layout
+from crispy_forms.layout import Fieldset, Layout, Field
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
@@ -19,10 +19,10 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
-from sapl.utils import FileFieldCheckMixin
+from sapl.utils import FileFieldCheckMixin, SelectSubmitChangeWidget
 
 from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
+                     Mandato, MesaDiretora, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
 
 
 class CustomImageCropWidget(ImageCropWidget):
@@ -752,3 +752,26 @@ class BlocoMembroForm(ModelForm):
                 _("Parlamentar já é membro do bloco parlamentar."))
 
         return cd
+
+class MesaDiretoraFilterSet(django_filters.FilterSet):
+
+    legislatura = django_filters.ModelChoiceFilter(
+        label='',
+        queryset=Legislatura.objects.all(),
+        widget=SelectSubmitChangeWidget)
+
+    class Meta:
+        model = MesaDiretora
+        fields = ['legislatura']
+
+    def __init__(self, *args, **kwargs):
+        super(MesaDiretoraFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('legislatura', 5)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Escolha da Legislatura e da Sessão Legislativa'),
+                     row0,)
+        )
