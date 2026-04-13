@@ -1021,6 +1021,7 @@ class MesaDiretoraCrud(Crud):
 
     class ListView(FilterView, Crud.ListView):
         filterset_class = MesaDiretoraFilterSet
+        paginate_by = None
 
         def get_filterset_kwargs(self, filterset_class):
             fk = super().get_filterset_kwargs(filterset_class)
@@ -1044,6 +1045,12 @@ class MesaDiretoraCrud(Crud):
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
+            return context
+
+    class DetailView(Crud.DetailView):
+        layout_key = 'MesaDiretoraDetail'
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
             return context
 
 

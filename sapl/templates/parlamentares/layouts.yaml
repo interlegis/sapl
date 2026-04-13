@@ -169,14 +169,17 @@ BlocoMembroList:
 
 MesaDiretora:
   {% trans 'Período e Legislatura' %}:
+  - titulo
   - data_inicio data_fim legislatura:6
+  {% trans 'Descrição' %}:
   - descricao
 
 MesaDiretoraDetail:
   {% trans 'Período e Legislatura' %}:
+  - titulo
   - data_inicio data_fim legislatura:6
+  {% trans 'Descrição' %}:
   - descricao
-  - composicaomesa_set
 
 ComposicaoMesa:
   {% trans 'Composição da Mesa' %}:

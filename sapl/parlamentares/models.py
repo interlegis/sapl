@@ -491,6 +491,7 @@ class CargoMesa(models.Model):
 
 
 class MesaDiretora(models.Model):
+    titulo = models.CharField(max_length=50, default='', verbose_name=_('Título da Mesa Diretora'))
     data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
     data_fim = models.DateField(verbose_name=_('Data Fim'), null=True)
     legislatura = models.ForeignKey(Legislatura,
@@ -504,11 +505,12 @@ class MesaDiretora(models.Model):
         ordering = ('-data_inicio', '-legislatura')
 
     def __str__(self):
-        return _('%(legislatura)s - %(data_inicio)s a %(data_fim)s') % {
-            'legislatura': self.legislatura,
-            'data_inicio': self.data_inicio,
-            'data_fim': self.data_fim
-        }
+        return self.titulo or _('%(legislatura)s - %(data_inicio)s a %(data_fim)s') % {
+                'legislatura': self.legislatura,
+                'data_inicio': self.data_inicio,
+                'data_fim': self.data_fim
+            }
+
 
 class ComposicaoMesa(models.Model):
     # TODO M2M ???? Ternary?????
