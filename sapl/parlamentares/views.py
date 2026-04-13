@@ -1007,20 +1007,58 @@ def parlamentares_filiados(request, pk):
     return render(request, template_name, {'partido': partido, 'parlamentares': parlamentares_filiados})
 
 
+class MesaDiretoraCrud(Crud):
+    model = MesaDiretora
+    help_topic = 'mesa_diretora'
+    public = [RP_DETAIL, RP_LIST]
+
+    class BaseMixin(Crud.BaseMixin):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            if 'subnav_template_name' not in context:
+                context['subnav_template_name'] = 'parlamentares/subnav_mesa.yaml'
+            return context
+
+    class ListView(Crud.ListView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+    class CreateView(Crud.CreateView):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = ''
+            return context
+
+
+class ComposicaoMesaCrud(MasterDetailCrud):
+    model = ComposicaoMesa
+    parent_field = 'mesa_diretora'
+    help_topic = 'mesa_diretora'
+    public = [RP_LIST, RP_DETAIL]
+
+    class BaseMixin(MasterDetailCrud.BaseMixin):
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['subnav_template_name'] = 'parlamentares/subnav_mesa.yaml'
+            return context
+
+
 class MesaDiretoraView(FormView):
-    template_name = 'parlamentares/composicaomesa_form.html'
-    success_url = reverse_lazy('sapl.parlamentares:mesa_diretora')
+    template_name = 'parlamentares/composicaomesa_form_old.html'
+    success_url = ''#reverse_lazy('sapl.parlamentares:mesa_diretora')
     logger = logging.getLogger(__name__)
 
     def get_template_names(self):
         if self.request.user.has_perm('parlamentares.change_composicaomesa'):
             if 'iframe' not in self.request.GET:
                 if not self.request.session.get('iframe'):
-                    return 'parlamentares/composicaomesa_form.html'
+                    return 'parlamentares/composicaomesa_form_old.html'
             elif self.request.GET['iframe'] == '0':
-                return 'parlamentares/composicaomesa_form.html'
+                return 'parlamentares/composicaomesa_form_old.html'
 
-        return 'parlamentares/public_composicaomesa_form.html'
+        return 'parlamentares/public_composicaomesa_form_old.html'
 
     # Essa função avisa quando se pode compor uma Mesa Legislativa
     def validation(self, request):

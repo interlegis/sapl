@@ -166,3 +166,18 @@ BlocoMembroList:
   - id
   - cargo:4 parlamentar
   - data_entrada data_saida
+
+MesaDiretora:
+  {% trans 'Período e Legislatura' %}:
+  - data_inicio data_fim legislatura:6
+  - descricao
+
+MesaDiretoraDetail:
+  {% trans 'Período e Legislatura' %}:
+  - data_inicio data_fim legislatura:6
+  - descricao
+  - composicaomesa_set
+
+ComposicaoMesa:
+  {% trans 'Composição da Mesa' %}:
+  - cargo:4 parlamentar

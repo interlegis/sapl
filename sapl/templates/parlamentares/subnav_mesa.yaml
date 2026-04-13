@@ -1,0 +1,5 @@
+{% load i18n common_tags %}
+- title: {% trans 'Mesa Diretora' %}
+  url: sapl.parlamentares:mesadiretora_list
+- title: {% trans 'Composição da Mesa' %}
+  url: sapl.parlamentares:composicaomesa_list
