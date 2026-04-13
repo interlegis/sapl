@@ -19,17 +19,18 @@
           {% endif %}
         {% endfor %}
       </ul>
-      <div class="tab-content">
+      <div class="tab-content" style="border: 1px solid #dee2e6; border-top: 0; border-radius: 0 0 0.25rem 0.25rem;">
         {% for md in object_list %}
           {% if forloop.first or request.GET.mesadiretora == md.id|stringformat:"s" %}
             <div class="tab-pane fade show active" id="tab-mesa-{{ md.id }}" role="tabpanel">
           {% else %}
             <div class="tab-pane fade" id="tab-mesa-{{ md.id }}" role="tabpanel">
           {% endif %}
-              <table class="table table-striped table-hover table-link-ordering">
+              <i class="text-muted p-2 d-inline-block">(De {{md.data_inicio }} a {{ md.data_fim }})</i>
+
+              <table class="table table-striped table-hover table-link-ordering m-0 p-0">
                 <thead>
                   <tr>
-                    <th></th>
                     <th>Nome do Parlamentar</th>
                     <th>Partido</th>
                     <th>Cargo</th>
@@ -38,17 +39,15 @@
                 <tbody>
                   {% for p in md.composicaomesa_set.all %}
                     <tr>
-                      {% if p.parlamentar.fotografia %}
-                        <td>
-                          <div id="w-100">
+                      <td>
+                        <div id="d-flex">
+                          {% if p.parlamentar.fotografia %}
                             <img class="img-fluid img-thumbnail" src="{% cropped_thumbnail p.parlamentar "cropping"%}">
-                          </div>
-                        </td>
-                      {% else %}
-                        <td></td>
-                      {% endif %}
-                      <td><a href="{% url 'sapl.parlamentares:parlamentar_detail' p.parlamentar.pk %}">
-                        {{p.parlamentar.nome_parlamentar}}</a></td>
+                          {% endif %}
+                          <a class="pl-2" href="{% url 'sapl.parlamentares:parlamentar_detail' p.parlamentar.pk %}">
+                          {{p.parlamentar.nome_parlamentar}}</a>
+                        </div>
+                      </td>
                       <td>{{p.parlamentar.filiacao_atual}}</td>
                       <td>{{p.cargo}}</td>
                     </tr>
