@@ -22,7 +22,11 @@ def test_mesadiretora_form_invalido():
 
 @pytest.mark.django_db(transaction=False)
 def test_mesadiretora_form_data_inicio_maior_que_data_fim():
-    legislatura = baker.make('parlamentares.Legislatura')
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio='2021-01-01',
+        data_fim='2024-12-31'
+    )
 
     form = MesaDiretoraForm(data={
         'titulo': 'Mesa Diretora 2021-2022',
@@ -38,7 +42,11 @@ def test_mesadiretora_form_data_inicio_maior_que_data_fim():
 
 @pytest.mark.django_db(transaction=False)
 def test_mesadiretora_form_valido():
-    legislatura = baker.make('parlamentares.Legislatura')
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio='2021-01-01',
+        data_fim='2024-12-31'
+        )
 
     form = MesaDiretoraForm(data={
         'titulo': 'Mesa Diretora 2021-2022',
@@ -51,7 +59,11 @@ def test_mesadiretora_form_valido():
 
 @pytest.mark.django_db(transaction=False)
 def test_mesadiretora_form_intersecao():
-    legislatura = baker.make('parlamentares.Legislatura')
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio='2021-01-01',
+        data_fim='2024-12-31'
+    )
     mesa_existente = baker.make(
         'parlamentares.MesaDiretora',
         legislatura=legislatura,
@@ -108,11 +120,17 @@ def test_composicaomesa_form_valido():
     parlamentar = baker.make('parlamentares.Parlamentar')
     cargo = baker.make('parlamentares.CargoMesa')
     mesa_diretora = baker.make('parlamentares.MesaDiretora')
+    mandato = baker.make(
+        'parlamentares.Mandato',
+        parlamentar=parlamentar,
+        legislatura=mesa_diretora.legislatura)
 
     form = ComposicaoMesaForm(data={
         'parlamentar': parlamentar.id,
         'cargo': cargo.id,
         'mesa_diretora': mesa_diretora.id,
+    }, initial={
+        'mesa_diretora': mesa_diretora,
     })
 
     assert form.is_valid()
@@ -123,6 +141,10 @@ def test_composicaomesa_form_parlamentar_ocupando_cargo_na_mesma_mesa():
     cargo1 = baker.make('parlamentares.CargoMesa')
     cargo2 = baker.make('parlamentares.CargoMesa')
     mesa_diretora = baker.make('parlamentares.MesaDiretora')
+    mandato = baker.make(
+        'parlamentares.Mandato',
+        parlamentar=parlamentar,
+        legislatura=mesa_diretora.legislatura)
 
     # Cria uma composição de mesa existente com o mesmo parlamentar e mesa
     ComposicaoMesa.objects.create(
@@ -135,6 +157,8 @@ def test_composicaomesa_form_parlamentar_ocupando_cargo_na_mesma_mesa():
         'parlamentar': parlamentar.id,
         'cargo': cargo2.id,
         'mesa_diretora': mesa_diretora.id,
+    }, initial={
+        'mesa_diretora': mesa_diretora,
     })
 
     assert not form.is_valid()
