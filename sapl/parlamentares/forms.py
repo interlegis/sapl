@@ -772,6 +772,6 @@ class MesaDiretoraFilterSet(django_filters.FilterSet):
         self.form.helper = SaplFormHelper()
         self.form.helper.form_method = 'GET'
         self.form.helper.layout = Layout(
-            Fieldset(_('Escolha da Legislatura e da Sessão Legislativa'),
+            Fieldset(_('Escolha da Legislatura'),
                      row0,)
         )
