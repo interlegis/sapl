@@ -21,7 +21,7 @@ from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
 from sapl.utils import FileFieldCheckMixin, SelectSubmitChangeWidget
 
-from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
+from .models import (Coligacao, ComposicaoColigacao, ComposicaoMesa, Filiacao, Frente, Legislatura,
                      Mandato, MesaDiretora, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
 
 
@@ -775,3 +775,76 @@ class MesaDiretoraFilterSet(django_filters.FilterSet):
             Fieldset(_('Escolha da Legislatura'),
                      row0,)
         )
+
+
+class MesaDiretoraForm(ModelForm):
+
+    class Meta:
+        model = MesaDiretora
+        fields = '__all__'
+
+    def clean(self):
+        super(MesaDiretoraForm, self).clean()
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+        legislatura = data['legislatura']
+        data_inicio = data['data_inicio']
+        data_fim = data['data_fim']
+
+        if data_inicio >= data_fim:
+            raise ValidationError(_('A data de início deve ser anterior à data de fim.'))
+
+        # Verifica se há intersecção de datas com outra mesa diretora da mesma legislatura
+        intersecao_mesadiretora = MesaDiretora.objects.filter(
+            legislatura=legislatura,
+            data_inicio__lte=data_fim,
+            data_fim__gte=data_inicio
+        ).exclude(pk=self.instance.pk).exists()
+        if intersecao_mesadiretora:
+            raise ValidationError(_('As datas da mesa diretora se sobrepõem com outra mesa diretora existente.'))
+
+        # Verifica se as datas da mesa diretora estão dentro do intervalo da legislatura
+        if data_inicio < legislatura.data_inicio or data_fim > legislatura.data_fim:
+            raise ValidationError(_('As datas da mesa diretora devem estar dentro do período da legislatura.'))
+        return data
+
+class ComposicaoMesaForm(ModelForm):
+
+    class Meta:
+        model = ComposicaoMesa
+        fields = '__all__'
+        widgets = {
+            'mesa_diretora': forms.HiddenInput()
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(ComposicaoMesaForm, self).__init__(*args, **kwargs)
+        self.fields['parlamentar'].queryset = self.fields['parlamentar'].queryset.filter(
+            mandato__legislatura=self.initial['mesa_diretora'].legislatura)
+
+    def clean(self):
+        super(ComposicaoMesaForm, self).clean()
+        if not self.is_valid():
+            return self.cleaned_data
+
+        data = self.cleaned_data
+        mesa_diretora = data['mesa_diretora']
+        cargo = data['cargo']
+
+        # Verifica se Parlamentar já ocupa algum cargo
+        parlamentar = data['parlamentar']
+        if ComposicaoMesa.objects.filter(
+            parlamentar=parlamentar, mesa_diretora=mesa_diretora
+        ).exclude(pk=self.instance.pk).exists():
+            raise ValidationError(_('Parlamentar já ocupa um cargo nesta mesa diretora.'))
+
+        if cargo.unico:
+            composicao_mesa = ComposicaoMesa.objects.filter(
+                mesa_diretora=mesa_diretora,
+                cargo=cargo
+            ).exclude(pk=self.instance.pk)
+            if composicao_mesa.exists():
+                raise ValidationError(_('Cargo único já ocupado por outro parlamentar.'))
+        return data

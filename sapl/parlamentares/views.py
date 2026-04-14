@@ -35,7 +35,7 @@ from sapl.parlamentares.apps import AppConfig
 from sapl.rules import SAPL_GROUP_VOTANTE
 from sapl.utils import (parlamentares_ativos, show_results_filter_set, ratelimit_ip)
 
-from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm, MesaDiretoraFilterSet,
+from .forms import (ColigacaoFilterSet, ComposicaoMesaForm, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm, MesaDiretoraFilterSet, MesaDiretoraForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
                     ParlamentarFilterSet, PartidoFilterSet, VincularParlamentarForm,
                     BlocoForm, FrenteParlamentarForm, BlocoMembroForm)
@@ -1041,7 +1041,12 @@ class MesaDiretoraCrud(Crud):
         def get(self, request, *args, **kwargs):
             return FilterView.get(self, request, *args, **kwargs)
 
+    class UpdateView(Crud.UpdateView):
+        form_class = MesaDiretoraForm
+
     class CreateView(Crud.CreateView):
+        form_class = MesaDiretoraForm
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
@@ -1065,6 +1070,23 @@ class ComposicaoMesaCrud(MasterDetailCrud):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = 'parlamentares/subnav_mesa.yaml'
             return context
+
+    class UpdateView(MasterDetailCrud.UpdateView):
+        form_class = ComposicaoMesaForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            initial['mesa_diretora'] = self.object.mesa_diretora
+            return initial
+
+    class CreateView(MasterDetailCrud.CreateView):
+        form_class = ComposicaoMesaForm
+
+        def get_initial(self):
+            initial = super().get_initial()
+            initial['mesa_diretora'] = MesaDiretora.objects.get(pk=self.kwargs['pk'])
+            return initial
+
 
 
 class MesaDiretoraView(FormView):

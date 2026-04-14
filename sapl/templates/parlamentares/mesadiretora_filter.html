@@ -14,6 +14,10 @@
               <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-mesa-{{ md.id }}-tab" data-toggle="tab" data-target="#tab-mesa-{{ md.id }}" type="button" role="tab" aria-controls="tab-mesa-{{ md.id }}" aria-selected="true">{{ md }}</button>
               </li>
+            {% elif forloop.first%}
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-mesa-{{ md.id }}-tab" data-toggle="tab" data-target="#tab-mesa-{{ md.id }}" type="button" role="tab" aria-controls="tab-mesa-{{ md.id }}" aria-selected="true">{{ md }}</button>
+              </li>
             {% else %}
               <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-mesa-{{ md.id }}-tab" data-toggle="tab" data-target="#tab-mesa-{{ md.id }}" type="button" role="tab" aria-controls="tab-mesa-{{ md.id }}" aria-selected="false">{{ md }}</button>
