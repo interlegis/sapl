@@ -267,6 +267,7 @@ class SelectSubmitChangeWidget(forms.Select):
         super().__init__(*args, **kwargs)
         self.attrs.update({'onchange': 'this.form.submit();'})
 
+
 class SaplGenericForeignKey(GenericForeignKey):
 
     def __init__(
