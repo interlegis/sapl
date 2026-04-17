@@ -492,8 +492,8 @@ class CargoMesa(models.Model):
 
 class MesaDiretora(models.Model):
     titulo = models.CharField(max_length=100, default='', verbose_name=_('Título da Mesa Diretora'))
-    data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
-    data_fim = models.DateField(verbose_name=_('Data Fim'), null=True)
+    data_inicio = models.DateField(verbose_name=_('Data Início'))
+    data_fim = models.DateField(verbose_name=_('Data Fim'))
     legislatura = models.ForeignKey(Legislatura,
                                    on_delete=models.PROTECT,
                                    verbose_name=_('Legislatura'))
@@ -516,7 +516,7 @@ class ComposicaoMesa(models.Model):
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT, verbose_name=_('Parlamentar'))
     cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT, verbose_name=_('Cargo'))
     mesa_diretora = models.ForeignKey(
-        MesaDiretora, on_delete=models.PROTECT, null=True,
+        MesaDiretora, on_delete=models.PROTECT,
         related_name='composicaomesa_set', verbose_name=_('Mesa Diretora'))
 
     class Meta:
