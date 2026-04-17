@@ -2,7 +2,7 @@
 {% load i18n common_tags crispy_forms_tags cropping %}
 
 {% block container_table_list %}
-  {% if perms.add_mesadiretora %}
+  {% if perms.parlamentares.add_mesadiretora %}
     {{ block.super }}
   {% else %}
     <div class="row">
