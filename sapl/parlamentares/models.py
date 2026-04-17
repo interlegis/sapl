@@ -491,7 +491,7 @@ class CargoMesa(models.Model):
 
 
 class MesaDiretora(models.Model):
-    titulo = models.CharField(max_length=50, default='', verbose_name=_('Título da Mesa Diretora'))
+    titulo = models.CharField(max_length=100, default='', verbose_name=_('Título da Mesa Diretora'))
     data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
     data_fim = models.DateField(verbose_name=_('Data Fim'), null=True)
     legislatura = models.ForeignKey(Legislatura,

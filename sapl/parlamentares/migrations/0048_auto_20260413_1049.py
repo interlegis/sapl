@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='mesadiretora',
             name='titulo',
-            field=models.CharField(default='', max_length=50, verbose_name='Título da Mesa Diretora'),
+            field=models.CharField(default='', max_length=100, verbose_name='Título da Mesa Diretora'),
         ),
         migrations.AlterField(
             model_name='composicaomesa',
