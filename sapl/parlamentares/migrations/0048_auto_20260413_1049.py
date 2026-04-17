@@ -4,13 +4,17 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 def preencher_titulo_mesa_diretora(apps, schema_editor):
-    MesaDiretora = apps.get_model('parlamentares', 'MesaDiretora')
-    for mesa in MesaDiretora.objects.all():
-        ano_inicio = mesa.data_inicio.year if mesa.data_inicio else None
-        ano_fim = mesa.data_fim.year if mesa.data_fim else None
-        if ano_inicio and ano_fim:
-            mesa.titulo = f'Mesa Diretora{" Biênio" if ano_fim - ano_inicio == 1 else ""} {ano_inicio}/{ano_fim}'
-            mesa.save()
+    schema_editor.execute("""
+        UPDATE parlamentares_mesadiretora
+        SET titulo = 'Mesa Diretora' ||
+            CASE WHEN EXTRACT(YEAR FROM data_fim)::integer - EXTRACT(YEAR FROM data_inicio)::integer = 1
+                 THEN ' Biênio'
+                 ELSE ''
+            END || ' ' ||
+            EXTRACT(YEAR FROM data_inicio)::integer::text || '/' ||
+            EXTRACT(YEAR FROM data_fim)::integer::text
+        WHERE data_inicio IS NOT NULL AND data_fim IS NOT NULL
+    """)
 
 
 class Migration(migrations.Migration):
