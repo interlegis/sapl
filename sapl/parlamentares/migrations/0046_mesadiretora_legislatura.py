@@ -5,20 +5,17 @@ import django.db.models.deletion
 from datetime import date
 
 def add_legislatura_to_mesa_diretora(apps, schema_editor):
-    MesaDiretora = apps.get_model('parlamentares', 'MesaDiretora')
-    SessaoLegislativa = apps.get_model('parlamentares', 'SessaoLegislativa')
-
-    for mesa in MesaDiretora.objects.all():
-        mesa.legislatura = mesa.sessao_legislativa.legislatura
-        data_inicio = mesa.sessao_legislativa.data_inicio
-        data_fim = mesa.sessao_legislativa.data_fim
-        if data_inicio.year == data_fim.year:
-            mesa.data_inicio = date(data_inicio.year, 1, 1)
-            mesa.data_fim = date(data_fim.year, 12, 31)
-        else:
-            mesa.data_inicio = data_inicio
-            mesa.data_fim = data_fim
-        mesa.save()
+    schema_editor.execute("""
+        UPDATE parlamentares_mesadiretora md
+        SET
+            legislatura_id = sl.legislatura_id,
+            data_inicio = sl.data_inicio,
+            data_fim = sl.data_fim
+        FROM
+            parlamentares_sessaolegislativa sl
+        WHERE
+            sl.id = md.sessao_legislativa_id
+    """)
 
 
 class Migration(migrations.Migration):
