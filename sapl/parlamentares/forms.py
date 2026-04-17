@@ -820,38 +820,38 @@ class ComposicaoMesaForm(ModelForm):
 
     class Meta:
         model = ComposicaoMesa
-        fields = '__all__'
-        widgets = {
-            'mesa_diretora': forms.HiddenInput()
-        }
+        fields = (
+            'parlamentar',
+            'cargo'
+        )
 
     def __init__(self, *args, **kwargs):
         super(ComposicaoMesaForm, self).__init__(*args, **kwargs)
-        mesa_diretora = self.initial.get('mesa_diretora', None)
-
-        if mesa_diretora:
-            self.fields['parlamentar'].queryset = self.fields['parlamentar'].queryset.filter(
-                mandato__legislatura=mesa_diretora.legislatura)
+        self.fields['parlamentar'].queryset = self.fields['parlamentar'].queryset.filter(
+            mandato__legislatura=self.initial.get('mesa_diretora').legislatura)
 
     def clean(self):
         super(ComposicaoMesaForm, self).clean()
-        if not self.is_valid():
-            return self.cleaned_data
 
         data = self.cleaned_data
-        mesa_diretora = data['mesa_diretora']
-        cargo = data['cargo']
+        cargo = data.get('cargo', None)
+        if not cargo:
+            raise ValidationError(_('Cargo é obrigatório.'))
 
         # Verifica se Parlamentar já ocupa algum cargo
-        parlamentar = data['parlamentar']
+        parlamentar = data.get('parlamentar', None)
+        if not parlamentar:
+            raise ValidationError(_('Parlamentar é obrigatório.'))
+
         if ComposicaoMesa.objects.filter(
-            parlamentar=parlamentar, mesa_diretora=mesa_diretora
+            mesa_diretora=self.initial.get('mesa_diretora'),
+            parlamentar=parlamentar,
         ).exclude(pk=self.instance.pk).exists():
             raise ValidationError(_('Parlamentar já ocupa um cargo nesta mesa diretora.'))
 
         if cargo.unico:
             composicao_mesa = ComposicaoMesa.objects.filter(
-                mesa_diretora=mesa_diretora,
+                mesa_diretora=self.initial.get('mesa_diretora'),
                 cargo=cargo
             ).exclude(pk=self.instance.pk)
             if composicao_mesa.exists():
