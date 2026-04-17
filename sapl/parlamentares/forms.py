@@ -785,16 +785,25 @@ class MesaDiretoraForm(ModelForm):
 
     def clean(self):
         super(MesaDiretoraForm, self).clean()
-        if not self.is_valid():
-            return self.cleaned_data
 
         data = self.cleaned_data
-        legislatura = data['legislatura']
-        data_inicio = data['data_inicio']
-        data_fim = data['data_fim']
+
+        legislatura = data.get('legislatura', None)
+        if not legislatura:
+            raise ValidationError(_('Legislatura é obrigatória.'))
+
+        data_inicio = data.get('data_inicio', None)
+        data_fim = data.get('data_fim', None)
+
+        if not data_inicio or not data_fim:
+            raise ValidationError(_('As datas de início e fim da mesa diretora são obrigatórias.'))
 
         if data_inicio >= data_fim:
             raise ValidationError(_('A data de início deve ser anterior à data de fim.'))
+
+        # Verifica se as datas da mesa diretora estão dentro do intervalo da legislatura
+        if data_inicio < legislatura.data_inicio or data_fim > legislatura.data_fim:
+            raise ValidationError(_('As datas da mesa diretora devem estar dentro do período da legislatura.'))
 
         # Verifica se há intersecção de datas com outra mesa diretora da mesma legislatura
         intersecao_mesadiretora = MesaDiretora.objects.filter(
@@ -805,9 +814,6 @@ class MesaDiretoraForm(ModelForm):
         if intersecao_mesadiretora:
             raise ValidationError(_('As datas da mesa diretora se sobrepõem com outra mesa diretora existente.'))
 
-        # Verifica se as datas da mesa diretora estão dentro do intervalo da legislatura
-        if data_inicio < legislatura.data_inicio or data_fim > legislatura.data_fim:
-            raise ValidationError(_('As datas da mesa diretora devem estar dentro do período da legislatura.'))
         return data
 
 class ComposicaoMesaForm(ModelForm):
