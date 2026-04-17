@@ -298,7 +298,9 @@ class Parlamentar(models.Model):
 
     @property
     def filiacao_atual(self):
-        ultima_filiacao = self.filiacao_set.order_by('-data').first()
+        # este método conta com a ordenação default do model Filiacao para trazer a última filiação primeiro
+        # se order_by for adicionado aqui, o prefetch_related que inclui filiacao_set não irá pré-carregar como esperado
+        ultima_filiacao = self.filiacao_set.first()
         if ultima_filiacao and not ultima_filiacao.data_desfiliacao:
             return ultima_filiacao.partido.sigla
         else:

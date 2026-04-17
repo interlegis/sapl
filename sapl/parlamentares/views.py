@@ -1032,6 +1032,12 @@ class MesaDiretoraCrud(Crud):
                     fk['data'] = {'legislatura': legislatura}
             return fk
 
+        def get_queryset(self):
+            return super().get_queryset().prefetch_related(
+                'composicaomesa_set__parlamentar__filiacao_set__partido',
+                'composicaomesa_set__cargo'
+                )
+
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''

@@ -45,19 +45,19 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {% for p in md.composicaomesa_set.all %}
+                    {% for composicao in md.composicaomesa_set.all %}
                       <tr>
                         <td>
                           <div id="d-flex">
-                            {% if p.parlamentar.fotografia %}
-                              <img class="img-fluid img-thumbnail" src="{% cropped_thumbnail p.parlamentar "cropping"%}">
+                            {% if composicao.parlamentar.fotografia %}
+                              <img class="img-fluid img-thumbnail" src="{% cropped_thumbnail composicao.parlamentar "cropping"%}">
                             {% endif %}
-                            <a class="pl-2" href="{% url 'sapl.parlamentares:parlamentar_detail' p.parlamentar.pk %}">
-                            {{p.parlamentar.nome_parlamentar}}</a>
+                            <a class="pl-2" href="{% url 'sapl.parlamentares:parlamentar_detail' composicao.parlamentar.pk %}">
+                            {{composicao.parlamentar.nome_parlamentar}}</a>
                           </div>
                         </td>
-                        <td>{{p.parlamentar.filiacao_atual}}</td>
-                        <td>{{p.cargo}}</td>
+                        <td>{{composicao.parlamentar.filiacao_atual}}</td>
+                        <td>{{composicao.cargo}}</td>
                       </tr>
                     {% endfor %}
                   </tbody>
