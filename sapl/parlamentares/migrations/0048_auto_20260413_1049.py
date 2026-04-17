@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='mesadiretora',
-            options={'ordering': ('-data_inicio', '-legislatura'), 'verbose_name': 'Mesa Diretora', 'verbose_name_plural': 'Mesas Diretoras'},
+            options={'ordering': ('-legislatura', '-data_inicio'), 'verbose_name': 'Mesa Diretora', 'verbose_name_plural': 'Mesas Diretoras'},
         ),
         migrations.AddField(
             model_name='mesadiretora',

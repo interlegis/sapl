@@ -502,7 +502,7 @@ class MesaDiretora(models.Model):
     class Meta:
         verbose_name = _('Mesa Diretora')
         verbose_name_plural = _('Mesas Diretoras')
-        ordering = ('-data_inicio', '-legislatura')
+        ordering = ('-legislatura', '-data_inicio')
 
     def __str__(self):
         return self.titulo or _('%(legislatura)s - %(data_inicio)s a %(data_fim)s') % {
