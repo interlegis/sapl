@@ -1052,13 +1052,6 @@ class MesaDiretoraCrud(Crud):
             context['subnav_template_name'] = ''
             return context
 
-    class DetailView(Crud.DetailView):
-        layout_key = 'MesaDiretoraDetail'
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            return context
-
-
 class ComposicaoMesaCrud(MasterDetailCrud):
     model = ComposicaoMesa
     parent_field = 'mesa_diretora'
