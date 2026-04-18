@@ -1,6 +1,14 @@
 {% extends "crud/list.html" %}
 {% load i18n common_tags crispy_forms_tags cropping %}
 
+{% block actions_search %}
+  <div class="actions search flex-grow-1 pr-3">
+    {% if filter.form %}
+      {% crispy filter.form %}
+    {% endif %}
+  </div>
+{% endblock actions_search %}
+
 {% block container_table_list %}
   {% if perms.parlamentares.add_mesadiretora %}
     {{ block.super }}
