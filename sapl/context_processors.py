@@ -9,11 +9,13 @@ from sapl.utils import mail_service_configured as mail_service_configured_utils
 
 def parliament_info(request):
     from sapl.base.views import get_casalegislativa
+    from sapl.utils import get_logotipo_url
     casa = get_casalegislativa()
     if casa:
-        return casa.__dict__
-    else:
-        return {}
+        ctx = dict(casa.__dict__)
+        ctx['logotipo_url'] = get_logotipo_url(casa)
+        return ctx
+    return {}
 
 
 def mail_service_configured(request):

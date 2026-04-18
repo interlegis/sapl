@@ -51,7 +51,7 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
 from sapl.settings import MEDIA_URL, RATE_LIMITER_RATE
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
-    num_materias_por_tipo, parlamentares_ativos, MultiFormatOutputMixin, ratelimit_ip
+    num_materias_por_tipo, parlamentares_ativos, MultiFormatOutputMixin, ratelimit_ip, get_logotipo_url
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
@@ -1460,8 +1460,8 @@ def resumo_ata_pdf(request, pk):
             'decimo_quinto_ordenacao': 'ocorrencias_da_sessao.html',
             'decimo_sexto_ordenacao': 'consideracoes_finais.html'
         })
-    header_context = {"casa": casa,
-                      'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+    header_context = {"casa": casa, 'logotipo': casa.logotipo,
+                      'logotipo_url': get_logotipo_url(casa), 'MEDIA_URL': MEDIA_URL}
 
     html_template = render_to_string('relatorios/relatorio_ata.html', context)
     html_header = render_to_string(
@@ -1487,6 +1487,7 @@ def cria_relatorio(request, context, html_string, header_info=""):
     context.update({'rodape': rodape})
 
     header_context = {"casa": casa, 'logotipo': casa.logotipo,
+                      'logotipo_url': get_logotipo_url(casa),
                       'MEDIA_URL': MEDIA_URL, 'info': header_info}
 
     html_template = render_to_string(html_string, context)
@@ -1713,6 +1714,7 @@ def relatorio_sessao_plenaria_pdf(request, pk):
     html_header = render_to_string('relatorios/header_ata.html', {"casa": casa,
                                                                   "MEDIA_URL": MEDIA_URL,
                                                                   "logotipo": casa.logotipo,
+                                                                  "logotipo_url": get_logotipo_url(casa),
                                                                   "info": info})
 
     pdf_file = make_pdf(
@@ -1795,8 +1797,8 @@ def relatorio_materia_tramitacao(request, pk):
     'rodape': rodape,
     'data': dt.today().strftime('%d/%m/%Y'),
     'rodape': rodape})
-    header_context = {"casa": casa,
-                      'logotipo': casa.logotipo, 'MEDIA_URL': MEDIA_URL}
+    header_context = {"casa": casa, 'logotipo': casa.logotipo,
+                      'logotipo_url': get_logotipo_url(casa), 'MEDIA_URL': MEDIA_URL}
 
     html_template = render_to_string(
         'relatorios/relatorio_materia_tramitacao.html', context)

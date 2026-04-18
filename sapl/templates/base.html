@@ -117,7 +117,7 @@
           <div class="container">
             <div class="navbar-header">
               <a class="navbar-brand" href="/">
-                <img src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
+                <img src="{% if logotipo_url %}{{ logotipo_url }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
                 alt="Logo" class="img-responsive" >
                 <span class="vcenter">{% if nome %}{{ nome }}{% else %}{% trans 'Câmara/Assembléia não configurada'%}{% endif %}
                   <br/><small>{{nome_sistema}}</small>

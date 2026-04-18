@@ -21,7 +21,7 @@ from django.urls import path
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.static import serve as view_static_server
 
-from sapl.base.views import serve_file, serve_model_file
+from sapl.base.views import serve_file, serve_image, serve_model_file
 
 import sapl.api.urls
 import sapl.audiencia.urls
@@ -87,6 +87,10 @@ urlpatterns += [
     # /<app>/<model>/<pk>/<field>/download — semantic alias (templates, browser bar)
     path('<str:app_label>/<str:model_name>/<int:pk>/<str:field_name>/download',
          serve_model_file, name='serve_model_file'),
+
+    # Semantic image URL: /imagens/<app>/<model>/<pk>/<field>/
+    path('imagens/<str:app_label>/<str:model_name>/<int:pk>/<str:field_name>/',
+         serve_image, name='serve_image'),
 
 ]
 

@@ -50,7 +50,7 @@
 				<div class="row">
 					<div class="col-1">
 						<img height="90" width="90"
-								src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
+								src="{% if logotipo_url %}{{ logotipo_url }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}"
 								alt="Logotipo"
 								class="img-responsive visible-lg-inline-block vcenter">
 					</div>

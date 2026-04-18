@@ -334,6 +334,27 @@ class SaplGenericRelation(GenericRelation):
 class ImageThumbnailFileInput(ClearableFileInput):
     template_name = 'widgets/image_thumbnail.html'
 
+    def get_context(self, name, value, attrs):
+        ctx = super().get_context(name, value, attrs)
+        if value and hasattr(value, 'instance') and hasattr(value, 'field'):
+            instance = value.instance
+            if instance and instance.pk:
+                field_name = value.field.name
+                app = instance._meta.app_label
+                model = instance._meta.model_name
+                try:
+                    from django.urls import reverse
+                    from sapl.base.views import IMAGE_FIELDS
+                    if (app, model, field_name) in IMAGE_FIELDS:
+                        ctx['widget']['semantic_url'] = reverse(
+                            'serve_image',
+                            kwargs={'app_label': app, 'model_name': model,
+                                    'pk': instance.pk, 'field_name': field_name}
+                        )
+                except Exception:
+                    pass
+        return ctx
+
 
 class RangeWidgetOverride(forms.MultiWidget):
 
@@ -1178,6 +1199,22 @@ def from_date_to_datetime_utc(data):
     dt_unware = datetime.combine(data, datetime.min.time())
     dt_utc = pytz.utc.localize(dt_unware)
     return dt_utc
+
+
+def get_logotipo_url(casa):
+    """Return the semantic /imagens/ URL for casa.logotipo, or None."""
+    if not (casa and casa.logotipo and casa.pk):
+        return None
+    try:
+        from django.urls import reverse
+        return reverse('serve_image', kwargs={
+            'app_label': 'base',
+            'model_name': 'casalegislativa',
+            'pk': casa.pk,
+            'field_name': 'logotipo',
+        })
+    except Exception:
+        return None
 
 
 class OverwriteStorage(FileSystemStorage):

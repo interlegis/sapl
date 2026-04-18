@@ -15,7 +15,7 @@
     <section id="informations">
         <dl>
             <dt class="image-header"> 
-                <img style="max-height:2cm;max-width:2cm" src="{% if logotipo %}{{ MEDIA_URL }}{{ logotipo }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}">
+                <img style="max-height:2cm;max-width:2cm" src="{% if logotipo_url %}{{ logotipo_url }}{% else %}{% webpack_static 'img/logo.png' %}{% endif %}">
             </dt>
             <dd class="title">
                 <ul>

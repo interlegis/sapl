@@ -22,10 +22,10 @@
     <div class="controls {{ field_class }}">
         <div class="fileupload fileupload-new"
             data-provides="fileupload">
-            {% if widget.value.url %}
+            {% if widget.semantic_url or widget.value.url %}
                 <div class="row">
                     <div class="col-md-12">
-                        <img src="{{ widget.value.url }}"
+                        <img src="{{ widget.semantic_url|default:widget.value.url }}"
                           height="300" width="300"
                           alt="{{ widget.value }}" class="img-thumbnail"/>
                     </div>

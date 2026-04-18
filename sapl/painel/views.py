@@ -22,7 +22,7 @@ from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 PresencaOrdemDia, RegistroVotacao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
                                 VotoParlamentar, RegistroLeitura)
-from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
+from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave, get_logotipo_url
 
 from .models import Cronometro
 
@@ -555,7 +555,7 @@ def get_dados_painel(request, pk):
 
     brasao = None
     if casa and app_config and (bool(casa.logotipo)):
-        brasao = casa.logotipo.url \
+        brasao = get_logotipo_url(casa) \
             if app_config.mostrar_brasao_painel else None
     
     response = {

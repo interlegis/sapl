@@ -1513,8 +1513,8 @@ class LogotipoView(RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         casa = get_casalegislativa()
-        logo = casa and casa.logotipo and casa.logotipo.name
-        return os.path.join(settings.MEDIA_URL, logo) if logo else STATIC_LOGO
+        url = get_logotipo_url(casa)
+        return url if url else STATIC_LOGO
 
 
 def filtro_campos(dicionario):
@@ -1664,3 +1664,46 @@ def serve_model_file(request, app_label, model_name, pk, field_name):
         raise Http404
 
     return serve_file(request, file_uuid=meta.uuid)
+
+
+# Image fields served via X-Accel-Redirect — same nginx internal mechanism as
+# serve_file but without FileMetadata involvement (images carry no versioning or
+# access-control requirement).  An explicit allowlist prevents arbitrary ORM
+# traversal (RFC §12.3).
+IMAGE_FIELDS = frozenset([
+    ('base',          'casalegislativa', 'logotipo'),
+    ('parlamentares', 'partido',         'logo_partido'),
+    ('parlamentares', 'parlamentar',     'fotografia'),
+    ('compilacao',    'dispositivo',     'imagem'),
+])
+
+
+def serve_image(request, app_label, model_name, pk, field_name):
+    """
+    Serve an image field via nginx X-Accel-Redirect (RFC §12.4).
+
+    All four image field models are unconditionally public — no permission
+    check is performed.  The allowlist is the only gate.
+    """
+    from django.shortcuts import get_object_or_404 as _get_or_404
+
+    if (app_label, model_name, field_name) not in IMAGE_FIELDS:
+        raise Http404
+    try:
+        model = apps.get_model(app_label, model_name)
+    except LookupError:
+        raise Http404
+
+    instance = _get_or_404(model, pk=pk)
+    field_file = getattr(instance, field_name, None)
+    if not field_file:
+        raise Http404
+
+    response = HttpResponse()
+    response['X-Accel-Redirect'] = f'/media/{field_file.name}'
+    return response
+
+
+def get_logotipo_url(casa):
+    from sapl.utils import get_logotipo_url as _get_logotipo_url
+    return _get_logotipo_url(casa)
