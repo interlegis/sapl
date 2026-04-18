@@ -15,9 +15,39 @@ from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
 from sapl.sessao.models import OrdemDia, SessaoPlenaria
 
 
+class MetadataFileFieldSerializer(serializers.FileField):
+    """
+    Serializes a MetadataFileField as the canonical /documentos/<uuid>/ URL.
+
+    Inherits DRF FileField so that write operations (multipart file uploads
+    via the API) continue to work unchanged. Only to_representation is
+    overridden: API consumers receive the stable /documentos/<uuid>/ form
+    rather than the semantic alias returned by .url(), so that model/field
+    renames don't silently break external integrations (RFC §10).
+    """
+
+    def to_representation(self, value):
+        if not value:
+            return None
+        meta = getattr(value.instance, f'{value.field.name}_metadata', None)
+        if meta is None:
+            return None
+        return f'/documentos/{meta.uuid}/'
+
+
 class SaplSerializerMixin(DrfAutoApiSerializerMixin):
     link_detail_backend = serializers.SerializerMethodField()
     metadata = SerializerMethodField()
+
+    def build_standard_field(self, field_name, model_field):
+        from sapl.base.fields import MetadataFileField
+        if isinstance(model_field, MetadataFileField):
+            # Keep the normal field kwargs (required, allow_null, max_length…)
+            # so validation behaviour is unchanged; only swap the serializer
+            # class so to_representation emits the canonical UUID URL.
+            _, field_kwargs = super().build_standard_field(field_name, model_field)
+            return MetadataFileFieldSerializer, field_kwargs
+        return super().build_standard_field(field_name, model_field)
 
     class Meta(DrfAutoApiSerializerMixin.Meta):
         fields = '__all__'

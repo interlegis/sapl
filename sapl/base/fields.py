@@ -1,5 +1,7 @@
 import hashlib
+import posixpath
 from pathlib import Path
+from uuid import uuid4
 
 from django.core.files import File
 from django.core.files.storage import default_storage
@@ -108,6 +110,44 @@ class MetadataFileField(models.FileField):
         )
         cls.add_to_class(f'{name}_metadata', fk)
 
+    def generate_filename(self, instance, filename):
+        """
+        Override: substitute a UUID for the filename in the upload_to path so
+        that newly uploaded files get stable, unguessable storage paths like
+        sapl/public/normajuridica/2025/9395/<uuid>.pdf  (RFC §6.3).
+
+        For replacement uploads (Case 2) the existing meta UUID is reused so
+        the physical path — and therefore /documentos/<uuid>/ — stays stable.
+        For first uploads (Case 1) a fresh UUID is generated and stashed on the
+        instance under _pending_uuid_<fieldname> for pre_save to pick up when
+        creating the FileMetadata row.
+        """
+        # 1. Let upload_to produce the directory + original filename.
+        if callable(self.upload_to):
+            upload_name = self.upload_to(instance, filename)
+        else:
+            upload_name = posixpath.join(self.upload_to, filename)
+
+        # 2. Determine the UUID to embed in the path.
+        meta_attr = f'{self.name}_metadata'
+        meta = getattr(instance, meta_attr, None)
+        if meta is not None:
+            # Replacement (Case 2): reuse existing UUID — path stays identical,
+            # OverwriteStorage replaces the bytes in-place.
+            file_uuid = str(meta.uuid)
+        else:
+            # First upload (Case 1): generate a fresh UUID and stash it so
+            # pre_save can wire it into the new FileMetadata row.
+            file_uuid = str(uuid4())
+            setattr(instance, f'_pending_uuid_{self.name}', file_uuid)
+
+        # 3. Replace the filename portion with <uuid><ext>.
+        ext = Path(filename).suffix.lower()
+        directory = posixpath.dirname(upload_name)
+        new_name = posixpath.join(directory, f'{file_uuid}{ext}') if directory else f'{file_uuid}{ext}'
+
+        return self.storage.generate_filename(new_name)
+
     def pre_save(self, instance, add):
         from sapl.base.models import FileMetadata
 
@@ -127,7 +167,7 @@ class MetadataFileField(models.FileField):
             original_filename = ''
 
         file = super().pre_save(instance, add)
-        # file.name is now the full storage path produced by upload_to,
+        # file.name is now the UUID-based storage path from generate_filename,
         # e.g. "sapl/public/normajuridica/2025/9395/<uuid>.pdf"
 
         if is_clearing:
@@ -144,22 +184,38 @@ class MetadataFileField(models.FileField):
 
             if meta_before is None:
                 # Case 1: first upload — create a new FileMetadata row.
-                meta = FileMetadata(
+                # Use the UUID that generate_filename already baked into the path
+                # so that FileMetadata.uuid matches the on-disk filename.
+                pending_uuid = getattr(instance, f'_pending_uuid_{self.name}', None)
+                meta_kwargs = dict(
                     storage_name=storage_name,
                     original_filename=original_filename,
                     file_size_bytes=size,
                     content_hash=digest,
                 )
+                if pending_uuid:
+                    from uuid import UUID
+                    meta_kwargs['uuid'] = UUID(pending_uuid)
+                    # Clean up the temporary stash attribute.
+                    try:
+                        delattr(instance, f'_pending_uuid_{self.name}')
+                    except AttributeError:
+                        pass
+                meta = FileMetadata(**meta_kwargs)
                 meta.save()
                 setattr(instance, f'{meta_attr}_id', meta.pk)
             else:
                 # Case 2: replacement — reuse the existing row so the stable uuid
-                # (and /documentos/<uuid>/) never changes.  Delete old physical file
-                # only after the new one is confirmed saved (super() already returned).
-                try:
-                    default_storage.delete(meta_before.storage_name)
-                except OSError:
-                    pass  # already gone — proceed
+                # (and /documentos/<uuid>/) never changes.
+                # For UUID-based paths the old and new paths are identical
+                # (same uuid, same ext) — OverwriteStorage already replaced the
+                # bytes in-place, so we must NOT delete the newly written file.
+                if meta_before.storage_name != storage_name:
+                    # Legacy (non-UUID) paths: old path differs → delete old file.
+                    try:
+                        default_storage.delete(meta_before.storage_name)
+                    except OSError:
+                        pass  # already gone — proceed
                 meta_before.version += 1
                 meta_before.storage_name = storage_name
                 meta_before.original_filename = original_filename
