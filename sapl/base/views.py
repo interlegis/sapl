@@ -1575,9 +1575,11 @@ def pesquisa_textual(request):
 # File-serving views (RFC §6.4, §9)
 # ---------------------------------------------------------------------------
 
+import os as _os  # noqa: E402
+
 from urllib.parse import quote  # noqa: E402 — kept near usage site
 
-from django.http import HttpResponse  # noqa: E402
+from django.http import FileResponse, HttpResponse  # noqa: E402
 
 SERVE_FILE_FIELDS = frozenset({
     ('materia',       'materialegislativa',              'texto_original'),
@@ -1623,7 +1625,18 @@ def serve_file(request, file_uuid):
     # When DocumentoAdministrativo.restrito / nivel_restricao is wired,
     # insert the per-file check here (RFC §6.4).
 
-    # Build the nginx internal redirect path.
+    display_name = meta.original_filename or Path(meta.storage_name).name
+
+    if settings.DEBUG:
+        # runserver has no nginx: serve the bytes directly from the filesystem.
+        file_path = _os.path.join(settings.MEDIA_ROOT, meta.storage_name)
+        try:
+            fh = open(file_path, 'rb')
+        except OSError:
+            raise Http404
+        return FileResponse(fh, as_attachment=False, filename=display_name)
+
+    # Production: delegate byte transfer to nginx via X-Accel-Redirect.
     # storage_name is relative to MEDIA_ROOT (e.g. "sapl/public/norma/…/file.pdf").
     internal_path = f'/media/{meta.storage_name}'
 
@@ -1631,8 +1644,8 @@ def serve_file(request, file_uuid):
     response['X-Accel-Redirect'] = internal_path
 
     # RFC 6266 — dual filename parameter: ASCII fallback + UTF-8 encoded.
-    filename_ascii = meta.original_filename.encode('ascii', 'replace').decode()
-    filename_encoded = quote(meta.original_filename, safe='')
+    filename_ascii = display_name.encode('ascii', 'replace').decode()
+    filename_encoded = quote(display_name, safe='')
     response['Content-Disposition'] = (
         f'inline; filename="{filename_ascii}"'
         f"; filename*=UTF-8''{filename_encoded}"
@@ -1698,6 +1711,15 @@ def serve_image(request, app_label, model_name, pk, field_name):
     field_file = getattr(instance, field_name, None)
     if not field_file:
         raise Http404
+
+    if settings.DEBUG:
+        import os as _os
+        file_path = _os.path.join(settings.MEDIA_ROOT, field_file.name)
+        try:
+            fh = open(file_path, 'rb')
+        except OSError:
+            raise Http404
+        return FileResponse(fh)
 
     response = HttpResponse()
     response['X-Accel-Redirect'] = f'/media/{field_file.name}'

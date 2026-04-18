@@ -20,6 +20,18 @@ class MetadataFieldFile(FieldFile):
     must use (see RFC §10).
     """
 
+    def __str__(self):
+        """Return the original filename for display (not the UUID storage path)."""
+        if not self:
+            return ''
+        meta_attr = f'{self.field.name}_metadata'
+        meta = getattr(self.instance, meta_attr, None)
+        if meta and meta.original_filename:
+            return meta.original_filename
+        # Fallback: basename of storage path (may be UUID for newly uploaded files
+        # whose metadata row hasn't been committed yet).
+        return Path(self.name).name if self.name else ''
+
     @property
     def url(self):
         if not self:
@@ -161,8 +173,11 @@ class MetadataFileField(models.FileField):
         is_clearing = not file_before and meta_before is not None
 
         # Capture browser-supplied filename before storage renames it to the UUID path.
-        if has_new_upload and hasattr(file_before, 'file'):
-            original_filename = Path(file_before.file.name).name
+        # file_before.name is set to the original upload name by FileDescriptor.__get__
+        # when it wraps the UploadedFile — more reliable than file_before.file.name
+        # which for TemporaryUploadedFile is the NamedTemporaryFile path.
+        if has_new_upload:
+            original_filename = Path(file_before.name).name if file_before.name else ''
         else:
             original_filename = ''
 
