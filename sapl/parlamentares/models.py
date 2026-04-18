@@ -1,4 +1,5 @@
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -515,6 +516,25 @@ class MesaDiretora(models.Model):
                 'data_fim': self.data_fim
             }
 
+    def clean(self):
+        if self.data_inicio and self.data_fim:
+            if self.data_inicio >= self.data_fim:
+                raise ValidationError(
+                    _('A data de início deve ser anterior à data de fim.'))
+
+            if self.legislatura_id:
+                if self.data_inicio < self.legislatura.data_inicio or self.data_fim > self.legislatura.data_fim:
+                    raise ValidationError(
+                        _('As datas da mesa diretora devem estar dentro do período da legislatura.'))
+
+                if MesaDiretora.objects.filter(
+                    legislatura=self.legislatura,
+                    data_inicio__lte=self.data_fim,
+                    data_fim__gte=self.data_inicio
+                ).exclude(pk=self.pk).exists():
+                    raise ValidationError(
+                        _('As datas da mesa diretora se sobrepõem com outra mesa diretora existente.'))
+
 
 class ComposicaoMesa(models.Model):
     parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT, verbose_name=_('Parlamentar'))
@@ -532,6 +552,24 @@ class ComposicaoMesa(models.Model):
         return _('%(parlamentar)s - %(cargo)s') % {
             'parlamentar': self.parlamentar, 'cargo': self.cargo
         }
+
+    def clean(self):
+        if self.parlamentar_id and self.mesa_diretora_id:
+            if ComposicaoMesa.objects.filter(
+                mesa_diretora=self.mesa_diretora,
+                parlamentar=self.parlamentar,
+            ).exclude(pk=self.pk).exists():
+                raise ValidationError(
+                    _('Parlamentar já ocupa um cargo nesta mesa diretora.'))
+
+        if self.cargo_id and self.mesa_diretora_id:
+            if self.cargo.unico:
+                if ComposicaoMesa.objects.filter(
+                    mesa_diretora=self.mesa_diretora,
+                    cargo=self.cargo
+                ).exclude(pk=self.pk).exists():
+                    raise ValidationError(
+                        _('Cargo único já ocupado por outro parlamentar.'))
 
 
 class Frente(models.Model):

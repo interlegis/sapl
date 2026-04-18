@@ -783,38 +783,6 @@ class MesaDiretoraForm(ModelForm):
         model = MesaDiretora
         fields = '__all__'
 
-    def clean(self):
-        super(MesaDiretoraForm, self).clean()
-
-        data = self.cleaned_data
-
-        legislatura = data.get('legislatura', None)
-        if not legislatura:
-            raise ValidationError(_('Legislatura é obrigatória.'))
-
-        data_inicio = data.get('data_inicio', None)
-        data_fim = data.get('data_fim', None)
-
-        if not data_inicio or not data_fim:
-            raise ValidationError(_('As datas de início e fim da mesa diretora são obrigatórias.'))
-
-        if data_inicio >= data_fim:
-            raise ValidationError(_('A data de início deve ser anterior à data de fim.'))
-
-        # Verifica se as datas da mesa diretora estão dentro do intervalo da legislatura
-        if data_inicio < legislatura.data_inicio or data_fim > legislatura.data_fim:
-            raise ValidationError(_('As datas da mesa diretora devem estar dentro do período da legislatura.'))
-
-        # Verifica se há intersecção de datas com outra mesa diretora da mesma legislatura
-        intersecao_mesadiretora = MesaDiretora.objects.filter(
-            legislatura=legislatura,
-            data_inicio__lte=data_fim,
-            data_fim__gte=data_inicio
-        ).exclude(pk=self.instance.pk).exists()
-        if intersecao_mesadiretora:
-            raise ValidationError(_('As datas da mesa diretora se sobrepõem com outra mesa diretora existente.'))
-
-        return data
 
 class ComposicaoMesaForm(ModelForm):
 
@@ -827,33 +795,6 @@ class ComposicaoMesaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ComposicaoMesaForm, self).__init__(*args, **kwargs)
+        self.instance.mesa_diretora = self.initial.get('mesa_diretora')
         self.fields['parlamentar'].queryset = self.fields['parlamentar'].queryset.filter(
             mandato__legislatura=self.initial.get('mesa_diretora').legislatura)
-
-    def clean(self):
-        super(ComposicaoMesaForm, self).clean()
-
-        data = self.cleaned_data
-        cargo = data.get('cargo', None)
-        if not cargo:
-            raise ValidationError(_('Cargo é obrigatório.'))
-
-        # Verifica se Parlamentar já ocupa algum cargo
-        parlamentar = data.get('parlamentar', None)
-        if not parlamentar:
-            raise ValidationError(_('Parlamentar é obrigatório.'))
-
-        if ComposicaoMesa.objects.filter(
-            mesa_diretora=self.initial.get('mesa_diretora'),
-            parlamentar=parlamentar,
-        ).exclude(pk=self.instance.pk).exists():
-            raise ValidationError(_('Parlamentar já ocupa um cargo nesta mesa diretora.'))
-
-        if cargo.unico:
-            composicao_mesa = ComposicaoMesa.objects.filter(
-                mesa_diretora=self.initial.get('mesa_diretora'),
-                cargo=cargo
-            ).exclude(pk=self.instance.pk)
-            if composicao_mesa.exists():
-                raise ValidationError(_('Cargo único já ocupado por outro parlamentar.'))
-        return data

@@ -1,4 +1,7 @@
 import pytest
+from datetime import date
+
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from model_bakery import baker
@@ -6,6 +9,159 @@ from model_bakery import baker
 from sapl.parlamentares.forms import ComposicaoMesaForm, MesaDiretoraForm
 from sapl.parlamentares.models import ComposicaoMesa, MesaDiretora
 
+
+# =====================================================================
+# Testes de validação a nível de Model — MesaDiretora
+# =====================================================================
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_model_clean_data_inicio_maior_que_data_fim():
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2024, 12, 31)
+    )
+    mesa = MesaDiretora(
+        titulo='Mesa',
+        data_inicio=date(2022, 1, 1),
+        data_fim=date(2021, 12, 31),
+        legislatura=legislatura
+    )
+    with pytest.raises(ValidationError, match='A data de início deve ser anterior à data de fim.'):
+        mesa.clean()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_model_clean_data_fora_da_legislatura():
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2024, 12, 31)
+    )
+    mesa = MesaDiretora(
+        titulo='Mesa',
+        data_inicio=date(2020, 1, 1),
+        data_fim=date(2021, 12, 31),
+        legislatura=legislatura
+    )
+    with pytest.raises(ValidationError, match='As datas da mesa diretora devem estar dentro do período da legislatura.'):
+        mesa.clean()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_model_clean_intersecao():
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2024, 12, 31)
+    )
+    baker.make(
+        'parlamentares.MesaDiretora',
+        legislatura=legislatura,
+        titulo='Mesa Existente',
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2022, 12, 31)
+    )
+    mesa = MesaDiretora(
+        titulo='Nova Mesa',
+        data_inicio=date(2022, 1, 1),
+        data_fim=date(2023, 12, 31),
+        legislatura=legislatura
+    )
+    with pytest.raises(ValidationError, match='As datas da mesa diretora se sobrepõem com outra mesa diretora existente.'):
+        mesa.clean()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_model_clean_valido():
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2024, 12, 31)
+    )
+    mesa = MesaDiretora(
+        titulo='Mesa',
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2022, 12, 31),
+        legislatura=legislatura
+    )
+    mesa.clean()  # não deve lançar exceção
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_model_full_clean_sem_data_inicio():
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2024, 12, 31)
+    )
+    mesa = MesaDiretora(
+        titulo='Mesa',
+        data_fim=date(2022, 12, 31),
+        legislatura=legislatura
+    )
+    with pytest.raises(ValidationError) as exc_info:
+        mesa.full_clean()
+
+    assert 'data_inicio' in exc_info.value.message_dict
+    assert exc_info.value.message_dict['data_inicio'] == [_('Este campo não pode ser nulo.')]
+
+
+# =====================================================================
+# Testes de validação a nível de Model — ComposicaoMesa
+# =====================================================================
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_model_clean_parlamentar_duplicado():
+    parlamentar = baker.make('parlamentares.Parlamentar')
+    cargo1 = baker.make('parlamentares.CargoMesa')
+    cargo2 = baker.make('parlamentares.CargoMesa')
+    mesa_diretora = baker.make('parlamentares.MesaDiretora')
+
+    ComposicaoMesa.objects.create(
+        parlamentar=parlamentar, cargo=cargo1, mesa_diretora=mesa_diretora
+    )
+
+    composicao = ComposicaoMesa(
+        parlamentar=parlamentar, cargo=cargo2, mesa_diretora=mesa_diretora
+    )
+    with pytest.raises(ValidationError, match='Parlamentar já ocupa um cargo nesta mesa diretora.'):
+        composicao.clean()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_model_clean_cargo_unico():
+    parlamentar1 = baker.make('parlamentares.Parlamentar')
+    parlamentar2 = baker.make('parlamentares.Parlamentar')
+    cargo = baker.make('parlamentares.CargoMesa', unico=True)
+    mesa_diretora = baker.make('parlamentares.MesaDiretora')
+
+    ComposicaoMesa.objects.create(
+        parlamentar=parlamentar1, cargo=cargo, mesa_diretora=mesa_diretora
+    )
+
+    composicao = ComposicaoMesa(
+        parlamentar=parlamentar2, cargo=cargo, mesa_diretora=mesa_diretora
+    )
+    with pytest.raises(ValidationError, match='Cargo único já ocupado por outro parlamentar.'):
+        composicao.clean()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_model_clean_valido():
+    parlamentar = baker.make('parlamentares.Parlamentar')
+    cargo = baker.make('parlamentares.CargoMesa')
+    mesa_diretora = baker.make('parlamentares.MesaDiretora')
+
+    composicao = ComposicaoMesa(
+        parlamentar=parlamentar, cargo=cargo, mesa_diretora=mesa_diretora
+    )
+    composicao.clean()  # não deve lançar exceção
+
+
+# =====================================================================
+# Testes de validação via Form — MesaDiretora
+# =====================================================================
 
 def test_mesadiretora_form_invalido():
     form = MesaDiretoraForm(data={})
@@ -64,7 +220,7 @@ def test_mesadiretora_form_intersecao():
         data_inicio='2021-01-01',
         data_fim='2024-12-31'
     )
-    mesa_existente = baker.make(
+    baker.make(
         'parlamentares.MesaDiretora',
         legislatura=legislatura,
         titulo='Mesa Diretora 2021-2022',
@@ -102,8 +258,14 @@ def test_mesadiretora_form_data_fora_da_legislatura():
     assert errors['__all__'] == [_('As datas da mesa diretora devem estar dentro do período da legislatura.')]
 
 
-def test_composicaomesa_form():
-    form = ComposicaoMesaForm(data={})
+# =====================================================================
+# Testes de validação via Form — ComposicaoMesa
+# =====================================================================
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_form_invalido():
+    mesa_diretora = baker.make('parlamentares.MesaDiretora')
+    form = ComposicaoMesaForm(data={}, initial={'mesa_diretora': mesa_diretora})
 
     assert not form.is_valid()
 
@@ -111,8 +273,6 @@ def test_composicaomesa_form():
 
     assert errors['parlamentar'] == [_('Este campo é obrigatório.')]
     assert errors['cargo'] == [_('Este campo é obrigatório.')]
-    assert errors['mesa_diretora'] == [_('Este campo é obrigatório.')]
-
 
 
 @pytest.mark.django_db(transaction=False)
@@ -128,7 +288,6 @@ def test_composicaomesa_form_valido():
     form = ComposicaoMesaForm(data={
         'parlamentar': parlamentar.id,
         'cargo': cargo.id,
-        'mesa_diretora': mesa_diretora.id,
     }, initial={
         'mesa_diretora': mesa_diretora,
     })
@@ -146,7 +305,6 @@ def test_composicaomesa_form_parlamentar_ocupando_cargo_na_mesma_mesa():
         parlamentar=parlamentar,
         legislatura=mesa_diretora.legislatura)
 
-    # Cria uma composição de mesa existente com o mesmo parlamentar e mesa
     ComposicaoMesa.objects.create(
         parlamentar=parlamentar,
         cargo=cargo1,
@@ -156,7 +314,6 @@ def test_composicaomesa_form_parlamentar_ocupando_cargo_na_mesma_mesa():
     form = ComposicaoMesaForm(data={
         'parlamentar': parlamentar.id,
         'cargo': cargo2.id,
-        'mesa_diretora': mesa_diretora.id,
     }, initial={
         'mesa_diretora': mesa_diretora,
     })
@@ -178,7 +335,6 @@ def test_composicaomesa_form_parlamentar_cargo_unico_mesma_mesa():
     mandato1 = baker.make('parlamentares.Mandato', parlamentar=parlamentar1, legislatura=mesa_diretora.legislatura)
     mandato2 = baker.make('parlamentares.Mandato', parlamentar=parlamentar2, legislatura=mesa_diretora.legislatura)
 
-    # Cria uma composição de mesa existente com o cargo único
     ComposicaoMesa.objects.create(
         parlamentar=parlamentar1,
         cargo=cargo,
@@ -188,7 +344,6 @@ def test_composicaomesa_form_parlamentar_cargo_unico_mesma_mesa():
     form = ComposicaoMesaForm(data={
         'parlamentar': parlamentar2.id,
         'cargo': cargo.id,
-        'mesa_diretora': mesa_diretora.id,
     }, initial={
         'mesa_diretora': mesa_diretora,
     })
@@ -197,6 +352,10 @@ def test_composicaomesa_form_parlamentar_cargo_unico_mesma_mesa():
     errors = form.errors
     assert errors['__all__'] == [_('Cargo único já ocupado por outro parlamentar.')]
 
+
+# =====================================================================
+# Testes de integração via View — ComposicaoMesa
+# =====================================================================
 
 @pytest.mark.django_db(transaction=False)
 def test_composicaomesa_form_view_create(admin_client):
@@ -211,7 +370,6 @@ def test_composicaomesa_form_view_create(admin_client):
     response = admin_client.post(reverse('sapl.parlamentares:composicaomesa_create', kwargs={'pk': mesa_diretora.id}), data={
         'parlamentar': parlamentar.id,
         'cargo': cargo.id,
-        'mesa_diretora': mesa_diretora.id,
     })
 
     assert ComposicaoMesa.objects.filter(parlamentar=parlamentar, cargo=cargo, mesa_diretora=mesa_diretora).exists()
@@ -237,7 +395,6 @@ def test_composicaomesa_form_view_update(admin_client):
     response = admin_client.post(reverse('sapl.parlamentares:composicaomesa_update', kwargs={'pk': composicao.id}), data={
         'parlamentar': parlamentar.id,
         'cargo': new_cargo.id,
-        'mesa_diretora': mesa_diretora.id,
     })
 
     composicao.refresh_from_db()
