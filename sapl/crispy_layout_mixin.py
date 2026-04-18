@@ -143,7 +143,7 @@ def get_field_display(obj, fieldname):
         if value:
             display = '<a href="{}">{}</a>'.format(
                 value.url,
-                value.name.split('/')[-1:][0])
+                str(value) or value.name.split('/')[-1:][0])
         else:
             display = ''
     elif 'ManyRelatedManager' in str_type_from_value\
