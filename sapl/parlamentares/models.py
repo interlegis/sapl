@@ -498,7 +498,9 @@ class MesaDiretora(models.Model):
     data_fim = models.DateField(verbose_name=_('Data Fim'))
     legislatura = models.ForeignKey(Legislatura,
                                    on_delete=models.PROTECT,
-                                   verbose_name=_('Legislatura'))
+                                   verbose_name=_('Legislatura'),
+                                   related_name='mesadiretora_set'
+                                   )
     descricao = models.TextField(verbose_name=_('Descrição'), blank=True)
 
     class Meta:

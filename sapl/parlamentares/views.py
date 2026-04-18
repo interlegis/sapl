@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db.models import F, Q
 from django.db.models.aggregates import Count
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from django.templatetags.static import static
@@ -1023,13 +1023,22 @@ class MesaDiretoraCrud(Crud):
         filterset_class = MesaDiretoraFilterSet
         paginate_by = None
 
+        def get_id_legislatura_atual(self):
+            return Legislatura.objects.filter(
+                data_inicio__lte=timezone.now()
+            ).order_by('-data_inicio').values_list('id', flat=True).first()
+
         def get_filterset_kwargs(self, filterset_class):
             fk = super().get_filterset_kwargs(filterset_class)
-            if 'legislatura' not in self.request.GET:
-                legislatura = Legislatura.objects.filter(
-                    data_inicio__lte=timezone.now()).order_by('-data_inicio').values_list('id', flat=True).first()
-                if legislatura:
-                    fk['data'] = {'legislatura': legislatura}
+            if 'legislatura' not in self.request.GET and not 'mesa' in self.request.GET:
+                fk['data'] = {'legislatura': self.get_id_legislatura_atual()}
+            elif 'legislatura' not in self.request.GET and 'mesa' in self.request.GET:
+                legislatura_da_mesa = Legislatura.objects.filter(
+                    mesadiretora_set__id=self.request.GET['mesa']
+                ).values_list('id', flat=True).first()
+                if not legislatura_da_mesa:
+                    raise Http404("MesaDiretora {} não encontrada.".format(self.request.GET['mesa']))
+                fk['data'] = {'legislatura': legislatura_da_mesa}
             return fk
 
         def get_queryset(self):
