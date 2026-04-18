@@ -269,16 +269,16 @@ main() {
   wait_for_pg
   configure_pg_timezone
   migrate_db
+  # Backfill FileMetadata rows for files uploaded before MetadataFileField was
+  # deployed.  Runs as a background job so pod startup is not delayed.
+  # Must be after migrate_db so the base_file_metadata table exists.
+  # Once all instances have been fully backfilled this line can be removed.
+  python3 manage.py backfill_file_metadata --batch-size=200 --rate-limit=20 &
   configure_solr || true
   configure_sapn
   create_admin
   setup_cache_dir
   fix_logging_and_socket_perms
-
-  # Backfill FileMetadata rows for files uploaded before MetadataFileField was
-  # deployed.  Runs as a background job so pod startup is not delayed.
-  # Once all instances have been fully backfilled this line can be removed.
-  python3 manage.py backfill_file_metadata --batch-size=200 --rate-limit=20 &
 
   cat <<'BANNER'
 -------------------------------------
