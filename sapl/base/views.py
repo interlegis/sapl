@@ -1569,3 +1569,98 @@ def pesquisa_textual(request):
         json_dict['resultados'].append(sec_dict)
 
     return JsonResponse(json_dict)
+
+
+# ---------------------------------------------------------------------------
+# File-serving views (RFC §6.4, §9)
+# ---------------------------------------------------------------------------
+
+from urllib.parse import quote  # noqa: E402 — kept near usage site
+
+from django.http import HttpResponse  # noqa: E402
+
+SERVE_FILE_FIELDS = frozenset({
+    ('materia',       'materialegislativa',              'texto_original'),
+    ('materia',       'documentoacessorio',              'arquivo'),
+    ('materia',       'proposicao',                      'texto_original'),
+    ('protocoloadm',  'documentoadministrativo',         'texto_integral'),
+    ('protocoloadm',  'documentoacessorioadministrativo', 'arquivo'),
+    ('norma',         'normajuridica',                   'texto_integral'),
+    ('norma',         'anexonormajuridica',              'anexo_arquivo'),
+    ('comissoes',     'reuniao',                         'upload_pauta'),
+    ('comissoes',     'reuniao',                         'upload_ata'),
+    ('comissoes',     'reuniao',                         'upload_anexo'),
+    ('comissoes',     'documentoacessorio',              'arquivo'),
+    ('audiencia',     'audienciapublica',                'upload_pauta'),
+    ('audiencia',     'audienciapublica',                'upload_ata'),
+    ('audiencia',     'audienciapublica',                'upload_anexo'),
+    ('audiencia',     'anexoaudienciapublica',           'arquivo'),
+    ('sessao',        'sessaoplenaria',                  'upload_pauta'),
+    ('sessao',        'sessaoplenaria',                  'upload_ata'),
+    ('sessao',        'sessaoplenaria',                  'upload_anexo'),
+    ('sessao',        'justificativaausencia',           'upload_anexo'),
+})
+
+
+def serve_file(request, file_uuid):
+    """
+    Secure file-serving view — the single chokepoint for all document downloads.
+
+    Resolves uuid → FileMetadata → storage_name, performs a permission check
+    (currently public files pass unconditionally), then delegates the actual
+    byte transfer to nginx via X-Accel-Redirect.  Django never reads file bytes
+    into Python memory; nginx's sendfile delivers them zero-copy.
+
+    The /media/ location in nginx must be marked 'internal' so that clients
+    cannot bypass this view and fetch files directly.
+    """
+    from sapl.base.models import FileMetadata
+    from django.shortcuts import get_object_or_404 as _get_or_404
+
+    meta = _get_or_404(FileMetadata, uuid=file_uuid)
+
+    # Permission check — currently unconditional for public files.
+    # When DocumentoAdministrativo.restrito / nivel_restricao is wired,
+    # insert the per-file check here (RFC §6.4).
+
+    # Build the nginx internal redirect path.
+    # storage_name is relative to MEDIA_ROOT (e.g. "sapl/public/norma/…/file.pdf").
+    internal_path = f'/media/{meta.storage_name}'
+
+    response = HttpResponse()
+    response['X-Accel-Redirect'] = internal_path
+
+    # RFC 6266 — dual filename parameter: ASCII fallback + UTF-8 encoded.
+    filename_ascii = meta.original_filename.encode('ascii', 'replace').decode()
+    filename_encoded = quote(meta.original_filename, safe='')
+    response['Content-Disposition'] = (
+        f'inline; filename="{filename_ascii}"'
+        f"; filename*=UTF-8''{filename_encoded}"
+    )
+    return response
+
+
+def serve_model_file(request, app_label, model_name, pk, field_name):
+    """
+    Semantic alias for file downloads: /<app>/<model>/<pk>/<field>/download
+
+    Validates the (app_label, model_name, field_name) triple against an explicit
+    allowlist, fetches the parent model instance, resolves the _metadata FK, then
+    delegates to serve_file.  All permission logic lives in serve_file only.
+    """
+    from django.shortcuts import get_object_or_404 as _get_or_404
+
+    if (app_label, model_name, field_name) not in SERVE_FILE_FIELDS:
+        raise Http404
+
+    try:
+        model = apps.get_model(app_label, model_name)
+    except LookupError:
+        raise Http404
+
+    instance = _get_or_404(model, pk=pk)
+    meta = getattr(instance, f'{field_name}_metadata', None)
+    if meta is None:
+        raise Http404
+
+    return serve_file(request, file_uuid=meta.uuid)

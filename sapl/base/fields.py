@@ -1,8 +1,55 @@
 import hashlib
 from pathlib import Path
 
+from django.core.files import File
 from django.core.files.storage import default_storage
 from django.db import models
+from django.db.models.fields.files import FieldFile
+
+
+class MetadataFieldFile(FieldFile):
+    """
+    FieldFile subclass that returns human-readable URLs via the semantic alias
+    pattern /<app>/<model>/<pk>/<field>/download instead of exposing disk paths.
+
+    Falls back to /documentos/<uuid>/ for unsaved instances (pk is None) or
+    when the _metadata FK has not been set yet.  The canonical /documentos/<uuid>/
+    form is always stable across model/field renames and is what API serializers
+    must use (see RFC §10).
+    """
+
+    @property
+    def url(self):
+        if not self:
+            raise ValueError("The '%s' attribute has no file associated with it." % self.field.name)
+
+        instance = self.instance
+        meta_attr = f'{self.field.name}_metadata'
+        meta = getattr(instance, meta_attr, None)
+
+        # Fallback: no metadata row yet (pre-backfill existing file or first save
+        # before commit) → return the raw storage URL so nothing breaks.
+        if meta is None:
+            return self.storage.url(self.name)
+
+        pk = getattr(instance, 'pk', None)
+
+        if pk is not None:
+            # Saved instance — return the semantic alias.
+            # Lazy import avoids a circular dependency at module load time.
+            from django.urls import reverse
+            return reverse(
+                'serve_model_file',
+                kwargs={
+                    'app_label': instance._meta.app_label,
+                    'model_name': instance._meta.model_name,
+                    'pk': pk,
+                    'field_name': self.field.name,
+                },
+            )
+
+        # Unsaved instance — return canonical UUID form.
+        return f'/documentos/{meta.uuid}/'
 
 
 def _compute_size_and_hash(field_file):
@@ -24,6 +71,10 @@ class MetadataFileField(models.FileField):
     """
     Drop-in replacement for models.FileField.
 
+    Uses MetadataFieldFile as its descriptor so that .url returns the semantic
+    alias /<app>/<model>/<pk>/<field>/download for saved instances, and falls
+    back to /documentos/<uuid>/ for unsaved instances.
+
     In addition to normal FileField behaviour, this field:
     1. Injects a companion ForeignKey '<fieldname>_metadata' pointing to
        base.FileMetadata on the owning model class at class-definition time.
@@ -41,6 +92,8 @@ class MetadataFileField(models.FileField):
                                clean_orphan_files management command.
       Case 4 — no-op re-save : nothing touched.
     """
+
+    attr_class = MetadataFieldFile
 
     def contribute_to_class(self, cls, name):
         super().contribute_to_class(cls, name)

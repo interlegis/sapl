@@ -21,6 +21,8 @@ from django.urls import path
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.static import serve as view_static_server
 
+from sapl.base.views import serve_file, serve_model_file
+
 import sapl.api.urls
 import sapl.audiencia.urls
 import sapl.base.urls
@@ -78,6 +80,13 @@ urlpatterns += [
 
     # Monitoring
     path(r'', include('django_prometheus.urls')),
+
+    # File-serving routes (RFC §6.4, §9)
+    # /documentos/<uuid>/  — canonical stable URL (API, emails, bookmarks)
+    path('documentos/<uuid:file_uuid>/', serve_file, name='serve_file'),
+    # /<app>/<model>/<pk>/<field>/download — semantic alias (templates, browser bar)
+    path('<str:app_label>/<str:model_name>/<int:pk>/<str:field_name>/download',
+         serve_model_file, name='serve_model_file'),
 
 ]
 
