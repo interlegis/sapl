@@ -5,6 +5,7 @@ from model_utils import Choices
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import (CargoMesa, Parlamentar)
 
+from sapl.base.fields import MetadataFileField
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericRelation,
                         restringe_tipos_de_arquivo_txt, texto_upload_path,
                         OverwriteStorage)
@@ -98,7 +99,7 @@ class AudienciaPublica(models.Model):
     url_video = models.URLField(
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
-    upload_pauta = models.FileField(
+    upload_pauta = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -106,7 +107,7 @@ class AudienciaPublica(models.Model):
         storage=OverwriteStorage(),
         verbose_name=_('Pauta da Audiência Pública'),
         validators=[restringe_tipos_de_arquivo_txt])
-    upload_ata = models.FileField(
+    upload_ata = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -114,7 +115,7 @@ class AudienciaPublica(models.Model):
         verbose_name=_('Ata da Audiência Pública'),
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
-    upload_anexo = models.FileField(
+    upload_anexo = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -177,7 +178,7 @@ class AudienciaPublica(models.Model):
 class AnexoAudienciaPublica(models.Model):
     audiencia = models.ForeignKey(AudienciaPublica,
                                   on_delete=models.PROTECT)
-    arquivo = models.FileField(
+    arquivo = MetadataFileField(
         max_length=300,
         upload_to=texto_upload_path,
         storage=OverwriteStorage(),

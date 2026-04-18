@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields.jsonb import JSONField
@@ -482,3 +484,64 @@ class Metadata(models.Model):
 
     def __str__(self):
         return f'Metadata de {self.content_object}'
+
+
+class FileMetadata(models.Model):
+    """
+    Central registry for every uploaded file across all SAPL apps.
+
+    uuid            — stable public identifier; never changes even on file replacement.
+                      Bookmarked /documentos/<uuid>/ URLs survive re-uploads.
+    storage_name    — key used by the storage backend to locate the physical file.
+                      For existing (pre-migration) files this is the original relative
+                      path; for new files it is '{uuid}{ext}' under the same upload_to
+                      directory. serve_file resolves uuid → storage_name transparently.
+    original_filename — user-visible name from the upload; used in Content-Disposition.
+    version         — increments on every file replacement so CDN ETags stay accurate.
+    file_size_bytes / content_hash — populated lazily by the backfill management command;
+                      new uploads populate them synchronously in MetadataFileField.pre_save.
+    backfilled_at   — set by the management command so operators can track backfill progress.
+    """
+
+    uuid = models.UUIDField(
+        default=uuid4,
+        editable=False,
+        unique=True,
+        verbose_name=_('UUID'),
+    )
+    storage_name = models.CharField(
+        max_length=512,
+        verbose_name=_('Storage name'),
+    )
+    original_filename = models.CharField(
+        max_length=512,
+        verbose_name=_('Original filename'),
+    )
+    file_size_bytes = models.BigIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_('File size (bytes)'),
+    )
+    content_hash = models.CharField(
+        max_length=64,
+        blank=True,
+        default='',
+        verbose_name=_('SHA-256 hash'),
+    )
+    version = models.PositiveIntegerField(
+        default=1,
+        verbose_name=_('Version'),
+    )
+    backfilled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('Backfilled at'),
+    )
+
+    class Meta:
+        db_table = 'base_file_metadata'
+        verbose_name = _('File Metadata')
+        verbose_name_plural = _('File Metadata')
+
+    def __str__(self):
+        return f'{self.original_filename} (v{self.version})'

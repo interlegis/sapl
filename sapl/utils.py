@@ -660,8 +660,12 @@ def fabrica_validador_de_tipos_de_arquivo(lista, nome):
         except FileNotFoundError:
             raise ValidationError(_('Arquivo não encontrado'))
 
-    # o nome é importante para as migrations
+    # Django 2.2+ migration serializer uses __qualname__ (not just __name__) to
+    # locate the function in its module.  Setting both ensures the serializer can
+    # resolve the function as sapl.utils.<nome> rather than hitting the
+    # "<locals>" branch and raising ValueError.
     restringe_tipos_de_arquivo.__name__ = nome
+    restringe_tipos_de_arquivo.__qualname__ = nome
     return restringe_tipos_de_arquivo
 
 

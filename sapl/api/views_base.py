@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from drfautoapi.drfautoapi import ApiViewSetConstrutor, customize
 from sapl.api.forms import AutoresPossiveisFilterSet
 from sapl.api.serializers import ChoiceSerializer
-from sapl.base.models import Autor, TipoAutor
+from sapl.base.models import Autor, FileMetadata, TipoAutor
 from sapl.utils import models_with_gr_for_model, SaplGenericRelation
 
 
@@ -22,6 +22,13 @@ ApiViewSetConstrutor.build_class(
         apps.get_app_config('base')
     ]
 )
+
+# FileMetadata is an infrastructure model, not a domain model.
+# Exposing it would allow UUID enumeration (collapsing access control to zero
+# for public files) and leak storage_name (internal filesystem/S3 paths).
+# See RFC §11.3.
+del ApiViewSetConstrutor._built_sets[
+    apps.get_app_config('base')][FileMetadata]
 
 
 @customize(ContentType)

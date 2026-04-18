@@ -8,6 +8,7 @@ from model_utils import Choices
 from sapl.base.models import Autor
 from sapl.compilacao.models import TextoArticulado
 from sapl.materia.models import MateriaLegislativa, Orgao
+from sapl.base.fields import MetadataFileField
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         restringe_tipos_de_arquivo_txt,
                         texto_upload_path,
@@ -133,7 +134,7 @@ class NormaJuridica(models.Model):
         ('F', 'federal', _('Federal')),
     )
 
-    texto_integral = models.FileField(
+    texto_integral = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -487,7 +488,7 @@ class AnexoNormaJuridica(models.Model):
         verbose_name=_('Assunto do Anexo'),
         max_length=250
     )
-    anexo_arquivo = models.FileField(
+    anexo_arquivo = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,

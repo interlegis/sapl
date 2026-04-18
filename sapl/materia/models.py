@@ -19,6 +19,7 @@ from sapl.parlamentares.models import Legislatura
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)
 from sapl.parlamentares.models import Parlamentar
+from sapl.base.fields import MetadataFileField
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path, get_settings_auth_user_model,
@@ -264,7 +265,7 @@ class MateriaLegislativa(models.Model):
         through_fields=(
             'materia_principal',
             'materia_anexada'))
-    texto_original = models.FileField(
+    texto_original = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -652,7 +653,7 @@ class DocumentoAcessorio(models.Model):
         max_length=200, blank=True, verbose_name=_('Autor'))
     ementa = models.TextField(blank=True, verbose_name=_('Ementa'))
     indexacao = models.TextField(blank=True, verbose_name=_('Indexação'))
-    arquivo = models.FileField(
+    arquivo = MetadataFileField(
         blank=True,
         null=True,
         max_length=300,
@@ -976,7 +977,7 @@ class Proposicao(models.Model):
         verbose_name=_('Status Proposição')
     )
 
-    texto_original = models.FileField(
+    texto_original = MetadataFileField(
         max_length=300,
         upload_to=materia_upload_path,
         blank=True,

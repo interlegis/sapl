@@ -13,6 +13,7 @@ from sapl.materia.models import Tramitacao
 from sapl.parlamentares.models import (CargoMesa, Legislatura, Parlamentar,
                                        Partido, SessaoLegislativa)
 from sapl.protocoloadm.models import DocumentoAdministrativo
+from sapl.base.fields import MetadataFileField
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
                         restringe_tipos_de_arquivo_txt, texto_upload_path,
@@ -187,7 +188,7 @@ class SessaoPlenaria(models.Model):
     url_video = models.URLField(
         max_length=150, blank=True,
         verbose_name=_('URL Arquivo Vídeo (Formatos MP4 / FLV / WebM)'))
-    upload_pauta = models.FileField(
+    upload_pauta = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -195,7 +196,7 @@ class SessaoPlenaria(models.Model):
         verbose_name=_('Pauta da Sessão'),
         storage=OverwriteStorage(),
         validators=[restringe_tipos_de_arquivo_txt])
-    upload_ata = models.FileField(
+    upload_ata = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -203,7 +204,7 @@ class SessaoPlenaria(models.Model):
         storage=OverwriteStorage(),
         verbose_name=_('Ata da Sessão'),
         validators=[restringe_tipos_de_arquivo_txt])
-    upload_anexo = models.FileField(
+    upload_anexo = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -507,7 +508,7 @@ class AbstractOrador(models.Model):  # Oradores
         max_length=150, blank=True, verbose_name=_('URL Vídeo'))
     observacao = models.CharField(
         max_length=150, blank=True, verbose_name=_('Observação'))
-    upload_anexo = models.FileField(
+    upload_anexo = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -867,7 +868,7 @@ class JustificativaAusencia(models.Model):
     materias_da_ordem_do_dia = models.ManyToManyField(
         OrdemDia, blank=True, verbose_name=_('Matérias do Ordem do Dia'))
 
-    upload_anexo = models.FileField(
+    upload_anexo = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,

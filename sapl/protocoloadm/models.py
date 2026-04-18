@@ -9,6 +9,7 @@ from model_utils import Choices
 from sapl.base.models import Autor, AppConfig as SaplAppConfig
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao,\
     MateriaLegislativa
+from sapl.base.fields import MetadataFileField
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
                         get_settings_auth_user_model,
                         OverwriteStorage)
@@ -192,7 +193,7 @@ class DocumentoAdministrativo(models.Model):
         verbose_name=_('Número Externo'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observação'))
-    texto_integral = models.FileField(
+    texto_integral = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
@@ -349,7 +350,7 @@ class DocumentoAcessorioAdministrativo(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Tipo'))
     nome = models.CharField(max_length=30, verbose_name=_('Nome'))
-    arquivo = models.FileField(
+    arquivo = MetadataFileField(
         max_length=300,
         blank=True,
         null=True,
