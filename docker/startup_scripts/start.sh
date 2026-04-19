@@ -273,7 +273,7 @@ main() {
   # deployed.  Runs as a background job so pod startup is not delayed.
   # Must be after migrate_db so the base_file_metadata table exists.
   # Once all instances have been fully backfilled this line can be removed.
-  python3 manage.py backfill_file_metadata --rate-limit=20 &
+  python3 manage.py backfill_file_metadata_structural &
   configure_solr || true
   configure_sapn
   create_admin

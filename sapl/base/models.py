@@ -511,6 +511,7 @@ class FileMetadata(models.Model):
     )
     storage_name = models.CharField(
         max_length=512,
+        editable=False,
         verbose_name=_('Storage name'),
     )
     original_filename = models.CharField(
@@ -537,11 +538,21 @@ class FileMetadata(models.Model):
         blank=True,
         verbose_name=_('Backfilled at'),
     )
+    app_label = models.CharField(max_length=100, default='', blank=True)
+    model_name = models.CharField(max_length=100, default='', blank=True)
+    field_name = models.CharField(max_length=100, default='', blank=True)
+    owner_pk = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'base_file_metadata'
         verbose_name = _('File Metadata')
         verbose_name_plural = _('File Metadata')
+        indexes = [
+            models.Index(
+                fields=['app_label', 'model_name', 'field_name'],
+                name='filemetadata_owner_context_idx',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.original_filename} (v{self.version})'

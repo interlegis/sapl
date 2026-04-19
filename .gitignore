@@ -110,3 +110,5 @@ media/*
 !media/.gitkeep
 
 restauracoes/*
+
+.claude/

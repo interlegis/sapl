@@ -1,13 +1,24 @@
 import hashlib
+import logging
 import posixpath
+import unicodedata
 from pathlib import Path
+from urllib.parse import quote
 from uuid import uuid4
 
-from django.core.files import File
+import magic
+from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
-from django.db import models
+from django.db import models, transaction
 from django.db.models.fields.files import FieldFile
+from django.db.models.signals import post_save
 
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# MetadataFieldFile — FieldFile subclass with semantic URL support
+# ---------------------------------------------------------------------------
 
 class MetadataFieldFile(FieldFile):
     """
@@ -28,8 +39,6 @@ class MetadataFieldFile(FieldFile):
         meta = getattr(self.instance, meta_attr, None)
         if meta and meta.original_filename:
             return meta.original_filename
-        # Fallback: basename of storage path (may be UUID for newly uploaded files
-        # whose metadata row hasn't been committed yet).
         return Path(self.name).name if self.name else ''
 
     @property
@@ -41,16 +50,12 @@ class MetadataFieldFile(FieldFile):
         meta_attr = f'{self.field.name}_metadata'
         meta = getattr(instance, meta_attr, None)
 
-        # Fallback: no metadata row yet (pre-backfill existing file or first save
-        # before commit) → return the raw storage URL so nothing breaks.
         if meta is None:
             return self.storage.url(self.name)
 
         pk = getattr(instance, 'pk', None)
 
         if pk is not None:
-            # Saved instance — return the semantic alias.
-            # Lazy import avoids a circular dependency at module load time.
             from django.urls import reverse
             return reverse(
                 'serve_model_file',
@@ -62,16 +67,112 @@ class MetadataFieldFile(FieldFile):
                 },
             )
 
-        # Unsaved instance — return canonical UUID form.
         return f'/documentos/{meta.uuid}/'
 
 
-def _compute_size_and_hash(field_file):
-    """
-    Read the file content once to compute size and SHA-256 digest.
-    field_file must be open-able via field_file.open().
-    Returns (size_in_bytes, hex_digest).
-    """
+# ---------------------------------------------------------------------------
+# Filename sanitization
+# ---------------------------------------------------------------------------
+
+def _sanitize_filename(name: str) -> str:
+    name = name.strip()
+    name = ''.join(c for c in name if ord(c) >= 0x20 and ord(c) != 0x7F)
+    name = unicodedata.normalize('NFC', name)
+    name = ' '.join(name.split())
+    name = name[:255]
+    if not name:
+        name = 'untitled'
+    return name
+
+
+# ---------------------------------------------------------------------------
+# MIME validation
+# ---------------------------------------------------------------------------
+
+FIELD_ALLOWED_TYPES = {
+    ('materia', 'materialegislativa', 'texto_original'): frozenset([
+        'application/pdf', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/rtf', 'text/plain',
+    ]),
+    ('materia', 'documentoacessorio', 'arquivo'): frozenset([
+        'application/pdf', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg', 'image/png', 'image/tiff',
+    ]),
+    ('materia', 'proposicao', 'texto_original'): frozenset([
+        'application/pdf', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ]),
+    ('protocoloadm', 'documentoadministrativo', 'texto_integral'): frozenset([
+        'application/pdf',
+    ]),
+    ('protocoloadm', 'documentoacessorioadministrativo', 'arquivo'): frozenset([
+        'application/pdf', 'image/jpeg', 'image/png', 'image/tiff',
+    ]),
+    ('norma', 'normajuridica', 'texto_integral'): frozenset([
+        'application/pdf', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ]),
+    ('norma', 'anexonormajuridica', 'anexo_arquivo'): frozenset([
+        'application/pdf', 'image/jpeg', 'image/png',
+    ]),
+    **{
+        (app, model, field): frozenset(['application/pdf', 'image/jpeg', 'image/png', 'image/tiff'])
+        for app, model, field in [
+            ('sessao', 'sessaoplenaria', 'upload_pauta'),
+            ('sessao', 'sessaoplenaria', 'upload_ata'),
+            ('sessao', 'sessaoplenaria', 'upload_anexo'),
+            ('sessao', 'justificativaausencia', 'upload_anexo'),
+            ('comissoes', 'reuniao', 'upload_pauta'),
+            ('comissoes', 'reuniao', 'upload_ata'),
+            ('comissoes', 'reuniao', 'upload_anexo'),
+            ('comissoes', 'documentoacessorio', 'arquivo'),
+            ('audiencia', 'audienciapublica', 'upload_pauta'),
+            ('audiencia', 'audienciapublica', 'upload_ata'),
+            ('audiencia', 'audienciapublica', 'upload_anexo'),
+            ('audiencia', 'anexoaudienciapublica', 'arquivo'),
+        ]
+    },
+}
+
+_MIME_TO_EXTENSIONS = {
+    'application/pdf': {'.pdf'},
+    'application/msword': {'.doc'},
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {'.docx'},
+    'application/rtf': {'.rtf'},
+    'text/plain': {'.txt'},
+    'image/jpeg': {'.jpg', '.jpeg'},
+    'image/png': {'.png'},
+    'image/tiff': {'.tif', '.tiff'},
+}
+
+
+def _validate_file_type(file_obj, app_label, model_name, field_name):
+    allowed = FIELD_ALLOWED_TYPES.get((app_label, model_name, field_name))
+    if allowed is None:
+        return
+    header = file_obj.file.read(512)
+    file_obj.file.seek(0)
+    sniffed = magic.from_buffer(header, mime=True)
+    if sniffed not in allowed:
+        raise ValidationError(
+            f'Tipo de arquivo não permitido: {sniffed}. '
+            f'Permitidos: {", ".join(sorted(allowed))}'
+        )
+    ext = Path(file_obj.name).suffix.lower()
+    if ext and sniffed in _MIME_TO_EXTENSIONS:
+        if ext not in _MIME_TO_EXTENSIONS[sniffed]:
+            raise ValidationError(
+                f'Extensão {ext!r} não corresponde ao tipo detectado ({sniffed}).'
+            )
+
+
+# ---------------------------------------------------------------------------
+# Content hash + size
+# ---------------------------------------------------------------------------
+
+def _compute_size_and_hash(field_file) -> tuple:
     h = hashlib.sha256()
     size = 0
     with field_file.open('rb') as fh:
@@ -81,37 +182,67 @@ def _compute_size_and_hash(field_file):
     return size, h.hexdigest()
 
 
+# ---------------------------------------------------------------------------
+# Blob deletion
+# ---------------------------------------------------------------------------
+
+def _delete_blob_safe(storage_name: str) -> None:
+    try:
+        default_storage.delete(storage_name)
+    except Exception:
+        logger.warning('Failed to delete blob %s', storage_name, exc_info=True)
+
+
+# ---------------------------------------------------------------------------
+# Content-Disposition
+# ---------------------------------------------------------------------------
+
+_INLINE_EXTENSIONS = frozenset(['.pdf'])
+
+
+def _content_disposition(filename: str) -> str:
+    ext = Path(filename).suffix.lower()
+    disposition = 'inline' if ext in _INLINE_EXTENSIONS else 'attachment'
+    safe_ascii = filename.encode('ascii', 'replace').decode()
+    encoded = quote(filename, safe='')
+    return f'{disposition}; filename="{safe_ascii}"; filename*=UTF-8\'\'{encoded}'
+
+
+# ---------------------------------------------------------------------------
+# Visibility / cache helpers
+# ---------------------------------------------------------------------------
+
+_PRIVATE_FIELDS = frozenset({
+    ('materia', 'proposicao', 'texto_original'),
+    ('protocoloadm', 'documentoadministrativo', 'texto_integral'),
+    ('protocoloadm', 'documentoacessorioadministrativo', 'arquivo'),
+})
+
+
+def _visibility(meta) -> str:
+    return 'private' if (meta.app_label, meta.model_name, meta.field_name) in _PRIVATE_FIELDS else 'public'
+
+
+def _is_public(meta) -> bool:
+    return (meta.app_label, meta.model_name, meta.field_name) not in _PRIVATE_FIELDS
+
+
+# ---------------------------------------------------------------------------
+# MetadataFileField
+# ---------------------------------------------------------------------------
+
 class MetadataFileField(models.FileField):
     """
     Drop-in replacement for models.FileField.
 
-    Uses MetadataFieldFile as its descriptor so that .url returns the semantic
-    alias /<app>/<model>/<pk>/<field>/download for saved instances, and falls
-    back to /documentos/<uuid>/ for unsaved instances.
-
-    In addition to normal FileField behaviour, this field:
-    1. Injects a companion ForeignKey '<fieldname>_metadata' pointing to
-       base.FileMetadata on the owning model class at class-definition time.
-    2. In pre_save, creates or updates the FileMetadata row that tracks the
-       stable uuid, storage_name, original_filename, size, and hash for the
-       uploaded file.
-
-    Four lifecycle scenarios handled in pre_save:
-      Case 1 — first upload  : create a new FileMetadata row; set the FK.
-      Case 2 — replacement   : delete the old physical file; update the existing
-                               FileMetadata row in-place so the uuid (and therefore
-                               /documentos/<uuid>/) never changes.
-      Case 3 — field cleared : nullify the FK; delete the FileMetadata row;
-                               physical file cleanup is deferred to the
-                               clean_orphan_files management command.
-      Case 4 — no-op re-save : nothing touched.
+    Injects a companion FK '<fieldname>_metadata' → FileMetadata and maintains
+    it across upload, replacement, and clear operations.
     """
 
     attr_class = MetadataFieldFile
 
     def contribute_to_class(self, cls, name):
         super().contribute_to_class(cls, name)
-        # Inject companion FK: e.g. texto_original → texto_original_metadata_id
         fk = models.ForeignKey(
             'base.FileMetadata',
             null=True,
@@ -121,39 +252,35 @@ class MetadataFileField(models.FileField):
             verbose_name='File metadata',
         )
         cls.add_to_class(f'{name}_metadata', fk)
+        post_save.connect(self._fix_owner_pk, sender=cls, weak=False)
+
+    def _fix_owner_pk(self, sender, instance, created, **kwargs):
+        """Fills owner_pk after INSERT — pk is None at pre_save time for new objects."""
+        if not created:
+            return
+        meta = getattr(instance, f'{self.attname}_metadata', None)
+        if meta is not None and meta.owner_pk is None:
+            meta.owner_pk = instance.pk
+            meta.save(update_fields=['owner_pk'])
 
     def generate_filename(self, instance, filename):
         """
-        Override: substitute a UUID for the filename in the upload_to path so
-        that newly uploaded files get stable, unguessable storage paths like
-        sapl/public/normajuridica/2025/9395/<uuid>.pdf  (RFC §6.3).
-
-        For replacement uploads (Case 2) the existing meta UUID is reused so
-        the physical path — and therefore /documentos/<uuid>/ — stays stable.
-        For first uploads (Case 1) a fresh UUID is generated and stashed on the
-        instance under _pending_uuid_<fieldname> for pre_save to pick up when
-        creating the FileMetadata row.
+        Substitutes a UUID for the filename in the upload_to path so newly
+        uploaded files get stable, unguessable storage paths (RFC §6.3).
         """
-        # 1. Let upload_to produce the directory + original filename.
         if callable(self.upload_to):
             upload_name = self.upload_to(instance, filename)
         else:
             upload_name = posixpath.join(self.upload_to, filename)
 
-        # 2. Determine the UUID to embed in the path.
         meta_attr = f'{self.name}_metadata'
         meta = getattr(instance, meta_attr, None)
         if meta is not None:
-            # Replacement (Case 2): reuse existing UUID — path stays identical,
-            # OverwriteStorage replaces the bytes in-place.
             file_uuid = str(meta.uuid)
         else:
-            # First upload (Case 1): generate a fresh UUID and stash it so
-            # pre_save can wire it into the new FileMetadata row.
             file_uuid = str(uuid4())
             setattr(instance, f'_pending_uuid_{self.name}', file_uuid)
 
-        # 3. Replace the filename portion with <uuid><ext>.
         ext = Path(filename).suffix.lower()
         directory = posixpath.dirname(upload_name)
         new_name = posixpath.join(directory, f'{file_uuid}{ext}') if directory else f'{file_uuid}{ext}'
@@ -167,78 +294,76 @@ class MetadataFileField(models.FileField):
         file_before = getattr(instance, self.attname)
         meta_before = getattr(instance, meta_attr, None)
 
-        # Capture intent BEFORE super() — storage.save() sets _committed=True,
-        # erasing the distinction between "new upload" and "already committed".
         has_new_upload = bool(file_before) and not getattr(file_before, '_committed', True)
         is_clearing = not file_before and meta_before is not None
 
-        # Capture browser-supplied filename before storage renames it to the UUID path.
-        # file_before.name is set to the original upload name by FileDescriptor.__get__
-        # when it wraps the UploadedFile — more reliable than file_before.file.name
-        # which for TemporaryUploadedFile is the NamedTemporaryFile path.
+        # Sanitize original filename before storage renames it.
+        # file_before.name holds the user-supplied name at this point.
         if has_new_upload:
-            original_filename = Path(file_before.name).name if file_before.name else ''
+            original_filename = _sanitize_filename(Path(file_before.name).name) if file_before.name else 'untitled'
         else:
             original_filename = ''
 
+        if has_new_upload:
+            _validate_file_type(file_before, instance._meta.app_label,
+                                instance._meta.model_name, self.attname)
+
         file = super().pre_save(instance, add)
-        # file.name is now the UUID-based storage path from generate_filename,
-        # e.g. "sapl/public/normajuridica/2025/9395/<uuid>.pdf"
 
         if is_clearing:
-            # Case 3: ClearableFileInput submitted with clear=True.
-            # Nullify FK on the in-memory instance immediately so the subsequent
-            # model.save() writes NULL — do NOT rely on SET_NULL cascade, which
-            # only fires in the DB.  Physical file left for offline cleanup.
+            old_storage_name = meta_before.storage_name
             setattr(instance, f'{meta_attr}_id', None)
             meta_before.delete()
+            transaction.on_commit(lambda: _delete_blob_safe(old_storage_name))
 
         elif file and has_new_upload:
             storage_name = file.name
             size, digest = _compute_size_and_hash(file)
 
             if meta_before is None:
-                # Case 1: first upload — create a new FileMetadata row.
-                # Use the UUID that generate_filename already baked into the path
-                # so that FileMetadata.uuid matches the on-disk filename.
+                # Case 1: first upload.
                 pending_uuid = getattr(instance, f'_pending_uuid_{self.name}', None)
                 meta_kwargs = dict(
                     storage_name=storage_name,
                     original_filename=original_filename,
                     file_size_bytes=size,
                     content_hash=digest,
+                    app_label=instance._meta.app_label,
+                    model_name=instance._meta.model_name,
+                    field_name=self.attname,
+                    owner_pk=instance.pk or None,
                 )
                 if pending_uuid:
                     from uuid import UUID
                     meta_kwargs['uuid'] = UUID(pending_uuid)
-                    # Clean up the temporary stash attribute.
                     try:
                         delattr(instance, f'_pending_uuid_{self.name}')
                     except AttributeError:
                         pass
-                meta = FileMetadata(**meta_kwargs)
-                meta.save()
-                setattr(instance, f'{meta_attr}_id', meta.pk)
+                with transaction.atomic():
+                    meta = FileMetadata(**meta_kwargs)
+                    meta.save()
+                    setattr(instance, f'{meta_attr}_id', meta.pk)
             else:
-                # Case 2: replacement — reuse the existing row so the stable uuid
-                # (and /documentos/<uuid>/) never changes.
-                # For UUID-based paths the old and new paths are identical
-                # (same uuid, same ext) — OverwriteStorage already replaced the
-                # bytes in-place, so we must NOT delete the newly written file.
-                if meta_before.storage_name != storage_name:
-                    # Legacy (non-UUID) paths: old path differs → delete old file.
-                    try:
-                        default_storage.delete(meta_before.storage_name)
-                    except OSError:
-                        pass  # already gone — proceed
-                meta_before.version += 1
-                meta_before.storage_name = storage_name
-                meta_before.original_filename = original_filename
-                meta_before.file_size_bytes = size
-                meta_before.content_hash = digest
-                meta_before.save(update_fields=[
-                    'version', 'storage_name', 'original_filename',
-                    'file_size_bytes', 'content_hash',
-                ])
+                # Case 2: replacement — reuse existing row so uuid (and /documentos/<uuid>/) never changes.
+                with transaction.atomic():
+                    locked = FileMetadata.objects.select_for_update().get(pk=meta_before.pk)
+                    old_storage_name = locked.storage_name
+                    locked.version += 1
+                    locked.storage_name = storage_name
+                    locked.original_filename = original_filename
+                    locked.file_size_bytes = size
+                    locked.content_hash = digest
+                    locked.app_label = instance._meta.app_label
+                    locked.model_name = instance._meta.model_name
+                    locked.field_name = self.attname
+                    locked.owner_pk = instance.pk
+                    locked.save(update_fields=[
+                        'version', 'storage_name', 'original_filename',
+                        'file_size_bytes', 'content_hash',
+                        'app_label', 'model_name', 'field_name', 'owner_pk',
+                    ])
+                if old_storage_name != storage_name:
+                    transaction.on_commit(lambda: _delete_blob_safe(old_storage_name))
 
         return file

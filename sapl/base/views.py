@@ -1575,11 +1575,26 @@ def pesquisa_textual(request):
 # File-serving views (RFC §6.4, §9)
 # ---------------------------------------------------------------------------
 
+import logging as _logging  # noqa: E402
 import os as _os  # noqa: E402
 
-from urllib.parse import quote  # noqa: E402 — kept near usage site
+from django.http import FileResponse, HttpResponse, HttpResponseForbidden  # noqa: E402
 
-from django.http import FileResponse, HttpResponse  # noqa: E402
+from sapl.base.fields import (  # noqa: E402
+    _PRIVATE_FIELDS, _content_disposition, _is_public,
+)
+
+_serve_logger = _logging.getLogger(__name__)
+
+try:
+    from prometheus_client import Counter as _Counter
+    _metadata_fallback_counter = _Counter(
+        'sapl_metadata_fallback_total',
+        'Requests served via legacy pre-metadata fallback',
+        ['app', 'model', 'field'],
+    )
+except Exception:
+    _metadata_fallback_counter = None
 
 SERVE_FILE_FIELDS = frozenset({
     ('materia',       'materialegislativa',              'texto_original'),
@@ -1604,31 +1619,63 @@ SERVE_FILE_FIELDS = frozenset({
 })
 
 
-def serve_file(request, file_uuid):
+def can_download_file(user, meta, owner_object=None) -> bool:
+    """Single authorization gate for all file downloads (RFC §6.4.1)."""
+    key = (meta.app_label, meta.model_name, meta.field_name)
+
+    if key not in _PRIVATE_FIELDS:
+        return True
+
+    # Lazy-load owner_object from DB when not provided.
+    if owner_object is None and meta.owner_pk is not None:
+        try:
+            model = apps.get_model(meta.app_label, meta.model_name)
+            owner_object = model.objects.filter(pk=meta.owner_pk).first()
+        except LookupError:
+            pass
+
+    if key == ('materia', 'proposicao', 'texto_original'):
+        if user.is_staff:
+            return True
+        if owner_object and hasattr(owner_object, 'autor'):
+            return owner_object.autor.filter(user_profile__user=user).exists()
+        return False
+
+    if meta.app_label == 'protocoloadm' and meta.model_name == 'documentoadministrativo':
+        if user.is_staff:
+            return True
+        return owner_object is not None and not owner_object.restrito
+
+    if key == ('protocoloadm', 'documentoacessorioadministrativo', 'arquivo'):
+        if user.is_staff:
+            return True
+        parent = getattr(owner_object, 'documento', None) if owner_object else None
+        return parent is not None and not parent.restrito
+
+    return False
+
+
+def serve_file(request, file_uuid, owner_object=None):
     """
     Secure file-serving view — the single chokepoint for all document downloads.
 
-    Resolves uuid → FileMetadata → storage_name, performs a permission check
-    (currently public files pass unconditionally), then delegates the actual
-    byte transfer to nginx via X-Accel-Redirect.  Django never reads file bytes
-    into Python memory; nginx's sendfile delivers them zero-copy.
-
-    The /media/ location in nginx must be marked 'internal' so that clients
-    cannot bypass this view and fetch files directly.
+    Resolves uuid → FileMetadata → storage_name, enforces access control, then
+    delegates byte transfer to nginx via X-Accel-Redirect.  Django never reads
+    file bytes into memory.
     """
     from sapl.base.models import FileMetadata
     from django.shortcuts import get_object_or_404 as _get_or_404
 
     meta = _get_or_404(FileMetadata, uuid=file_uuid)
 
-    # Permission check — currently unconditional for public files.
-    # When DocumentoAdministrativo.restrito / nivel_restricao is wired,
-    # insert the per-file check here (RFC §6.4).
+    if not can_download_file(request.user, meta, owner_object):
+        if not request.user.is_authenticated:
+            raise Http404
+        return HttpResponseForbidden()
 
     display_name = meta.original_filename or Path(meta.storage_name).name
 
     if settings.DEBUG:
-        # runserver has no nginx: serve the bytes directly from the filesystem.
         file_path = _os.path.join(settings.MEDIA_ROOT, meta.storage_name)
         try:
             fh = open(file_path, 'rb')
@@ -1636,30 +1683,16 @@ def serve_file(request, file_uuid):
             raise Http404
         return FileResponse(fh, as_attachment=False, filename=display_name)
 
-    # Production: delegate byte transfer to nginx via X-Accel-Redirect.
-    # storage_name is relative to MEDIA_ROOT (e.g. "sapl/public/norma/…/file.pdf").
-    internal_path = f'/media/{meta.storage_name}'
-
     response = HttpResponse()
-    response['X-Accel-Redirect'] = internal_path
-
-    # RFC 6266 — dual filename parameter: ASCII fallback + UTF-8 encoded.
-    filename_ascii = display_name.encode('ascii', 'replace').decode()
-    filename_encoded = quote(display_name, safe='')
-    response['Content-Disposition'] = (
-        f'inline; filename="{filename_ascii}"'
-        f"; filename*=UTF-8''{filename_encoded}"
-    )
+    response['X-Accel-Redirect'] = f'/media/{meta.storage_name}'
+    response['Content-Disposition'] = _content_disposition(display_name)
+    response['Cache-Control'] = 'public, max-age=300' if _is_public(meta) else 'no-store'
     return response
 
 
 def serve_model_file(request, app_label, model_name, pk, field_name):
     """
     Semantic alias for file downloads: /<app>/<model>/<pk>/<field>/download
-
-    Validates the (app_label, model_name, field_name) triple against an explicit
-    allowlist, fetches the parent model instance, resolves the _metadata FK, then
-    delegates to serve_file.  All permission logic lives in serve_file only.
     """
     from django.shortcuts import get_object_or_404 as _get_or_404
 
@@ -1673,10 +1706,32 @@ def serve_model_file(request, app_label, model_name, pk, field_name):
 
     instance = _get_or_404(model, pk=pk)
     meta = getattr(instance, f'{field_name}_metadata', None)
-    if meta is None:
-        raise Http404
 
-    return serve_file(request, file_uuid=meta.uuid)
+    if meta is None:
+        # Temporary fallback while backfill is in progress.
+        field_file = getattr(instance, field_name)
+        if not field_file:
+            raise Http404
+        _serve_logger.warning(
+            'serve_model_file fallback: metadata NULL for %s/%s/%s pk=%s',
+            app_label, model_name, field_name, pk,
+        )
+        if _metadata_fallback_counter is not None:
+            _metadata_fallback_counter.labels(
+                app=app_label, model=model_name, field=field_name,
+            ).inc()
+        if settings.DEBUG:
+            file_path = _os.path.join(settings.MEDIA_ROOT, field_file.name)
+            try:
+                fh = open(file_path, 'rb')
+            except OSError:
+                raise Http404
+            return FileResponse(fh)
+        response = HttpResponse()
+        response['X-Accel-Redirect'] = f'/media/{field_file.name}'
+        return response
+
+    return serve_file(request, file_uuid=meta.uuid, owner_object=instance)
 
 
 # Image fields served via X-Accel-Redirect — same nginx internal mechanism as
