@@ -3,7 +3,7 @@ import json
 import logging
 
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.db.models import Q
@@ -199,6 +199,7 @@ def can_vote(context, context_vars, request):
     return context, context_vars
 
 
+@login_required
 def votante_view(request):
     logger = logging.getLogger(__name__)
     username = request.user.username if request.user.is_authenticated else 'AnonymousUser'
