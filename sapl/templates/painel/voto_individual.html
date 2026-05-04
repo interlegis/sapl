@@ -127,10 +127,11 @@
     </body>
 </html>
 
+{% if not error_message %}
 {% render_chunk_vendors 'js' %}
-{% render_bundle  'global' 'js' %}  
-{% render_bundle  'painel' 'js' %}      
-    
+{% render_bundle  'global' 'js' %}
+{% render_bundle  'painel' 'js' %}
+
 <script type="text/javascript">
 
   $(window).on('beforeunload', function () {
@@ -162,7 +163,7 @@
 
   function checkTime(i) {
     if (i<10)
-      i = "0" + i; // add zero in front of numbers < 10  
+      i = "0" + i; // add zero in front of numbers < 10
     return i;
   }
 
@@ -174,7 +175,7 @@
     m = checkTime(m);
     s = checkTime(s);
     $("#relogio").text(h+":"+m+":"+s)
-    var t = setInterval(() => startTime(), 500);
+    var t = setTimeout(() => startTime(), 500);
   }
 
   $(document).ready(function(){
@@ -183,10 +184,11 @@
     $("#date").text(n);
 
     startTime();
-    
+
     setTimeout(function() {
       document.location.reload(true);
     }, 30000)
   });
 
 </script>
+{% endif %}
