@@ -10,7 +10,7 @@ class Continent(models.Model):
 
 class Country(models.Model):
     name = models.CharField(max_length=50)
-    continent = models.ForeignKey(Continent)
+    continent = models.ForeignKey(Continent, on_delete=models.CASCADE)
     is_cold = models.BooleanField(choices=[(True, 'Yes'), (False, 'No')])
     population = models.PositiveIntegerField(blank=True, null=True)
     description = models.TextField(blank=True)
@@ -25,4 +25,4 @@ class Country(models.Model):
 
 class City(models.Model):
     name = models.CharField(max_length=50)
-    country = models.ForeignKey(Country)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)

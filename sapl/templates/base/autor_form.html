@@ -28,7 +28,7 @@ $(document).ready(function(){
   var update_search = function(pk, atualizar=true) {
     var q = $('#id_q').val();
 
-    var url = '{% url 'sapl.api:autor-provaveis'%}'
+    var url = '{% url 'sapl.api:base-autor-provaveis'%}'
 
     var formData = {
           q: q,

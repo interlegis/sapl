@@ -7,8 +7,8 @@ from django import template
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
-from django.utils.encoding import force_text
-from django.utils.translation import ugettext as _
+from django.utils.encoding import force_str
+from django.utils.translation import gettext as _
 import yaml
 
 
@@ -40,7 +40,7 @@ def form_actions(more=[Div(css_class='clearfix')],
                  label=_('Salvar'), name='salvar',
                  css_class='float-right', disabled=True):
 
-    if disabled and force_text(label) != 'Pesquisar':
+    if disabled and force_str(label) != 'Pesquisar':
         doubleclick = 'this.form.submit();this.disabled=true;'
     else:
         doubleclick = 'return true;'
@@ -56,6 +56,7 @@ def form_actions(more=[Div(css_class='clearfix')],
 
 class SaplFormHelper(FormHelper):
     render_hidden_fields = True  # default = False
+    template_pack = "bootstrap4"
     """
     até a release 1.6.1 do django-crispy-forms, os fields em Meta.Fields eram
     renderizados mesmo se não mencionados no helper.
@@ -214,19 +215,24 @@ class CrispyLayoutFormMixin:
                     for fieldname, span in row]
 
     def get_form(self, form_class=None):
-        try:
-            form = super(CrispyLayoutFormMixin, self).get_form(form_class)
-        except AttributeError:
-            # simply return None if there is no get_form on super
-            pass
+        super_get_form = getattr(super(CrispyLayoutFormMixin, self), 'get_form', None)
+        if super_get_form is None:
+            # Either raise, or (if you want to support non-form views) construct a form when form_class exists.
+            if getattr(self, 'form_class', None):
+                form_class = self.get_form_class()
+                form = form_class(**self.get_form_kwargs())
+            else:
+                raise NotImplementedError(
+                    f"{self.__class__.__name__} requires get_form() in the MRO or form_class set"
+                )
         else:
-            if self.layout_key:
-                form.helper = SaplFormHelper()
-                layout = self.get_layout()
+            form = super_get_form(form_class)
 
-                form.helper.layout = SaplFormLayout(*layout)
-
-            return form
+        if self.layout_key:
+            form.helper = SaplFormHelper()
+            layout = self.get_layout()
+            form.helper.layout = SaplFormLayout(*layout)
+        return form
 
     @property
     def list_field_names(self):

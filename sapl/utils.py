@@ -35,9 +35,9 @@ from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
 from django.forms.widgets import SplitDateTimeWidget, ClearableFileInput
 from django.http.response import JsonResponse, HttpResponse
-from django.utils import six, timezone
+from django.utils import timezone
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
 import magic
@@ -904,7 +904,7 @@ def qs_override_django_filter(self):
 
         # start with all the results and filter from there
         qs = self.queryset.all()
-        for name, filter_ in six.iteritems(self.filters):
+        for name, filter_ in self.filters.items():
             value = None
             if valid:
                 value = self.form.cleaned_data[name]
@@ -1167,13 +1167,13 @@ def from_date_to_datetime_utc(data):
     :param data: datetime.date
     :return: datetime.timestamp com UTC
     """
-    import pytz
+    from django.utils import timezone
     from datetime import datetime
 
-    # from date to datetime
-    dt_unware = datetime.combine(data, datetime.min.time())
-    dt_utc = pytz.utc.localize(dt_unware)
-    return dt_utc
+    dt = datetime.combine(data, datetime.min.time())
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt.astimezone(timezone.utc)
 
 
 class OverwriteStorage(FileSystemStorage):

@@ -1,6 +1,5 @@
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-default_app_config = 'sapl.rules.apps.AppConfig'
 
 """
 Todas as permissões do django framework seguem o padrão

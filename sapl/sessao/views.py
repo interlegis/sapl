@@ -17,16 +17,16 @@ from django.urls.base import reverse_lazy
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.html import strip_tags
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (FormView, ListView, TemplateView)
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
 from django_filters.views import FilterView
-import pytz
+
 
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
@@ -3881,10 +3881,10 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
 
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
-            data_hora_sessao = datetime.strptime(
-                data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
-            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(
-                data_hora_sessao).astimezone(pytz.utc)
+            data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
+            if timezone.is_naive(data_hora_sessao):
+                data_hora_sessao = timezone.make_aware(data_hora_sessao, timezone.get_current_timezone())
+            data_hora_sessao_utc = data_hora_sessao.astimezone(timezone.utc)
             ultima_tramitacao = m.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
                 '-data_tramitacao', '-id').first() if m.tramitacao is None else m.tramitacao
             numeracao = m.materia.numeracao_set.first()
@@ -3966,10 +3966,10 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
 
             sessao_plenaria = SessaoPlenaria.objects.get(id=self.object.id)
             data_sessao = sessao_plenaria.data_inicio.strftime("%Y-%m-%d ")
-            data_hora_sessao = datetime.strptime(
-                data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
-            data_hora_sessao_utc = pytz.timezone(TIME_ZONE).localize(
-                data_hora_sessao).astimezone(pytz.utc)
+            data_hora_sessao = datetime.strptime(data_sessao + sessao_plenaria.hora_inicio, "%Y-%m-%d %H:%M")
+            if timezone.is_naive(data_hora_sessao):
+                data_hora_sessao = timezone.make_aware(data_hora_sessao, timezone.get_current_timezone())
+            data_hora_sessao_utc = data_hora_sessao.astimezone(timezone.utc)
             ultima_tramitacao = o.materia.tramitacao_set.filter(timestamp__lt=data_hora_sessao_utc).order_by(
                 '-data_tramitacao', '-id').first() if o.tramitacao is None else o.tramitacao
             numeracao = o.materia.numeracao_set.first()
@@ -4037,7 +4037,7 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
         return kwargs
 
     def hook_header_(self):
-        return force_text(_('Título'))
+        return force_str(_('Título'))
 
     def hook_(self, obj):
         return str(obj)
@@ -5314,7 +5314,7 @@ class CorrespondenciaCrud(MasterDetailCrud):
             return qs
 
         def hook_header_numero_ordem(self, *args, **kwargs):
-            return force_text(_('Ordem / Tipo')) if not self.request.user.is_anonymous else force_text(_('Tipo'))
+            return force_str(_('Ordem / Tipo')) if not self.request.user.is_anonymous else force_str(_('Tipo'))
 
         def hook_numero_ordem(self, obj, ss, url):
             if not self.request.user.is_anonymous:

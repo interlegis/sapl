@@ -33,7 +33,7 @@
       });
 
       $("select[name=tipo_materia], input[name=numero_materia], input[name=ano_materia]").change(function(event) {
-        var url = '{% url 'sapl.api:materialegislativa-list'%}'
+        var url = '{% url 'sapl.api:base-materialegislativa-list'%}'
 
         var formData = {
               'tipo'   : $("select[name=tipo_materia]").val(),

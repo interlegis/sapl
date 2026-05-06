@@ -2,8 +2,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.utils import six
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import pytest
 
 from sapl.base.models import CasaLegislativa
@@ -185,7 +184,7 @@ def test_permission_required_of_views_exists(url_item):
         view = key.view_class
 
         if hasattr(view, 'permission_required'):
-            if isinstance(view.permission_required, six.string_types):
+            if isinstance(view.permission_required, str):
                 perms = (view.permission_required,)
             else:
                 perms = view.permission_required

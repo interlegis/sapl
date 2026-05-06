@@ -17,7 +17,7 @@
                    o: 'nome',
                    get_all: true
                 }
-                $.getJSON("{% url 'sapl.api:autor-possiveis' %}", json_data, function(data){
+                $.getJSON("{% url 'sapl.api:base-autor-possiveis' %}", json_data, function(data){
                     $("#div_id_autor > div").html('');
                     if (data) {
                       $.each(data, function(idx, obj) {

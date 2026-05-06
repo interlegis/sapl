@@ -16,7 +16,7 @@ from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.datastructures import MultiValueDictKeyError
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import FormView
 from django.views.generic.edit import UpdateView
