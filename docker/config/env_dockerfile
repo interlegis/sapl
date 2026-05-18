@@ -7,3 +7,13 @@ EMAIL_HOST = ''
 EMAIL_HOST_USER = ''
 EMAIL_SEND_USER = ''
 EMAIL_HOST_PASSWORD = ''
+
+# Login Único gov.br
+GOVBR_LOGIN_ENABLED = False
+GOVBR_SSO_BASE_URL = https://sso.staging.acesso.gov.br
+GOVBR_CLIENT_ID = ''
+GOVBR_CLIENT_SECRET = ''
+GOVBR_REDIRECT_URI = https://sapl.indaiatuba.tec.br/auth/govbr/callback/
+GOVBR_POST_LOGOUT_REDIRECT_URI = https://sapl.indaiatuba.tec.br
+GOVBR_USER_LOOKUP_FIELDS = username
+GOVBR_AUTO_CREATE_USERS = False

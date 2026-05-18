@@ -43,6 +43,34 @@ ALLOWED_HOSTS = ['*']
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login/?next='
 
+# Integração com Login Único gov.br (OpenID Connect)
+GOVBR_LOGIN_ENABLED = config('GOVBR_LOGIN_ENABLED', default=False, cast=bool)
+GOVBR_SSO_BASE_URL = config(
+    'GOVBR_SSO_BASE_URL',
+    default='https://sso.staging.acesso.gov.br')
+GOVBR_ISSUER = config('GOVBR_ISSUER', default='')
+GOVBR_AUTHORIZE_URL = config('GOVBR_AUTHORIZE_URL', default='')
+GOVBR_TOKEN_URL = config('GOVBR_TOKEN_URL', default='')
+GOVBR_JWK_URL = config('GOVBR_JWK_URL', default='')
+GOVBR_LOGOUT_URL = config('GOVBR_LOGOUT_URL', default='')
+GOVBR_CLIENT_ID = config('GOVBR_CLIENT_ID', default='')
+GOVBR_CLIENT_SECRET = config('GOVBR_CLIENT_SECRET', default='')
+GOVBR_SCOPE = config(
+    'GOVBR_SCOPE',
+    default='openid email profile govbr_confiabilidades govbr_confiabilidades_idtoken')
+GOVBR_REDIRECT_URI = config('GOVBR_REDIRECT_URI', default='')
+GOVBR_POST_LOGOUT_REDIRECT_URI = config(
+    'GOVBR_POST_LOGOUT_REDIRECT_URI', default='')
+GOVBR_USER_LOOKUP_FIELDS = config(
+    'GOVBR_USER_LOOKUP_FIELDS', default='username')
+GOVBR_AUTO_CREATE_USERS = config(
+    'GOVBR_AUTO_CREATE_USERS', default=False, cast=bool)
+GOVBR_REQUEST_TIMEOUT = config(
+    'GOVBR_REQUEST_TIMEOUT', default=10, cast=int)
+GOVBR_JWT_LEEWAY = config('GOVBR_JWT_LEEWAY', default=30, cast=int)
+GOVBR_STATE_MAX_AGE = config(
+    'GOVBR_STATE_MAX_AGE', default=600, cast=int)
+
 SAPL_VERSION = '3.1.165-RC2'
 
 if DEBUG:

@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+from urllib.parse import parse_qs, urlparse
+
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 import pytest
+
+from sapl.base.govbr import GOVBR_SESSION_KEY, resolve_user
 
 
 pytestmark = pytest.mark.django_db
@@ -24,6 +29,58 @@ def test_username_do_usuario_logado_aparece_na_barra(client, user):
         response.content)
     assert 'jfirmino' in str(response.content)
     assert '<a href="/logout/">Sair</a>' in str(response.content)
+
+
+@override_settings(GOVBR_LOGIN_ENABLED=False)
+def test_botao_govbr_nao_aparece_por_padrao(client):
+    response = client.get('/login/')
+
+    assert 'Entrar com GOV.BR' not in str(response.content)
+
+
+@override_settings(GOVBR_LOGIN_ENABLED=True)
+def test_botao_govbr_aparece_quando_habilitado(client):
+    response = client.get('/login/')
+
+    assert 'Entrar com GOV.BR' in str(response.content)
+
+
+@override_settings(
+    GOVBR_LOGIN_ENABLED=True,
+    GOVBR_CLIENT_ID='cliente-sapl',
+    GOVBR_CLIENT_SECRET='segredo',
+    GOVBR_SSO_BASE_URL='https://sso.staging.acesso.gov.br',
+    GOVBR_SCOPE='openid email profile govbr_confiabilidades govbr_confiabilidades_idtoken',
+    GOVBR_REDIRECT_URI='https://sapl.indaiatuba.tec.br/auth/govbr/callback/')
+def test_inicio_login_govbr_redireciona_para_authorize(client):
+    response = client.get('/login/govbr/?next=/sistema/')
+    redirect = urlparse(response['Location'])
+    params = parse_qs(redirect.query)
+
+    assert response.status_code == 302
+    assert redirect.scheme == 'https'
+    assert redirect.netloc == 'sso.staging.acesso.gov.br'
+    assert redirect.path == '/authorize'
+    assert params['response_type'] == ['code']
+    assert params['client_id'] == ['cliente-sapl']
+    assert params['redirect_uri'] == [
+        'https://sapl.indaiatuba.tec.br/auth/govbr/callback/']
+    assert params['code_challenge_method'] == ['S256']
+    assert params['state'] == [client.session[GOVBR_SESSION_KEY]['state']]
+    assert client.session[GOVBR_SESSION_KEY]['next'] == '/sistema/'
+
+
+@override_settings(GOVBR_USER_LOOKUP_FIELDS='username')
+def test_resolve_usuario_govbr_por_cpf_no_username(user):
+    user.username = '12345678900'
+    user.save()
+
+    usuario, cpf = resolve_user(
+        {'sub': '12345678900', 'preferred_username': '12345678900'},
+        {'sub': '12345678900'})
+
+    assert usuario == user
+    assert cpf == '12345678900'
 
 
 # def test_nome_completo_do_usuario_logado_aparece_na_barra(client, user):

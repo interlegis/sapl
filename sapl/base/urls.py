@@ -1,7 +1,6 @@
 import os
 
 from django.conf.urls import include, url
-from django.contrib.auth import views
 from django.contrib.auth.decorators import permission_required
 from django.views.generic.base import RedirectView, TemplateView
 
@@ -10,7 +9,8 @@ from sapl.base.views import (AutorCrud, ConfirmarEmailView, TipoAutorCrud, get_e
                              RecuperarSenhaConfirmaView, RecuperarSenhaCompletoView, IndexView, UserCrud)
 from sapl.settings import MEDIA_URL, LOGOUT_REDIRECT_URL
 from .apps import AppConfig
-from .views import (LoginSapl, AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
+from .views import (LoginSapl, LogoutSapl, GovBrLoginStartView, GovBrCallbackView,
+                    AlterarSenha, AppConfigCrud, CasaLegislativaCrud,
                     HelpTopicView, LogotipoView, PesquisarAuditLogView,
                     SaplSearchView,
                     ListarInconsistenciasView,
@@ -118,7 +118,12 @@ urlpatterns = [
         name='sistema'),
 
     url(r'^login/$', LoginSapl.as_view(), name='login'),
-    url(r'^logout/$', views.LogoutView.as_view(),
+    url(r'^login/govbr/$', GovBrLoginStartView.as_view(), name='govbr_login'),
+    url(r'^auth/govbr/callback/$',
+        GovBrCallbackView.as_view(), name='govbr_callback'),
+    url(r'^login/govbr/callback/$',
+        GovBrCallbackView.as_view(), name='govbr_callback_legacy'),
+    url(r'^logout/$', LogoutSapl.as_view(),
         {'next_page': LOGOUT_REDIRECT_URL}, name='logout'),
 
     url(r'^sistema/search/', SaplSearchView(), name='haystack_search'),
