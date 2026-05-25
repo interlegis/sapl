@@ -13,6 +13,7 @@ from django.http.response import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.cache import never_cache
 
 from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
@@ -59,11 +60,11 @@ def votacao_aberta(request):
                         kwargs={'pk': v.id}),
                 v.__str__()))
         logger.info('user=' + username + '. Existe mais de uma votações aberta. Elas se encontram '
-                    'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
-                    'Para votar, peça para que o Operador feche-as.')
+                                         'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
+                                                                                              'Para votar, peça para que o Operador feche-as.')
         msg = _('Existe mais de uma votações aberta. Elas se encontram '
                 'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
-                'Para votar, peça para que o Operador feche-as.')
+                                                                     'Para votar, peça para que o Operador feche-as.')
         messages.add_message(request, messages.INFO, msg)
         return None, msg
 
@@ -79,9 +80,9 @@ def votacao_aberta(request):
         if numero_materias_abertas > 1:
             logger.info('user=' + username + '. Existe mais de uma votação aberta na Sessão: ' +
                         ('''<li><a href="%s">%s</a></li>''' % (
-                        reverse('sapl.sessao:sessaoplenaria_detail',
-                                kwargs={'pk': votacoes_abertas.first().id}),
-                        votacoes_abertas.first().__str__())))
+                            reverse('sapl.sessao:sessaoplenaria_detail',
+                                    kwargs={'pk': votacoes_abertas.first().id}),
+                            votacoes_abertas.first().__str__())))
             msg = _('Existe mais de uma votação aberta na Sessão: ' +
                     ('''<li><a href="%s">%s</a></li>''' % (
                         reverse('sapl.sessao:sessaoplenaria_detail',
@@ -103,8 +104,8 @@ def votacao(context, context_vars):
         context_vars.update({'parlamentar': parlamentar})
     else:
         context.update({'error_message':
-                        'Não há presentes na Sessão com a '
-                        'matéria em votação.'})
+                            'Não há presentes na Sessão com a '
+                            'matéria em votação.'})
 
     if parlamentar_presente:
         voto = []
@@ -117,23 +118,41 @@ def votacao(context, context_vars):
 
         if voto:
             try:
-                logger.debug("Tentando obter objeto VotoParlamentar com parlamentar={}.".format(context_vars['parlamentar']))
+                logger.debug(
+                    "Tentando obter objeto VotoParlamentar com parlamentar={}.".format(context_vars['parlamentar']))
                 voto = voto.get(parlamentar=context_vars['parlamentar'])
                 context.update({'voto_parlamentar': voto.voto})
             except ObjectDoesNotExist:
                 logger.error("Voto do parlamentar {} não computado.".format(context_vars['parlamentar']))
                 context.update(
                     {'voto_parlamentar': 'Voto não '
-                     'computado.'})
+                                         'computado.'})
     else:
         logger.error("Parlamentar com id={} não está presente na "
-                    "Ordem do Dia/Expediente em votação.".format(parlamentar.id))
+                     "Ordem do Dia/Expediente em votação.".format(parlamentar.id))
         context.update({'error_message':
-                        'Você não está presente na '
-                        'Ordem do Dia/Expediente em votação.'})
+                            'Você não está presente na '
+                            'Ordem do Dia/Expediente em votação.'})
     return context, context_vars
 
-def sessao_votacao(context,context_vars):
+
+@never_cache
+@user_passes_test(check_permission)
+def painel_view(request, pk):
+    utc_now = timezone.now()
+    local_now = timezone.localtime(utc_now)
+    utc_offset = int(local_now.utcoffset().total_seconds() / 60)
+    server_epoch_ms = int(utc_now.timestamp() * 1000)
+
+    context = {'head_title': str(_('Painel Plenário')),
+               'sessao_id': pk,
+               'server_epoch_ms': server_epoch_ms,
+               'utc_offset': utc_offset,
+               }
+    return render(request, 'painel/index.html', context)
+
+
+def sessao_votacao(context, context_vars):
     pk = context_vars['sessao'].pk
     context.update({'sessao_id': pk})
     context.update({'sessao': context_vars['sessao'],
@@ -144,9 +163,9 @@ def sessao_votacao(context,context_vars):
     presentes = []
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
-    errors_msgs = {'materia':'Não há nenhuma matéria aberta.',
-            'registro':'A votação para esta matéria já encerrou.',
-            'tipo':'A matéria aberta não é do tipo votação nominal.'}
+    errors_msgs = {'materia': 'Não há nenhuma matéria aberta.',
+                   'registro': 'A votação para esta matéria já encerrou.',
+                   'tipo': 'A matéria aberta não é do tipo votação nominal.'}
 
     materia_aberta = None
     if ordem_dia:
@@ -161,8 +180,8 @@ def sessao_votacao(context,context_vars):
             'parlamentar_id', flat=True).distinct()
 
     context_vars.update({'ordem_dia': ordem_dia,
-                        'expediente':expediente,
-                        'presentes': presentes})
+                         'expediente': expediente,
+                         'presentes': presentes})
 
     # Verifica votação aberta
     # Se aberta, verifica se é nominal. ID nominal == 2
@@ -189,7 +208,7 @@ def can_vote(context, context_vars, request):
 
     # Pega sessão
     sessao, msg = votacao_aberta(request)
-    context_vars.update({'sessao':sessao})
+    context_vars.update({'sessao': sessao})
     if sessao and not msg:
         context, context_vars = sessao_votacao(context, context_vars)
     elif not sessao and msg:
@@ -248,14 +267,16 @@ def votante_view(request):
 
         elif context_vars['expediente']:
             try:
-                logger.info("user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e expediente={}."
-                            .format(context_vars['parlamentar'], context_vars['expediente']))
+                logger.info(
+                    "user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e expediente={}."
+                    .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto = VotoParlamentar.objects.get(
                     parlamentar=context_vars['parlamentar'],
                     expediente=context_vars['expediente'])
             except ObjectDoesNotExist:
-                logger.error("user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e expediente={}. Criando objeto."
-                             .format(context_vars['parlamentar'], context_vars['expediente']))
+                logger.error(
+                    "user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e expediente={}. Criando objeto."
+                    .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto = VotoParlamentar.objects.create(
                     parlamentar=context_vars['parlamentar'],
                     voto=request.POST['voto'],
@@ -263,8 +284,9 @@ def votante_view(request):
                     ip=get_client_ip(request),
                     expediente=context_vars['expediente'])
             else:
-                logger.info("user=" + username + ". VotoParlamentar para parlamentar={} e expediente={} obtido com sucesso."
-                            .format(context_vars['parlamentar'], context_vars['expediente']))
+                logger.info(
+                    "user=" + username + ". VotoParlamentar para parlamentar={} e expediente={} obtido com sucesso."
+                    .format(context_vars['parlamentar'], context_vars['expediente']))
                 voto.voto = request.POST['voto']
                 voto.ip = get_client_ip(request)
                 voto.user = request.user
@@ -274,15 +296,6 @@ def votante_view(request):
             reverse('sapl.painel:voto_individual'))
 
     return render(request, template_name, context)
-
-
-@user_passes_test(check_permission)
-def painel_view(request, pk):
-    now = timezone.localtime(timezone.now())
-    utc_offset = now.utcoffset().total_seconds() / 60
-
-    context = {'head_title': str(_('Painel Plenário')), 'sessao_id': pk, 'utc_offset': utc_offset }
-    return render(request, 'painel/index.html', context)
 
 
 @user_passes_test(check_permission)
@@ -352,7 +365,7 @@ def get_presentes(pk, response, materia):
     else:
         presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=pk)
-    
+
     sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
@@ -361,7 +374,6 @@ def get_presentes(pk, response, materia):
 
     oradores_list = []
     for o in oradores:
-
         oradores_list.append(
             {
                 'nome': o.parlamentar.nome_parlamentar,
@@ -470,11 +482,11 @@ def get_votos(response, materia, mostrar_voto):
             if tipo == 'ordem':
                 votos_parlamentares = VotoParlamentar.objects.filter(
                     ordem_id=materia.id).order_by(
-                        'parlamentar__nome_parlamentar')
+                    'parlamentar__nome_parlamentar')
             else:
                 votos_parlamentares = VotoParlamentar.objects.filter(
                     expediente_id=materia.id).order_by(
-                        'parlamentar__nome_parlamentar')
+                    'parlamentar__nome_parlamentar')
 
             for i, p in enumerate(response['presentes']):
                 try:
@@ -507,7 +519,7 @@ def get_votos(response, materia, mostrar_voto):
         if materia.tipo_votacao == 2:
             votos_parlamentares = VotoParlamentar.objects.filter(
                 votacao_id=registro.id).order_by(
-                    'parlamentar__nome_parlamentar')
+                'parlamentar__nome_parlamentar')
 
             for i, p in enumerate(response['presentes']):
                 try:
@@ -515,7 +527,8 @@ def get_votos(response, materia, mostrar_voto):
                     response['presentes'][i]['voto'] = votos_parlamentares.get(
                         parlamentar_id=p['parlamentar_id']).voto
                 except ObjectDoesNotExist:
-                    logger.error("Votos do parlamentar (id={}) não encontrados. Retornado None.".format(p['parlamentar_id']))
+                    logger.error(
+                        "Votos do parlamentar (id={}) não encontrados. Retornado None.".format(p['parlamentar_id']))
                     response['presentes'][i]['voto'] = None
 
         response.update({
@@ -542,7 +555,7 @@ def get_dados_painel(request, pk):
     if casa and app_config and (bool(casa.logotipo)):
         brasao = casa.logotipo.url \
             if app_config.mostrar_brasao_painel else None
-    
+
     response = {
         'sessao_plenaria': str(sessao),
         'sessao_plenaria_data': sessao.data_inicio.strftime('%d/%m/%Y'),
@@ -592,22 +605,22 @@ def get_dados_painel(request, pk):
         ordem_expediente = last_ordem_voto.ordem
         ultimo_timestamp = last_ordem_voto.data_hora
     if (last_expediente_voto and ultimo_timestamp and last_expediente_voto.data_hora > ultimo_timestamp) or \
-        (not ultimo_timestamp and last_expediente_voto):
+            (not ultimo_timestamp and last_expediente_voto):
         ordem_expediente = last_expediente_voto.expediente
         ultimo_timestamp = last_expediente_voto.data_hora
     if (last_ordem_leitura and ultimo_timestamp and last_ordem_leitura.data_hora > ultimo_timestamp) or \
-        (not ultimo_timestamp and last_ordem_leitura):
+            (not ultimo_timestamp and last_ordem_leitura):
         ordem_expediente = last_ordem_leitura.ordem
         ultimo_timestamp = last_ordem_leitura.data_hora
     if (last_expediente_leitura and ultimo_timestamp and last_expediente_leitura.data_hora > ultimo_timestamp) or \
-        (not ultimo_timestamp and last_expediente_leitura):
+            (not ultimo_timestamp and last_expediente_leitura):
         ordem_expediente = last_expediente_leitura.expediente
         ultimo_timestamp = last_expediente_leitura.data_hora
-    
+
     if ordem_expediente:
         return JsonResponse(get_votos(
-                            get_presentes(pk, response, ordem_expediente),
-                            ordem_expediente, app_config.mostrar_voto))
+            get_presentes(pk, response, ordem_expediente),
+            ordem_expediente, app_config.mostrar_voto))
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     return response_nenhuma_materia(get_presentes(pk, response, None))

@@ -159,22 +159,27 @@
          // biblioteca moment.js é recomendada, pois ela trata data e hora
          // melhor que o Date() do JS.
 
-         $("#date").append(moment().format("DD/MM/YY"));
-
-         var offset = parseFloat({{ utc_offset }});
-
          //TODO: replace by a fancy jQuery clock
          function checkTime(i) {
              if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
                 return i;
          }
 
-         function startTime() {
-             var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
-             $("#relogio").text(today)
-             var t = setTimeout(function(){
-                 startTime()
-             }, 500);
+         const utcOffset = {{ utc_offset }};
+         const serverEpochMs = {{ server_epoch_ms }};
+         const pageLoadedAtMs = performance.now();
+
+        function startTime() {
+            const elapsedMs = performance.now() - pageLoadedAtMs;
+
+            const now = moment
+              .utc(serverEpochMs + elapsedMs)
+              .utcOffset(utcOffset);
+
+            $("#date").text(now.format("DD/MM/YY"));
+            $("#relogio").text(now.format("HH:mm:ss"));
+
+            setTimeout(startTime, 500);
          }
          startTime();
 
