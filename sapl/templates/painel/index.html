@@ -266,11 +266,19 @@
     var aparte_previous;
     var consideracoes_previous;
 
+    const POLL_INTERVAL_MS =
+      window.location.hostname === "localhost" ? 2000 : 500;
+
     var counter = 1;
     (function poll() {
         $.ajax({
            url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
            type: "GET",
+           dataType: "json",
+           complete: function() {
+             setTimeout(poll, POLL_INTERVAL_MS);
+           },
+           timeout: 20000, // TODO: decrease
            success: function(data) {
               $("#sessao_plenaria").text(data["sessao_plenaria"])
               $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
@@ -491,10 +499,7 @@
            },
            error: function(err) {
               console.error(err);
-           },
-           dataType: "json",
-           complete: setTimeout(function() {poll()}, 500),
-           timeout: 20000 // TODO: decrease
+          }
         })
       })();
       });
