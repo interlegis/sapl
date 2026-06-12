@@ -1,532 +1,537 @@
 {% load i18n %}
 {% load common_tags %}
-
 {% load render_bundle from webpack_loader %}
 {% load webpack_static from webpack_loader %}
 
 <!DOCTYPE HTML>
-<!--[if IE 8]> <html class="no-js lt-ie9" lang="pt-br"> <![endif]-->
-<!--[if gt IE 8]><!-->
 <html lang="pt-br">
-<!--<![endif]-->
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- TODO: does it need this head_title here? -->
-    <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
-    
-      {% block webpack_loader_css %}
-        {% render_chunk_vendors 'css' %}
-        {% render_bundle  'global' 'css' %}
-        {% render_bundle  'painel' 'css' %}
-      {% endblock webpack_loader_css %}
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  {% block webpack_loader_css %}
+  {% render_chunk_vendors 'css' %}
+  {% render_bundle 'global' 'css' %}
+  {% render_bundle 'painel' 'css' %}
+  {% endblock webpack_loader_css %}
 
 
-    <style type="text/css">
-        html, body {
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-      @media screen {
-        ul, li {
-          list-style-type: none;
-        }
-      }
-    </style>
-  </head>
-  <body class="painel-principal">
-      <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
+</head>
 
-      <div class="d-flex justify-content-center">
-        <h1 id="sessao_plenaria" class="title text-title"></h1>
-      </div>
-      <div class="row ">
-        <div class="col text-center">
-          <span id="sessao_plenaria_data" class="text-value"></span>
-        </div> 
-        <div class="col text-center">
-          <span id="sessao_plenaria_hora_inicio" class="text-value"></span>
-        </div>
-      </div>    
+<body class="min-vh-100 d-flex flex-column p-2">
+  <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
-      <div class="row justify-content-center">
-        <div class="col-1">
-          <img src="" id="logo-painel" class="logo-painel" alt=""/>
-        </div>
-      </div>
+  <div class="container-fluid">
+    <div class="row g-3">
 
-      <div class="row justify-content-center">
-        <h2 class="text-danger"><span id="message"></span></h2>
-      </div>
-
-      <div class="row">
-        <div class="col text-center"><span class="text-value data-hora" id="date"></span></div>
-        <div class="col text-center"><span class="text-value data-hora" id="relogio"></span></div>
-      </div>
-
-
-      <div class="">
-          <div class="d-flex justify-content-start">
-              <div class="col-md-4">
-                  <div class="text-center painel">
-                      <h2 class="text-subtitle">Parlamentares</h2>
-                      <span id="parlamentares" class="text-value text-center"></span>
-                  </div>
-              </div>
-              <div class="d-flex col-md-8 painels">
-                  <div class="col-md-6 text-center painel" id="aparecer_oradores">
-                      <h2 class="text-subtitle">Oradores</h2>
-                      <span id="orador"></span>
-                  </div>
-
-                  <div class="col-md-6 text-left painel">
-                      <div class="d-flex align-items-left justify-content-left mb-2">
-                          <h2 class="text-subtitle mb-0">Cronômetros</h2>
-                          <button class="btn btn-sm btn-secondary ms-2" onclick="changeFontSize('box_cronometros', -1)">
-                              A-
-                          </button>
-                          <button class="btn btn-sm btn-secondary ms-2" onclick="changeFontSize('box_cronometros', 1)">
-                              A+
-                          </button>
-                      </div>
-                      <div class="text-value" id="box_cronometros">
-                          Discurso: <span id="cronometro_discurso"></span><br>
-                          Aparte: <span id="cronometro_aparte"></span><br>
-                          Questão de Ordem: <span id="cronometro_ordem"></span><br>
-                          Considerações Finais: <span id="cronometro_consideracoes"></span>
-                      </div>
-                  </div>
-
-                  <div class="col-md-6 text-left painel" id="resultado_votacao_div">
-                      <div class="d-flex align-items-left justify-content-left mb-2">
-                          <h2 class="text-subtitle mb-0">Resultado</h2>
-                          <button class="btn btn-sm btn-secondary ms-2" onclick="changeFontSize('box_votacao', -1)">
-                              A-
-                          </button>
-                          <button class="btn btn-sm btn-secondary ms-2" onclick="changeFontSize('box_votacao', 1)">
-                              A+
-                          </button>
-                      </div>
-                      <div id="box_votacao">
-                          <span id="votacao" class="text-value"></span>
-                          <span id="resultado_votacao" lass="text-title"></span>
-                      </div>
-                  </div>
-
-                  <div class="col-md-6 text-center painel" id="obs_materia_div">
-                      <h2 class="text-subtitle" id="mat_em_votacao">Matéria em Votação</h2>
-                      <span id="materia_legislativa_texto" class="text-value"></span>
-                      <br>
-                      <span id="materia_legislativa_ementa" class="text-value"></span>
-                      <br>
-                      <span id="observacao_materia" class="text-value"></span>
-                  </div>
-
-                  <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">
-                      <h2 class="text-subtitle">Tema da Sessão Solene</h2>
-                      <span id="sessao_solene_tema" class="text-value"></span>
-                  </div>
-              </div>
+      <div class="col-md-9 separador-vertical pe-4">
+        <div class="painel p-3 h-100 d-flex flex-column">
+          <h1 id="sessao_plenaria" class="text-title fw-bold text-uppercase"></h1>
+          <div id="parlamentares">
           </div>
+        </div>
       </div>
+
+      <div class="col-md-3 d-flex flex-column gap-3">
+
+        <div class="painel p-3 d-flex flex-column" id="obs_materia_div">
+          <div class="flex-grow-1">
+            <h2 id="mat_em_votacao" class="text-subtitle text-center mb-3 pb-1">Matéria em Votação</h2>
+            <span id="materia_legislativa_texto" class="fs-4 text-white d-block mb-1"></span>
+            <span id="materia_legislativa_ementa" class="fs-6 fst-italic opacity-75 text-white"></span>
+
+            <div class="mt-2 text-warning" style="font-size: 0.9rem;">
+              <span id="observacao_materia"></span>
+            </div>
+
+            <div id="resultado_votacao" class="text-title mt-auto text-center d-block fs-2"></div>
+          </div>
+        </div>
+
+        <div class="text-center painel" id="aparecer_oradores">
+          <h4 class="text-subtitle">Oradores</h4>
+          <div id="orador"></div>
+        </div>
+
+        <div class="painel d-flex flex-column">
+          <div id="box_cronometros" class="w-100">
+            <h4 class="text-center text-subtitle mb-3">Cronômetro</h4>
+            <div class="d-flex align-items-center justify-content-center" style="height: 80px;">
+              <table class="table-custom w-100 mb-0">
+                <tbody>
+                  <tr id="row_discurso">
+                    <td class="fs-3">Discurso</td>
+                    <td class="text-end"><span id="cronometro_discurso"
+                        class="fw-bold font-monospace fs-1">00:00:00</span></td>
+                  </tr>
+                  <tr id="row_aparte" style="display: none;">
+                    <td class="fs-3 text-warning">Aparte</td>
+                    <td class="text-end"><span id="cronometro_aparte"
+                        class="fw-bold font-monospace fs-1 text-warning">00:00:00</span></td>
+                  </tr>
+                  <tr id="row_ordem" style="display: none;">
+                    <td class="fs-3 text-info">Questão de Ordem</td>
+                    <td class="text-end"><span id="cronometro_ordem"
+                        class="fw-bold font-monospace fs-1 text-info">00:00:00</span></td>
+                  </tr>
+                  <tr id="row_consideracoes" style="display: none;">
+                    <td class="fs-3">Consid. Finais</td>
+                    <td class="text-end"><span id="cronometro_consideracoes"
+                        class="fw-bold font-monospace fs-1">00:00:00</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="painel p-3 d-flex flex-column" id="resultado_votacao_div">
+          <div id="box_votacao" class="w-100">
+            <table class="table-custom w-100 mb-0" id="tabela_resultados">
+              <tbody id="votacao"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="painel position-relative bottom-0 hora-brasao">
+          <div class="row justify-content-center align-items-center">
+            <div class="col-4 text-center" id="logo-container">
+              <img src="" id="logo-painel" class="logo-painel" alt="Brasão" />
+            </div>
+            <div class="col-4 text-center" id="relogio-container">
+              <span class="fs-1 fw-bold" id="relogio"></span>
+            </div>
+          </div>
+        </div>
+
       </div>
-  </body>
+    </div>
+  </div>
 
-  {% block webpack_loader_js %}
-    {% render_chunk_vendors 'js' %}
-    {% render_bundle  'global' 'js' %}  
-    {% render_bundle  'painel' 'js' %}      
-  {% endblock webpack_loader_js %}
 
-  {% block webpack_loader_chunks_js %}
-  {% endblock webpack_loader_chunks_js %}
 
-  <script type="text/javascript">
+</body>
 
-      $(document).ready(function() {
+{% block webpack_loader_js %}
+{% render_chunk_vendors 'js' %}
+{% render_bundle 'global' 'js' %}
+{% render_bundle 'painel' 'js' %}
+{% endblock webpack_loader_js %}
 
-         // As constantes decisões sobre a existência ou não do horário de verão,
-         // assim como que data de início e termino do mesmo, fizeram com que fosse necessário
-         // substituir a chamada a Date() por um esquema mais elaborado, onde se
-         // recupera o offset do UTC (-3 GMT, no caso de Brasília) e seta-se
-         // manualmente. Esta informação vem do servidor, desta forma não ficamos
-         // na dependência da atualização de browser, pois tanto o Date() em JS
-         // quanto as libs python (django.utils.timezone, datetime, pytz, etc)
-         // lêem do tzdata, que precisa ser atualizado toda vez que o governo
-         // brasileiro modifica alguma coisa relacionada ao horário de verão.
-         // Recuperando essa informação do servidor só teremos que atualizar as
-         // libs tzdata (Linux) e pytz (Python) uma vez. Além disso, o uso da
-         // biblioteca moment.js é recomendada, pois ela trata data e hora
-         // melhor que o Date() do JS.
+{% block webpack_loader_chunks_js %}
+{% endblock webpack_loader_chunks_js %}
 
-         //TODO: replace by a fancy jQuery clock
-         function checkTime(i) {
-             if (i<10) {i = "0" + i};  // add zero in front of numbers < 10
-                return i;
-         }
 
-         const utcOffset = {{ utc_offset }};
-         const serverEpochMs = {{ server_epoch_ms }};
-         const pageLoadedAtMs = performance.now();
+<script type="text/javascript">
 
-        function startTime() {
-            const elapsedMs = performance.now() - pageLoadedAtMs;
+  $(document).ready(function () {
 
-            const now = moment
-              .utc(serverEpochMs + elapsedMs)
-              .utcOffset(utcOffset);
+    $("#date").append(moment().format("DD/MM/YY"));
 
-            $("#date").text(now.format("DD/MM/YY"));
-            $("#relogio").text(now.format("HH:mm:ss"));
+    var offset = parseFloat({{ utc_offset }});
+  var isPolling = false;
+  var cronometroVisivel = '#row_discurso';
 
-            setTimeout(startTime, 500);
-         }
-         startTime();
+  function checkTime(i) {
+    if (i < 10) { i = "0" + i };
+    return i;
+  }
 
-        var audioAlertFinish = document.getElementById("audio");
+  function startTime() {
+    var today = moment.utc().utcOffset(offset).format("HH:mm:ss");
+    $("#relogio").text(today)
+    setTimeout(startTime, 500);
+  }
+  startTime();
 
-        $('#cronometro_discurso').runner({
-          autostart: false,
-          countdown: true,
-          startAt: {{ 'discurso'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
+  var audioAlertFinish = document.getElementById("audio");
+
+  // Função para formatar o tempo do cronômetro
+  function formatCronometro(value) {
+    let h = Math.floor((value / 1000) / 3600);
+    h = checkTime(h);
+    let m = Math.floor((value / 1000) % 3600 / 60);
+    m = checkTime(m);
+    let s = Math.floor((value / 1000) % 3600 % 60);
+    s = checkTime(s);
+    return h.toString() + ":" + m.toString() + ":" + s.toString();
+  }
+
+  // Inicializar os cronômetros
+  $('#cronometro_discurso').runner({
+    autostart: false,
+    countdown: true,
+    startAt: {{ 'discurso'| cronometro_to_seconds }} * 1000,
+    stopAt: 0,
+    milliseconds: false,
+    format: formatCronometro
+    }).on('runnerFinish', function () {
+      audioAlertFinish.play();
+    });
+
+  $('#cronometro_aparte').runner({
+    autostart: false,
+    countdown: true,
+    startAt: {{ 'aparte'| cronometro_to_seconds }} * 1000,
+    stopAt: 0,
+    milliseconds: false,
+    format: formatCronometro
+    }).on('runnerFinish', function () {
+      audioAlertFinish.play();
+    });
+
+  $('#cronometro_ordem').runner({
+    autostart: false,
+    countdown: true,
+    startAt: {{ 'ordem'| cronometro_to_seconds }} * 1000,
+    stopAt: 0,
+    milliseconds: false,
+    format: formatCronometro
+    }).on('runnerFinish', function () {
+      audioAlertFinish.play();
+    });
+
+  $('#cronometro_consideracoes').runner({
+    autostart: false,
+    countdown: true,
+    startAt: {{ 'consideracoes'| cronometro_to_seconds }} * 1000,
+    stopAt: 0,
+    milliseconds: false,
+    format: formatCronometro
+    }).on('runnerFinish', function () {
+      audioAlertFinish.play();
+    });
+
+  var discurso_previous;
+  var ordem_previous;
+  var aparte_previous;
+  var consideracoes_previous;
+
+  function poll() {
+    // Evitar múltiplas chamadas simultâneas
+    if (isPolling) return;
+    isPolling = true;
+
+    $.ajax({
+      url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
+      type: "GET",
+      success: function (data) {
+        $("#sessao_plenaria").text(data["sessao_plenaria"])
+        if (data["status_painel"] == false) {
+          $("#message").text("PAINEL ENCONTRA-SE FECHADO");
+        }
+        else {
+          $("#message").text("");
+        }
+
+        if (data["sessao_solene"]) {
+          $("#resultado_votacao_div").hide();
+          $("#obs_materia_div").hide();
+          $('#tema_solene_div').show();
+        }
+
+        if (data["brasao"] != null) {
+          $("#logo-painel").attr("src", data["brasao"]);
+          $("#logo-container").show();
+          $("#relogio-container")
+            .removeClass("col-12 mt-5")
+            .addClass("col-4");
+        } else {
+          $("#logo-container").hide();
+          $("#relogio-container")
+            .removeClass("col-4")
+            .addClass("col-12 mt-5");
+        }
+
+        var presentes = $("#parlamentares");
+        var votacao = $("#votacao");
+        var oradores = $("#orador")
+        $("#votacao").empty();
+        presentes.children().remove();
+        oradores.children().remove();
+
+        var oradores_list = data["oradores"];
+        var presentes_list = data["presentes"];
+
+        if (data["status_painel"] == true) {
+          mostrar_voto = data["mostrar_voto"];
+
+          presentes.append('<div class="container-fluid" id="parlamentares_container">');
+          presentes.append('<div class="parlamentares-grid" id="parlamentares_row">');
+          var votoSim = 0;
+          var votoNao = 0;
+          var votoAbster = 0;
+
+          $.each(presentes_list, function (index, parlamentar) {
+            var votoClass = '';
+            var votoText = '';
+
+            if (parlamentar.voto == 'Sim') {
+              votoClass = 'voto-sim';
+              votoText = 'S';
+              votoSim += 1;
+            } else if (parlamentar.voto == 'Não') {
+              votoClass = 'voto-nao';
+              votoText = 'N';
+              votoNao += 1
+            } else if (parlamentar.voto == 'Abstenção') {
+              votoClass = 'voto-abstencao';
+              votoText = 'A';
+              votoAbster += 1
+            } else if (parlamentar.voto == 'Voto Informado' && mostrar_voto == false) {
+              votoClass = 'voto-informado';
+              votoText = 'I';
+            } else if (parlamentar.voto) {
+              votoText = parlamentar.voto;
+            }
+
+            if (parlamentar.fotografia) {
+              fotografia = parlamentar.fotografia
+            } else {
+              fotografia = "{% webpack_static 'img/avatar.png' %}"
+            }
+            var cardHtml = `
+                    <div class="parlamentar-card mt-3 ${votoClass}">
+                          <div class="voto-faixa">
+                            <p>
+                              ${votoText}
+                            </p>
+                          </div>
+                          
+                          <div class="foto-container">
+                              <img src="${fotografia}" alt="${parlamentar.nome}">
+                          </div>
+                          
+                          <div class="mt-2 text-center">
+                              <div class="nome">${parlamentar.nome}</div>
+                              <div class="partido">${parlamentar.partido}</div>
+                          </div>
+                    </div>
+                `;
+
+            $('#parlamentares_row').append(cardHtml);
+          });
+
+          presentes.append('</div>');
+          presentes.append('</div>');
+
+          if (data["oradores"].length > 0) {
+            $('#aparecer_oradores').show();
+            oradores.append('<table id="oradores_list">');
+            $.each(oradores_list, function (index, orador) {
+              $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
+                orador.numero + 'º - ' +
+                orador.nome + '</td></tr>')
+            });
+            oradores.append('</table>');
           }
-        }).on('runnerFinish', function(eventObject, info){
+          else {
+            $('#aparecer_oradores').hide();
+          }
+        }
+        else {
+          presentes.append('<span class="text-white" id="parlamentares_list">');
+          $('#parlamentares_list').append(
+            '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
+          presentes.append('</span>');
+
+          oradores.append('<span class="text-white" id="oradores_list">');
+          $('#oradores_list').append(
+            '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
+          oradores.append('</span>');
+
+          votacao.append('<tr><td colspan="2" class="text-center">A votação só aparecerá quando o painel estiver aberto</td></tr>');
+        }
+
+        if (data["status_painel"]) {
+          if (data['materia_legislativa_texto']) {
+            var votacao = $("#votacao");
+            var total_votos = votoSim + votoNao + votoAbster
+
+            votacao.append("<tr><td>Presentes</td><td>" + data["num_presentes"] + "</td></tr>");
+            votacao.append("<tr><td>Sim</td><td class='table-sim'>" + votoSim + "</td></tr>");
+            votacao.append("<tr><td>Não</td><td class='table-nao'>" + votoNao + "</td></tr>");
+            votacao.append("<tr><td>Abstenções</td><td class='table-abstencao'>" + votoAbster + "</td></tr>");
+            votacao.append("<tr><td><strong>Total votos</strong></td><td class='table-total'><strong>" + total_votos + "</strong></td></tr>");
+          }
+          else {
+            votacao.append('<tr><td colspan="2" class="text-center">Não há votação, pois não há nenhuma matéria aberta ou já votada.</td></tr>');
+          }
+        }
+
+        // Gerenciar cronômetros
+        var discurso_current = data["cronometro_discurso"];
+        if (!discurso_previous) {
+          discurso_previous = '';
+        }
+
+        if (discurso_current != discurso_previous) {
+          $('#cronometro_discurso').runner(discurso_current);
+          discurso_previous = discurso_current;
+        }
+
+        var aparte_current = data["cronometro_aparte"];
+        if (!aparte_previous) {
+          aparte_previous = '';
+        }
+
+        if (aparte_current != aparte_previous) {
+          $('#cronometro_aparte').runner(aparte_current);
+          aparte_previous = aparte_current;
+        }
+
+        var ordem_current = data["cronometro_ordem"];
+        if (!ordem_previous) {
+          ordem_previous = '';
+        }
+
+        if (ordem_current != ordem_previous) {
+          $('#cronometro_ordem').runner(ordem_current);
+          ordem_previous = ordem_current;
+        }
+
+        var consideracoes_current = data["cronometro_consideracoes"];
+        if (!consideracoes_previous) {
+          consideracoes_previous = '';
+        }
+
+        if (consideracoes_current != consideracoes_previous) {
+          $('#cronometro_consideracoes').runner(consideracoes_current);
+          consideracoes_previous = consideracoes_current;
+        }
+
+        var discursoRunning = $('#cronometro_discurso').runner('info').running;
+        var ordemRunning = $('#cronometro_ordem').runner('info').running;
+        var aparteRunning = $('#cronometro_aparte').runner('info').running;
+        var consideracoesRunning = $('#cronometro_consideracoes').runner('info').running;
+
+
+        if (ordemRunning) {
+          cronometroVisivel = '#row_ordem';
+        } else if (aparteRunning) {
+          cronometroVisivel = '#row_aparte';
+        } else if (consideracoesRunning) {
+          cronometroVisivel = '#row_consideracoes';
+        } else if (discursoRunning) {
+          cronometroVisivel = '#row_discurso';
+        }
+
+        var todosCronometros = ['#row_discurso', '#row_aparte', '#row_ordem', '#row_consideracoes'];
+
+        $.each(todosCronometros, function (index, id) {
+          if (id === cronometroVisivel) {
+            $(id).show();
+          } else {
+            $(id).hide();
+          }
+        });
+
+        if ($('#cronometro_discurso').runner('info').formattedTime == "00:00:30") {
           audioAlertFinish.play();
-        });
+        }
 
-        $('#cronometro_aparte').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'aparte'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
-            audioAlertFinish.play();
-        });
-
-        $('#cronometro_ordem').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'ordem'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
+        if ($('#cronometro_aparte').runner('info').formattedTime == "00:00:30") {
           audioAlertFinish.play();
-        });
+        }
 
-        $('#cronometro_consideracoes').runner({
-          autostart: false,
-          countdown: true,
-          startAt:  {{ 'consideracoes'|cronometro_to_seconds }} * 1000,
-          stopAt: 0,
-          milliseconds: false,
-          format: function(value) {
-            let h = Math.floor((value/1000) / 3600);
-            h = checkTime(h);
-            let m = Math.floor((value/1000) % 3600 / 60);
-            m = checkTime(m);
-            let s = Math.floor((value/1000) % 3600 % 60);
-            s = checkTime(s);
-            return h.toString() + ":" + m.toString() + ":" + s.toString();
-          }
-        }).on('runnerFinish', function(eventObject, info){
+        if ($('#cronometro_ordem').runner('info').formattedTime == "00:00:30") {
           audioAlertFinish.play();
-        });
+        }
 
-    var discurso_previous;
-    var ordem_previous;
-    var aparte_previous;
-    var consideracoes_previous;
+        if ($('#cronometro_consideracoes').runner('info').formattedTime == "00:00:30") {
+          audioAlertFinish.play();
+        }
 
-    const POLL_INTERVAL_MS =
-      window.location.hostname === "localhost" ? 2000 : 500;
-
-    var counter = 1;
-    (function poll() {
-        $.ajax({
-           url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
-           type: "GET",
-           dataType: "json",
-           complete: function() {
-             setTimeout(poll, POLL_INTERVAL_MS);
-           },
-           timeout: 20000, // TODO: decrease
-           success: function(data) {
-              $("#sessao_plenaria").text(data["sessao_plenaria"])
-              $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
-              $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
-              $("#sessao_solene_tema").text(data["tema_solene"])
-              if (data["status_painel"] == false) {
-                $("#message").text("PAINEL ENCONTRA-SE FECHADO");
-              }
-              else {
-                $("#message").text("");
-              }
-
-              if (data["sessao_solene"]){
-                $("#resultado_votacao_div").hide();
-                $("#obs_materia_div").hide();
-                $('#tema_solene_div').show();
-              }
-
-              if (data["brasao"] != null)
-                $("#logo-painel").attr("src", data["brasao"]);
-
-              var presentes = $("#parlamentares");
-              var votacao = $("#votacao");
-              var oradores = $("#orador")
-              $("#votacao").text('');
-              presentes.children().remove();
-              votacao.children().remove();
-              oradores.children().remove();
-
-              var oradores_list = data["oradores"];
-              var presentes_list = data["presentes"];
-
-              if (data["status_painel"] == true) {
-                  mostrar_voto = data["mostrar_voto"];
-                  presentes.append('<table id="parlamentares_list">');
-                  $.each(presentes_list, function (index, parlamentar) {
-
-
-                    if (parlamentar.voto == 'Voto Informado' && mostrar_voto == false){
-                      $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
-                          parlamentar.nome +
-                          '</td> <td style="padding-right:20px; color:yellow">' +
-                          parlamentar.partido + '</td> <td style="padding-right:20px; color:yellow">'
-                          + '</td></tr>')
-                    }
-                    else{
-                      $('#parlamentares_list').append(show_voto(parlamentar))
-                    }
-
-                  });
-                  presentes.append('</table>')
-
-                  if (data["oradores"].length > 0){
-                    $('#aparecer_oradores').show();
-                    oradores.append('<table id="oradores_list">');
-                    $.each(oradores_list, function (index, orador) {
-                      $('#oradores_list').append('<tr><td style="padding-right:20px; color:white" >' +
-                          orador.numero + 'º &nbsp' +
-                          orador.nome +'</td></tr>')
-                    });
-                    oradores.append('</table>');
-                  }
-                  else {
-                    $('#aparecer_oradores').hide();
-                  }
-              }
-              else{
-                  presentes.append('<span style="color:white" id="parlamentares_list">');
-                  $('#parlamentares_list').append(
-                      '<center>A listagem de parlamentares só aparecerá quando o painel estiver aberto.</center>')
-                  presentes.append('</span>');
-
-                  oradores.append('<span style="color:white" id="oradores_list">');
-                  $('#oradores_list').append(
-                      '<center>A listagem de oradores só aparecerá quando o painel estiver aberto.</center>')
-                  oradores.append('</span>');
-
-                  votacao.append('<span id="votacao">');
-                  $("#votacao").append('<center>A votação só aparecerá quando o painel estiver aberto</center>');
-                  votacao.append('</span>');
-              }
-
-              if(data["status_painel"]){
-                if (data['materia_legislativa_texto']){
-                  var votacao = $("#votacao");
-
-                  votacao.append("<li>Sim: " + data["numero_votos_sim"] + "</li>");
-                  votacao.append("<li>Não: " + data["numero_votos_nao"] + "</li>");
-                  votacao.append("<li>Abstenções: " + data["numero_abstencoes"] + "</li>");
-                  votacao.append("<li>Presentes: " + data["num_presentes"] + "</li>");
-                  votacao.append("<li>Total votos: " + data["total_votos"] + "</li>");
-                }
-                else{
-                    $("#votacao").append('<center>Não há votação, pois não há nenhuma matéria aberta ou já votada.</center>');
-                }
-              }
-
-              var discurso_current = data["cronometro_discurso"];
-              if (!discurso_previous){
-                discurso_previous = ''
-              }
-
-              if (discurso_current != discurso_previous) {
-                $('#cronometro_discurso').runner(discurso_current);
-                discurso_previous = discurso_current;
-              }
-
-              var aparte_current = data["cronometro_aparte"];
-              if (!aparte_previous){
-                aparte_previous = ''
-              }
-
-              if (aparte_current != aparte_previous) {
-                $('#cronometro_aparte').runner(aparte_current);
-                aparte_previous = aparte_current;
-              }
-
-              var ordem_current = data["cronometro_ordem"];
-              if (!ordem_previous){
-                ordem_previous = ''
-              }
-
-              if (ordem_current != ordem_previous) {
-                $('#cronometro_ordem').runner(ordem_current);
-                ordem_previous = ordem_current;
-              }
-
-              var consideracoes_current = data["cronometro_consideracoes"];
-              if (!consideracoes_previous){
-                consideracoes_previous = ''
-              }
-
-              if (consideracoes_current != consideracoes_previous) {
-                $('#cronometro_consideracoes').runner(consideracoes_current);
-                consideracoes_previous = consideracoes_current;
-              }
-
-              if($('#cronometro_discurso').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_aparte').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_ordem').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if($('#cronometro_consideracoes').runner('info').formattedTime == "00:00:30") {
-                  audioAlertFinish.play();
-              }
-
-              if(data['sessao_finalizada']){
-                $("#obs_materia_div").hide();
-                $("#resultado_votacao_div").hide();
-              }
-              else if (data['materia_legislativa_texto']){
-                if (data["status_painel"] == true){
-                  $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
-                  $("#materia_legislativa_ementa").text(data["materia_legislativa_ementa"]);
-                }
-                else{
-                  $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
-                }
-              }
-              else{
-                $("#materia_legislativa_texto").text('Não há nenhuma matéria votada ou para votação.');
-              }
-
-              if (data['observacao_materia'] && data["status_painel"] == true){
-                var texto = data['observacao_materia'];
-                if(texto.length > 151) {
-                  $("#observacao_materia").text(texto.substr(0, 145).concat('(...)'));
-                }
-                else{
-                    $("#observacao_materia").text(texto);
-                }
-              }
-              else{
-                $("#observacao_materia").text('');
-              }
-              if (data['tipo_resultado'] && data['status_painel'] == true){
-                if(data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]){
-                  $("#resultado_votacao").css("color", "#45919D");
-                  $("#mat_em_votacao").text("Matéria em Votação");
-                  $("#resultado_votacao_div").show();
-                }
-                else{
-                  $("#resultado_votacao_div").hide();
-                  $("#mat_em_votacao").text("Matéria em Leitura");
-                }
-                console.log(data["tipo_resultado"], data['tipo_votacao']);
-                $("#resultado_votacao").text(data["tipo_resultado"]);
-
-                var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
-                console.log(resultado_votacao_upper, data['tipo_resultado']);
-                if (resultado_votacao_upper.search("APROV") != -1){
-                  $("#resultado_votacao").css("color", "#7CFC00");
-                  $("#mat_em_votacao").text("Matéria Votada");
-                }
-                else if (resultado_votacao_upper.search("REJEIT") != -1){
-                  $("#resultado_votacao").css("color", "red");
-                  $("#mat_em_votacao").text("Matéria Votada");
-                }
-                else if (resultado_votacao_upper.search("LIDA") != -1){
-                  $("#mat_em_votacao").text("Matéria Lida");
-                }
-              }
-              else{
-                $("#resultado_votacao").text('');
-                if(data['tipo_votacao'] != 'Leitura')
-                  $("#mat_em_votacao").text("Matéria em Votação");
-                else{
-                  $("#mat_em_votacao").text("Matéria em Leitura");
-                }
-              }
-           },
-           error: function(err) {
-              console.error(err);
+        if (data['sessao_finalizada']) {
+          $("#obs_materia_div").hide();
+          $("#resultado_votacao_div").hide();
+        }
+        else if (data['materia_legislativa_texto']) {
+          if (data["status_painel"] == true) {
+            $("#materia_legislativa_texto").text(data["materia_legislativa_texto"]);
+            texto = data['materia_legislativa_ementa']
+            if (texto.length > 151) {
+              $("#materia_legislativa_ementa").text(texto.substr(0, 145).concat('...'));
+            }
+            else {
+              $("#materia_legislativa_ementa").text(data["materia_legislativa_ementa"]);
+            }
           }
-        })
-      })();
-      });
-
-     function show_voto(parlamentar) {
-      color = 'white'
-      if (parlamentar.voto == "Sim"){
-          color = 'green'
-      }
-      else if (parlamentar.voto == "Não"){
-          color = 'red'
-      }
-
-      return ('<tr> <td style="padding-right:20px">' +
-                `<font color="`+color+`">${parlamentar.nome}</font> </td> <td style="padding-right:20px">` +
-                `<font color="`+color+`">${parlamentar.partido}</font> </td> <td style="padding-right:20px">` +
-                `<font color="`+color+`">${parlamentar.voto}</font> </td></tr>`)
-     }
-
-      function changeFontSize(elementId, increment) {
-          let element = document.getElementById(elementId);
-          if (element) {
-              let currentSize = parseFloat(window.getComputedStyle(element, null).getPropertyValue('font-size'));
-              element.style.fontSize = (currentSize + increment) + 'px';
+          else {
+            $("#materia_legislativa_texto").text('A Matéria em votação só aparecerá quando o painel estiver aberto');
           }
-      }
-     
-  </script>
+        }
+        else {
+          $("#materia_legislativa_texto").text('Não há nenhuma matéria votada ou para votação.');
+        }
+
+        if (data['observacao_materia'] && data["status_painel"] == true) {
+          var texto = data['observacao_materia'];
+          if (texto.length > 151) {
+            $("#observacao_materia").text(texto.substr(0, 145).concat('(...)'));
+          }
+          else {
+            $("#observacao_materia").text(texto);
+          }
+        }
+        else {
+          $("#observacao_materia").text('');
+        }
+        if (data['tipo_resultado'] && data['status_painel'] == true) {
+          if (data['tipo_votacao'] != 'Leitura' && !data['sessao_finalizada'] && !data["sessao_solene"]) {
+            $("#resultado_votacao").css("color", "#45919D");
+            $("#mat_em_votacao").text("Matéria em Votação");
+            $("#resultado_votacao_div").show();
+          }
+          else {
+            $("#resultado_votacao_div").hide();
+            $("#mat_em_votacao").text("Matéria em Leitura");
+          }
+          $("#resultado_votacao").text(data["tipo_resultado"]);
+
+          var resultado_votacao_upper = $("#resultado_votacao").text().toUpperCase();
+          if (resultado_votacao_upper.search("APROV") != -1) {
+            $("#resultado_votacao").css("color", "#7CFC00");
+            $("#mat_em_votacao").text("Matéria Votada");
+          }
+          else if (resultado_votacao_upper.search("REJEIT") != -1) {
+            $("#resultado_votacao").css("color", "red");
+            $("#mat_em_votacao").text("Matéria Votada");
+          }
+          else if (resultado_votacao_upper.search("LIDA") != -1) {
+            $("#mat_em_votacao").text("Matéria Lida");
+          }
+        }
+        else {
+          $("#resultado_votacao").text('');
+          if (data['tipo_votacao'] != 'Leitura')
+            $("#mat_em_votacao").text("Matéria em Votação");
+          else {
+            $("#mat_em_votacao").text("Matéria em Leitura");
+          }
+        }
+
+      },
+      error: function (xhr, status, error) {
+        console.error("Erro no polling:", error);
+      },
+      complete: function () {
+        isPolling = false;
+        setTimeout(poll, 500);
+      },
+      timeout: 20000
+    });
+  }
+
+  // Iniciar polling
+  poll();
+
+  });
+
+</script>
+
 </html>
-
