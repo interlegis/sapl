@@ -186,14 +186,14 @@ class Migration(migrations.Migration):
                 LEFT JOIN LATERAL (
                     SELECT em.sessao_plenaria_id,
                            em.numero_ordem,
-                           jsonb_agg(jsonb_build_object(
+                           jsonb_object_agg(
                                     vp.parlamentar_id,
                                     jsonb_build_object(
                                       'materia_id', em.materia_id,
                                       'parlamentar_id', vp.parlamentar_id,
                                       'parlamentar_nome', p.nome_parlamentar,
                                       'voto', vp.voto
-                                     )) ORDER BY p.nome_parlamentar) as votos_parlamentares                                     
+                                     )) as votos_parlamentares                                     
                     FROM sessao_votoparlamentar vp
                     JOIN parlamentares_parlamentar p ON (vp.parlamentar_id = p.id)
                     WHERE vp.expediente_id = em.id AND em.tipo_votacao != 4
@@ -227,7 +227,7 @@ class Migration(migrations.Migration):
                 FROM sessao_ordemdia od
                 JOIN materia_materialegislativa ml ON (od.materia_id = ml.id)
                 JOIN materia_tipomaterialegislativa tm ON (ml.tipo_id = tm.id)
-                LEFT JOIN sessao_registroleitura rl on (od.id = rl.expediente_id)
+                LEFT JOIN sessao_registroleitura rl on (od.id = rl.ordem_id)
                 LEFT JOIN LATERAL (
                     SELECT jsonb_build_object(
                                 'votos_sim', coalesce(rv.numero_votos_sim, 0),
@@ -238,21 +238,21 @@ class Migration(migrations.Migration):
                             trv.nome resultado_votacao
                     FROM sessao_registrovotacao rv
                     JOIN sessao_tiporesultadovotacao trv on (rv.tipo_resultado_votacao_id = trv.id)
-                    WHERE rv.expediente_id = od.id AND tipo_votacao != 4) rv ON TRUE
+                    WHERE rv.ordem_id = od.id AND tipo_votacao != 4) rv ON TRUE
                 LEFT JOIN LATERAL (
                     SELECT od.sessao_plenaria_id,
                            od.numero_ordem,
-                           jsonb_agg(jsonb_build_object(
+                           jsonb_object_agg(
                                     vp.parlamentar_id,
                                     jsonb_build_object(
                                       'materia_id', od.materia_id,
                                       'parlamentar_id', vp.parlamentar_id,
                                       'parlamentar_nome', p.nome_parlamentar,
                                       'voto', vp.voto
-                                     )) ORDER BY p.nome_parlamentar) as votos_parlamentares                                        
+                                     )) as votos_parlamentares                                        
                     FROM sessao_votoparlamentar vp
                     JOIN parlamentares_parlamentar p ON (vp.parlamentar_id = p.id)
-                    WHERE vp.expediente_id = od.id AND od.tipo_votacao != 4
+                    WHERE vp.ordem_id = od.id AND od.tipo_votacao != 4
                     GROUP BY od.sessao_plenaria_id, od.numero_ordem
                     ORDER BY od.sessao_plenaria_id, od.numero_ordem
                 ) vp ON TRUE
