@@ -65,6 +65,29 @@ def get_dados_painel(sessao_plenaria_id: int) -> dict:
         'nome_parlamentar',
         'filiacao', )
     parlamentares = [dict(zip(['parlamentar_id', 'nome_parlamentar', 'filiacao'], p)) for p in presentes]
+
+    # Adicionar fotografia dos parlamentares
+    from sapl.parlamentares.models import Parlamentar
+    from image_cropping.utils import get_backend
+    parlamentar_ids = [p['parlamentar_id'] for p in parlamentares]
+    parlamentares_db = {p.id: p for p in Parlamentar.objects.filter(id__in=parlamentar_ids)}
+    for p in parlamentares:
+        par = parlamentares_db.get(p['parlamentar_id'])
+        if par and par.fotografia:
+            try:
+                p['fotografia'] = get_backend().get_thumbnail_url(
+                    par.fotografia,
+                    {
+                        'size': (128, 128),
+                        'box': par.cropping,
+                        'crop': True,
+                        'detail': True,
+                    }
+                )
+            except Exception:
+                p['fotografia'] = None
+        else:
+            p['fotografia'] = None
     if materia_votacao and materia_votacao.numero_votos:
         materia_votacao.numero_votos.update({"num_presentes": len(parlamentares)})
 
