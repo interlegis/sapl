@@ -5,86 +5,57 @@
 {% load webpack_static from webpack_loader %}
 
 <!DOCTYPE HTML>
-<!--[if IE 8]>
-<html class="no-js lt-ie9" lang="pt-br"> <![endif]-->
-<!--[if gt IE 8]><!-->
 <html lang="pt-br">
-<!--<![endif]-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- TODO: does it need this head_title here? -->
     <title>{% block head_title %}{% trans 'SAPL - Sistema de Apoio ao Processo Legislativo' %}{% endblock %}</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    />
 
     {% block webpack_loader_css %}
     {% render_chunk_vendors 'css' %}
     {% render_bundle 'global' 'css' %}
     {% render_bundle 'painel' 'css' %}
     {% endblock webpack_loader_css %}
-
-
-    <style type="text/css">
-        html, body {
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-      @media screen {
-        ul, li {
-          list-style-type: none;
-        }
-      }
-
-    </style>
 </head>
-<body class="painel-principal">
+<body class="min-vh-100 d-flex flex-column p-2">
 
 {% block vue_content %}
 
 <style>[v-cloak]{display:none}</style>
-<div id="painel" v-cloak class="col text-center" data-controller-id="{{ controller_id }}">
+<div id="painel" v-cloak class="container-fluid" data-controller-id="{{ controller_id }}">
+    <div class="row g-3">
 
-    <painel-header ref="painelHeader"></painel-header>
+        <div class="col-md-9 separador-vertical pe-4">
+            <div class="painel p-3 h-100 d-flex flex-column">
+                <painel-header ref="painelHeader"></painel-header>
+                <painel-parlamentares ref="parlamentares"></painel-parlamentares>
+            </div>
+        </div>
 
-    <div class="row justify-content-center">
+        <div class="col-md-3 d-flex flex-column gap-3">
+            <painel-materia ref="materia"></painel-materia>
 
-    <div class="d-flex justify-content-start">
-        <painel-parlamentares ref="parlamentares"></painel-parlamentares>
-
-        <div class="d-flex col-md-8 painels">
             <painel-oradores ref="oradores"></painel-oradores>
 
-            <div class="col-md-6 text-left painel" v-if="canRender">
-                <div class="d-flex align-items-left justify-content-left mb-2">
-                    <h2 class="text-subtitle mb-0">Cronômetros</h2>
-                </div>
-                <div class="text-value" id="box_cronometros">
-                    <button class="btn btn-sm btn-secondary ms-2" v-on:click="changeFontSize(-1)">
-                      A-
-                    </button>
-                    <button class="btn btn-sm btn-secondary ms-2" v-on:click="changeFontSize(1)">
-                      A+
-                    </button>
-                    <painel-cronometro ref="sw:discurso" id="sw:discurso" title="Discurso"></painel-cronometro>
-                    <painel-cronometro ref="sw:aparte" id="sw:aparte" title="Aparte"></painel-cronometro>
-                    <painel-cronometro ref="sw:questao" id="sw:questao" title="Questão de Ordem"></painel-cronometro>
-                    <painel-cronometro ref="sw:consideracoes" id="sw:consideracoes" title="Considerações Finais"></painel-cronometro>
-                </div>
-            </div>
-<!--            <painel-cronometro-list ref="cronometro_list"></painel-cronometro-list>-->
+            <painel-cronometro-list ref="cronometro_list"></painel-cronometro-list>
 
             <painel-resultado ref="resultado"></painel-resultado>
 
-            <painel-materia ref="materia"></painel-materia>
-
-            <div class="col-md-6 text-center painel" id="tema_solene_div" style="display: none">
+            <div class="painel p-3 d-flex flex-column" id="tema_solene_div" v-if="sessao && sessao.sessao_solene">
                 <h2 class="text-subtitle">Tema da Sessão Solene</h2>
-                <span id="sessao_solene_tema" class="text-value"></span>
+                <span id="sessao_solene_tema" class="text-value">[[ sessao.tema_solene ]]</span>
             </div>
+
+            <painel-footer ref="painelFooter"></painel-footer>
         </div>
+
     </div>
 </div>
-
 {% endblock %}
 </body>
 {% block webpack_loader_js %}
