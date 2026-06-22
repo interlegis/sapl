@@ -82,6 +82,13 @@ urlpatterns += [
 ]
 
 
+# Media files — served via X-Accel-Redirect in production, directly in DEBUG.
+from sapl.base.media import serve_media  # noqa: E402
+
+urlpatterns += [
+    url(r'^media/(?P<path>.*)$', serve_media, name='serve_media'),
+]
+
 # Fix a static asset finding error on Django 1.9 + gunicorn:
 # http://stackoverflow.com/questions/35510373/
 
@@ -95,11 +102,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
 
-    urlpatterns += [
-        url(r'^media/(?P<path>.*)$', view_static_server, {
-            'document_root': settings.MEDIA_ROOT,
-        }),
-    ]
+    # media/ is handled by serve_media below (works in DEBUG too)
 
 
 # Make the rate limiter return 429 (Too Many Requests) instead of 403 (Forbidden Access)

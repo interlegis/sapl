@@ -143,9 +143,11 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.http.ConditionalGetMiddleware',
     'sapl.middleware.endpoint_restriction.EndpointRestrictionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'sapl.middleware.ratelimit.RateLimitMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -201,13 +203,93 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-        'OPTIONS': {"MAX_ENTRIES": 10000},
+# ---------------------------------------------------------------------------
+# Tenant namespace — used as Redis cache KEY_PREFIX (cache:{ns}:*) and
+# as the rate-limiter scope for per-namespace keys.
+# Defaults to the machine hostname so self-hosted (bare-metal / VM /
+# docker-compose) deployments work without any extra config.
+# On Kubernetes, POD_NAMESPACE is set by start.sh via the Downward API or
+# the service-account namespace file (e.g. "sapl31demo-df").
+# ---------------------------------------------------------------------------
+POD_NAMESPACE = config('POD_NAMESPACE', default=host)
+
+# ---------------------------------------------------------------------------
+# Cache — switches between file-based (default) and Redis at pod startup.
+# REDIS_URL and CACHE_BACKEND are resolved by start.sh before Gunicorn
+# starts; settings.py reads them as env vars (written into .env).
+# ---------------------------------------------------------------------------
+REDIS_URL = config('REDIS_URL', default='')
+CACHE_BACKEND = config('CACHE_BACKEND', default='file')
+
+# Avoid the double-dot in cache_page keys that occurs when this is '' (default).
+# Namespace isolation is already handled by CACHES['default']['KEY_PREFIX'];
+# this 'p' just fills the empty slot in Django's key format string.
+CACHE_MIDDLEWARE_KEY_PREFIX = 'p'
+
+
+def _build_cache_layer(pod_namespace, cache_backend, redis_url):
+    """
+    Return the CACHES dict for the given runtime environment.
+
+    Two backends are always defined:
+      default   — DB 0: page/view/static-file cache, KEY_PREFIX isolates tenants.
+      ratelimit — DB 1: rate-limiter counters; pass-through KEY_FUNCTION keeps
+                  raw 'rl:*' keys consistent between RateLimitMiddleware
+                  (get_redis_connection) and @ratelimit decorator paths.
+
+    Redis path: both backends share the same connection-pool settings so a
+    single pool object is created once and referenced by both caches.
+    File path: used in development and as a fallback when Redis is absent.
+    """
+    if cache_backend == 'redis' and bool(redis_url):
+        _pool = {
+            'max_connections': 3,  # 1,200 pods × 2 workers × 3 = 7,200 peak (headroom for nginx connections)
+            'socket_timeout': 0.5,
+            'socket_connect_timeout': 0.5,
+        }
+        return {
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': f'{redis_url}/0',
+                'KEY_PREFIX': f'cache:{pod_namespace}',
+                'TIMEOUT': 300,
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                    'CONNECTION_POOL_KWARGS': _pool,
+                    'IGNORE_EXCEPTIONS': True,  # degrades to cache miss on Redis failure
+                },
+            },
+            'ratelimit': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': f'{redis_url}/1',
+                'KEY_FUNCTION': 'sapl.middleware.ratelimit.make_ratelimit_cache_key',
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                    'CONNECTION_POOL_KWARGS': _pool,
+                    'IGNORE_EXCEPTIONS': True,
+                },
+            },
+        }
+
+    return {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': '/var/tmp/django_cache',
+            'KEY_PREFIX': f'cache:{pod_namespace}',
+            'OPTIONS': {'MAX_ENTRIES': 10000},
+        },
+        'ratelimit': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': '/var/tmp/django_ratelimit_cache',
+            'KEY_FUNCTION': 'sapl.middleware.ratelimit.make_ratelimit_cache_key',
+            'OPTIONS': {'MAX_ENTRIES': 5000},
+        },
     }
-}
+
+
+CACHES = _build_cache_layer(POD_NAMESPACE, CACHE_BACKEND, REDIS_URL)
+
+RATELIMIT_USE_CACHE = 'ratelimit'
 
 ROOT_URLCONF = 'sapl.urls'
 
@@ -315,8 +397,81 @@ WAFFLE_ENABLE_ADMIN_PAGES = True
 MAX_DOC_UPLOAD_SIZE = 150 * 1024 * 1024  # 150MB
 MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+# Files above 2 MB are streamed to a temp file on disk rather than held in
+# worker RAM. Critical for large upload support without memory blowup.
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024  # 2MB
+FILE_UPLOAD_TEMP_DIR = '/var/interlegis/sapl/tmp'
 
-RATE_LIMITER_RATE = config('RATE_LIMITER_RATE', default='35/m')
+# ---------------------------------------------------------------------------
+# Rate limiting — RateLimitMiddleware (sapl/middleware/ratelimit.py)
+# ---------------------------------------------------------------------------
+RATE_LIMITER_RATE = config('RATE_LIMITER_RATE', default='120/m')
+RATE_LIMITER_RATE_AUTHENTICATED = config('RATE_LIMITER_RATE_AUTHENTICATED', default='240/m')
+RATE_LIMITER_RATE_BOT = config('RATE_LIMITER_RATE_BOT', default='5/m')
+
+# Seconds between re-fetches of the runtime UA deny list from Redis DB 1.
+# Lower values pick up new blocked UAs faster; higher values reduce Redis round-trips.
+RATE_LIMITER_UA_BLOCKLIST_REFRESH = config('RATE_LIMITER_UA_BLOCKLIST_REFRESH', default=60, cast=int)
+
+# Seconds between re-fetches of the IP-prefix deny list (rl:ip_prefix:blocked SET).
+RATE_LIMITER_IP_PREFIX_BLOCKLIST_REFRESH = config('RATE_LIMITER_IP_PREFIX_BLOCKLIST_REFRESH', default=60, cast=int)
+
+# Number of shards for the blocked-IP ZSET indexes.
+# Each shard receives IPs deterministically via md5(ip) % N, distributing
+# write contention across N keys. Increase for high-throughput deployments.
+RATE_LIMITER_INDEX_SHARDS = config('RATE_LIMITER_INDEX_SHARDS', default=3, cast=int)
+
+# Maximum 404 responses from one anonymous IP in one anon window before the IP
+# is blocked. Catches path-probing scanners that don't use recognised extensions.
+RATE_LIMIT_404_THRESHOLD = config('RATE_LIMIT_404_THRESHOLD', default=20, cast=int)
+
+# Paths exempt from rate limiting at the Django layer.
+# Regex strings matched against request.path.
+# /painel/<pk>/dados is a high-frequency polling endpoint (will become WebSocket);
+# it is also exempt at the nginx layer (location block with no limit_req).
+RATE_LIMIT_BYPASS_PATHS = [
+    r'^/painel/\d+/dados$',
+    r'^/voto-individual/',
+    r'^/sessao/\d+',
+    r'^/sessao/pauta-sessao/\d+/',
+]
+
+# API quota — daily and weekly call caps for all /api/ callers (anon and auth).
+# All callers are keyed by IP — auth status is not checked.
+# Weekly default is 7× the daily cap.
+API_QUOTA_DAILY = config('API_QUOTA_DAILY', default=100000, cast=int)
+API_QUOTA_WEEKLY = config('API_QUOTA_WEEKLY', default=700000, cast=int)
+
+# API-specific per-minute rate limit for external (non-same-origin) anonymous calls.
+# Abuse writes rl:api:ip:<ip>:blocked only — never rl:ip:<ip>:blocked.
+API_RATE_LIMIT_ENABLED = config('API_RATE_LIMIT_ENABLED', default=True, cast=bool)
+API_RATE_LIMIT_THRESHOLD = config('API_RATE_LIMIT_THRESHOLD', default=120, cast=int)
+API_RATE_LIMIT_WINDOW_SECONDS = config('API_RATE_LIMIT_WINDOW_SECONDS', default=60, cast=int)
+API_RATE_LIMIT_BLOCK_SECONDS = config('API_RATE_LIMIT_BLOCK_SECONDS', default=60, cast=int)
+API_RATE_LIMIT_SAME_ORIGIN_BYPASS = config('API_RATE_LIMIT_SAME_ORIGIN_BYPASS', default=True, cast=bool)
+
+# Media file serving — serve_media (sapl/base/media.py) via X-Accel-Redirect.
+# TTL for both URL-path and storage-path access counters (DB 1).
+MEDIA_PATH_COUNTER_TTL = config('MEDIA_PATH_COUNTER_TTL', default=60, cast=int)
+
+# ---------------------------------------------------------------------------
+# Anonymous page caching — AnonCachePageMixin (sapl/middleware/page_cache.py)
+# TTLs apply only to anonymous (unauthenticated) GET responses.
+# Authenticated users always bypass the cache (see AnonCachePageMixin).
+# ---------------------------------------------------------------------------
+# Public list views (norma, materia, sessao, parlamentares…)
+PAGE_CACHE_TTL_LIST = config('PAGE_CACHE_TTL_LIST', default=120, cast=int)
+# Public detail views — rarely mutated once published
+PAGE_CACHE_TTL_DETAIL = config('PAGE_CACHE_TTL_DETAIL', default=300, cast=int)
+# High-stability detail views (parlamentar, comissão) — change only each term
+PAGE_CACHE_TTL_STABLE = config('PAGE_CACHE_TTL_STABLE', default=600, cast=int)
+
+logger.info(
+    '[PAGE_CACHE] list=%ds  detail=%ds  stable=%ds',
+    PAGE_CACHE_TTL_LIST,
+    PAGE_CACHE_TTL_DETAIL,
+    PAGE_CACHE_TTL_STABLE,
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -333,7 +488,6 @@ if not TIME_ZONE:
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
 
 ##
 ## Monkey patch of the Django 2.2 because latest version of psycopg2 returns DB time zone as UTC,
@@ -356,6 +510,16 @@ def _compat_utc_tzinfo_factory(offset):
 
 
 pg_utils.utc_tzinfo_factory = _compat_utc_tzinfo_factory
+
+##
+## Strip the language/timezone suffix from Django page-cache keys.
+## Django's _i18n_cache_key_suffix appends ".pt-br.America/Sao_Paulo" when
+## USE_I18N and USE_TZ are True.  SAPL is monolingual (always pt-br /
+## America/Sao_Paulo), so the suffix is constant noise that bloats key names.
+##
+import django.utils.cache as _dj_cache
+
+_dj_cache._i18n_cache_key_suffix = lambda request, cache_key: cache_key
 
 # DATE_FORMAT = 'N j, Y'
 DATE_FORMAT = 'd/m/Y'
@@ -409,7 +573,7 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 FILTERS_HELP_TEXT_FILTER = False
 
 LOGGING_CONSOLE_VERBOSE = config(
-    'LOGGING_CONSOLE_VERBOSE', cast=bool, default=False)
+    'LOGGING_CONSOLE_VERBOSE', cast=bool, default=True)
 
 LOGGING = {
     'version': 1,
@@ -429,7 +593,7 @@ LOGGING = {
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s [%(request_id)s] ' + host + '%(pathname)s %(name)s:%(funcName)s:%('
-                                                                            'lineno)d %(message)s '
+                                                                             'lineno)d %(message)s '
         },
         'simple': {
             'format': '%(levelname)s %(asctime)s [%(request_id)s] - %(message)s'

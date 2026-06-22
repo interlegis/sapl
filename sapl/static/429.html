@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>429 – Muitas Requisições</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff;
+      border-top: 4px solid #e74c3c;
+      border-radius: 4px;
+      padding: 2.5rem 3rem;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .code { font-size: 4rem; font-weight: 700; color: #e74c3c; line-height: 1; }
+    h1 { font-size: 1.25rem; margin: .75rem 0 1rem; }
+    p  { font-size: .95rem; line-height: 1.6; color: #555; }
+    .retry { margin-top: 1.5rem; font-size: .85rem; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="code">429</div>
+    <h1>Muitas Requisições</h1>
+    <p>Você realizou muitas requisições em um curto período. Aguarde um momento e tente novamente.</p>
+    <p class="retry">Se o problema persistir, entre em contato com o suporte da sua Câmara Municipal.</p>
+  </div>
+</body>
+</html>

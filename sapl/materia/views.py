@@ -34,6 +34,7 @@ import weasyprint
 
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
+from django.views.decorators.http import condition
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
@@ -52,12 +53,14 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT, RATE_LIMITER_RATE
+from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
-                        get_client_ip, get_mime_type_from_file_extension, lista_anexados,
+                        lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, get_tempfile_dir,
-                        google_recaptcha_configured, MultiFormatOutputMixin, ratelimit_ip)
+                        google_recaptcha_configured, MultiFormatOutputMixin)
+from sapl.middleware.ratelimit import get_client_ip, smart_key, smart_rate
+from sapl.middleware.page_cache import AnonCachePageMixin
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -119,24 +122,14 @@ def proposicao_texto(request, pk):
             return redirect(reverse('sapl.materia:proposicao_detail',
                                     kwargs={'pk': pk}))
 
-        arquivo = proposicao.texto_original
-
-        mime = get_mime_type_from_file_extension(arquivo.name)
-
-        with open(arquivo.path, 'rb') as f:
-            data = f.read()
-
-        response = HttpResponse(data, content_type='%s' % mime)
-        response['Content-Disposition'] = (
-            'inline; filename="%s"' % arquivo.name.split('/')[-1])
-        return response
+        return redirect(proposicao.texto_original.url)
     logger.error('user=' + username +
                  '. Objeto Proposicao com pk={} não encontrado.'.format(pk))
     raise Http404
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
@@ -361,11 +354,11 @@ class StatusTramitacaoCrud(CrudAux):
             return reverse('sapl.materia:pesquisar_statustramitacao')
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
-class PesquisarStatusTramitacaoView(FilterView):
+class PesquisarStatusTramitacaoView(AnonCachePageMixin, FilterView):
     model = StatusTramitacao
     filterset_class = StatusTramitacaoFilterSet
     paginate_by = 20
@@ -403,12 +396,9 @@ class PesquisarStatusTramitacaoView(FilterView):
 
         data = self.filterset.data
 
-        url = ''
-
-        if data:
-            url = '&' + str(self.request.META["QUERY_STRING"])
-            if url.startswith("&page"):
-                url = ''
+        qr = self.request.GET.copy()
+        qr.pop('page', None)
+        url = ('&' + qr.urlencode()) if qr else ''
 
         if 'descricao' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
@@ -1796,6 +1786,17 @@ class MateriaAssuntoCrud(MasterDetailCrud):
             return initial
 
 
+def _materia_last_modified(request, *args, **kwargs):
+    return MateriaLegislativa.objects.filter(
+        pk=kwargs['pk']
+    ).values_list('data_ultima_atualizacao', flat=True).first()
+
+
+def _materia_etag(request, *args, **kwargs):
+    ts = _materia_last_modified(request, *args, **kwargs)
+    return f'{kwargs["pk"]}-{ts.timestamp()}' if ts else None
+
+
 class MateriaLegislativaCrud(Crud):
     model = MateriaLegislativa
     help_topic = 'materia_legislativa'
@@ -1881,7 +1882,12 @@ class MateriaLegislativaCrud(Crud):
         def get_success_url(self):
             return self.search_url
 
-    class DetailView(Crud.DetailView):
+    @method_decorator(condition(etag_func=_materia_etag, last_modified_func=_materia_last_modified), name='get')
+    class DetailView(AnonCachePageMixin, Crud.DetailView):
+        # Materia detail pages are public, read-only, and change infrequently
+        # once published.  Cache anonymous responses for 5 minutes to absorb
+        # bot and search-engine traffic without hitting PostgreSQL.
+        anon_cache_ttl = 300  # PAGE_CACHE_TTL_DETAIL
 
         layout_key = 'MateriaLegislativaDetail'
         template_name = "materia/materialegislativa_detail.html"
@@ -2013,11 +2019,11 @@ class AcompanhamentoExcluirView(TemplateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
-class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
+class MateriaLegislativaPesquisaView(AnonCachePageMixin, MultiFormatOutputMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaFilterSet
     paginate_by = 50
@@ -2278,8 +2284,8 @@ class AcompanhamentoMateriaView(CreateView):
                        kwargs={'pk': self.kwargs['pk']})
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
@@ -2394,8 +2400,8 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         return self.get(request, self.kwargs)
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
@@ -2522,8 +2528,8 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         return HttpResponseRedirect(success_url)
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):

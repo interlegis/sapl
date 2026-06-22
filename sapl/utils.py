@@ -1,6 +1,6 @@
 import csv
 import string
-from functools import wraps
+from functools import lru_cache, wraps
 import hashlib
 import io
 from itertools import groupby, chain
@@ -399,23 +399,6 @@ def register_all_models_in_admin(module_name, exclude_list=[]):
 
 def xstr(s):
     return '' if s is None else str(s)
-
-
-def get_client_ip(request):
-    from ratelimit.core import ip_mask
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('HTTP_X_REAL_IP') or request.META.get('REMOTE_ADDR') or '0.0.0.0'
-    return ip_mask(ip)
-
-
-def ratelimit_ip(group, request):
-    """
-        Ignore group param in django-ratelimit==3.0.1
-    """
-    return get_client_ip(request)
 
 
 def get_base_url(request):
@@ -976,13 +959,15 @@ def parlamentares_ativos(data_inicio, data_fim=None):
     return Parlamentar.objects.filter(id__in=parlamentares_id)
 
 
-def show_results_filter_set(qr):
-    query_params = set(qr.keys())
-    if ((len(query_params) == 1 and 'iframe' in query_params) or
-            len(query_params) == 0):
-        return False
+_IGNORED_PARAMS = frozenset({'iframe', 'pesquisar', 'csrfmiddlewaretoken'})
 
-    return True
+
+def show_results_filter_set(qr):
+    meaningful = {
+        k for k, v in qr.items()
+        if k not in _IGNORED_PARAMS and v and v.strip()
+    }
+    return bool(meaningful)
 
 
 def sort_lista_chave(lista, chave):
@@ -1120,6 +1105,7 @@ def cached_call(key, timeout=300):
             return result
 
         return wrap
+
     return cache_decorator
 
 
@@ -1265,7 +1251,7 @@ class GoogleRecapthaMixin:
         return cd
 
 
-# TODO: cache this map and invalidate on each update
+@lru_cache(maxsize=None)
 def get_report_urls_map():
     from django.urls import get_resolver
     from django.urls.base import reverse
@@ -1294,13 +1280,11 @@ def get_report_urls_map():
 
 
 def is_report_allowed(request, url_path=None):
-    from sapl.utils import get_report_urls_map  # TODO: import global
-    url_map = get_report_urls_map()  # TODO: cache this!!! Globally
-
+    url_map = get_report_urls_map()
     path = url_path if url_path else request.path
-    authenticated = True if request.user.is_authenticated else False
+    authenticated = request.user.is_authenticated
 
-    if path in url_map.keys():
+    if path in url_map:
         path_metadata = url_map[path]
         if not authenticated and path_metadata['public']:
             return True
@@ -1340,7 +1324,7 @@ def get_path_to_name_report_map():
 
 
 class Row:
-    def __init__(self, cols, is_header = False):
+    def __init__(self, cols, is_header=False):
         self.cols = cols
         self.is_header = is_header
 
@@ -1349,7 +1333,7 @@ class Row:
 
 
 class Table:
-    def __init__(self, header = [], rows = []):
+    def __init__(self, header=[], rows=[]):
         self.header = header
         self.rows = rows
 
@@ -1551,7 +1535,7 @@ class MultiFormatOutputMixin:
 
             verbose_name = []
 
-            if hasattr(self, f'hook_header_{fname}'): # suporta extensao de funcionalidade
+            if hasattr(self, f'hook_header_{fname}'):  # suporta extensao de funcionalidade
                 h = getattr(self, f'hook_header_{fname}')()
                 yield h
                 continue

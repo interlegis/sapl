@@ -9,11 +9,7 @@ from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, MasterDetailCrud
 from .forms import AudienciaForm, AnexoAudienciaPublicaForm
 from .models import AudienciaPublica, AnexoAudienciaPublica
 
-from ratelimit.decorators import ratelimit
-from django.utils.decorators import method_decorator
-
-from ..settings import RATE_LIMITER_RATE
-from ..utils import ratelimit_ip
+from sapl.middleware.page_cache import AnonCachePageMixin
 
 
 def index(request):
@@ -28,8 +24,9 @@ class AudienciaCrud(Crud):
         list_field_names = ['numero', 'nome', 'tipo', 'materia', 'data']
         ordering = '-ano', '-numero', '-data', 'nome', 'tipo'
 
-    class ListView(Crud.ListView):
+    class ListView(AnonCachePageMixin, Crud.ListView):
         paginate_by = 10
+        anon_cache_ttl = 120  # PAGE_CACHE_TTL_LIST — hearings are added infrequently
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)

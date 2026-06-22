@@ -9,9 +9,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Max, Q
+from django.db.models import Max, Prefetch, Q
 from django.http import JsonResponse
-from django.http.response import Http404, HttpResponseRedirect
+from django.http.response import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.utils import timezone
@@ -47,9 +47,11 @@ from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm, \
     CorrespondenciaForm, CorrespondenciaEmLoteFilterSet
 from sapl.sessao.models import Correspondencia
-from sapl.settings import TIME_ZONE, RATE_LIMITER_RATE
-from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, \
-    MultiFormatOutputMixin, PautaMultiFormatOutputMixin, ratelimit_ip
+from sapl.settings import TIME_ZONE
+from sapl.middleware.ratelimit import get_client_ip, smart_key, smart_rate
+from sapl.middleware.page_cache import AnonCachePageMixin
+from sapl.utils import show_results_filter_set, remover_acentos, \
+    MultiFormatOutputMixin, PautaMultiFormatOutputMixin
 
 from .forms import (AdicionarVariasMateriasFilterSet, AdicionarVariasMateriasForm, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
@@ -172,7 +174,7 @@ def verifica_sessao_iniciada(request, spk, is_leitura=False):
         aux_text = 'leitura' if is_leitura else 'votação'
         logger.info('user=' + username + '. Não é possível abrir matérias para {}. '
                                          'Esta SessaoPlenaria (id={}) não foi iniciada ou está finalizada.'.format(
-                                             aux_text, spk))
+            aux_text, spk))
         msg = _('Não é possível abrir matérias para {}. '
                 'Esta Sessão Plenária não foi iniciada ou está finalizada.'
                 ' Vá em "Abertura"->"Dados Básicos" e altere os valores dos campos necessários.'.format(aux_text))
@@ -224,38 +226,43 @@ def abrir_votacao(request, pk, spk):
 
 
 def customize_link_materia(context, pk, has_permission, is_expediente):
+    # sessao_plenaria is the same for every row — resolve once
+    object_list = context['object_list']
+    if object_list:
+        sessao_plenaria = object_list[0].sessao_plenaria
+    else:
+        sessao_plenaria = SessaoPlenaria.objects.get(id=pk)
+    data_sessao = sessao_plenaria.data_fim or sessao_plenaria.data_inicio
+
     for i, row in enumerate(context['rows']):
-        materia = context['object_list'][i].materia
-        obj = context['object_list'][i]
+        obj = object_list[i]
+        materia = obj.materia  # already select_related
+
         url_materia = reverse(
             'sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
-        numeracao = materia.numeracao_set.first() if materia.numeracao_set.first() else "-"
-        todos_autoria = materia.autoria_set.all()
-        autoria = todos_autoria.filter(primeiro_autor=True)
+
+        numeracao = materia._numeracao_prefetch[0] if materia._numeracao_prefetch else "-"
+
+        todos_autoria = materia._autoria_prefetch
+        autoria = [a for a in todos_autoria if a.primeiro_autor]
         autor = ', '.join([str(a.autor) for a in autoria]) if autoria else "-"
+        todos_autores = ', '.join([str(a.autor) for a in todos_autoria]) if autoria else "-"
 
-        todos_autores = ', '.join([str(a.autor)
-                                   for a in todos_autoria]) if autoria else "-"
+        num_protocolo = materia.numero_protocolo or "-"
 
-        num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
-        sessao_plenaria = SessaoPlenaria.objects.get(id=pk)
-        data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
-        tramitacao = Tramitacao.objects \
-            .select_related('materia', 'status', 'materia__tipo') \
-            .filter(materia=materia, turno__isnull=False, data_tramitacao__lte=data_sessao) \
-            .exclude(turno__exact='') \
-            .order_by('-data_tramitacao', '-id') \
-            .first()
+        tramitacao = next(
+            (t for t in materia._tramitacao_prefetch if t.data_tramitacao <= data_sessao),
+            None,
+        )
         turno = '-'
         if tramitacao:
             for t in Tramitacao.TURNO_CHOICES:
                 if t[0] == tramitacao.turno:
                     turno = t[1]
                     break
-        materia_em_tramitacao = MateriaEmTramitacao.objects \
-            .select_related("materia", "tramitacao") \
-            .filter(materia=materia) \
-            .first()
+
+        materia_em_tramitacao = materia._met_prefetch[0] if materia._met_prefetch else None
+
         # idUnica para cada materia
         idAutor = "autor" + str(i)
         idAutores = "autores" + str(i)
@@ -281,12 +288,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         # url em toda a string de title_materia
         context['rows'][i][1] = (title_materia, None)
 
-        exist_resultado = obj.registrovotacao_set.filter(
-            materia=obj.materia).exists()
-        exist_retirada = obj.retiradapauta_set.filter(
-            materia=obj.materia).exists()
-        exist_leitura = obj.registroleitura_set.filter(
-            materia=obj.materia).exists()
+        exist_resultado = bool(obj._votacao_prefetch)
+        exist_retirada = bool(obj._retirada_prefetch)
+        exist_leitura = bool(obj._leitura_prefetch)
 
         if (obj.tipo_votacao != LEITURA and not exist_resultado and not exist_retirada) or \
                 (obj.tipo_votacao == LEITURA and not exist_leitura):
@@ -408,8 +412,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     resultado = '''Não há resultado'''
 
         elif exist_retirada:
-            retirada = obj.retiradapauta_set.filter(
-                materia_id=obj.materia_id).last()
+            retirada = obj._retirada_prefetch[-1]
             retirada_descricao = retirada.tipo_de_retirada.descricao
             retirada_observacao = retirada.observacao
             url = reverse('sapl.sessao:retiradapauta_detail',
@@ -421,13 +424,11 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
         else:
             if obj.tipo_votacao == LEITURA:
-                resultado = obj.registroleitura_set.filter(
-                    materia_id=obj.materia_id).last()
+                resultado = obj._leitura_prefetch[-1]
                 resultado_descricao = "Matéria lida"
                 resultado_observacao = resultado.observacao
             else:
-                resultado = obj.registrovotacao_set.filter(
-                    materia_id=obj.materia_id).last()
+                resultado = obj._votacao_prefetch[-1]
                 resultado_descricao = resultado.tipo_resultado_votacao.nome
                 resultado_observacao = resultado.observacao
 
@@ -486,11 +487,11 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                           'mid': obj.materia_id})
 
                 resultado = (
-                    '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
-                        url,
-                        context.get('page', 1),
-                        resultado_descricao,
-                        resultado_observacao))
+                        '<a href="%s?page=%s">%s<br/><br/>%s</a>' % (
+                    url,
+                    context.get('page', 1),
+                    resultado_descricao,
+                    resultado_observacao))
             else:
 
                 if obj.tipo_votacao == NOMINAL:
@@ -501,7 +502,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                            '?&materia=expediente'
+                              '?&materia=expediente'
                     else:
                         url = reverse(
                             'sapl.sessao:votacao_nominal_transparencia',
@@ -509,7 +510,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                            '?&materia=ordem'
+                              '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
                                  (url,
@@ -524,7 +525,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                            '?&materia=expediente'
+                              '?&materia=expediente'
                     else:
                         url = reverse(
                             'sapl.sessao:votacao_simbolica_transparencia',
@@ -532,7 +533,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                                 'pk': obj.sessao_plenaria_id,
                                 'oid': obj.pk,
                                 'mid': obj.materia_id}) + \
-                            '?&materia=ordem'
+                              '?&materia=ordem'
 
                     resultado = ('<a href="%s">%s<br/>%s</a>' %
                                  (url,
@@ -796,7 +797,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                 Max('numero_ordem'))['numero_ordem__max']
             self.initial['numero_ordem'] = (
-                max_numero_ordem if max_numero_ordem else 0) + 1
+                                               max_numero_ordem if max_numero_ordem else 0) + 1
             return self.initial
 
         def get_success_url(self):
@@ -833,19 +834,57 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         layout_key = 'OrdemDiaDetail'
 
     class ListView(MasterDetailCrud.ListView):
-        paginate_by = None
+        paginate_by = 100
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
-            if self.get_queryset().count() > 500:
-                self.paginate_by = 50
-            else:
-                self.paginate_by = None
-
             context = super().get_context_data(**kwargs)
-
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
+
+        def get_queryset(self):
+            return super().get_queryset().select_related(
+                'materia', 'materia__tipo', 'sessao_plenaria',
+            ).prefetch_related(
+                Prefetch(
+                    'materia__materiaemtramitacao_set',
+                    to_attr='_met_prefetch',
+                ),
+                Prefetch(
+                    'materia__numeracao_set',
+                    to_attr='_numeracao_prefetch',
+                ),
+                Prefetch(
+                    'materia__autoria_set',
+                    queryset=Autoria.objects.select_related('autor'),
+                    to_attr='_autoria_prefetch',
+                ),
+                Prefetch(
+                    'materia__tramitacao_set',
+                    queryset=Tramitacao.objects.filter(
+                        turno__isnull=False,
+                    ).exclude(turno='').order_by('-data_tramitacao', '-id'),
+                    to_attr='_tramitacao_prefetch',
+                ),
+                Prefetch(
+                    'registrovotacao_set',
+                    queryset=RegistroVotacao.objects.select_related(
+                        'tipo_resultado_votacao',
+                    ),
+                    to_attr='_votacao_prefetch',
+                ),
+                Prefetch(
+                    'retiradapauta_set',
+                    queryset=RetiradaPauta.objects.select_related(
+                        'tipo_de_retirada',
+                    ),
+                    to_attr='_retirada_prefetch',
+                ),
+                Prefetch(
+                    'registroleitura_set',
+                    to_attr='_leitura_prefetch',
+                ),
+            )
 
 
 def recuperar_materia(request):
@@ -905,23 +944,59 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                             'resultado']
 
     class ListView(MasterDetailCrud.ListView):
-        paginate_by = None
+        paginate_by = 100
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
-
-            if self.get_queryset().count() > 500:
-                self.paginate_by = 50
-            else:
-                self.paginate_by = None
-
             context = super().get_context_data(**kwargs)
-
             if self.request.GET.get('page'):
                 context['page'] = self.request.GET.get('page')
-
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
+
+        def get_queryset(self):
+            return super().get_queryset().select_related(
+                'materia', 'materia__tipo', 'sessao_plenaria',
+            ).prefetch_related(
+                Prefetch(
+                    'materia__materiaemtramitacao_set',
+                    to_attr='_met_prefetch',
+                ),
+                Prefetch(
+                    'materia__numeracao_set',
+                    to_attr='_numeracao_prefetch',
+                ),
+                Prefetch(
+                    'materia__autoria_set',
+                    queryset=Autoria.objects.select_related('autor'),
+                    to_attr='_autoria_prefetch',
+                ),
+                Prefetch(
+                    'materia__tramitacao_set',
+                    queryset=Tramitacao.objects.filter(
+                        turno__isnull=False,
+                    ).exclude(turno='').order_by('-data_tramitacao', '-id'),
+                    to_attr='_tramitacao_prefetch',
+                ),
+                Prefetch(
+                    'registrovotacao_set',
+                    queryset=RegistroVotacao.objects.select_related(
+                        'tipo_resultado_votacao',
+                    ),
+                    to_attr='_votacao_prefetch',
+                ),
+                Prefetch(
+                    'retiradapauta_set',
+                    queryset=RetiradaPauta.objects.select_related(
+                        'tipo_de_retirada',
+                    ),
+                    to_attr='_retirada_prefetch',
+                ),
+                Prefetch(
+                    'registroleitura_set',
+                    to_attr='_leitura_prefetch',
+                ),
+            )
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
@@ -939,7 +1014,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                 Max('numero_ordem'))['numero_ordem__max']
             initial['numero_ordem'] = (
-                max_numero_ordem if max_numero_ordem else 0) + 1
+                                          max_numero_ordem if max_numero_ordem else 0) + 1
             return initial
 
         def get_success_url(self):
@@ -973,7 +1048,6 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             return initial
 
     class DetailView(MasterDetailCrud.DetailView):
-
         layout_key = 'ExpedienteMateriaDetail'
 
 
@@ -1346,7 +1420,12 @@ class SessaoCrud(Crud):
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
-    class DetailView(Crud.DetailView):
+    class DetailView(AnonCachePageMixin, Crud.DetailView):
+        # Session plenary detail pages are public and read-only during the
+        # session.  Cache anonymous responses for 2 minutes — short enough
+        # that real-time voting tallies visible in the detail page stay
+        # reasonably fresh for public observers.
+        anon_cache_ttl = 120  # PAGE_CACHE_TTL_LIST
 
         @property
         def layout_key(self):
@@ -1419,7 +1498,7 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+                       + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1534,7 +1613,7 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+                       + request.POST.getlist('presenca_inativos')
 
             # Deletar os que foram desmarcados
             deletar = set(presentes_banco) - set(marcados)
@@ -1796,7 +1875,7 @@ def insere_parlamentar_composicao(request):
     username = request.user.username
     if request.user.has_perm(
             '%s.add_%s' % (
-                AppConfig.label, IntegranteMesa._meta.model_name)):
+                    AppConfig.label, IntegranteMesa._meta.model_name)):
 
         composicao = IntegranteMesa()
 
@@ -1860,7 +1939,7 @@ def remove_parlamentar_composicao(request):
     username = request.user.username
     if request.POST and request.user.has_perm(
             '%s.delete_%s' % (
-                AppConfig.label, IntegranteMesa._meta.model_name)):
+                    AppConfig.label, IntegranteMesa._meta.model_name)):
 
         if 'composicao_mesa' in request.POST:
             try:
@@ -2914,7 +2993,7 @@ class VotacaoView(SessaoPermissionMixin):
                     username = request.user.username
                     self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
                                                            'e da ordem de id={}. '.format(materia_id, ordem_id) + str(
-                                                               e))
+                        e))
                     return self.form_invalid(form)
                 else:
                     ordem = OrdemDia.objects.get(id=ordem_id)
@@ -3797,8 +3876,8 @@ class SessaoListView(ListView):
         return context
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class PautaSessaoView(TemplateView):
@@ -3816,8 +3895,8 @@ class PautaSessaoView(TemplateView):
             reverse('sapl.sessao:pauta_sessao_detail', kwargs={'pk': sessao.pk}))
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
@@ -3984,7 +4063,8 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
                 'resultado_observacao': resultado_observacao,
                 'situacao': ultima_tramitacao.status if ultima_tramitacao else _("Não informada"),
                 'processo': f'{str(numeracao.numero_materia)}/{str(numeracao.ano_materia)}' if numeracao else '-',
-                'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)],
+                'autor': [str(x.autor) for x in
+                          Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)],
                 'turno': get_turno(ultima_tramitacao.turno) if ultima_tramitacao else '',
                 'periodo': 'ordem dia',
             })
@@ -4001,11 +4081,11 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
             return self.render_to_response(context)
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
-class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
+class PesquisarSessaoPlenariaView(AnonCachePageMixin, MultiFormatOutputMixin, FilterView):
     model = SessaoPlenaria
     filterset_class = SessaoPlenariaFilterSet
     paginate_by = 10
@@ -4064,17 +4144,17 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
 
         data = self.filterset.data
         if data and data.get('data_inicio__year') is not None:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('data_inicio__year=') - 1
-                url = url[ponto_comeco:]
-            context['filter_url'] = url
+            qr = self.request.GET.copy()
+            qr.pop('page', None)
+            context['filter_url'] = ('&' + qr.urlencode()) if qr else ''
 
         context['numero_res'] = len(self.object_list)
 
         return context
 
     def get(self, request, *args, **kwargs):
+        if len(request.GET.getlist('page')) > 1:
+            return HttpResponseBadRequest()
 
         r = super().get(request)
 
@@ -4090,7 +4170,6 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
         self.logger.debug('user=' + username + '. Pesquisa de SessaoPlenaria.')
 
         return r
-
 
 
 class PesquisarPautaSessaoView(PesquisarSessaoPlenariaView):
@@ -5331,7 +5410,7 @@ class CorrespondenciaCrud(MasterDetailCrud):
                 sessao_plenaria=self.kwargs['pk']).aggregate(
                 Max('numero_ordem'))['numero_ordem__max']
             initial['numero_ordem'] = (
-                max_numero_ordem if max_numero_ordem else 0) + 1
+                                          max_numero_ordem if max_numero_ordem else 0) + 1
 
             return initial
 
@@ -5393,8 +5472,8 @@ class CorrespondenciaCrud(MasterDetailCrud):
             return obj
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class CorrespondenciaEmLoteView(PermissionRequiredMixin, FilterView):

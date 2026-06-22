@@ -28,7 +28,9 @@ from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud,
                             RP_LIST)
 from sapl.materia.models import (MateriaEmTramitacao, MateriaLegislativa,
                                  PautaReuniao, Tramitacao)
-from sapl.utils import show_results_filter_set, ratelimit_ip
+from sapl.middleware.page_cache import AnonCachePageMixin
+from sapl.middleware.ratelimit import smart_key, smart_rate
+from sapl.utils import show_results_filter_set
 
 from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
                      Participacao, Periodo, Reuniao, TipoComissao)
@@ -36,7 +38,6 @@ from .models import (CargoComissao, Comissao, Composicao, DocumentoAcessorio,
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 
-from ..settings import RATE_LIMITER_RATE
 
 
 def pegar_url_composicao(pk):
@@ -172,6 +173,10 @@ class ComissaoCrud(Crud):
         list_field_names = ['nome', 'sigla', 'tipo',
                             'data_criacao', 'data_extincao', 'ativa']
         ordering = '-ativa', 'sigla'
+
+    class ListView(AnonCachePageMixin, Crud.ListView):
+        # Committee lists change rarely; 5-minute cache is conservative.
+        anon_cache_ttl = 300  # PAGE_CACHE_TTL_DETAIL
 
     class CreateView(Crud.CreateView):
         form_class = ComissaoForm
@@ -338,8 +343,8 @@ class RemovePautaView(PermissionRequiredMixin, CreateView):
         return HttpResponseRedirect(success_url)
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class AdicionaPautaView(PermissionRequiredMixin, FilterView):

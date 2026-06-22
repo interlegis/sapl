@@ -42,3 +42,8 @@ XlsxWriter==3.2.0
 setuptools==80.9.0
 
 git+https://github.com/interlegis/django-admin-bootstrapped
+
+# Redis cache backend (Phase 1 — shared rate-limiter state).
+# 4.12.1 is the last release that explicitly supports Django 2.2.
+# Upgrade to 5.x when the project moves to Django 3.2+.
+django-redis==4.12.1

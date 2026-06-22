@@ -51,13 +51,13 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-      curl jq bash tzdata fontconfig tini libmagic1 \
+      curl jq bash tzdata fontconfig tini libmagic1 gettext-base \
       libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
       libharfbuzz0b libfreetype6 libjpeg62-turbo zlib1g fonts-dejavu-core; \
     if [ "$WITH_GRAPHVIZ" = "1" ]; then apt-get install -y --no-install-recommends graphviz; fi; \
     if [ "$WITH_POPPLER" = "1" ]; then apt-get install -y --no-install-recommends poppler-utils; fi; \
     if [ "$WITH_PSQL_CLIENT" = "1" ]; then apt-get install -y --no-install-recommends postgresql-client; fi; \
-    if [ "$WITH_NGINX" = "1" ]; then apt-get install -y --no-install-recommends nginx; fi; \
+    if [ "$WITH_NGINX" = "1" ]; then apt-get install -y --no-install-recommends nginx libnginx-mod-http-geoip2 libnginx-mod-http-ndk libnginx-mod-http-lua libmaxminddb0; fi; \
     rm -rf /var/lib/apt/lists/*
 
 # Usuários/grupos (idempotente)
@@ -67,7 +67,13 @@ RUN useradd --system --no-create-home --shell /usr/sbin/nologin sapl || true \
  && usermod -aG nginx sapl || true
 
 # Estrutura de diretórios
-RUN mkdir -p /var/interlegis/sapl /var/interlegis/sapl/data /var/interlegis/sapl/media /var/interlegis/sapl/run \
+RUN mkdir -p \
+      /var/interlegis/sapl \
+      /var/interlegis/sapl/data \
+      /var/interlegis/sapl/media \
+      /var/interlegis/sapl/run \
+      /var/interlegis/sapl/tmp \
+      /etc/nginx/geoip \
  && chown -R root:nginx /var/interlegis/sapl /var/interlegis/sapl/run \
  && chmod -R g+rwX /var/interlegis/sapl \
  && chmod 2775 /var/interlegis/sapl /var/interlegis/sapl/run \
@@ -81,11 +87,27 @@ COPY --from=builder ${VENV_DIR} ${VENV_DIR}
 # Código da aplicação (depois do venv para aproveitar cache)
 COPY . /var/interlegis/sapl/
 
-# Nginx (somente se instalado)
+# OpenResty config + GeoLite2-ASN database (somente se instalado).
+#
+# GeoLite2-ASN.mmdb is NOT downloaded at build time.
+# Run docker/geoip/update_geoip.sh before each build to refresh it.
+# The .mmdb file lives at docker/geoip/GeoLite2-ASN.mmdb (git-ignored binary).
+# If the file is absent the build FAILS — run update_geoip.sh first.
 RUN if [ "$WITH_NGINX" = "1" ]; then \
       rm -f /etc/nginx/conf.d/*; \
-      cp docker/config/nginx/sapl.conf /etc/nginx/conf.d/sapl.conf; \
-      cp docker/config/nginx/nginx.conf /etc/nginx/nginx.conf; \
+      cp docker/config/nginx/sapl.conf     /etc/nginx/conf.d/sapl.conf.template; \
+      cp docker/config/nginx/nginx.conf    /etc/nginx/nginx.conf; \
+      cp docker/config/nginx/blocklist.lua /etc/nginx/blocklist.lua; \
+      mkdir -p /usr/lib/lua/resty; \
+      cp docker/config/nginx/resty_redis.lua /usr/lib/lua/resty/redis.lua; \
+      if [ -f "docker/geoip/GeoLite2-ASN.mmdb" ]; then \
+        cp docker/geoip/GeoLite2-ASN.mmdb /etc/nginx/geoip/GeoLite2-ASN.mmdb; \
+        echo "[geoip] GeoLite2-ASN.mmdb installed."; \
+      else \
+        echo "[geoip] ERROR: docker/geoip/GeoLite2-ASN.mmdb not found."; \
+        echo "[geoip]   Run docker/geoip/update_geoip.sh then rebuild."; \
+        exit 1; \
+      fi; \
     fi
 
 # Scripts + gunicorn.conf no diretório da app

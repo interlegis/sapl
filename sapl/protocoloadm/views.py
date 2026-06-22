@@ -44,10 +44,11 @@ from sapl.protocoloadm.forms import VinculoDocAdminMateriaForm,\
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo,\
     VinculoDocAdminMateria
 from sapl.relatorios.views import relatorio_doc_administrativos
-from sapl.utils import (create_barcode, get_base_url, get_client_ip,
-                        get_mime_type_from_file_extension, lista_anexados,
+from sapl.middleware.ratelimit import get_client_ip, smart_key, smart_rate
+from sapl.utils import (create_barcode, get_base_url,
+                        lista_anexados,
                         show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
-                        google_recaptcha_configured, get_tempfile_dir, MultiFormatOutputMixin, ratelimit_ip)
+                        google_recaptcha_configured, get_tempfile_dir, MultiFormatOutputMixin)
 
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
                     AnularProtocoloAdmForm, compara_tramitacoes_doc,
@@ -62,7 +63,7 @@ from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, Anexado
 from .models import (Anexado, AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
-from ..settings import MEDIA_ROOT, RATE_LIMITER_RATE
+from ..settings import MEDIA_ROOT
 
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
@@ -101,28 +102,10 @@ def recuperar_materia_protocolo(request):
 
 
 def doc_texto_integral(request, pk):
-    can_see = True
-
-    if not request.user.is_authenticated:
-        app_config = AppConfig.objects.last()
-        if app_config and app_config.documentos_administrativos == 'R':
-            can_see = False
-
-    if can_see:
-        documento = DocumentoAdministrativo.objects.get(pk=pk)
-        if documento.texto_integral:
-            arquivo = documento.texto_integral
-
-            mime = get_mime_type_from_file_extension(arquivo.name)
-
-            with open(arquivo.path, 'rb') as f:
-                data = f.read()
-
-            response = HttpResponse(data, content_type='%s' % mime)
-            response['Content-Disposition'] = (
-                'inline; filename="%s"' % arquivo.name.split('/')[-1])
-            return response
-    raise Http404
+    documento = get_object_or_404(DocumentoAdministrativo, pk=pk)
+    if not documento.texto_integral:
+        raise Http404
+    return redirect(documento.texto_integral.url)
 
 
 def get_pdf_docacessorios(request, pk):
@@ -538,8 +521,8 @@ class StatusTramitacaoAdministrativoCrud(CrudAux):
         ordering = 'sigla'
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
@@ -587,10 +570,9 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('numero') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('numero=') - 1
-                url = url[ponto_comeco:]
+            qr = self.request.GET.copy()
+            qr.pop('page', None)
+            url = ('&' + qr.urlencode()) if qr else ''
         else:
             url = ''
 
@@ -1039,8 +1021,8 @@ class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
         return context
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
@@ -1117,10 +1099,9 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('tipo') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('tipo=') - 1
-                url = url[ponto_comeco:]
+            qr = self.request.GET.copy()
+            qr.pop('page', None)
+            url = ('&' + qr.urlencode()) if qr else ''
         else:
             url = ''
         self.filterset.form.fields['o'].label = _('Ordenação')
@@ -1176,8 +1157,8 @@ class AnexadoCrud(MasterDetailCrud):
             return 'AnexadoDetail'
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
@@ -1657,8 +1638,8 @@ class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
                                    'materia/impressos/ficha_adm_pdf.html')
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
@@ -1897,8 +1878,8 @@ class VinculoDocAdminMateriaCrud(MasterDetailCrud):
             return context
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class VinculoDocAdminMateriaEmLoteView(PermissionRequiredMixin, FilterView):

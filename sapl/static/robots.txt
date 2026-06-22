@@ -1,0 +1,35 @@
+User-agent: GPTBot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: ClaudeBot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: meta-externalagent
+Disallow: /
+Crawl-delay: 10
+
+User-agent: OAI-SearchBot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: bingbot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: SERankingBacklinksBot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: anthropic-python
+Disallow: /
+Crawl-delay: 10
+
+User-agent: AwarioSmartBot
+Disallow: /
+Crawl-delay: 10
+
+User-agent: *
+Disallow: /relatorios/
+Crawl-delay: 10

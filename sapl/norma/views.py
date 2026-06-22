@@ -21,6 +21,7 @@ import weasyprint
 
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
+from django.views.decorators.http import condition
 
 from sapl import settings
 import sapl
@@ -30,15 +31,17 @@ from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Orgao
-from sapl.utils import show_results_filter_set, get_client_ip, \
-    sapn_is_enabled, MultiFormatOutputMixin, ratelimit_ip
+from sapl.middleware.ratelimit import get_client_ip, smart_key, smart_rate
+from sapl.middleware.page_cache import AnonCachePageMixin
+from sapl.utils import show_results_filter_set, \
+    sapn_is_enabled, MultiFormatOutputMixin
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm,
                     AutoriaNormaForm, AssuntoNormaFilterSet)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma, NormaEstatisticas)
-from ..settings import RATE_LIMITER_RATE
+
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 TipoNormaCrud = CrudAux.build(
@@ -60,11 +63,11 @@ class AssuntoNormaCrud(CrudAux):
             return reverse('sapl.norma:pesquisar_assuntonorma')
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
-class PesquisarAssuntoNormaView(FilterView):
+class PesquisarAssuntoNormaView(AnonCachePageMixin, FilterView):
     model = AssuntoNorma
     filterset_class = AssuntoNormaFilterSet
     paginate_by = 20
@@ -102,12 +105,9 @@ class PesquisarAssuntoNormaView(FilterView):
 
         data = self.filterset.data
 
-        url = ''
-
-        if data:
-            url = '&' + str(self.request.META["QUERY_STRING"])
-            if url.startswith("&page"):
-                url = ''
+        qr = self.request.GET.copy()
+        qr.pop('page', None)
+        url = ('&' + qr.urlencode()) if qr else ''
 
         if 'assunto' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
@@ -154,11 +154,11 @@ class NormaRelacionadaCrud(MasterDetailCrud):
         layout_key = 'NormaRelacionadaDetail'
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
-class NormaPesquisaView(MultiFormatOutputMixin, FilterView):
+class NormaPesquisaView(AnonCachePageMixin, MultiFormatOutputMixin, FilterView):
     model = NormaJuridica
     filterset_class = NormaFilterSet
     paginate_by = 50
@@ -276,6 +276,17 @@ class NormaTaView(IntegracaoTaView):
             return self.get_redirect_deactivated()
 
 
+def _norma_last_modified(request, *args, **kwargs):
+    return NormaJuridica.objects.filter(
+        pk=kwargs['pk']
+    ).values_list('ultima_edicao', flat=True).first()
+
+
+def _norma_etag(request, *args, **kwargs):
+    ts = _norma_last_modified(request, *args, **kwargs)
+    return f'{kwargs["pk"]}-{ts.timestamp()}' if ts else None
+
+
 class NormaCrud(Crud):
     model = NormaJuridica
     help_topic = 'norma_juridica'
@@ -291,6 +302,7 @@ class NormaCrud(Crud):
             namespace = self.model._meta.app_config.name
             return reverse('%s:%s' % (namespace, 'norma_pesquisa'))
 
+    @method_decorator(condition(etag_func=_norma_etag, last_modified_func=_norma_last_modified), name='get')
     class DetailView(Crud.DetailView):
         def get(self, request, *args, **kwargs):
             estatisticas_acesso_normas = AppConfig.objects.first().estatisticas_acesso_normas

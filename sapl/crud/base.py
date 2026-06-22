@@ -26,8 +26,8 @@ from sapl.crispy_layout_mixin import CrispyLayoutFormMixin, get_field_display
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.rules import (RP_ADD, RP_CHANGE, RP_DELETE, RP_DETAIL,
                         RP_LIST)
-from sapl.settings import RATE_LIMITER_RATE
-from sapl.utils import normalize, ratelimit_ip
+from sapl.middleware.ratelimit import smart_key, smart_rate
+from sapl.utils import normalize
 
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
@@ -390,8 +390,8 @@ class CrudBaseMixin(CrispyLayoutFormMixin):
         return self.model._meta.verbose_name_plural
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class CrudListView(PermissionRequiredContainerCrudMixin, ListView):
@@ -730,8 +730,8 @@ class CrudCreateView(PermissionRequiredContainerCrudMixin,
         return super().form_valid(form)
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class CrudDetailView(PermissionRequiredContainerCrudMixin,
@@ -1188,8 +1188,8 @@ class MasterDetailCrud(Crud):
                 context['title'] = title
             return context
 
-    @method_decorator(ratelimit(key=ratelimit_ip,
-                                rate=RATE_LIMITER_RATE,
+    @method_decorator(ratelimit(key=smart_key,
+                                rate=smart_rate,
                                 block=True),
                       name='dispatch')
     class ListView(Crud.ListView):
@@ -1424,8 +1424,8 @@ class MasterDetailCrud(Crud):
             else:
                 return self.resolve_url(ACTION_LIST, args=(pk,))
 
-    @method_decorator(ratelimit(key=ratelimit_ip,
-                                rate=RATE_LIMITER_RATE,
+    @method_decorator(ratelimit(key=smart_key,
+                                rate=smart_rate,
                                 block=True),
                       name='dispatch')
     class DetailView(Crud.DetailView):

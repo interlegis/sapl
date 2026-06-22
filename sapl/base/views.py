@@ -48,10 +48,11 @@ from sapl.parlamentares.models import (
 from sapl.protocoloadm.models import (Anexado, Protocolo)
 from sapl.relatorios.views import (relatorio_estatisticas_acesso_normas)
 from sapl.sessao.models import (Bancada, SessaoPlenaria)
-from sapl.settings import EMAIL_SEND_USER, RATE_LIMITER_RATE
+from sapl.settings import EMAIL_SEND_USER
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, google_recaptcha_configured,
-                        get_client_ip, sapn_is_enabled, is_weak_password, ratelimit_ip)
+                        sapn_is_enabled, is_weak_password)
+from sapl.middleware.ratelimit import smart_key, smart_rate
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, EstatisticasAcessoNormasForm)
 from .models import AppConfig, CasaLegislativa
 
@@ -67,8 +68,8 @@ class IndexView(TemplateView):
         return TemplateView.get(self, request, *args, **kwargs)
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             method=ratelimit.UNSAFE,
                             block=True),
                   name='dispatch')
@@ -1400,8 +1401,8 @@ class SaplSearchView(SearchView):
         return context
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
 class PesquisarAuditLogView(PermissionRequiredMixin, FilterView):
@@ -1457,12 +1458,9 @@ class PesquisarAuditLogView(PermissionRequiredMixin, FilterView):
 
         data = self.filterset.data
 
-        url = ''
-
-        if data:
-            url = '&' + str(self.request.META["QUERY_STRING"])
-            if url.startswith("&page"):
-                url = ''
+        qr = self.request.GET.copy()
+        qr.pop('page', None)
+        url = ('&' + qr.urlencode()) if qr else ''
 
         resultados = self.object_list
         # if 'page' in self.request.META['QUERY_STRING']:

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sapl-redis
+  namespace: sapl-redis
+  labels:
+    app: sapl-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sapl-redis
+  template:
+    metadata:
+      labels:
+        app: sapl-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command: ["redis-server", "/etc/redis/redis.conf"]
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "250m"
+          limits:
+            memory: "6Gi"
+            cpu: "1000m"
+        ports:
+        - containerPort: 6379
+        livenessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/redis
+      volumes:
+      - name: redis-config
+        configMap:
+          name: redis-config

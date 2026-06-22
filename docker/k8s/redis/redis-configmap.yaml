@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: sapl-redis
+data:
+  redis.conf: |
+    save ""
+    appendonly no
+
+    maxmemory 5gb
+    maxmemory-policy allkeys-lru
+    maxmemory-samples 10
+
+    maxclients 20000
+    tcp-backlog 511
+    timeout 300
+    tcp-keepalive 60
+
+    hz 20
+    lazyfree-lazy-eviction yes
+    lazyfree-lazy-expire yes
+    lazyfree-lazy-server-del yes
+
+    slowlog-log-slower-than 10000
+    slowlog-max-len 256
+    latency-monitor-threshold 10
+
+    bind 0.0.0.0
+    protected-mode no
+    # DB0: cache  DB1: rate limiter  DB2: channels (future)
+    databases 2
+
+    activedefrag yes
+    active-defrag-ignore-bytes 100mb
+    active-defrag-threshold-lower 10

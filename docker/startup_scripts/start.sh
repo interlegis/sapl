@@ -104,6 +104,16 @@ write_env_file() {
   : "${RF:=1}"
   : "${MAX_SHARDS_PER_NODE:=1}"
   : "${ENABLE_SAPN:=False}"
+  : "${REDIS_URL:=}"
+  : "${CACHE_BACKEND:=file}"
+  : "${POD_NAMESPACE:=sapl}"
+  # nginx burst defaults — 2× each zone's sustained rate.
+  # general=90r/m  media=180r/m  api=60r/m  heavy=10r/m
+  : "${NGINX_BURST_GENERAL:=180}"
+  : "${NGINX_BURST_MEDIA:=180}"
+  : "${NGINX_BURST_API:=120}"
+  : "${NGINX_BURST_HEAVY:=20}"
+  export NGINX_BURST_GENERAL NGINX_BURST_MEDIA NGINX_BURST_API NGINX_BURST_HEAVY
 
   tmp="$(mktemp)"
   {
@@ -126,6 +136,13 @@ write_env_file() {
     printf 'RF=%s\n' "$RF"
     printf 'MAX_SHARDS_PER_NODE=%s\n' "$MAX_SHARDS_PER_NODE"
     printf 'ENABLE_SAPN=%s\n' "$ENABLE_SAPN"
+    printf 'REDIS_URL=%s\n' "$REDIS_URL"
+    printf 'CACHE_BACKEND=%s\n' "$CACHE_BACKEND"
+    printf 'POD_NAMESPACE=%s\n' "$POD_NAMESPACE"
+    printf 'NGINX_BURST_GENERAL=%s\n' "$NGINX_BURST_GENERAL"
+    printf 'NGINX_BURST_MEDIA=%s\n' "$NGINX_BURST_MEDIA"
+    printf 'NGINX_BURST_API=%s\n' "$NGINX_BURST_API"
+    printf 'NGINX_BURST_HEAVY=%s\n' "$NGINX_BURST_HEAVY"
   } > "$tmp"
 
   chmod 600 "$tmp"
@@ -135,6 +152,7 @@ write_env_file() {
 
 wait_for_pg() {
   : "${DATABASE_URL:=postgresql://sapl:sapl@sapldb:5432/sapl}"
+  export DATABASE_URL
   log "Waiting for Postgres..."
   /bin/bash wait-for-pg.sh "$DATABASE_URL"
 }
@@ -256,19 +274,94 @@ setup_cache_dir() {
   umask 0007
 }
 
+# ---------------------------------------------------------------------------
+# Tenant namespace — resolved once at startup, written into .env
+# ---------------------------------------------------------------------------
+
+resolve_pod_namespace() {
+  # 1. Already set by K8s Downward API (fieldRef: metadata.namespace)
+  [[ -n "${POD_NAMESPACE:-}" ]] && { log "POD_NAMESPACE=${POD_NAMESPACE} (from env)."; return 0; }
+
+  # 2. K8s service-account namespace file (present in every in-cluster pod)
+  local ns_file="/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+  if [[ -f "$ns_file" ]]; then
+    export POD_NAMESPACE="$(<"$ns_file")"
+    log "POD_NAMESPACE=${POD_NAMESPACE} (from service-account file)."
+    return 0
+  fi
+
+  # 3. Fallback for local development
+  export POD_NAMESPACE="sapl"
+  log "POD_NAMESPACE not found — using fallback '${POD_NAMESPACE}'."
+}
+
+# ---------------------------------------------------------------------------
+# Redis — check URL from deployment env, waffle switch, connectivity
+# ---------------------------------------------------------------------------
+
+# 1. Log whether REDIS_URL was provided via the deployment env.
+resolve_redis_url() {
+  if [[ -n "${REDIS_URL:-}" ]]; then
+    log "REDIS_URL set: $REDIS_URL"
+  else
+    log "REDIS_URL not set — file-based cache will be used."
+  fi
+}
+
+# 2. Create/reset the REDIS_CACHE waffle switch; set CACHE_BACKEND accordingly.
+configure_redis_cache() {
+  ./manage.py waffle_switch REDIS_CACHE off --create || true
+  if [[ -z "${REDIS_URL:-}" ]]; then
+    log "REDIS_URL not set — REDIS_CACHE switch OFF."
+    return 0
+  fi
+  ./manage.py waffle_switch REDIS_CACHE on --create || true
+  export CACHE_BACKEND="redis"
+  log "REDIS_URL set — REDIS_CACHE switch ON."
+}
+
+# 4. Block until Redis is reachable (or give up gracefully).
+wait_for_redis() {
+  [[ -z "${REDIS_URL:-}" ]] && return 0
+  [[ "${CACHE_BACKEND:-file}" != "redis" ]] && return 0
+  log "Checking Redis connectivity..."
+  local host port retries=10
+  host=$(python3 -c "from urllib.parse import urlparse; u=urlparse('${REDIS_URL}'); print(u.hostname or 'localhost')")
+  port=$(python3 -c "from urllib.parse import urlparse; u=urlparse('${REDIS_URL}'); print(u.port or 6379)")
+  until python3 -c "import socket; s=socket.create_connection(('$host',$port),2); s.close()" 2>/dev/null; do
+    retries=$((retries - 1))
+    if [[ $retries -eq 0 ]]; then
+      log "WARNING: Redis unreachable after retries — falling back to file cache."
+      export CACHE_BACKEND="file"
+      return 0
+    fi
+    log "Waiting for Redis at $host:$port... ($retries retries left)"
+    sleep 2
+  done
+  log "Redis reachable at $host:$port."
+}
+
 start_services() {
   log "Starting gunicorn..."
   gunicorn -c gunicorn.conf.py &
+  log "Applying nginx config (burst: general=${NGINX_BURST_GENERAL} media=${NGINX_BURST_MEDIA} api=${NGINX_BURST_API} heavy=${NGINX_BURST_HEAVY})..."
+  envsubst '${NGINX_BURST_GENERAL} ${NGINX_BURST_MEDIA} ${NGINX_BURST_API} ${NGINX_BURST_HEAVY}' \
+    < /etc/nginx/conf.d/sapl.conf.template \
+    > /etc/nginx/conf.d/sapl.conf
   log "Starting nginx..."
   exec /usr/sbin/nginx -g "daemon off;"
 }
 
 main() {
   create_secret
-  write_env_file
+  resolve_pod_namespace
+  resolve_redis_url
   wait_for_pg
   configure_pg_timezone
   migrate_db
+  configure_redis_cache
+  wait_for_redis
+  write_env_file          # writes resolved REDIS_URL + CACHE_BACKEND into .env
   configure_solr || true
   configure_sapn
   create_admin

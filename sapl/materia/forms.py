@@ -42,7 +42,8 @@ from sapl.utils import (autor_label, autor_modal, timing,
                         models_with_gr_for_model, qs_override_django_filter,
                         SEPARADOR_HASH_PROPOSICAO,
                         validar_arquivo, YES_NO_CHOICES,
-                        GoogleRecapthaMixin, get_client_ip)
+                        GoogleRecapthaMixin)
+from sapl.middleware.ratelimit import get_client_ip
 
 from .models import (AcompanhamentoMateria, Anexada, Autoria,
                      DespachoInicial, DocumentoAcessorio, Numeracao,

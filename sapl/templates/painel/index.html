@@ -297,7 +297,7 @@
                 $('#tema_solene_div').show();
               }
 
-              if (data["brasao"] != null)
+              if (data["brasao"] != null && $("#logo-painel").attr("src") !== data["brasao"])
                 $("#logo-painel").attr("src", data["brasao"]);
 
               var presentes = $("#parlamentares");

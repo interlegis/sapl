@@ -24,7 +24,8 @@ from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 PresencaOrdemDia, RegistroVotacao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
                                 VotoParlamentar, RegistroLeitura)
-from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
+from sapl.middleware.ratelimit import get_client_ip
+from sapl.utils import filiacao_data, sort_lista_chave
 
 from .models import Cronometro
 
@@ -326,20 +327,6 @@ def verifica_painel(request):
     resposta = JsonResponse(dict(status=status))
     return resposta
 
-
-@user_passes_test(check_permission)
-def painel_mensagem_view(request):
-    return render(request, 'painel/mensagem.html')
-
-
-@user_passes_test(check_permission)
-def painel_parlamentar_view(request):
-    return render(request, 'painel/parlamentares.html')
-
-
-@user_passes_test(check_permission)
-def painel_votacao_view(request):
-    return render(request, 'painel/votacao.html')
 
 
 @user_passes_test(check_permission)

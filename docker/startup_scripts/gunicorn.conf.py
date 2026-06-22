@@ -10,9 +10,9 @@ DJANGODIR = "/var/interlegis/sapl"
 SOCKFILE = f"unix:{DJANGODIR}/run/gunicorn.sock"
 USER = "sapl"
 GROUP = "nginx"
-NUM_WORKERS = int(os.getenv("WEB_CONCURRENCY", "3"))
-THREADS = int(os.getenv("GUNICORN_THREADS", "8"))
-TIMEOUT = int(os.getenv("GUNICORN_TIMEOUT", "300"))
+NUM_WORKERS = int(os.getenv("WEB_CONCURRENCY", "2"))        # was 3
+THREADS = int(os.getenv("GUNICORN_THREADS", "4"))           # was 8
+TIMEOUT = int(os.getenv("GUNICORN_TIMEOUT", "120"))         # was 300
 MAX_REQUESTS = 1000
 WORKER_CLASS = "gthread"
 DJANGO_SETTINGS = "sapl.settings"
@@ -36,7 +36,7 @@ chdir = DJANGODIR
 wsgi_app = WSGI_APP
 
 # Logs
-loglevel = "debug"
+loglevel = "info"                                            # was debug — reduces log I/O
 accesslog = "/var/log/sapl/access.log"
 errorlog = "/var/log/sapl/error.log"
 # errorlog = "-"          # send to stderr (so you see it in docker logs or terminal)
@@ -53,7 +53,7 @@ keepalive = 10
 backlog = 2048
 max_requests = MAX_REQUESTS
 max_requests_jitter = 200
-worker_max_memory_per_child = 300 * 1024 * 1024  # 300 MB cap
+worker_max_memory_per_child = 400 * 1024 * 1024  # 400 MB — was 300 MB
 
 # Environment (same as exporting before running)
 raw_env = [

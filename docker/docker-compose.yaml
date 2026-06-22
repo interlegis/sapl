@@ -18,6 +18,7 @@ services:
       - "5433:5432"
     networks:
       - sapl-net
+
   saplsolr:
     image: solr:8.11
     restart: always
@@ -32,11 +33,39 @@ services:
       - "8983:8983"
     networks:
       - sapl-net
+
+  saplredis:
+    image: redis:7-alpine
+    restart: always
+    container_name: redis
+    labels:
+      NAME: "redis"
+    command: >
+      redis-server
+      --save ""
+      --appendonly no
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --maxmemory-samples 10
+      --maxclients 1000
+      --timeout 300
+      --tcp-keepalive 60
+      --hz 20
+      --lazyfree-lazy-eviction yes
+      --lazyfree-lazy-expire yes
+      --lazyfree-lazy-server-del yes
+      --databases 4
+      --protected-mode no
+    ports:
+      - "6379:6379"
+    networks:
+      - sapl-net
+
   sapl:
-    image: interlegis/sapl:3.1.165-RC2
-#    build:
-#      context: ../
-#      dockerfile: ./docker/Dockerfile
+#    image: interlegis/sapl:3.1.165-RC2
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
     container_name: sapl
     labels:
        NAME: "sapl"
@@ -57,20 +86,25 @@ services:
       IS_ZK_EMBEDDED: 'True'
       ENABLE_SAPN: 'False'
       TZ: America/Sao_Paulo
+      REDIS_URL: redis://saplredis:6379
+      CACHE_BACKEND: redis
     volumes:
       - sapl_data:/var/interlegis/sapl/data
       - sapl_media:/var/interlegis/sapl/media
     depends_on:
       - sapldb
       - saplsolr
+      - saplredis
     ports:
       - "80:80"
     networks:
       - sapl-net
+
 networks:
   sapl-net:
     name: sapl-net
     driver: bridge
+
 volumes:
   sapldb_data:
   sapl_data:

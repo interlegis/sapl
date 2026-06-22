@@ -189,16 +189,9 @@ spec:
           image: eribeiro/sapl:debug-k8s-1
           ports:
             - containerPort: 80
-          volumeMounts:
-            - name: data
-              mountPath: /var/interlegis/sapl/data
-              readOnly: true              # secrets are always mounted read-only
-      volumes:
-        - name: data
-          secret:
-            secretName: sapl-secretkey
-            defaultMode: 0440             # ensures read-only
           env:
+            - name: REDIS_URL
+              value: "redis://redis.sapl-redis.svc.cluster.local:6379"
             - name: ADMIN_PASSWORD
               value: "interlegis"
             - name: ADMIN_EMAIL
@@ -214,5 +207,12 @@ spec:
             - name: EMAIL_HOST_USER
               value: "usuariosmtp"
             - name: EMAIL_SEND_USER
-
-
+          volumeMounts:
+            - name: data
+              mountPath: /var/interlegis/sapl/data
+              readOnly: true              # secrets are always mounted read-only
+      volumes:
+        - name: data
+          secret:
+            secretName: sapl-secretkey
+            defaultMode: 0440             # ensures read-only

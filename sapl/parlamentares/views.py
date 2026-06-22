@@ -33,7 +33,9 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.norma.models import AutoriaNorma, NormaJuridica
 from sapl.parlamentares.apps import AppConfig
 from sapl.rules import SAPL_GROUP_VOTANTE
-from sapl.utils import (parlamentares_ativos, show_results_filter_set, ratelimit_ip)
+from sapl.middleware.page_cache import AnonCachePageMixin
+from sapl.middleware.ratelimit import smart_key, smart_rate
+from sapl.utils import (parlamentares_ativos, show_results_filter_set)
 
 from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
@@ -48,7 +50,7 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 
-from ..settings import RATE_LIMITER_RATE
+
 
 FrenteCargoCrud = CrudAux.build(FrenteCargo, 'frente_cargo')
 BlocoCargoCrud = CrudAux.build(BlocoCargo, 'bloco_cargo')
@@ -188,11 +190,11 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
                     _('Texto Eletrônico'))
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
-class PesquisarParlamentarView(FilterView):
+class PesquisarParlamentarView(AnonCachePageMixin, FilterView):
     model = Parlamentar
     filterset_class = ParlamentarFilterSet
     paginate_by = 20
@@ -230,11 +232,9 @@ class PesquisarParlamentarView(FilterView):
         super(PesquisarParlamentarView, self).get(request)
 
         data = self.filterset.data
-        url = ''
-        if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                url = ''
+        qr = self.request.GET.copy()
+        qr.pop('page', None)
+        url = ('&' + qr.urlencode()) if qr else ''
 
         if 'nome_parlamentar' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
@@ -254,11 +254,11 @@ class PesquisarParlamentarView(FilterView):
         return self.render_to_response(context)
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
-class PesquisarColigacaoView(FilterView):
+class PesquisarColigacaoView(AnonCachePageMixin, FilterView):
     model = Coligacao
     filterset_class = ColigacaoFilterSet
     paginate_by = 20
@@ -290,11 +290,9 @@ class PesquisarColigacaoView(FilterView):
         super(PesquisarColigacaoView, self).get(request)
 
         data = self.filterset.data
-        url = ''
-        if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                url = ''
+        qr = self.request.GET.copy()
+        qr.pop('page', None)
+        url = ('&' + qr.urlencode()) if qr else ''
 
         if 'nome' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
@@ -314,11 +312,11 @@ class PesquisarColigacaoView(FilterView):
         return self.render_to_response(context)
 
 
-@method_decorator(ratelimit(key=ratelimit_ip,
-                            rate=RATE_LIMITER_RATE,
+@method_decorator(ratelimit(key=smart_key,
+                            rate=smart_rate,
                             block=True),
                   name='dispatch')
-class PesquisarPartidoView(FilterView):
+class PesquisarPartidoView(AnonCachePageMixin, FilterView):
     model = Partido
     filterset_class = PartidoFilterSet
     paginate_by = 20
@@ -349,11 +347,9 @@ class PesquisarPartidoView(FilterView):
         super(PesquisarPartidoView, self).get(request)
 
         data = self.filterset.data
-        url = ''
-        if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                url = ''
+        qr = self.request.GET.copy()
+        qr.pop('page', None)
+        url = ('&' + qr.urlencode()) if qr else ''
 
         if 'nome' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
@@ -749,7 +745,9 @@ class ParlamentarCrud(Crud):
             'filiacao_atual',
             'ativo']
 
-    class DetailView(Crud.DetailView):
+    class DetailView(AnonCachePageMixin, Crud.DetailView):
+        # Parlamentar profiles change only at term boundaries — 10-minute cache.
+        anon_cache_ttl = 600  # PAGE_CACHE_TTL_STABLE
 
         def get_template_names(self):
             if self.request.user.has_perm(self.permission(RP_CHANGE)):
@@ -788,10 +786,12 @@ class ParlamentarCrud(Crud):
             """
             return super(Crud.CreateView, self).form_valid(form)
 
-    class ListView(Crud.ListView):
+    class ListView(AnonCachePageMixin, Crud.ListView):
         template_name = "parlamentares/parlamentares_list.html"
         paginate_by = None
         logger = logging.getLogger(__name__)
+        # Full list changes only when a mandato starts/ends — 10-minute cache.
+        anon_cache_ttl = 600  # PAGE_CACHE_TTL_STABLE
 
         @xframe_options_exempt
         def get(self, request, *args, **kwargs):
