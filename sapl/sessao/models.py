@@ -209,7 +209,7 @@ class SessaoPlenaria(models.Model):
         null=True,
         storage=OverwriteStorage(),
         upload_to=anexo_upload_path,
-        verbose_name=_('Anexo da Sessão'))
+        verbose_name=_('Votações Nominais'))
     iniciada = models.BooleanField(
         null=True,
         blank=True,
