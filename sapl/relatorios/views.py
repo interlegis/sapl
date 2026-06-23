@@ -1790,7 +1790,7 @@ def relatorio_materia_tramitacao(request, pk):
     'materia': materia_legislativa,
     'ano': materia_legislativa.ano,
     'numero': materia_legislativa.numero,
-    'autor': materia_legislativa.autores.first(),
+    'autores': materia_legislativa.autores.all(),
     'tipo': materia_legislativa.tipo.descricao,
     'rodape': rodape,
     'data': dt.today().strftime('%d/%m/%Y'),
