@@ -709,7 +709,7 @@ def get_sessao_plenaria(sessao, casa, user):
     lst_expediente_materia_vot_nom = []
 
     materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
-        .order_by('-materia')
+        .order_by('numero_ordem')
 
     for mevn in materias_expediente_votacao_nominal:
         votos_materia = []
@@ -822,7 +822,7 @@ def get_sessao_plenaria(sessao, casa, user):
     lst_votacao_vot_nom = []
 
     materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
-        .order_by('-materia')
+        .order_by('numero_ordem')
 
     for modvn in materias_ordem_dia_votacao_nominal:
         votos_materia_od = []
