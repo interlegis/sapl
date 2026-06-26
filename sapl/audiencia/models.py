@@ -85,6 +85,9 @@ class AudienciaPublica(models.Model):
         null=True,
         blank=True,
         verbose_name=_('Autor'))
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True, auto_now=True,
+        verbose_name=_('Data da Última Atualização'))
     requerimento = models.ForeignKey(
         MateriaLegislativa,
         null=True,
