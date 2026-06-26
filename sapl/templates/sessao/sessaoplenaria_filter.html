@@ -57,8 +57,9 @@
               <strong><a href="{{s.upload_pauta.url}}">Pauta da Sessão</strong></a></br>
               {% endif %}
               {% if s.upload_anexo %}
-              <strong><a href="{{s.upload_anexo.url}}">Votações Nominais</strong></a></br>
+              <strong><a href="{{s.upload_anexo.url}}">Anexo da Sessão</strong></a></br>
               {% endif %}
+              <strong><a href="{% url 'sapl.sessao:resumo' s.id %}">Votações Nominais</strong></a></br>
             </td>
           </tr>
         {% endfor %}
