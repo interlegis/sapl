@@ -1,6 +1,5 @@
 import './scss/painel.scss'
 
-// main.js (Vue 2)
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { mapState } from 'vuex';
@@ -14,7 +13,6 @@ import PainelOradores from '../../components/painel/PainelOradores.vue'
 import PainelMateria from '../../components/painel/PainelMateria.vue'
 import PainelResultado from '../../components/painel/PainelResultado.vue'
 import PainelFooter from '../../components/painel/PainelFooter.vue'
-import alarm from '../../assets/audio/ring.mp3'
 
 // register components
 Vue.component('painel-cronometro', Cronometro)
@@ -121,6 +119,7 @@ new Vue({
     this.connectWS()
 
   },
+
   computed: {
     ...mapState(["painel_aberto", "sessao_aberta", "sessao"]),
     canRender () {
@@ -269,6 +268,11 @@ new Vue({
                     console.log(`Received ping from server: ${JSON.stringify(data)}`);
               } else if (data.type == 'stopwatch.update') {
                     this.handleStopWatchEvent(data);
+              } else if (data.type == 'vote.update') {
+                    console.log('Received vote update:', data);
+                    this.updateParlamentares({
+                        [data.parlamentar_id]: { voto: data.voto }
+                    });
               }
         } catch (e) {
             console.error('WS parse error:', e);
