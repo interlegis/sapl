@@ -707,6 +707,279 @@ def stopwatch_controller(request, controller_id):
     async_to_sync(layer.group_send)(group, notification)
     return JsonResponse(notification)
 
+VALID_VOTE_VALUES = ["Sim", "Não", "Abstenção", "Não Votou"]
+@user_passes_test(check_permission)
+def vote_controller(request, controller_id):
+    """
+    HTTP endpoint to cast/update a vote and broadcast to all connected WebSocket clients.
+    Follows the same pattern as stopwatch_controller.
+    POST /v2/painel/controller/<sessao_id>/vote
+    Body (form-encoded or JSON):
+        parlamentar_id: int
+        voto: str ("Sim", "Não", "Abstenção", "Não Votou")
+    """
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    logger = logging.getLogger(__name__)
+    if request.method != 'POST':
+        return JsonResponse({"type": "error", "message": "Only POST allowed"}, status=405)
+    # Parse body: support both form-encoded and JSON
+    if request.content_type and 'json' in request.content_type:
+        try:
+            body = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"type": "error", "message": "Invalid JSON"}, status=400)
+        parlamentar_id = body.get("parlamentar_id")
+        voto = body.get("voto")
+    else:
+        parlamentar_id = request.POST.get("parlamentar_id")
+        voto = request.POST.get("voto")
+    # Validate
+    if not parlamentar_id:
+        return JsonResponse({"type": "error", "message": "parlamentar_id is required"}, status=400)
+    try:
+        parlamentar_id = int(parlamentar_id)
+    except (ValueError, TypeError):
+        return JsonResponse({"type": "error", "message": "parlamentar_id must be an integer"}, status=400)
+    if voto not in VALID_VOTE_VALUES:
+        return JsonResponse({
+            "type": "error",
+            "message": f"Invalid vote value: {voto}. Must be one of: {VALID_VOTE_VALUES}"
+        }, status=400)
+    # Verify session exists
+    try:
+        sessao = SessaoPlenaria.objects.get(id=controller_id)
+    except SessaoPlenaria.DoesNotExist:
+        return JsonResponse({"type": "error", "message": "Session not found"}, status=404)
+    # Find open materia (OrdemDia or ExpedienteMateria)
+    ordem_dia = get_materia_aberta(controller_id)
+    expediente = get_materia_expediente_aberta(controller_id)
+    materia_aberta = ordem_dia or expediente
+    if not materia_aberta:
+        return JsonResponse({"type": "error", "message": "No open materia for voting"}, status=400)
+    if materia_aberta.tipo_votacao != VOTACAO_NOMINAL:
+        return JsonResponse({"type": "error", "message": "Materia is not nominal voting type"}, status=400)
+    # Verify parlamentar exists
+    try:
+        parlamentar = Parlamentar.objects.get(id=parlamentar_id)
+    except Parlamentar.DoesNotExist:
+        return JsonResponse({"type": "error", "message": f"Parlamentar {parlamentar_id} not found"}, status=404)
+    # Save/update vote
+    vote_kwargs = {
+        'parlamentar': parlamentar,
+        'voto': voto,
+        'user': request.user,
+        'ip': get_client_ip(request),
+    }
+    if ordem_dia:
+        vote_kwargs['ordem'] = ordem_dia
+        voto_obj, created = VotoParlamentar.objects.update_or_create(
+            parlamentar=parlamentar,
+            ordem=ordem_dia,
+            defaults={'voto': voto, 'user': request.user, 'ip': get_client_ip(request)}
+        )
+    else:
+        vote_kwargs['expediente'] = expediente
+        voto_obj, created = VotoParlamentar.objects.update_or_create(
+            parlamentar=parlamentar,
+            expediente=expediente,
+            defaults={'voto': voto, 'user': request.user, 'ip': get_client_ip(request)}
+        )
+    logger.info(f"Vote {'created' if created else 'updated'}: parlamentar={parlamentar_id}, voto={voto}, sessao={controller_id}")
+    # Broadcast vote to all connected WebSocket clients
+    layer = get_channel_layer()
+    group = f"controller_{controller_id}"
+    notification = {
+        "type": "vote.update",
+        "parlamentar_id": parlamentar_id,
+        "voto": voto,
+        "created": created,
+    }
+    async_to_sync(layer.group_send)(group, notification)
+    return JsonResponse({"ok": True, **notification})
+
+
+@user_passes_test(check_permission)
+def cancel_voting(request, controller_id):
+    """
+    HTTP endpoint to cancel the current open voting and discard all votes.
+    POST /v2/painel/controller/<sessao_id>/cancel
+    """
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    from sapl.sessao.views import fechar_votacao_materia
+
+    logger = logging.getLogger(__name__)
+
+    if request.method != 'POST':
+        return JsonResponse({"type": "error", "message": "Only POST allowed"}, status=405)
+
+    # Find the open materia
+    ordem_dia = get_materia_aberta(controller_id)
+    expediente = get_materia_expediente_aberta(controller_id)
+    materia_aberta = ordem_dia or expediente
+
+    if not materia_aberta:
+        return JsonResponse({"type": "error", "message": "No open materia for voting"}, status=400)
+
+    # Build redirect URL before closing (materia_aberta fields change after close)
+    materia_id = materia_aberta.materia_id
+    if ordem_dia:
+        redirect_url = reverse('sapl.sessao:ordemdia_list',
+                               kwargs={'pk': controller_id}) + f'#id{materia_id}'
+    else:
+        redirect_url = reverse('sapl.sessao:expedientemateria_list',
+                               kwargs={'pk': controller_id}) + f'#id{materia_id}'
+
+    # Cancel: delete votes + RegistroVotacao, close materia
+    fechar_votacao_materia(materia_aberta)
+    logger.info(f"Voting cancelled for sessao={controller_id}, materia={materia_aberta.id}")
+
+    # Broadcast updated state to all WebSocket clients
+    layer = get_channel_layer()
+    group = f"controller_{controller_id}"
+    from sapl.painel.consumers import get_dados_painel
+    updated_data = get_dados_painel(controller_id)
+    async_to_sync(layer.group_send)(group, updated_data)
+
+    return JsonResponse({"ok": True, "message": "Votação cancelada com sucesso.", "redirect_url": redirect_url})
+
+
+@user_passes_test(check_permission)
+def close_voting(request, controller_id):
+    """
+    HTTP endpoint to close the current voting and save the result.
+    POST /v2/painel/controller/<sessao_id>/close
+    Body (JSON):
+        resultado_id: int (TipoResultadoVotacao id)
+        observacoes: str (optional)
+    """
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    from sapl.sessao.models import TipoResultadoVotacao
+
+    logger = logging.getLogger(__name__)
+
+    if request.method != 'POST':
+        return JsonResponse({"type": "error", "message": "Only POST allowed"}, status=405)
+
+    # Parse body
+    if request.content_type and 'json' in request.content_type:
+        try:
+            body = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"type": "error", "message": "Invalid JSON"}, status=400)
+    else:
+        body = request.POST
+
+    resultado_id = body.get("resultado_id")
+    observacoes = body.get("observacoes", "")
+
+    if not resultado_id:
+        return JsonResponse({
+            "type": "error",
+            "message": "Não é possível finalizar a votação sem nenhum resultado da votação"
+        }, status=400)
+
+    # Validate resultado
+    try:
+        tipo_resultado = TipoResultadoVotacao.objects.get(id=resultado_id)
+    except TipoResultadoVotacao.DoesNotExist:
+        return JsonResponse({"type": "error", "message": "Tipo de resultado não encontrado"}, status=404)
+
+    # Find the open materia
+    ordem_dia = get_materia_aberta(controller_id)
+    expediente = get_materia_expediente_aberta(controller_id)
+    materia_aberta = ordem_dia or expediente
+
+    if not materia_aberta:
+        return JsonResponse({"type": "error", "message": "No open materia for voting"}, status=400)
+
+    # Count votes from VotoParlamentar
+    if ordem_dia:
+        votos = VotoParlamentar.objects.filter(ordem=ordem_dia)
+    else:
+        votos = VotoParlamentar.objects.filter(expediente=expediente)
+
+    votos_sim = votos.filter(voto='Sim').count()
+    votos_nao = votos.filter(voto='Não').count()
+    abstencoes = votos.filter(voto='Abstenção').count()
+    nao_votou = votos.filter(voto='Não Votou').count()
+
+    # All votes must not be "Não Votou"
+    total_votados = votos_sim + votos_nao + abstencoes
+    if total_votados == 0:
+        return JsonResponse({
+            "type": "error",
+            "message": "Não é possível finalizar a votação sem nenhum voto"
+        }, status=400)
+
+    # Remove old RegistroVotacao if exists
+    if ordem_dia:
+        RegistroVotacao.objects.filter(ordem=ordem_dia).delete()
+    else:
+        RegistroVotacao.objects.filter(expediente=expediente).delete()
+
+    # Create RegistroVotacao
+    registro = RegistroVotacao()
+    registro.numero_votos_sim = votos_sim
+    registro.numero_votos_nao = votos_nao
+    registro.numero_abstencoes = abstencoes
+    registro.observacao = observacoes
+    registro.user = request.user
+    registro.ip = get_client_ip(request)
+    registro.materia = materia_aberta.materia
+    registro.tipo_resultado_votacao = tipo_resultado
+
+    if ordem_dia:
+        registro.ordem = ordem_dia
+    else:
+        registro.expediente = expediente
+
+    registro.save()
+
+    # Link VotoParlamentar records to RegistroVotacao and update user/ip
+    for voto_obj in votos:
+        voto_obj.votacao = registro
+        voto_obj.user = request.user
+        voto_obj.ip = get_client_ip(request)
+        voto_obj.save()
+
+    # Build redirect URL before closing
+    materia_id = materia_aberta.materia_id
+    if ordem_dia:
+        redirect_url = reverse('sapl.sessao:ordemdia_list',
+                               kwargs={'pk': controller_id}) + f'#id{materia_id}'
+    else:
+        redirect_url = reverse('sapl.sessao:expedientemateria_list',
+                               kwargs={'pk': controller_id}) + f'#id{materia_id}'
+
+    # Close materia with resultado
+    materia_aberta.resultado = tipo_resultado.nome
+    materia_aberta.votacao_aberta = False
+    materia_aberta.save()
+
+    # Clean up orphan VotoParlamentar (without votacao)
+    if ordem_dia:
+        VotoParlamentar.objects.filter(ordem=ordem_dia, votacao__isnull=True).delete()
+    else:
+        VotoParlamentar.objects.filter(expediente=expediente, votacao__isnull=True).delete()
+
+    logger.info(
+        f"Voting closed for sessao={controller_id}: "
+        f"sim={votos_sim}, nao={votos_nao}, abstencoes={abstencoes}, "
+        f"resultado={tipo_resultado.nome}"
+    )
+
+    # Broadcast updated state to all WebSocket clients
+    layer = get_channel_layer()
+    group = f"controller_{controller_id}"
+    from sapl.painel.consumers import get_dados_painel
+    updated_data = get_dados_painel(controller_id)
+    async_to_sync(layer.group_send)(group, updated_data)
+
+    return JsonResponse({"ok": True, "message": "Votação finalizada com sucesso.", "redirect_url": redirect_url})
+
 
 # def push_to_me(request):
 #     from asgiref.sync import async_to_sync

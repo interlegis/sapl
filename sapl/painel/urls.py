@@ -3,8 +3,9 @@ from django.conf.urls import url
 from .apps import AppConfig
 from .views import (cronometro_painel, get_dados_painel, painel_mensagem_view,
                     painel_parlamentar_view, painel_view, painel_votacao_view,
-                    switch_painel, verifica_painel, votante_view, websocket_view, stopwatch_controller)
-
+                    switch_painel, verifica_painel, votante_view, websocket_view,
+                    stopwatch_controller, vote_controller, cancel_voting,
+                    close_voting)
 from django.urls import path
 
 app_name = AppConfig.name
@@ -30,4 +31,10 @@ urlpatterns = [
     path("v2/painel/<int:controller_id>", websocket_view, name='painel_websocket'),
     path("v2/painel/controller/<int:controller_id>/stopwatch",
          stopwatch_controller, name='painel_controller'),
+    path("v2/painel/controller/<int:controller_id>/vote",
+         vote_controller, name='vote_controller'),
+    path("v2/painel/controller/<int:controller_id>/cancel",
+         cancel_voting, name='cancel_voting'),
+    path("v2/painel/controller/<int:controller_id>/close",
+         close_voting, name='close_voting'),
 ]
