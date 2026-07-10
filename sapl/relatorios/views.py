@@ -1853,6 +1853,7 @@ class RelatorioMixin:
         if request.GET.get('relatorio'):
             filterset_class = self.get_filterset_class()
             self.filterset = self.get_filterset(filterset_class)
+            self.object_list = self.filterset.qs
             context = self.get_context_data(filter=self.filterset)
             return self.relatorio(request, context)
 
