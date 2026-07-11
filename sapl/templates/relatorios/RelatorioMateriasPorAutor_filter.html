@@ -17,7 +17,7 @@
     &emsp;Tipo de matéria: {{ tipo }}<br />
     &emsp;Data de apresentação: {{ periodo }}<br /><br /><br/>
     
-    {% if materias_resultado %}
+    {% if object_list %}
       <table class="table table-bordered table-hover">
         <thead class="thead-default" >
           <tr class="active">
@@ -43,10 +43,10 @@
           <tr class="active">
             <th width="10%">Matéria</th>
             <th>Ementa</th>
-            <th width="20%">Autor(es)</th>
+            <th width="20%">Coautor(es)</th>
           </tr>
         </thead>
-        {% for materia in materias_resultado %}
+        {% for materia in object_list %}
           <tbody>
             <tr>
               <td>
@@ -56,11 +56,9 @@
               </td>
               <td>{% autoescape off %}{{materia.ementa}}<br>{{materia.observacao}}{% endautoescape %}</td>
               <td>
-                {% for autor in materia.autoria_set.all %}
-                  {% if not autor.primeiro_autor %}
-                    {{ autor.autor }}<br />
-                  {% else %}
-                    <u><b><i>{{ autor.autor }}</i></b></u><br />
+                {% for autoria in materia.autoria_set.all %}
+                  {% if autoria.autor != autor %}
+                    {{ autoria.autor }}<br />
                   {% endif %}
                 {% endfor %}
               </td>

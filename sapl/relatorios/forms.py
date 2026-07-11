@@ -633,6 +633,8 @@ class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super().qs
+        if not self.data.get('autoria__autor'):
+            return parent.none()
         return parent.distinct().order_by('-ano', '-numero', 'tipo', 'autoria__autor', '-autoria__primeiro_autor')
 
     class Meta(FilterOverridesMetaMixin):
@@ -744,7 +746,9 @@ class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super().qs
-        return parent.distinct().filter(autorianorma__primeiro_autor=True) \
+        if not self.data.get('autorianorma__autor'):
+            return parent.none()
+        return parent.distinct() \
             .order_by('autorianorma__autor', '-autorianorma__primeiro_autor', 'tipo', '-ano', '-numero')
 
     class Meta(FilterOverridesMetaMixin):

@@ -115,7 +115,7 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
                     numero=materia,
                     ano=ano_materia,
                     tipo=tipo_materia)
-            except ObjectDoesNotExist:
+            except (ObjectDoesNotExist, ValueError):
                 msg = _('A matéria %s nº %s/%s não existe no cadastro'
                         ' de matérias legislativas.' % (tipo_materia, materia, ano_materia))
                 self.logger.warning(
