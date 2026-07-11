@@ -223,7 +223,7 @@ class DocumentoAdministrativoFilterSet(django_filters.FilterSet):
                     </div>
                 ''')
             ],
-            Submit('pesquisar', _('Pesquisar'), css_class='float-right',
+            Submit('salvar', _('Pesquisar'), css_class='float-right',
                    onclick='return true;'),
             css_class='form-group row justify-content-between',
         )
