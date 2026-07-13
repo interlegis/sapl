@@ -2662,7 +2662,6 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
             return context
 
         qs = context['object_list']
-        context['materias_resultado'] = list(collections.OrderedDict.fromkeys(qs))
         context['qtdes'] = num_materias_por_tipo(qs)
 
         qr = self.request.GET.copy()
@@ -2677,9 +2676,9 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
             context['tipo'] = ''
         if self.request.GET['autoria__autor']:
             autor = int(self.request.GET['autoria__autor'])
-            context['autor'] = (str(Autor.objects.get(id=autor)))
+            context['autor'] = Autor.objects.get(id=autor)
         else:
-            context['autor'] = ''
+            context['autor'] = None
         context['periodo'] = (
                 self.request.GET['data_apresentacao_0'] +
                 ' - ' + self.request.GET['data_apresentacao_1'])
@@ -2923,9 +2922,9 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
 
         if self.request.GET['autorianorma__autor']:
             autor = int(self.request.GET['autorianorma__autor'])
-            context['autor'] = (str(Autor.objects.get(id=autor)))
+            context['autor'] = Autor.objects.get(id=autor)
         else:
-            context['autor'] = ''
+            context['autor'] = None
         context['periodo'] = (
                 self.request.GET['data_0'] +
                 ' - ' + self.request.GET['data_1'])
