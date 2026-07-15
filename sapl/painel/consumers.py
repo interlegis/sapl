@@ -12,16 +12,28 @@ from sapl.sessao.models import SessaoPlenaria, SessaoPresencasView, \
 
 
 def get_materia_votacao(votacao):
+    if not votacao:
+        return {
+            "materia_id": "",
+            "texto": "",
+            "ementa": "",
+            "resultado": {
+                "resultado_votacao": "",
+                "resultado": "",
+                "numero_votos": {},
+                "votos_parlamentares": [],
+            },
+        }
+    materia = votacao.materia
     return {
-        # TOO UGLY! FIX THIS if-else
-        "materia_id": votacao.materia.id if votacao and votacao.materia else "",
-        "texto": str(votacao.materia) if votacao and votacao.materia else "",
-        "ementa": votacao.materia.ementa if votacao and votacao.materia and votacao.materia.ementa else "",
+        "materia_id": materia.id if materia else "",
+        "texto": str(materia) if materia else "",
+        "ementa": materia.ementa if materia and materia.ementa else "",
         "resultado": {
-            "resultado_votacao": votacao.resultado_votacao if votacao and votacao.resultado_votacao else "",
-            "resultado": votacao.resultado if votacao and votacao.resultado else "",
-            "numero_votos": votacao.numero_votos if votacao and votacao.numero_votos else {},
-            "votos_parlamentares": votacao.votos_parlamentares if votacao and votacao.votos_parlamentares else [],
+            "resultado_votacao": votacao.resultado_votacao or "",
+            "resultado": votacao.resultado or "",
+            "numero_votos": votacao.numero_votos or {},
+            "votos_parlamentares": votacao.votos_parlamentares or [],
         },
     }
 
@@ -65,6 +77,29 @@ def get_dados_painel(sessao_plenaria_id: int) -> dict:
         'nome_parlamentar',
         'filiacao', )
     parlamentares = [dict(zip(['parlamentar_id', 'nome_parlamentar', 'filiacao'], p)) for p in presentes]
+
+    # Adicionar fotografia dos parlamentares
+    from sapl.parlamentares.models import Parlamentar
+    from image_cropping.utils import get_backend
+    parlamentar_ids = [p['parlamentar_id'] for p in parlamentares]
+    parlamentares_db = {p.id: p for p in Parlamentar.objects.filter(id__in=parlamentar_ids)}
+    for p in parlamentares:
+        par = parlamentares_db.get(p['parlamentar_id'])
+        if par and par.fotografia:
+            try:
+                p['fotografia'] = get_backend().get_thumbnail_url(
+                    par.fotografia,
+                    {
+                        'size': (128, 128),
+                        'box': par.cropping,
+                        'crop': True,
+                        'detail': True,
+                    }
+                )
+            except Exception:
+                p['fotografia'] = None
+        else:
+            p['fotografia'] = None
     if materia_votacao and materia_votacao.numero_votos:
         materia_votacao.numero_votos.update({"num_presentes": len(parlamentares)})
 
@@ -83,6 +118,12 @@ def get_dados_painel(sessao_plenaria_id: int) -> dict:
         "started_at_ms": 1699990000123,  # epoch ms when (re)started
         "elapsed_ms": 5320
     }
+
+    # Tipos de Resultado de Votação (for the resultado dropdown)
+    from sapl.sessao.models import TipoResultadoVotacao
+    tipos_resultado = list(
+        TipoResultadoVotacao.objects.all().values('id', 'nome')
+    )
 
     dados_sessao = {
         "type": "data",
@@ -103,6 +144,7 @@ def get_dados_painel(sessao_plenaria_id: int) -> dict:
         "parlamentares": parlamentares,
         "oradores": oradores,
         "materia": get_materia_votacao(materia_votacao),
+        "tipos_resultado": tipos_resultado,
         "stopwatch": [stopwatch],  # TODO: array of stopwatches
     }
 
@@ -170,11 +212,15 @@ class PainelConsumer(AsyncJsonWebsocketConsumer):
             return
         await self.send_json({"type": "error", "message": "Misformed message"})
         return
-
     async def stopwatch_update(self, event):
         await self.send_json(event)
         return
-
+    async def vote_update(self, event):
+        """Broadcast vote updates to all connected clients (painel + votacao).
+        Called automatically by Channels when group_send is invoked with type='vote.update'.
+        """
+        await self.send_json(event)
+        return
     @database_sync_to_async
     def user_can_view(self, user_id, controller_id) -> bool:
         # Replace with your ACL check (ORM must be in a sync wrapper)

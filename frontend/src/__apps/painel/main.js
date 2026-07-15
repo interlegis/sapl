@@ -1,6 +1,5 @@
 import './scss/painel.scss'
 
-// main.js (Vue 2)
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { mapState } from 'vuex';
@@ -13,7 +12,7 @@ import PainelParlamentares from '../../components/painel/PainelParlamentares.vue
 import PainelOradores from '../../components/painel/PainelOradores.vue'
 import PainelMateria from '../../components/painel/PainelMateria.vue'
 import PainelResultado from '../../components/painel/PainelResultado.vue'
-import alarm from '../../assets/audio/ring.mp3'
+import PainelFooter from '../../components/painel/PainelFooter.vue'
 
 // register components
 Vue.component('painel-cronometro', Cronometro)
@@ -23,6 +22,7 @@ Vue.component('painel-parlamentares', PainelParlamentares)
 Vue.component('painel-oradores', PainelOradores)
 Vue.component('painel-materia', PainelMateria)
 Vue.component('painel-resultado', PainelResultado)
+Vue.component('painel-footer', PainelFooter)
 
 // global store
 Vue.use(Vuex)
@@ -50,10 +50,22 @@ const store = new Vuex.Store({
     },
     updateParlamentares(state, votos_parlamentares) {
         if (votos_parlamentares) {
-            state.parlamentares.forEach((p)=>{
-                if (p.parlamentar_id in votos_parlamentares) {
-                    p.voto = votos_parlamentares[p.parlamentar_id].voto
+            let votosMap = votos_parlamentares;
+            if (Array.isArray(votos_parlamentares)) {
+                votosMap = {};
+                votos_parlamentares.forEach((item) => {
+                    if (item) {
+                        Object.keys(item).forEach((key) => {
+                            votosMap[key] = item[key];
+                        });
+                    }
+                });
+            }
+            state.parlamentares = state.parlamentares.map((p) => {
+                if (p.parlamentar_id in votosMap) {
+                    return { ...p, voto: votosMap[p.parlamentar_id].voto };
                 }
+                return p;
             });
         }
     },
@@ -71,6 +83,9 @@ const store = new Vuex.Store({
     },
     setMostrarVoto(state, mostrar_voto) {
         state.mostrar_voto = mostrar_voto;
+    },
+    setSessao(state, sessao) {
+        state.sessao = sessao;
     }
   },
   actions: {},
@@ -104,8 +119,9 @@ new Vue({
     this.connectWS()
 
   },
+
   computed: {
-    ...mapState(["painel_aberto", "sessao_aberta"]),
+    ...mapState(["painel_aberto", "sessao_aberta", "sessao"]),
     canRender () {
         return this.sessao_aberta && this.painel_aberto;
     },
@@ -113,7 +129,7 @@ new Vue({
   methods: {
     ...mapMutations(['sessaoStatus', 'painelStatus','setParlamentares',
                      'updateParlamentares', 'setOradores', 'setMateria',
-                     'setResultado', 'setMessage', 'setMostrarVoto']),
+                     'setResultado', 'setMessage', 'setMostrarVoto', 'setSessao']),
     wsURL() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws'
       return `${proto}://${location.host}/ws/painel/${this.controllerId}/`
@@ -165,6 +181,10 @@ new Vue({
           this.painelStatus(data.painel_aberto);
           this.setMostrarVoto(data.mostrar_voto);
 
+          if (data.sessao) {
+             this.setSessao(data.sessao);
+          }
+
           // PARLAMENTARES
           if (data.parlamentares) {
              // pre-popula para Vuex capturar mudanca de estado de 'voto'
@@ -173,14 +193,14 @@ new Vue({
           }
 
           // HEADER DO PAINEL
-          // SESSAO_PLENARIA
-          //TODO: group in a single SessaoPlenaria object
           const headerInstance = this.$refs.painelHeader;
-          //TODO: setup as child's props?
           headerInstance.sessao_plenaria = data.sessao.sessao_plenaria
-          headerInstance.sessao_plenaria_data = data.sessao.sessao_plenaria_data
-          headerInstance.sessao_plenaria_hora_inicio = data.sessao.sessao_plenaria_hora_inicio
-          headerInstance.brasao = data.sessao.brasao
+
+          // FOOTER DO PAINEL (brasão + relógio)
+          const footerInstance = this.$refs.painelFooter;
+          if (footerInstance) {
+            footerInstance.brasao = data.sessao.brasao;
+          }
 
           if (data.message) {
             this.setMessage(data.message);
@@ -194,15 +214,20 @@ new Vue({
           // MATERIA
           if (data.materia) {
             this.setMateria(data.materia);
-          }
 
-          // RESULTADO
-          if (data.materia.resultado) {
-            this.setResultado(data.materia.resultado);
-          }
+            // RESULTADO
+            if (data.materia.resultado) {
+              this.setResultado(data.materia.resultado);
 
-          if (data.materia.resultado.votos_parlamentares) {
-               this.updateParlamentares(data.materia.resultado.votos_parlamentares);
+              if (data.materia.resultado.votos_parlamentares) {
+                this.updateParlamentares(data.materia.resultado.votos_parlamentares);
+              }
+            } else {
+              this.setResultado({});
+            }
+          } else {
+            this.setMateria({});
+            this.setResultado({});
           }
         } catch (e) {
             console.error('Error', e);
@@ -243,6 +268,11 @@ new Vue({
                     console.log(`Received ping from server: ${JSON.stringify(data)}`);
               } else if (data.type == 'stopwatch.update') {
                     this.handleStopWatchEvent(data);
+              } else if (data.type == 'vote.update') {
+                    console.log('Received vote update:', data);
+                    this.updateParlamentares({
+                        [data.parlamentar_id]: { voto: data.voto }
+                    });
               }
         } catch (e) {
             console.error('WS parse error:', e);

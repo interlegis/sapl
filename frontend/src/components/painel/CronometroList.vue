@@ -1,16 +1,50 @@
-.<template>
-    <div class="col-md-6 text-left painel" v-if="canRender">
-        <div class="d-flex align-items-left justify-content-left mb-2">
-            <h2 class="text-subtitle mb-0">Cronômetros</h2>
-        </div>
-        <div class="text-value" id="box_cronometros">
-            <Cronometro v-for="(title, idx) in titles" :key="idx" :title="title" :ref="'childRef_' + idx" @child-mounted="handleChildMounted"/>
+<template>
+    <div class="painel d-flex flex-column" v-if="canRender">
+        <div id="box_cronometros" class="w-100">
+            <h2 class="text-center text-subtitle mb-3">Cronômetro</h2>
+            <div class="d-flex align-items-center justify-content-center" style="height: 80px">
+                <table class="table-custom w-100 mb-0">
+                    <tbody>
+                        <Cronometro
+                            ref="childRef_0"
+                            id="discurso"
+                            title="Discurso"
+                            :visible="visibleCronometro === 'discurso'"
+                            color-class=""
+                            @child-mounted="handleChildMounted"
+                        />
+                        <Cronometro
+                            ref="childRef_1"
+                            id="aparte"
+                            title="Aparte"
+                            :visible="visibleCronometro === 'aparte'"
+                            color-class="text-warning"
+                            @child-mounted="handleChildMounted"
+                        />
+                        <Cronometro
+                            ref="childRef_2"
+                            id="ordem"
+                            title="Questão de Ordem"
+                            :visible="visibleCronometro === 'ordem'"
+                            color-class="text-info"
+                            @child-mounted="handleChildMounted"
+                        />
+                        <Cronometro
+                            ref="childRef_3"
+                            id="consideracoes"
+                            title="Consid. Finais"
+                            :visible="visibleCronometro === 'consideracoes'"
+                            color-class=""
+                            @child-mounted="handleChildMounted"
+                        />
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
-    import { ref, onMounted } from 'vue';
     import { mapState } from 'vuex';
     import Cronometro from './Cronometro.vue';
 
@@ -21,8 +55,7 @@
         },
         data() {
             return {
-                titles: ["Discurso", "Aparte", "Questão de Ordem", "Considerações Finais"],
-                itemRefs: ref([]), // An array to store the refs
+                visibleCronometro: 'discurso',
             }
         },
         mounted() {
@@ -37,15 +70,39 @@
         methods: {
           handleStartStop() {
              console.log("start/stop stopwatch");
-             //console.log(this.$refs.itemRefs);
           },
           handleChildMounted() {
-            console.log('ChildComponent has finished mounting in the parent!');
-            // Perform actions in the parent that depend on the child being fully mounted
-            const childId = 0;
-            const childComponent = this.$refs['childRef_' + childId];
-            childComponent[0].handleStartStop();
+            console.log('Cronometro child mounted');
           },
+          updateVisibility() {
+            // Show priority: ordem > aparte > consideracoes > discurso
+            const refs = [
+              { key: 'ordem', ref: 'childRef_2' },
+              { key: 'aparte', ref: 'childRef_1' },
+              { key: 'consideracoes', ref: 'childRef_3' },
+              { key: 'discurso', ref: 'childRef_0' },
+            ];
+            for (const item of refs) {
+              const comp = this.$refs[item.ref];
+              if (comp && comp.isRunning) {
+                this.visibleCronometro = item.key;
+                return;
+              }
+            }
+            // Default to discurso if none running
+            this.visibleCronometro = 'discurso';
+          }
         },
     };
 </script>
+
+<style scoped>
+.table-custom {
+  color: #ddd;
+}
+::v-deep .table-custom tbody td {
+  padding: 8px;
+  font-size: 1.1rem;
+}
+</style>
+
