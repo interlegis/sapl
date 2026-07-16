@@ -1348,6 +1348,12 @@ class SessaoCrud(Crud):
 
     class DetailView(Crud.DetailView):
 
+        def get(self, request, *args, **kwargs):
+            if not SessaoPlenaria.objects.visiveis_para(
+                    request.user).filter(pk=kwargs.get('pk')).exists():
+                raise Http404()
+            return super().get(request, *args, **kwargs)
+
         @property
         def layout_key(self):
             sessao = self.object
@@ -2326,6 +2332,9 @@ class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
     logger = logging.getLogger(__name__)
+
+    def get_queryset(self):
+        return SessaoPlenaria.objects.visiveis_para(self.request.user)
 
     def get_context(self, *args, **kwargs):
         self.object = self.get_object()
@@ -3833,6 +3842,12 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
         ('situacao', 'Situação')
     )
 
+    def get_queryset(self):
+        qs = SessaoPlenaria.objects.all()
+        if not self.request.user.is_authenticated:
+            qs = qs.filter(publicar_pauta=True)
+        return qs
+
     def hook_autor(self, obj):
         return ','.join(obj['autor'])
 
@@ -4027,6 +4042,8 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
 
         qs = self.get_queryset().select_related(
             'tipo', 'sessao_legislativa', 'legislatura')
+
+        qs = qs.visiveis_para(self.request.user)
 
         qs = qs.distinct().order_by(
             '-legislatura__numero', '-data_inicio', '-hora_inicio')
