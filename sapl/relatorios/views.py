@@ -610,8 +610,10 @@ def get_sessao_plenaria(sessao, casa, user):
 
     # Exibe os Expedientes
     lst_expedientes = []
+    # A ordenação deve ser a mesma de sapl.sessao.views.get_expedientes, para
+    # que o PDF confira com o Resumo exibido em tela. OSTicket #125461
     expedientes = ExpedienteSessao.objects.filter(
-        sessao_plenaria=sessao).order_by('tipo__nome')
+        sessao_plenaria=sessao).order_by('tipo__ordenacao', 'tipo__nome')
     for e in expedientes:
         conteudo = e.conteudo
         if not is_empty(conteudo):
