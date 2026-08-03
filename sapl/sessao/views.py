@@ -64,7 +64,7 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
-                     ORDENACAO_RESUMO, RegistroLeitura)
+                     ORDENACAO_RESUMO, RegistroLeitura, restringe_sessoes_visiveis)
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
@@ -1349,8 +1349,9 @@ class SessaoCrud(Crud):
     class DetailView(Crud.DetailView):
 
         def get(self, request, *args, **kwargs):
-            if not SessaoPlenaria.objects.visiveis_para(
-                    request.user).filter(pk=kwargs.get('pk')).exists():
+            if not restringe_sessoes_visiveis(
+                    SessaoPlenaria.objects.filter(pk=kwargs.get('pk')),
+                    request.user).exists():
                 raise Http404()
             return super().get(request, *args, **kwargs)
 
@@ -2334,7 +2335,8 @@ class ResumoView(DetailView):
     logger = logging.getLogger(__name__)
 
     def get_queryset(self):
-        return SessaoPlenaria.objects.visiveis_para(self.request.user)
+        return restringe_sessoes_visiveis(
+            SessaoPlenaria.objects.all(), self.request.user)
 
     def get_context(self, *args, **kwargs):
         self.object = self.get_object()
@@ -4043,7 +4045,7 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
         qs = self.get_queryset().select_related(
             'tipo', 'sessao_legislativa', 'legislatura')
 
-        qs = qs.visiveis_para(self.request.user)
+        qs = restringe_sessoes_visiveis(qs, self.request.user)
 
         qs = qs.distinct().order_by(
             '-legislatura__numero', '-data_inicio', '-hora_inicio')

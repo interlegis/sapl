@@ -11,7 +11,8 @@ from sapl.sessao.models import (SessaoPlenaria, TipoSessaoPlenaria,
                                  IntegranteMesa, SessaoPlenariaPresenca,
                                  JustificativaAusencia, ExpedienteSessao,
                                  TipoExpediente, ExpedienteMateria,
-                                 Orador, OcorrenciaSessao)
+                                 Orador, OcorrenciaSessao,
+                                 restringe_sessoes_visiveis)
 
 from sapl.parlamentares.models import Parlamentar, CargoMesa, Filiacao
 
@@ -160,7 +161,8 @@ def test_visiveis_para_oculta_do_anonimo_apenas_a_sessao_previa():
     # Sessões anteriores à migração 0027 ficaram com `iniciada` em NULL.
     legada = baker.make(SessaoPlenaria, iniciada=None, publicar_pauta=False)
 
-    visiveis = SessaoPlenaria.objects.visiveis_para(AnonymousUser())
+    visiveis = restringe_sessoes_visiveis(
+        SessaoPlenaria.objects.all(), AnonymousUser())
 
     assert previa not in visiveis
     assert com_pauta in visiveis
@@ -174,7 +176,8 @@ def test_visiveis_para_nao_oculta_nada_de_usuario_autenticado():
 
     operador = baker.make(get_user_model())
 
-    assert previa in SessaoPlenaria.objects.visiveis_para(operador)
+    assert previa in restringe_sessoes_visiveis(
+        SessaoPlenaria.objects.all(), operador)
 
 
 @pytest.mark.django_db(transaction=False)
