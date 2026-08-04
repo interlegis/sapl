@@ -54,13 +54,11 @@
                     </a></td>
                     <td>{% autoescape off %}{{norma.ementa}}<br>{{norma.observacao}}{% endautoescape %}</td>
                     <td>
-                        {% if norma.autorianorma_set.first != norma.autorianorma_set.last %}
-                          {% for autor in norma.autorianorma_set.all %}
-                            {% if not autor.primeiro_autor %}
-                              {{ autor.autor }}<br />
+                          {% for autoria in norma.autorianorma_set.all %}
+                            {% if autoria.autor != autor %}
+                              {{ autoria.autor }}<br />
                             {% endif %}
                           {% endfor %}
-                        {% endif %}
                     </td>
                   </tr>
               </tbody>

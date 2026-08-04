@@ -617,6 +617,9 @@ TIPOS_TEXTO_PERMITIDOS = (
     'text/pdf',
     'text/x-pdf',
     'text/plain',
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/csv',
     'application/txt',
     'browser/internal',
     'text/anytext',
@@ -1401,8 +1404,9 @@ class MultiFormatOutputMixin:
         return {fmt: fields for fmt in self.formats_impl}
 
     def render_to_response(self, context, **response_kwargs):
-        format_result = getattr(self.request, self.request.method).get(
-            'format', None)
+        # HEAD shares query params with GET; Django has no request.HEAD attribute.
+        _method = 'GET' if self.request.method == 'HEAD' else self.request.method
+        format_result = getattr(self.request, _method).get('format', None)
 
         if format_result:
             if format_result not in self.formats_impl:

@@ -609,8 +609,10 @@ def get_sessao_plenaria(sessao, casa, user):
 
     # Exibe os Expedientes
     lst_expedientes = []
+    # A ordenação deve ser a mesma de sapl.sessao.views.get_expedientes, para
+    # que o PDF confira com o Resumo exibido em tela. OSTicket #125461
     expedientes = ExpedienteSessao.objects.filter(
-        sessao_plenaria=sessao).order_by('tipo__nome')
+        sessao_plenaria=sessao).order_by('tipo__ordenacao', 'tipo__nome')
     for e in expedientes:
         conteudo = e.conteudo
         if not is_empty(conteudo):
@@ -2660,7 +2662,6 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
             return context
 
         qs = context['object_list']
-        context['materias_resultado'] = list(collections.OrderedDict.fromkeys(qs))
         context['qtdes'] = num_materias_por_tipo(qs)
 
         qr = self.request.GET.copy()
@@ -2675,9 +2676,9 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
             context['tipo'] = ''
         if self.request.GET['autoria__autor']:
             autor = int(self.request.GET['autoria__autor'])
-            context['autor'] = (str(Autor.objects.get(id=autor)))
+            context['autor'] = Autor.objects.get(id=autor)
         else:
-            context['autor'] = ''
+            context['autor'] = None
         context['periodo'] = (
                 self.request.GET['data_apresentacao_0'] +
                 ' - ' + self.request.GET['data_apresentacao_1'])
@@ -2921,9 +2922,9 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
 
         if self.request.GET['autorianorma__autor']:
             autor = int(self.request.GET['autorianorma__autor'])
-            context['autor'] = (str(Autor.objects.get(id=autor)))
+            context['autor'] = Autor.objects.get(id=autor)
         else:
-            context['autor'] = ''
+            context['autor'] = None
         context['periodo'] = (
                 self.request.GET['data_0'] +
                 ' - ' + self.request.GET['data_1'])

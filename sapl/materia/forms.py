@@ -1944,10 +1944,6 @@ class ProposicaoForm(FileFieldCheckMixin, forms.ModelForm):
         fields = [
             to_column((Fieldset(
                 TipoProposicao._meta.verbose_name, Field('tipo')), 12)),
-            to_column(
-                (Alert('teste',
-                       css_class="ementa_materia hidden alert-info",
-                       dismiss=False), 12)),
             to_column(('descricao', 12)),
             to_column(('observacao', 12)),
 
