@@ -86,7 +86,10 @@ def materias(lst_materias):
         # materias
         tmp_data += '\t\t<para style="P1"> <b>' + \
             dic['titulo'] + '</b>   -   <b>Autor: </b>' + \
-            dic['nom_autor'] + ' </para>\n'
+            dic['nom_autor']
+        if dic.get('nom_relator'):
+            tmp_data += '   -   <b>Relator: </b>' + dic['nom_relator']
+        tmp_data += ' </para>\n'
         if dic['txt_ementa'] != None:
             txt_ementa = dic['txt_ementa'].replace('&', '&amp;')
             tmp_data += '\t\t<para style="P2"> ' + txt_ementa + ' </para>\n'
