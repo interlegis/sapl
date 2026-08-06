@@ -270,6 +270,47 @@
 
       {% block extra_js %}{% endblock extra_js %}
 
+      <script>
+        (function(){
+          // Reabilita botões de submit, exceto os marcados explicitamente
+          // com data-keep-disabled (casos especiais que devem permanecer desabilitados).
+          function enableFormSubmits(scope){
+            var root = scope || document;
+            var btns = root.querySelectorAll('button[type="submit"]:not([data-keep-disabled]), input[type="submit"]:not([data-keep-disabled])');
+            btns.forEach(function(b){
+              try { b.disabled = false; b.removeAttribute('aria-disabled'); } catch(_){}
+            });
+          }
+
+          // Reabilita submits ao retornar via back/forward cache (Firefox)
+          window.addEventListener('pageshow', function(e){
+            try {
+              var nav = (performance && performance.getEntriesByType) ? performance.getEntriesByType('navigation')[0] : null;
+              var backForward = nav && nav.type === 'back_forward';
+              if (e.persisted || backForward) {
+                enableFormSubmits();
+              }
+            } catch(_) { enableFormSubmits(); }
+          });
+
+          // Em falha de validação, garante reabilitação dos botões do formulário
+          document.addEventListener('invalid', function(ev){
+            if (ev && ev.target && ev.target.form) {
+              enableFormSubmits(ev.target.form);
+            }
+          }, true);
+
+          // Se a submissão não é válida, evita desabilitar permanente
+          document.addEventListener('submit', function(ev){
+            var form = ev && ev.target;
+            if (form && typeof form.checkValidity === 'function' && !form.checkValidity()){
+              try { ev.preventDefault(); } catch(_){}
+              enableFormSubmits(form);
+            }
+          }, true);
+        })();
+      </script>
+
       <script type="text/javascript" >
         function inIframe () {
           try {
