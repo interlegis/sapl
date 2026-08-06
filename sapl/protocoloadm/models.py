@@ -362,6 +362,11 @@ class DocumentoAcessorioAdministrativo(models.Model):
     assunto = models.TextField(
         blank=True, verbose_name=_('Assunto'))
     indexacao = models.TextField(blank=True)
+    restrito = models.BooleanField(default=False,
+                                   verbose_name=_('Restrito'),
+                                   blank=True)
+    justificativa_restricao = models.TextField(
+        blank=True, verbose_name=_('Justificativa de Restrição'))
 
     class Meta:
         verbose_name = _('Documento Acessório')

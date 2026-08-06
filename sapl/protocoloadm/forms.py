@@ -623,14 +623,22 @@ class ProtocoloMateriaForm(ModelForm):
 
 class DocumentoAcessorioAdministrativoForm(FileFieldCheckMixin, ModelForm):
 
+    restrito = forms.ChoiceField(
+        label=_('Documento Restrito?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
+
     class Meta:
         model = DocumentoAcessorioAdministrativo
         fields = ['tipo',
                   'nome',
+                  'restrito',
                   'data',
                   'autor',
                   'arquivo',
-                  'assunto']
+                  'assunto',
+                  'justificativa_restricao']
 
         widgets = {
             'data': forms.DateInput(format='%d/%m/%Y')
