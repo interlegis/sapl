@@ -7,6 +7,7 @@ from datetime import datetime as dt, datetime
 import unidecode
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Q, F
+from django.db.models.functions import Coalesce
 from django.http import Http404, HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -1915,8 +1916,9 @@ class RelatorioVotacoesNominaisView(RelatorioMixin, MultiFormatOutputMixin, Filt
             order_fields = ['-votacao_id', 'parlamentar']
             qs = VotoParlamentar.objects.filter(query_params).order_by(*order_fields)
         else:
-            order_fields = ['-id']
-            qs = RegistroVotacao.objects.filter(query_params).order_by(*order_fields)
+            qs = RegistroVotacao.objects.filter(query_params) \
+                     .annotate(data_votacao=Coalesce('ordem__data_ordem', 'expediente__data_ordem')) \
+                     .order_by('-data_votacao')
         return qs
 
     def get_context_data(self, **kwargs):
@@ -1933,17 +1935,17 @@ class RelatorioVotacoesNominaisView(RelatorioMixin, MultiFormatOutputMixin, Filt
         context['filter_url'] = f"&{query_dict.urlencode()}" if query_dict else ''
         context['show_results'] = show_results_filter_set(query_dict)
 
-        data_inicial = self.request.GET.get('data_hora_0', '')
-        data_final = self.request.GET.get('data_hora_1', '')
+        data_inicial = self.request.GET.get('data_ordem_min', '')
+        data_final = self.request.GET.get('data_ordem_max', '')
         if not data_inicial:
             data_inicial = "Data Inicial não definida"
         if not data_final:
             data_final = "Data Final não definida"
         context['periodo'] = f"{data_inicial} - {data_final}"
 
-        tipo_id = self.request.GET.get('tipo_id')
-        numero = self.request.GET.get('numero')
-        ano = self.request.GET.get('ano')
+        tipo_id = self.request.GET.get('materia__tipo_id')
+        numero = self.request.GET.get('materia__numero')
+        ano = self.request.GET.get('materia__ano')
 
         if tipo_id:
             context['tipo_materia'] = TipoMateriaLegislativa.objects.get(id=tipo_id)
