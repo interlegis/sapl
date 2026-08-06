@@ -21,6 +21,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.crypto import constant_time_compare
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -33,6 +34,10 @@ from haystack.views import SearchView
 from ratelimit.decorators import ratelimit
 
 from sapl import settings
+from sapl.base.govbr import (
+    GOVBR_AUTH_SESSION_KEY, GovBrAuthError, GovBrClient,
+    build_absolute_uri, govbr_login_enabled, pop_authorization_state,
+    resolve_user, start_authorization)
 from sapl.base.forms import (AutorForm, TipoAutorForm, RecuperarSenhaForm,
                              NovaSenhaForm, UserAdminForm, AuditLogFilterSet,
                              LoginForm, SaplSearchForm)
@@ -55,6 +60,11 @@ from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_serv
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, EstatisticasAcessoNormasForm)
 from .models import AppConfig, CasaLegislativa
 
+try:
+    from django.utils.http import url_has_allowed_host_and_scheme
+except ImportError:
+    from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
+
 
 def get_casalegislativa():
     return CasaLegislativa.objects.first()
@@ -76,6 +86,11 @@ class LoginSapl(views.LoginView):
     template_name = 'base/login.html'
     authentication_form = LoginForm
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['govbr_login_enabled'] = govbr_login_enabled()
+        return context
+
     def form_valid(self, form):
         """Override do comportamento padrão para verificar senha fraca"""
         username = form.cleaned_data.get('username')
@@ -90,6 +105,124 @@ class LoginSapl(views.LoginView):
 
         # Fallback se falhar a autenticação (tecnicamente não devia chegar aqui)
         return super().form_invalid(form)
+
+
+class GovBrLoginStartView(RedirectView):
+    permanent = False
+
+    def get_redirect_url(self, *args, **kwargs):
+        if not govbr_login_enabled():
+            messages.error(self.request, _('Login gov.br não está habilitado.'))
+            return reverse('sapl.base:login')
+
+        if not settings.GOVBR_CLIENT_ID or not settings.GOVBR_CLIENT_SECRET:
+            messages.error(self.request, _('Credenciais gov.br não configuradas.'))
+            return reverse('sapl.base:login')
+
+        next_url = safe_next_url(
+            self.request,
+            self.request.GET.get('next') or settings.LOGIN_REDIRECT_URL)
+        redirect_uri = build_absolute_uri(
+            self.request,
+            settings.GOVBR_REDIRECT_URI,
+            'sapl.base:govbr_callback')
+
+        try:
+            return start_authorization(self.request, redirect_uri, next_url)
+        except Exception:
+            logging.exception('Erro ao iniciar login gov.br.')
+            messages.error(
+                self.request,
+                _('Não foi possível iniciar o login gov.br.'))
+            return reverse('sapl.base:login')
+
+
+class GovBrCallbackView(RedirectView):
+    permanent = False
+
+    def get_redirect_url(self, *args, **kwargs):
+        login_url = reverse('sapl.base:login')
+
+        if not govbr_login_enabled():
+            messages.error(self.request, _('Login gov.br não está habilitado.'))
+            return login_url
+
+        if self.request.GET.get('error'):
+            messages.error(
+                self.request,
+                _('Autenticação gov.br cancelada ou não autorizada.'))
+            return login_url
+
+        try:
+            oidc_state = pop_authorization_state(self.request)
+            returned_state = self.request.GET.get('state') or ''
+            if not constant_time_compare(returned_state, oidc_state['state']):
+                raise GovBrAuthError('State inválido no retorno do gov.br.')
+
+            code = self.request.GET.get('code')
+            if not code:
+                raise GovBrAuthError(
+                    'Retorno do gov.br não trouxe o código de autenticação.')
+
+            redirect_uri = build_absolute_uri(
+                self.request,
+                settings.GOVBR_REDIRECT_URI,
+                'sapl.base:govbr_callback')
+            client = GovBrClient()
+            token_response = client.exchange_code(
+                code,
+                redirect_uri,
+                oidc_state['code_verifier'])
+            id_claims, access_claims = client.validate_tokens(
+                token_response,
+                oidc_state['nonce'])
+            user, cpf = resolve_user(id_claims, access_claims)
+
+            login(
+                self.request,
+                user,
+                backend='django.contrib.auth.backends.ModelBackend')
+            self.request.session[GOVBR_AUTH_SESSION_KEY] = True
+            self.request.session['govbr_cpf'] = cpf
+
+            return oidc_state.get('next') or settings.LOGIN_REDIRECT_URL
+        except GovBrAuthError as exc:
+            messages.error(self.request, _(str(exc)))
+            return login_url
+        except Exception:
+            logging.exception('Erro no callback do login gov.br.')
+            messages.error(
+                self.request,
+                _('Não foi possível concluir o login gov.br.'))
+            return login_url
+
+
+class LogoutSapl(views.LogoutView):
+
+    def dispatch(self, request, *args, **kwargs):
+        should_logout_govbr = govbr_login_enabled() and request.session.get(
+            GOVBR_AUTH_SESSION_KEY, False)
+        response = super().dispatch(request, *args, **kwargs)
+
+        if should_logout_govbr:
+            post_logout_redirect_uri = settings.GOVBR_POST_LOGOUT_REDIRECT_URI
+            if not post_logout_redirect_uri:
+                post_logout_redirect_uri = request.build_absolute_uri(
+                    reverse('sapl.base:login'))
+            logout_url = GovBrClient().logout_redirect_url(
+                post_logout_redirect_uri)
+            return redirect(logout_url)
+
+        return response
+
+
+def safe_next_url(request, next_url):
+    if next_url and url_has_allowed_host_and_scheme(
+            url=next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure()):
+        return next_url
+    return settings.LOGIN_REDIRECT_URL
 
 
 class ConfirmarEmailView(TemplateView):

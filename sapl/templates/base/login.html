@@ -1,5 +1,98 @@
 {% extends "crud/detail.html" %}
 {% load i18n %}
+
+{% block head_content %}{{ block.super }}
+  <!-- TODO: Hack. Atualizar vue-bootstrap libs so we can call this in base.html and get the glyphs -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    .login-govbr .br-sign-in {
+      --button-radius: 100em;
+      --button-medium: 40px;
+      --button-size: var(--button-medium);
+      --color-dark: #ffffff;
+      --color-dark-rgb: 255, 255, 255;
+      --focus: #ffcd07;
+      --focus-offset: 4px;
+      --focus-style: solid;
+      --focus-width: 3px;
+      --font-size-scale-up-01: 16px;
+      --font-weight-semi-bold: 600;
+      --hover: 0.16;
+      --interactive-light: #1351b4;
+      --pressed: 0.24;
+      --spacing-scale-2x: 16px;
+
+      align-items: center;
+      background-color: transparent;
+      border: 0;
+      border-radius: var(--button-radius);
+      color: var(--interactive-light);
+      cursor: pointer;
+      display: inline-flex;
+      font-size: var(--font-size-scale-up-01);
+      font-weight: var(--font-weight-semi-bold);
+      height: var(--button-size);
+      justify-content: center;
+      letter-spacing: 0;
+      overflow: hidden;
+      padding: 0 var(--spacing-scale-2x);
+      position: relative;
+      text-align: center;
+      text-decoration: none;
+      vertical-align: middle;
+      white-space: nowrap;
+      width: auto;
+    }
+
+    .login-govbr .br-sign-in.block {
+      width: 100%;
+    }
+
+    .login-govbr .br-sign-in.primary {
+      --interactive-rgb: var(--color-dark-rgb);
+      background-color: var(--interactive-light);
+      color: var(--color-dark);
+    }
+
+    .login-govbr .br-sign-in:focus {
+      outline: none;
+    }
+
+    .login-govbr .br-sign-in:focus-visible {
+      outline-color: var(--focus);
+      outline-offset: var(--focus-offset);
+      outline-style: var(--focus-style);
+      outline-width: var(--focus-width);
+    }
+
+    .login-govbr .br-sign-in:hover {
+      background-image: linear-gradient(
+        rgba(var(--interactive-rgb), var(--hover)),
+        rgba(var(--interactive-rgb), var(--hover))
+      );
+      color: var(--color-dark);
+      text-decoration: none;
+    }
+
+    .login-govbr .br-sign-in:active {
+      background-image: linear-gradient(
+        rgba(var(--interactive-rgb), var(--pressed)),
+        rgba(var(--interactive-rgb), var(--pressed))
+      );
+    }
+
+    .login-govbr .br-sign-in__label {
+      margin-right: 0.35rem;
+    }
+
+    .login-govbr .br-sign-in__entity {
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+  </style>
+{% endblock head_content %}
+
 {% block base_content %}
 
   <!-- O bloco comentado é para ser implementado após as autorizacoes -->
@@ -13,11 +106,6 @@
 
   {% endif %} -->
 
-<head>
-    <!-- TODO: Hack. Atualizar vue-bootstrap libs so we can call this in base.html and get the glyphs -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-</head>
-
   <div class="container mb-3">
       <div class="row">
           <div class="col-lg-4 offset-lg-4 col-8 offset-2">
@@ -26,6 +114,22 @@
                      <h3 class=" font-weight-bolder ">Entrar</h3>
                   </div>
                   <div class="card-body">
+                    {% if govbr_login_enabled %}
+                      <div class="login-govbr mb-3">
+                        <a class="br-sign-in primary block"
+                           type="primary"
+                           density="middle"
+                           label="Entrar com"
+                           entity="GOV.BR"
+                           href="{% url 'sapl.base:govbr_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
+                           aria-label="Entrar com GOV.BR"
+                           title="Entrar com GOV.BR">
+                          <span class="br-sign-in__label">Entrar com</span>
+                          <span class="br-sign-in__entity">GOV.BR</span>
+                        </a>
+                      </div>
+                      <hr>
+                    {% endif %}
                     <form id="login-form" method="post" action="{% url 'sapl.base:login' %}">
                         {% csrf_token %}
 
