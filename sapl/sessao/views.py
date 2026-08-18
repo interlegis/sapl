@@ -64,7 +64,7 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
-                     ORDENACAO_RESUMO, RegistroLeitura)
+                     ORDENACAO_RESUMO, RegistroLeitura, restringe_sessoes_visiveis)
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
@@ -1348,6 +1348,13 @@ class SessaoCrud(Crud):
 
     class DetailView(Crud.DetailView):
 
+        def get(self, request, *args, **kwargs):
+            if not restringe_sessoes_visiveis(
+                    SessaoPlenaria.objects.filter(pk=kwargs.get('pk')),
+                    request.user).exists():
+                raise Http404()
+            return super().get(request, *args, **kwargs)
+
         @property
         def layout_key(self):
             sessao = self.object
@@ -2326,6 +2333,10 @@ class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
     logger = logging.getLogger(__name__)
+
+    def get_queryset(self):
+        return restringe_sessoes_visiveis(
+            SessaoPlenaria.objects.all(), self.request.user)
 
     def get_context(self, *args, **kwargs):
         self.object = self.get_object()
@@ -3833,6 +3844,12 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
         ('situacao', 'Situação')
     )
 
+    def get_queryset(self):
+        qs = SessaoPlenaria.objects.all()
+        if not self.request.user.is_authenticated:
+            qs = qs.filter(publicar_pauta=True)
+        return qs
+
     def hook_autor(self, obj):
         return ','.join(obj['autor'])
 
@@ -4027,6 +4044,8 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
 
         qs = self.get_queryset().select_related(
             'tipo', 'sessao_legislativa', 'legislatura')
+
+        qs = restringe_sessoes_visiveis(qs, self.request.user)
 
         qs = qs.distinct().order_by(
             '-legislatura__numero', '-data_inicio', '-hora_inicio')
