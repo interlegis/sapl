@@ -506,6 +506,10 @@
 
      function show_voto(parlamentar) {
       color = 'white'
+
+      if (!parlamentar.voto) {
+          parlamentar.voto = "Não votou";
+      }
       if (parlamentar.voto == "Sim"){
           color = 'green'
       }
@@ -529,4 +533,3 @@
      
   </script>
 </html>
-

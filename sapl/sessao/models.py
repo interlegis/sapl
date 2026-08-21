@@ -433,6 +433,15 @@ class ExpedienteMateria(AbstractOrdemDia):
         verbose_name = _('Matéria do Expediente')
         verbose_name_plural = _('Matérias do Expediente')
         ordering = ['numero_ordem']
+        constraints = [
+            # No máximo uma matéria de expediente aberta para votação por
+            # vez (mesma invariante que abrir_votacao() já garante na
+            # aplicação — isto é o backstop no nível do banco).
+            models.UniqueConstraint(
+                fields=['votacao_aberta'],
+                condition=models.Q(votacao_aberta=True),
+                name='sessao_expedientemateria_unique_votacao_aberta'),
+        ]
 
 
 class TipoExpediente(models.Model):
@@ -583,6 +592,15 @@ class OrdemDia(AbstractOrdemDia):
         verbose_name = _('Matéria da Ordem do Dia')
         verbose_name_plural = _('Matérias da Ordem do Dia')
         ordering = ['numero_ordem']
+        constraints = [
+            # No máximo uma matéria de ordem do dia aberta para votação por
+            # vez (mesma invariante que abrir_votacao() já garante na
+            # aplicação — isto é o backstop no nível do banco).
+            models.UniqueConstraint(
+                fields=['votacao_aberta'],
+                condition=models.Q(votacao_aberta=True),
+                name='sessao_ordemdia_unique_votacao_aberta'),
+        ]
 
 
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
@@ -720,6 +738,20 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         verbose_name = _('Registro de Votação de Parlamentar')
         verbose_name_plural = _('Registros de Votações de Parlamentares')
         ordering = ('id',)
+        constraints = [
+            # Garante, no nível do banco, no máximo um voto por parlamentar
+            # por matéria — get_or_create() sozinho não protege contra duas
+            # inserções concorrentes (ex.: o tablet do parlamentar e o
+            # formulário em lote do operador chegando ao mesmo tempo).
+            models.UniqueConstraint(
+                fields=['parlamentar', 'ordem'],
+                condition=models.Q(ordem__isnull=False),
+                name='sessao_votoparlamentar_unique_parlamentar_ordem'),
+            models.UniqueConstraint(
+                fields=['parlamentar', 'expediente'],
+                condition=models.Q(expediente__isnull=False),
+                name='sessao_votoparlamentar_unique_parlamentar_expediente'),
+        ]
 
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {

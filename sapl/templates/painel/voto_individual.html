@@ -77,6 +77,11 @@
           </p>
         </font>
       </h2>
+      {% if status_message %}
+        <p align="center" style="font-family:Verdana">
+          <font color="#8fbfe0">{{status_message}}</font>
+        </p>
+      {% endif %}
       </br>
       </br>
 
@@ -111,7 +116,8 @@
     </div>
     {% else %}
       <div id="blocoerro" style="display:block">
-          <h2><font color="red"><p align="center" style="font-family:Verdana">{{error_message}}</p></font></h2>
+          <h1><font color="#eaeaea"><p align="center" style="font-family:Verdana">⏸</p></font></h1>
+          <h2><font color="#f0ad4e"><p align="center" style="font-family:Verdana">{{error_message}}</p></font></h2>
           </br>
           </br>
           </br>
@@ -184,11 +190,47 @@
     $("#date").text(n);
 
     startTime();
-
-    setTimeout(function() {
-      document.location.reload(true);
-    }, 30000)
   });
 
 </script>
 {% endif %}
+
+<script type="text/javascript">
+  // Substitui o antigo reload automático de página inteira a cada 30s por
+  // um poll leve (fetch simples, sem depender do jQuery/bundle carregado
+  // condicionalmente acima) que só recarrega a página quando o estado
+  // realmente muda — economiza o custo de renderizar a página inteira a
+  // cada poll em cada um dos tablets. Roda nas duas telas (voto e erro),
+  // já que "aguardando abertura de matéria" também precisa se recuperar
+  // sozinho quando o estado mudar.
+  (function() {
+    var estadoAtual = {
+      materiaId: "{% if materia %}{{ materia.id }}{% endif %}",
+      errorMessage: "{{ error_message|default:''|escapejs }}",
+      statusMessage: "{{ status_message|default:''|escapejs }}",
+      votoParlamentar: "{{ voto_parlamentar|default:''|escapejs }}"
+    };
+
+    function verificaEstado() {
+      fetch("{% url 'sapl.painel:voto_individual_status' %}", {credentials: 'same-origin'})
+        .then(function(resp) { return resp.json(); })
+        .then(function(data) {
+          var novo = {
+            materiaId: data.materia_id ? String(data.materia_id) : "",
+            errorMessage: data.error_message || "",
+            statusMessage: data.status_message || "",
+            votoParlamentar: data.voto_parlamentar || ""
+          };
+          if (novo.materiaId !== estadoAtual.materiaId ||
+              novo.errorMessage !== estadoAtual.errorMessage ||
+              novo.statusMessage !== estadoAtual.statusMessage ||
+              novo.votoParlamentar !== estadoAtual.votoParlamentar) {
+            document.location.reload();
+          }
+        })
+        .catch(function() { /* tenta de novo no próximo poll */ });
+    }
+
+    setInterval(verificaEstado, 5000);
+  })();
+</script>
