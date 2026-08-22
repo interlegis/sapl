@@ -529,8 +529,8 @@ class MesaDiretora(models.Model):
 
                 if MesaDiretora.objects.filter(
                     legislatura=self.legislatura,
-                    data_inicio__lte=self.data_fim,
-                    data_fim__gte=self.data_inicio
+                    data_inicio__lt=self.data_fim,
+                    data_fim__gt=self.data_inicio
                 ).exclude(pk=self.pk).exists():
                     raise ValidationError(
                         _('As datas da mesa diretora se sobrepõem com outra mesa diretora existente.'))
