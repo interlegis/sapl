@@ -27,7 +27,7 @@ def test_mesadiretora_model_clean_data_inicio_maior_que_data_fim():
         data_fim=date(2021, 12, 31),
         legislatura=legislatura
     )
-    with pytest.raises(ValidationError, match='A data de início deve ser anterior à data de fim.'):
+    with pytest.raises(ValidationError, match='A data de início deve ser anterior e/ou igual à data de fim.'):
         mesa.clean()
 
 
@@ -193,7 +193,7 @@ def test_mesadiretora_form_data_inicio_maior_que_data_fim():
 
     assert not form.is_valid()
     errors = form.errors
-    assert errors['__all__'] == [_('A data de início deve ser anterior à data de fim.')]
+    assert errors['__all__'] == [_('A data de início deve ser anterior e/ou igual à data de fim.')]
 
 
 @pytest.mark.django_db(transaction=False)

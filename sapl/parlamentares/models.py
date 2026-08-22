@@ -518,9 +518,9 @@ class MesaDiretora(models.Model):
 
     def clean(self):
         if self.data_inicio and self.data_fim:
-            if self.data_inicio >= self.data_fim:
+            if self.data_inicio > self.data_fim:
                 raise ValidationError(
-                    _('A data de início deve ser anterior à data de fim.'))
+                    _('A data de início deve ser anterior e/ou igual à data de fim.'))
 
             if self.legislatura_id:
                 if self.data_inicio < self.legislatura.data_inicio or self.data_fim > self.legislatura.data_fim:
