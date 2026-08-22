@@ -1030,7 +1030,7 @@ class MesaDiretoraCrud(Crud):
 
         def get_filterset_kwargs(self, filterset_class):
             fk = super().get_filterset_kwargs(filterset_class)
-            if 'legislatura' not in self.request.GET and not 'mesa' in self.request.GET:
+            if 'legislatura' not in self.request.GET and 'mesa' not in self.request.GET:
                 fk['data'] = {'legislatura': self.get_id_legislatura_atual()}
             elif 'legislatura' not in self.request.GET and 'mesa' in self.request.GET:
                 legislatura_da_mesa = Legislatura.objects.filter(
