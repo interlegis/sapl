@@ -1,7 +1,7 @@
 from datetime import timedelta
 import logging
 
-from crispy_forms.layout import Fieldset, Layout, Field
+from crispy_forms.layout import Fieldset, Layout
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, User
