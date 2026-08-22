@@ -795,6 +795,10 @@ class ComposicaoMesaForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ComposicaoMesaForm, self).__init__(*args, **kwargs)
-        self.instance.mesa_diretora = self.initial.get('mesa_diretora')
-        self.fields['parlamentar'].queryset = self.fields['parlamentar'].queryset.filter(
-            mandato__legislatura=self.initial.get('mesa_diretora').legislatura)
+        mesa = self.initial.get('mesa_diretora')
+        if mesa is not None:
+            self.instance.mesa_diretora = mesa
+            self.fields['parlamentar'].queryset = (
+                self.fields['parlamentar'].queryset
+                .filter(mandato__legislatura=mesa.legislatura)
+            )
