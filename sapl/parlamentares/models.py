@@ -1,7 +1,7 @@
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
+from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
@@ -512,8 +512,8 @@ class MesaDiretora(models.Model):
     def __str__(self):
         return self.titulo or _('%(legislatura)s - %(data_inicio)s a %(data_fim)s') % {
                 'legislatura': self.legislatura,
-                'data_inicio': self.data_inicio,
-                'data_fim': self.data_fim
+                'data_inicio': formats.date_format(self.data_inicio, 'SHORT_DATE_FORMAT'),
+                'data_fim': formats.date_format(self.data_fim, 'SHORT_DATE_FORMAT')
             }
 
     def clean(self):
