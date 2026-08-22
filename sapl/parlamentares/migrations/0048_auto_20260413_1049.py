@@ -7,7 +7,7 @@ def preencher_titulo_mesa_diretora(apps, schema_editor):
     schema_editor.execute("""
         UPDATE parlamentares_mesadiretora
         SET titulo = 'Mesa Diretora' ||
-            CASE WHEN EXTRACT(YEAR FROM data_fim)::integer - EXTRACT(YEAR FROM data_inicio)::integer = 1
+            CASE WHEN data_fim - data_inicio > 400
                  THEN ' Biênio'
                  ELSE ''
             END || ' ' ||
