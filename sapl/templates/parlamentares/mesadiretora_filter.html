@@ -10,7 +10,7 @@
 {% endblock actions_search %}
 
 {% block container_table_list %}
-  {% if perms.parlamentares.add_mesadiretora %}
+  {% if perms.parlamentares.change_mesadiretora %}
     {{ block.super }}
   {% else %}
     <div class="row">
