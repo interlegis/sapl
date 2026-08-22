@@ -746,7 +746,7 @@ class ParlamentarCrud(Crud):
         ordered_list = False
         list_field_names = [
             'nome_parlamentar',
-            'filiacao_atual',
+            'sigla_partido_filiacao_atual',
             'ativo']
 
     class DetailView(Crud.DetailView):
@@ -1003,7 +1003,7 @@ def parlamentares_filiados(request, pk):
     parlamentares = Parlamentar.objects.all()
     partido = Partido.objects.get(pk=pk)
     parlamentares_filiados = [(parlamentar, get_data_filicao(parlamentar)) for parlamentar in parlamentares if
-                              parlamentar.filiacao_atual == partido.sigla]
+                              parlamentar.sigla_partido_filiacao_atual == partido.sigla]
     return render(request, template_name, {'partido': partido, 'parlamentares': parlamentares_filiados})
 
 
