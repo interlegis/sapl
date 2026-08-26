@@ -313,11 +313,17 @@
 
               if (data["status_painel"] == true) {
                   mostrar_voto = data["mostrar_voto"];
+                  var tem_voto_individual = data['tipo_votacao'] == 'Nominal';
                   presentes.append('<table id="parlamentares_list">');
                   $.each(presentes_list, function (index, parlamentar) {
-
-
-                    if (parlamentar.voto == 'Voto Informado' && mostrar_voto == false){
+                    if (!tem_voto_individual){
+                      $('#parlamentares_list').append('<tr><td style="padding-right:20px" >' +
+                          parlamentar.nome +
+                          '</td> <td style="padding-right:20px">' +
+                          parlamentar.partido + '</td> <td style="padding-right:20px">'
+                          + '</td></tr>')
+                    }
+                    else if (parlamentar.voto == 'Voto Informado' && mostrar_voto == false){
                       $('#parlamentares_list').append('<tr><td style="padding-right:20px; color:yellow" >' +
                           parlamentar.nome +
                           '</td> <td style="padding-right:20px; color:yellow">' +

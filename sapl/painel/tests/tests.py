@@ -14,6 +14,7 @@ from sapl.sessao.models import (OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 VotoParlamentar)
 
 NOMINAL = 2
+LEITURA = 4
 
 
 def _sessao_plenaria():
@@ -35,6 +36,14 @@ def _ordem_nominal_aberta(registro_aberto=False):
     ordem = baker.make(OrdemDia, sessao_plenaria=sessao, materia=materia,
                        tipo_votacao=NOMINAL, votacao_aberta=True,
                        registro_aberto=registro_aberto)
+    return sessao, ordem
+
+
+def _ordem_leitura_aberta():
+    sessao = _sessao_plenaria()
+    materia = _materia()
+    ordem = baker.make(OrdemDia, sessao_plenaria=sessao, materia=materia,
+                       tipo_votacao=LEITURA, votacao_aberta=True)
     return sessao, ordem
 
 
@@ -259,6 +268,42 @@ def test_painel_exibe_nao_votou_para_parlamentar_sem_voto(admin_client):
     assert painel.status_code == 200
     assert b'if (!parlamentar.voto)' in painel.content
     assert 'Não votou'.encode() in painel.content
+
+
+@pytest.mark.django_db(transaction=False)
+def test_dados_painel_leitura_nao_tem_voto_individual(admin_client, admin_user):
+    """
+    Contrato consumido pelo JS do painel (sapl/templates/painel/index.html):
+    para uma matéria em Leitura, tipo_votacao chega como a string 'Leitura'
+    (não o código inteiro) e nenhum parlamentar presente recebe um voto —
+    é isso que permite ao JS distinguir "não há voto individual nesta
+    matéria" de "ainda não votou".
+    """
+    baker.make(ConfiguracoesAplicacao, mostrar_voto=True, mostrar_brasao_painel=False)
+    sessao, ordem = _ordem_leitura_aberta()
+    _votante(sessao, admin_user)
+
+    dados = admin_client.get(reverse(
+        'sapl.painel:dados_painel', kwargs={'pk': sessao.pk})).json()
+
+    assert dados['tipo_votacao'] == 'Leitura'
+    assert all(p['voto'] == '' for p in dados['presentes'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_dados_painel_sem_materia_nao_envia_tipo_votacao(admin_client, admin_user):
+    """
+    Sem nenhuma matéria aberta ou já votada/lida (ex.: sessão solene), a
+    chave tipo_votacao não é enviada — o JS trata isso como "sem voto
+    individual" da mesma forma que trata 'Leitura'.
+    """
+    baker.make(ConfiguracoesAplicacao, mostrar_voto=True, mostrar_brasao_painel=False)
+    sessao = _sessao_plenaria()
+
+    dados = admin_client.get(reverse(
+        'sapl.painel:dados_painel', kwargs={'pk': sessao.pk})).json()
+
+    assert 'tipo_votacao' not in dados
 
 
 @pytest.mark.django_db(transaction=False)
