@@ -623,6 +623,15 @@ TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/xml',
     'text/xml',
+    # Formatos editáveis de planilha/CSV (atende à gravação de relatórios do PNTP).
+    'text/csv',
+    'application/csv',
+    'text/comma-separated-values',
+    'application/vnd.ms-excel',  # .xls
+    'application/x-ole-storage',  # .xls (detecção OLE2 legada do libmagic)
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  # .xlsx
+    'application/vnd.oasis.opendocument.spreadsheet',  # .ods / calc
+    'application/x-vnd.oasis.opendocument.spreadsheet',
 )
 
 TIPOS_IMG_PERMITIDOS = (

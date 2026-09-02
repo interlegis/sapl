@@ -34,6 +34,9 @@ class Comissao(models.Model):
     tipo = models.ForeignKey(TipoComissao,
                              on_delete=models.PROTECT,
                              verbose_name=_('Tipo'))
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True, auto_now=True,
+        verbose_name=_('Data da Última Atualização'))
     nome = models.CharField(max_length=100, verbose_name=_('Nome'))
     sigla = models.CharField(max_length=10, verbose_name=_('Sigla'))
     data_criacao = models.DateField(verbose_name=_('Data de Criação'))

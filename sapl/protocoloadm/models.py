@@ -158,6 +158,9 @@ class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, on_delete=models.PROTECT,
         verbose_name=_('Tipo Documento'))
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True, auto_now=True,
+        verbose_name=_('Data da Última Atualização'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
 
     complemento = models.CharField(max_length=10, blank=True,

@@ -2345,7 +2345,7 @@ class ResumoView(DetailView):
         # Votos de Votação Nominal de Matérias Expediente
         votacoes = []
         for mevn in ExpedienteMateria.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2) \
-                .order_by('-materia'):
+                .order_by('numero_ordem'):
             votos_materia = []
             titulo_materia = mevn.materia
             registro = RegistroVotacao.objects.filter(expediente=mevn)
@@ -2394,7 +2394,7 @@ class ResumoView(DetailView):
         # Matérias Ordem do Dia
         # Votos de Votação Nominal de Matérias Ordem do Dia
         votacoes_od = []
-        for modvn in OrdemDia.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2).order_by('-materia'):
+        for modvn in OrdemDia.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2).order_by('numero_ordem'):
             votos_materia_od = []
             t_materia = modvn.materia
             registro_od = RegistroVotacao.objects.filter(ordem=modvn)
