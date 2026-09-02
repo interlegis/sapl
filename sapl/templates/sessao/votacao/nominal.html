@@ -13,6 +13,15 @@
 			Ementa: {{materia.ementa|safe}}
 		</div>
 		<br />
+		<div class="alert {% if registro_aberto %}alert-warning{% else %}alert-info{% endif %}" role="alert" id="status_votacao">
+			<strong>Status da votação:</strong> em aberto ·
+			{% if registro_aberto %}
+				novos votos <strong>bloqueados</strong> — os vereadores que ainda não votaram não conseguem mais votar até a Mesa reabrir
+			{% else %}
+				novos votos <strong>permitidos</strong> — os vereadores ainda podem votar pelo tablet enquanto a Mesa registra
+			{% endif %}
+			· {{ total }} parlamentar(es) presente(s)
+		</div>
 		{% if total == 0 %}
 			<div class="alert alert-info alert-dismissible " role="alert">
 				<div>Não existe nenhum parlamentar presente para que a votação ocorra.</div>
@@ -22,17 +31,18 @@
 			<fieldset class="form-group">
 
 				<legend>Votos</legend>
-				<div class="row">
+				<div class="row" id="linhas_parlamentares">
 				{% for parlamentar in parlamentares %}
 					<div class="col-md-4" id="styleparlamentar">{{parlamentar.0.nome_parlamentar}}</div>
-					<div class="col-md-5">
+					<div class="col-md-5" data-parlamentar-row="{{parlamentar.0.id}}">
 								{% if parlamentar.1 %} <input type="hidden" name="voto_parlamentar" value="{{parlamentar.1}}:{{parlamentar.0.id}}" /> {% endif %}
-					<select id="voto_parlamentar" name="voto_parlamentar" class="form-control" {% if parlamentar.1 %} disabled {% endif %}>
+					<select id="voto_parlamentar" name="voto_parlamentar" class="form-control" data-parlamentar-select="{{parlamentar.0.id}}" {% if parlamentar.1 %} disabled {% endif %}>
 						<option value="Não Votou:{{parlamentar.0.id}}">Não Votou</option>
 						<option value="Sim:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Sim' %} selected {% endif %}>Sim</option>
 						<option value="Não:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Não' %} selected {% endif %}>Não</option>
 						<option value="Abstenção:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Abstenção' %} selected {% endif %}>Abstenção</option>
 					</select>
+					<span data-parlamentar-tag="{{parlamentar.0.id}}" class="badge badge-info" style="{% if not parlamentar.1 %}display:none;{% endif %}">Já votado (tablet)</span>
 					</div>
 				{% endfor %}
 				</div>
@@ -60,8 +70,17 @@
 			<div class="row">
 				<div class="col-md-12">
 					<div class="form-group row justify-content-between">
-						<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-warning" />
-						<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Fechar Votação" class="btn btn-primary" />
+						<input type="submit" id="cancelar-votacao" name="cancelar-votacao" value="Cancelar Votação" class="btn btn-warning"
+							data-toggle="tooltip" data-placement="top" title="Apaga todos os votos já registrados desta matéria e reabre a votação do zero." />
+						{% if registro_aberto %}
+							<input type="submit" id="reabrir-votacao" name="reabrir-votacao" value="Reabrir Votação para Novos Votos" class="btn btn-secondary"
+								data-toggle="tooltip" data-placement="top" title="Volta a aceitar votos dos vereadores que ainda não votaram — nenhum voto já registrado é alterado." />
+						{% else %}
+							<input type="submit" id="bloquear-registro-votacao" name="bloquear-registro-votacao" value="Bloquear Novos Votos" class="btn btn-info"
+								data-toggle="tooltip" data-placement="top" title="Impede novos votos dos vereadores enquanto a Mesa apura o resultado. Não fecha a votação." />
+						{% endif %}
+						<input type="submit" id="salvar-votacao" name="salvar-votacao" value="Encerrar Votação" class="btn btn-primary"
+							data-toggle="tooltip" data-placement="top" title="Apura o resultado final e encerra definitivamente a votação desta matéria." />
 					</div>
 				</div>
 			</div>
@@ -75,6 +94,8 @@
 		function voltar() {
 			window.history.back();
 		}
+
+		$('[data-toggle="tooltip"]').tooltip();
 
 		function conta_votos() {
 			var votos_sim = 0;
@@ -116,6 +137,53 @@
 		$(window).on('beforeunload', function () {
 				$("input[type=submit], input[type=button]").prop("disabled", "disabled");
 		});
+
+		// Atualiza, a cada poucos segundos, os votos que já chegaram pelo
+		// tablet — usa o próprio endpoint desta tela (?status=1), não o do
+		// telão (sapl.painel:dados_painel): aquele mascara o valor real do
+		// voto quando a Casa configura "mostrar_voto=False" (regra pensada
+		// para o público, não para a Mesa) e exige a permissão do módulo
+		// painel, que um Operador de Sessão Plenária pode não ter.
+		// Reaplica o valor a cada poll (não só na primeira vez) para
+		// refletir um vereador que troca o voto durante a janela de
+		// votação — a linha permanece travada para edição pelo operador,
+		// já que o voto do vereador sempre prevalece (VotacaoNominalAbstract.post).
+		function atualiza_votos_ao_vivo() {
+			$.ajax({
+				url: window.location.pathname + '?status=1',
+				type: "GET",
+				dataType: "json",
+			}).done(function(data) {
+				if (!data || !data.votos) {
+					return;
+				}
+				var mudou = false;
+				Object.keys(data.votos).forEach(function(parlamentarId) {
+					var voto = data.votos[parlamentarId];
+					if (!voto) {
+						return;
+					}
+					var select = $('[data-parlamentar-select="' + parlamentarId + '"]');
+					if (!select.length) {
+						return;
+					}
+					var optionValue = voto + ':' + parlamentarId;
+					if (select.val() !== optionValue) {
+						select.val(optionValue);
+						mudou = true;
+					}
+					if (!select.prop('disabled')) {
+						select.prop('disabled', true);
+					}
+					$('[data-parlamentar-tag="' + parlamentarId + '"]').show();
+				});
+				if (mudou) {
+					conta_votos();
+				}
+			});
+		}
+		atualiza_votos_ao_vivo();
+		setInterval(atualiza_votos_ao_vivo, 3000);
 
 	</script>
 {% endblock extra_js%}
