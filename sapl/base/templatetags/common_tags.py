@@ -10,6 +10,7 @@ from sapl.base.models import AppConfig
 from sapl.materia.models import DocumentoAcessorio, MateriaLegislativa, Proposicao
 from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Filiacao
+from sapl.sanitize import sanitize_html
 from sapl.sessao.models import SessaoPlenaria
 from sapl.utils import filiacao_data, SEPARADOR_HASH_PROPOSICAO, is_report_allowed
 
@@ -394,6 +395,17 @@ def render_chunk_vendors(extension=None):
         return mark_safe('\n'.join(tags))
     except:
         return ''
+
+
+@register.filter(is_safe=True)
+@stringfilter
+def sanitize(value):
+    """Renderiza HTML de campo rico (TinyMCE) sem script nem URL perigosa.
+
+    Substitui o |safe nos campos que legitimamente guardam HTML. Protege
+    também as linhas gravadas antes da sanitização no pre_save.
+    """
+    return mark_safe(sanitize_html(value, rich=True))
 
 
 @register.filter(is_safe=True)
