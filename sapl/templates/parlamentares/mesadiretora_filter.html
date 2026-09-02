@@ -1,0 +1,156 @@
+{% extends "crud/list.html" %}
+{% load i18n common_tags crispy_forms_tags cropping %}
+
+{% block actions_search %}
+  <div class="actions search flex-grow-1 pr-3">
+    {% if filter.form %}
+      {% crispy filter.form %}
+    {% endif %}
+  </div>
+{% endblock actions_search %}
+
+{% block container_table_list %}
+  {% if perms.parlamentares.change_mesadiretora %}
+    {{ block.super }}
+  {% else %}
+    <div class="row">
+      <div class="col-12">
+
+        <ul class="nav nav-tabs" role="tablist">
+          {% for md in object_list %}
+            {% if request.GET.mesa == md.id|stringformat:"s" or not request.GET.mesa and forloop.first %}
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-mesa-{{ md.id }}-tab" data-toggle="tab" data-target="#tab-mesa-{{ md.id }}" type="button" role="tab" aria-controls="tab-mesa-{{ md.id }}" aria-selected="true">{{ md }}</button>
+              </li>
+            {% else %}
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-mesa-{{ md.id }}-tab" data-toggle="tab" data-target="#tab-mesa-{{ md.id }}" type="button" role="tab" aria-controls="tab-mesa-{{ md.id }}" aria-selected="false">{{ md }}</button>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+        <div class="tab-content">
+          {% for md in object_list %}
+            {% if request.GET.mesa == md.id|stringformat:"s" or not request.GET.mesa and forloop.first %}
+              <div class="lista-parlamentares tab-pane fade show active" id="tab-mesa-{{ md.id }}" role="tabpanel" aria-labelledby="tab-mesa-{{ md.id }}-tab">
+            {% else %}
+              <div class="lista-parlamentares tab-pane fade" id="tab-mesa-{{ md.id }}" role="tabpanel" aria-labelledby="tab-mesa-{{ md.id }}-tab">
+            {% endif %}
+                <i class="text-muted p-2 d-inline-block">(De {{md.data_inicio }} a {{ md.data_fim }})</i>
+                <a href="{% url 'sapl.parlamentares:mesadiretora_list' %}?mesa={{ md.id }}" class="btn btn-sm btn-link float-right mb-2">
+                  <i class="fas fa-external-link-alt"></i>
+                </a>
+                <table class="table table-striped table-hover table-link-ordering m-0 p-0">
+                  <thead>
+                    <tr>
+                      <th>Nome do Parlamentar</th>
+                      <th>Partido</th>
+                      <th>Cargo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for composicao in md.composicaomesa_set.all %}
+                      <tr>
+                        <td>
+                          <div id="d-flex">
+                            {% if composicao.parlamentar.fotografia %}
+                              <img class="img-fluid img-thumbnail" src="{% cropped_thumbnail composicao.parlamentar "cropping"%}">
+                            {% endif %}
+                            <a class="pl-2" href="{% url 'sapl.parlamentares:parlamentar_detail' composicao.parlamentar.pk %}">
+                            {{composicao.parlamentar.nome_parlamentar}}</a>
+                          </div>
+                        </td>
+                        <td>{{composicao.parlamentar.sigla_partido_filiacao_atual}}</td>
+                        <td>{{composicao.cargo}}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+{% endblock container_table_list %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // Suporte nativo a :has() — o CSS cuida de tudo, JS não é necessário
+  if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('selector(:has(*))')) return;
+
+  var mq = window.matchMedia('(max-width: 767px)');
+
+  function collapse(tabs) {
+    tabs.classList.remove('nav-tabs--open');
+    [].forEach.call(tabs.querySelectorAll('.nav-item'), function (item) {
+      item.style.display = item.querySelector('.nav-link.active') ? 'block' : 'none';
+    });
+  }
+
+  function expand(tabs) {
+    [].forEach.call(tabs.querySelectorAll('.nav-item'), function (item) {
+      item.style.display = 'block';
+    });
+    tabs.classList.add('nav-tabs--open');
+  }
+
+  function init() {
+    [].forEach.call(document.querySelectorAll('.nav-tabs'), function (tabs) {
+      if (tabs._dropdownBound) return;
+      tabs._dropdownBound = true;
+
+      // Expande ao clicar no container (apenas quando fechado)
+      tabs.addEventListener('click', function () {
+        if (!mq.matches || tabs.classList.contains('nav-tabs--open')) return;
+        expand(tabs);
+        setTimeout(function () {
+          document.addEventListener('click', function onOutside(ev) {
+            if (!tabs.contains(ev.target)) {
+              collapse(tabs);
+              document.removeEventListener('click', onOutside);
+            }
+          });
+        }, 0);
+      });
+
+      // Colapsa ao selecionar uma aba (apenas quando aberto)
+      [].forEach.call(tabs.querySelectorAll('.nav-link'), function (link) {
+        link.addEventListener('click', function () {
+          if (!tabs.classList.contains('nav-tabs--open')) return;
+          // Aguarda Bootstrap atualizar a classe .active
+          setTimeout(function () { collapse(tabs); }, 50);
+        });
+      });
+    });
+
+    // Estado inicial e ao redimensionar
+    function applyState(matches) {
+      [].forEach.call(document.querySelectorAll('.nav-tabs'), function (tabs) {
+        tabs.classList.remove('nav-tabs--open');
+        [].forEach.call(tabs.querySelectorAll('.nav-item'), function (item) {
+          item.style.display = '';
+        });
+        if (matches) collapse(tabs);
+      });
+    }
+
+    applyState(mq.matches);
+
+    if (mq.addEventListener) {
+      mq.addEventListener('change', function (e) { applyState(e.matches); });
+    } else {
+      mq.addListener(function (e) { applyState(e.matches); });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+}());
+</script>
+{% endblock extra_js %}

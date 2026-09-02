@@ -262,6 +262,12 @@ def montar_helper_autor(self):
              ' class="btn btn-dark">Cancelar</a>')]))
 
 
+class SelectSubmitChangeWidget(forms.Select):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attrs.update({'onchange': 'this.form.submit();'})
+
+
 class SaplGenericForeignKey(GenericForeignKey):
 
     def __init__(

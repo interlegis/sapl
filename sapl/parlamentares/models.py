@@ -1,6 +1,7 @@
 
+from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
+from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
@@ -297,8 +298,10 @@ class Parlamentar(models.Model):
         return self.nome_parlamentar
 
     @property
-    def filiacao_atual(self):
-        ultima_filiacao = self.filiacao_set.order_by('-data').first()
+    def sigla_partido_filiacao_atual(self):
+        # este método conta com a ordenação default do model Filiacao para trazer a última filiação primeiro
+        # se order_by for adicionado aqui, o prefetch_related que inclui filiacao_set não irá pré-carregar como esperado
+        ultima_filiacao = self.filiacao_set.first()
         if ultima_filiacao and not ultima_filiacao.data_desfiliacao:
             return ultima_filiacao.partido.sigla
         else:
@@ -491,29 +494,54 @@ class CargoMesa(models.Model):
 
 
 class MesaDiretora(models.Model):
-    data_inicio = models.DateField(verbose_name=_('Data Início'), null=True)
-    data_fim = models.DateField(verbose_name=_('Data Fim'), null=True)
-    sessao_legislativa = models.ForeignKey(SessaoLegislativa,
-                                           on_delete=models.PROTECT)
+    titulo = models.CharField(max_length=100, default='', verbose_name=_('Título da Mesa Diretora'))
+    data_inicio = models.DateField(verbose_name=_('Data Início'))
+    data_fim = models.DateField(verbose_name=_('Data Fim'))
+    legislatura = models.ForeignKey(Legislatura,
+                                   on_delete=models.PROTECT,
+                                   verbose_name=_('Legislatura'),
+                                   related_name='mesadiretora_set'
+                                   )
     descricao = models.TextField(verbose_name=_('Descrição'), blank=True)
 
     class Meta:
         verbose_name = _('Mesa Diretora')
         verbose_name_plural = _('Mesas Diretoras')
-        ordering = ('-data_inicio', '-sessao_legislativa')
+        ordering = ('-legislatura', '-data_inicio')
 
     def __str__(self):
-        return _('Mesa da %(sessao)s sessao da %(legislatura)s Legislatura') % {
-            'sessao': self.sessao_legislativa, 'legislatura': self.sessao_legislativa.legislatura
-        }
+        return self.titulo or _('%(legislatura)s - %(data_inicio)s a %(data_fim)s') % {
+                'legislatura': self.legislatura,
+                'data_inicio': formats.date_format(self.data_inicio, 'SHORT_DATE_FORMAT'),
+                'data_fim': formats.date_format(self.data_fim, 'SHORT_DATE_FORMAT')
+            }
+
+    def clean(self):
+        if self.data_inicio and self.data_fim:
+            if self.data_inicio > self.data_fim:
+                raise ValidationError(
+                    _('A data de início deve ser anterior e/ou igual à data de fim.'))
+
+            if self.legislatura_id:
+                if self.data_inicio < self.legislatura.data_inicio or self.data_fim > self.legislatura.data_fim:
+                    raise ValidationError(
+                        _('As datas da mesa diretora devem estar dentro do período da legislatura.'))
+
+                if MesaDiretora.objects.filter(
+                    legislatura=self.legislatura,
+                    data_inicio__lt=self.data_fim,
+                    data_fim__gt=self.data_inicio
+                ).exclude(pk=self.pk).exists():
+                    raise ValidationError(
+                        _('As datas da mesa diretora se sobrepõem com outra mesa diretora existente.'))
 
 
 class ComposicaoMesa(models.Model):
-    # TODO M2M ???? Ternary?????
-    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT)
-    cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT)
+    parlamentar = models.ForeignKey(Parlamentar, on_delete=models.PROTECT, verbose_name=_('Parlamentar'))
+    cargo = models.ForeignKey(CargoMesa, on_delete=models.PROTECT, verbose_name=_('Cargo'))
     mesa_diretora = models.ForeignKey(
-        MesaDiretora, on_delete=models.PROTECT, null=True)
+        MesaDiretora, on_delete=models.PROTECT,
+        related_name='composicaomesa_set', verbose_name=_('Mesa Diretora'))
 
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
@@ -524,6 +552,24 @@ class ComposicaoMesa(models.Model):
         return _('%(parlamentar)s - %(cargo)s') % {
             'parlamentar': self.parlamentar, 'cargo': self.cargo
         }
+
+    def clean(self):
+        if self.parlamentar_id and self.mesa_diretora_id:
+            if ComposicaoMesa.objects.filter(
+                mesa_diretora=self.mesa_diretora,
+                parlamentar=self.parlamentar,
+            ).exclude(pk=self.pk).exists():
+                raise ValidationError(
+                    _('Parlamentar já ocupa um cargo nesta mesa diretora.'))
+
+        if self.cargo_id and self.mesa_diretora_id:
+            if self.cargo.unico:
+                if ComposicaoMesa.objects.filter(
+                    mesa_diretora=self.mesa_diretora,
+                    cargo=self.cargo
+                ).exclude(pk=self.pk).exists():
+                    raise ValidationError(
+                        _('Cargo único já ocupado por outro parlamentar.'))
 
 
 class Frente(models.Model):
