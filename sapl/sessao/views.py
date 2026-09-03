@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import datetime
 import json
 import logging
@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Max, Q
+from django.db.models import Max, Prefetch, Q
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
 from django.urls import reverse
@@ -37,7 +37,7 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import filtra_tramitacao_status
 from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
-                                 Tramitacao, MateriaEmTramitacao, Numeracao)
+                                 Tramitacao, MateriaEmTramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
@@ -49,7 +49,8 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedien
 from sapl.sessao.models import Correspondencia
 from sapl.settings import TIME_ZONE, RATE_LIMITER_RATE
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, \
-    MultiFormatOutputMixin, PautaMultiFormatOutputMixin, ratelimit_ip
+    MultiFormatOutputMixin, PautaMultiFormatOutputMixin, ratelimit_ip, \
+    filiacao_data
 
 from .forms import (AdicionarVariasMateriasFilterSet, AdicionarVariasMateriasForm, BancadaForm,
                     ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
@@ -224,38 +225,43 @@ def abrir_votacao(request, pk, spk):
 
 
 def customize_link_materia(context, pk, has_permission, is_expediente):
+    # sessao_plenaria is the same for every row — resolve once
+    object_list = context['object_list']
+    if object_list:
+        sessao_plenaria = object_list[0].sessao_plenaria
+    else:
+        sessao_plenaria = SessaoPlenaria.objects.get(id=pk)
+    data_sessao = sessao_plenaria.data_fim or sessao_plenaria.data_inicio
+
     for i, row in enumerate(context['rows']):
-        materia = context['object_list'][i].materia
-        obj = context['object_list'][i]
+        obj = object_list[i]
+        materia = obj.materia  # already select_related
+
         url_materia = reverse(
             'sapl.materia:materialegislativa_detail', kwargs={'pk': materia.id})
-        numeracao = materia.numeracao_set.first() if materia.numeracao_set.first() else "-"
-        todos_autoria = materia.autoria_set.all()
-        autoria = todos_autoria.filter(primeiro_autor=True)
+
+        numeracao = materia._numeracao_prefetch[0] if materia._numeracao_prefetch else "-"
+
+        todos_autoria = materia._autoria_prefetch
+        autoria = [a for a in todos_autoria if a.primeiro_autor]
         autor = ', '.join([str(a.autor) for a in autoria]) if autoria else "-"
+        todos_autores = ', '.join([str(a.autor) for a in todos_autoria]) if autoria else "-"
 
-        todos_autores = ', '.join([str(a.autor)
-                                   for a in todos_autoria]) if autoria else "-"
+        num_protocolo = materia.numero_protocolo or "-"
 
-        num_protocolo = materia.numero_protocolo if materia.numero_protocolo else "-"
-        sessao_plenaria = SessaoPlenaria.objects.get(id=pk)
-        data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
-        tramitacao = Tramitacao.objects \
-            .select_related('materia', 'status', 'materia__tipo') \
-            .filter(materia=materia, turno__isnull=False, data_tramitacao__lte=data_sessao) \
-            .exclude(turno__exact='') \
-            .order_by('-data_tramitacao', '-id') \
-            .first()
+        tramitacao = next(
+            (t for t in materia._tramitacao_prefetch if t.data_tramitacao <= data_sessao),
+            None,
+        )
         turno = '-'
         if tramitacao:
             for t in Tramitacao.TURNO_CHOICES:
                 if t[0] == tramitacao.turno:
                     turno = t[1]
                     break
-        materia_em_tramitacao = MateriaEmTramitacao.objects \
-            .select_related("materia", "tramitacao") \
-            .filter(materia=materia) \
-            .first()
+
+        materia_em_tramitacao = materia._met_prefetch[0] if materia._met_prefetch else None
+
         # idUnica para cada materia
         idAutor = "autor" + str(i)
         idAutores = "autores" + str(i)
@@ -281,12 +287,9 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         # url em toda a string de title_materia
         context['rows'][i][1] = (title_materia, None)
 
-        exist_resultado = obj.registrovotacao_set.filter(
-            materia=obj.materia).exists()
-        exist_retirada = obj.retiradapauta_set.filter(
-            materia=obj.materia).exists()
-        exist_leitura = obj.registroleitura_set.filter(
-            materia=obj.materia).exists()
+        exist_resultado = bool(obj._votacao_prefetch)
+        exist_retirada = bool(obj._retirada_prefetch)
+        exist_leitura = bool(obj._leitura_prefetch)
 
         if (obj.tipo_votacao != LEITURA and not exist_resultado and not exist_retirada) or \
                 (obj.tipo_votacao == LEITURA and not exist_leitura):
@@ -408,8 +411,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     resultado = '''Não há resultado'''
 
         elif exist_retirada:
-            retirada = obj.retiradapauta_set.filter(
-                materia_id=obj.materia_id).last()
+            retirada = obj._retirada_prefetch[-1]
             retirada_descricao = retirada.tipo_de_retirada.descricao
             retirada_observacao = retirada.observacao
             url = reverse('sapl.sessao:retiradapauta_detail',
@@ -421,13 +423,11 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
         else:
             if obj.tipo_votacao == LEITURA:
-                resultado = obj.registroleitura_set.filter(
-                    materia_id=obj.materia_id).last()
+                resultado = obj._leitura_prefetch[-1]
                 resultado_descricao = "Matéria lida"
                 resultado_observacao = resultado.observacao
             else:
-                resultado = obj.registrovotacao_set.filter(
-                    materia_id=obj.materia_id).last()
+                resultado = obj._votacao_prefetch[-1]
                 resultado_descricao = resultado.tipo_resultado_votacao.nome
                 resultado_observacao = resultado.observacao
 
@@ -833,19 +833,57 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         layout_key = 'OrdemDiaDetail'
 
     class ListView(MasterDetailCrud.ListView):
-        paginate_by = None
+        paginate_by = 100
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
-            if self.get_queryset().count() > 500:
-                self.paginate_by = 50
-            else:
-                self.paginate_by = None
-
             context = super().get_context_data(**kwargs)
-
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
+
+        def get_queryset(self):
+            return super().get_queryset().select_related(
+                'materia', 'materia__tipo', 'sessao_plenaria',
+            ).prefetch_related(
+                Prefetch(
+                    'materia__materiaemtramitacao_set',
+                    to_attr='_met_prefetch',
+                ),
+                Prefetch(
+                    'materia__numeracao_set',
+                    to_attr='_numeracao_prefetch',
+                ),
+                Prefetch(
+                    'materia__autoria_set',
+                    queryset=Autoria.objects.select_related('autor'),
+                    to_attr='_autoria_prefetch',
+                ),
+                Prefetch(
+                    'materia__tramitacao_set',
+                    queryset=Tramitacao.objects.filter(
+                        turno__isnull=False,
+                    ).exclude(turno='').order_by('-data_tramitacao', '-id'),
+                    to_attr='_tramitacao_prefetch',
+                ),
+                Prefetch(
+                    'registrovotacao_set',
+                    queryset=RegistroVotacao.objects.select_related(
+                        'tipo_resultado_votacao',
+                    ),
+                    to_attr='_votacao_prefetch',
+                ),
+                Prefetch(
+                    'retiradapauta_set',
+                    queryset=RetiradaPauta.objects.select_related(
+                        'tipo_de_retirada',
+                    ),
+                    to_attr='_retirada_prefetch',
+                ),
+                Prefetch(
+                    'registroleitura_set',
+                    to_attr='_leitura_prefetch',
+                ),
+            )
 
 
 def recuperar_materia(request):
@@ -905,23 +943,59 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                             'resultado']
 
     class ListView(MasterDetailCrud.ListView):
-        paginate_by = None
+        paginate_by = 100
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
-
-            if self.get_queryset().count() > 500:
-                self.paginate_by = 50
-            else:
-                self.paginate_by = None
-
             context = super().get_context_data(**kwargs)
-
             if self.request.GET.get('page'):
                 context['page'] = self.request.GET.get('page')
-
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
+
+        def get_queryset(self):
+            return super().get_queryset().select_related(
+                'materia', 'materia__tipo', 'sessao_plenaria',
+            ).prefetch_related(
+                Prefetch(
+                    'materia__materiaemtramitacao_set',
+                    to_attr='_met_prefetch',
+                ),
+                Prefetch(
+                    'materia__numeracao_set',
+                    to_attr='_numeracao_prefetch',
+                ),
+                Prefetch(
+                    'materia__autoria_set',
+                    queryset=Autoria.objects.select_related('autor'),
+                    to_attr='_autoria_prefetch',
+                ),
+                Prefetch(
+                    'materia__tramitacao_set',
+                    queryset=Tramitacao.objects.filter(
+                        turno__isnull=False,
+                    ).exclude(turno='').order_by('-data_tramitacao', '-id'),
+                    to_attr='_tramitacao_prefetch',
+                ),
+                Prefetch(
+                    'registrovotacao_set',
+                    queryset=RegistroVotacao.objects.select_related(
+                        'tipo_resultado_votacao',
+                    ),
+                    to_attr='_votacao_prefetch',
+                ),
+                Prefetch(
+                    'retiradapauta_set',
+                    queryset=RetiradaPauta.objects.select_related(
+                        'tipo_de_retirada',
+                    ),
+                    to_attr='_retirada_prefetch',
+                ),
+                Prefetch(
+                    'registroleitura_set',
+                    to_attr='_leitura_prefetch',
+                ),
+            )
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
@@ -1982,9 +2056,24 @@ def get_conteudo_multimidia(sessao_plenaria):
     return context
 
 
+def prefetch_filiacao():
+    """Prefetch de `filiacao_set` para os Parlamentares exibidos no resumo.
+
+    Permite que `filiacao_data` (usada pelo filtro `filiacao_data_filter` nos
+    blocos do resumo/ata) resolva a sigla do partido em memória, sem uma query
+    por parlamentar. A ordenação replica `Filiacao.Meta.ordering`.
+    """
+    return Prefetch(
+        'parlamentar__filiacao_set',
+        queryset=Filiacao.objects.select_related('partido').order_by(
+            '-data', '-data_desfiliacao'))
+
+
 def get_mesa_diretora(sessao_plenaria):
     mesa = IntegranteMesa.objects.filter(
-        sessao_plenaria=sessao_plenaria).order_by('cargo_id')
+        sessao_plenaria=sessao_plenaria).select_related(
+        'parlamentar', 'cargo').prefetch_related(
+        prefetch_filiacao()).order_by('cargo_id')
     integrantes = [{'parlamentar': m.parlamentar,
                     'cargo': m.cargo} for m in mesa]
     return {'mesa': integrantes}
@@ -1993,18 +2082,21 @@ def get_mesa_diretora(sessao_plenaria):
 def get_presenca_sessao(sessao_plenaria):
     parlamentares_sessao = [p.parlamentar for p in SessaoPlenariaPresenca.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar').distinct()]
+    ).select_related('parlamentar').prefetch_related(
+        prefetch_filiacao()).order_by('parlamentar__nome_parlamentar').distinct()]
 
     ausentes_sessao = JustificativaAusencia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).distinct().order_by('parlamentar__nome_parlamentar')
+    ).select_related('parlamentar', 'tipo_ausencia').distinct().order_by(
+        'parlamentar__nome_parlamentar')
 
     return ({'presenca_sessao': parlamentares_sessao,
              'justificativa_ausencia': ausentes_sessao})
 
 
 def get_correspondencias(sessao_plenaria, user):
-    qs = sessao_plenaria.correspondencia_set.all()
+    qs = sessao_plenaria.correspondencia_set.select_related(
+        'documento', 'documento__tipo')
 
     is_anon = user.is_anonymous
     is_ostensivo = AppsAppConfig.attr(
@@ -2036,30 +2128,92 @@ def get_correspondencias(sessao_plenaria, user):
 
 def get_expedientes(sessao_plenaria):
     expediente = ExpedienteSessao.objects.filter(
-        sessao_plenaria_id=sessao_plenaria.id).order_by('tipo__ordenacao', 'tipo__nome')
+        sessao_plenaria_id=sessao_plenaria.id).select_related(
+        'tipo').order_by('tipo__ordenacao', 'tipo__nome')
     expedientes = []
     for e in expediente:
-        tipo = TipoExpediente.objects.get(id=e.tipo_id)
+        tipo = e.tipo
         conteudo = e.conteudo
         ex = {'tipo': tipo, 'conteudo': conteudo}
         expedientes.append(ex)
     return ({'expedientes': expedientes})
 
 
+def prefetch_materias_sessao(qs):
+    """Prefetches compartilhados por `get_materias_expediente` e
+    `get_materias_ordem_do_dia`.
+
+    Os querysets dos `Prefetch` não recebem `order_by` explícito justamente
+    para herdarem o `Meta.ordering` de cada model — é dele que dependem os
+    `.first()` / `.last()` que este código substitui por indexação de lista.
+    """
+    return qs.select_related('materia', 'materia__tipo').prefetch_related(
+        Prefetch(
+            'materia__tramitacao_set',
+            queryset=Tramitacao.objects.exclude(turno='').order_by(
+                '-data_tramitacao', '-id'),
+            to_attr='_tramitacao_prefetch'),
+        Prefetch(
+            'materia__materiaemtramitacao_set',
+            queryset=MateriaEmTramitacao.objects.select_related(
+                'tramitacao', 'tramitacao__status'),
+            to_attr='_met_prefetch'),
+        Prefetch('materia__numeracao_set', to_attr='_numeracao_prefetch'),
+        Prefetch(
+            'materia__autoria_set',
+            queryset=Autoria.objects.select_related('autor'),
+            to_attr='_autoria_prefetch'),
+        Prefetch(
+            'registrovotacao_set',
+            queryset=RegistroVotacao.objects.select_related(
+                'tipo_resultado_votacao'),
+            to_attr='_votacao_prefetch'),
+        Prefetch(
+            'retiradapauta_set',
+            queryset=RetiradaPauta.objects.select_related('tipo_de_retirada'),
+            to_attr='_retirada_prefetch'),
+        Prefetch('registroleitura_set', to_attr='_leitura_prefetch'),
+    )
+
+
+def agrupa_votos_por_materia(campo, ids):
+    """Busca todos os VotoParlamentar de uma seção em uma única query.
+
+    `campo` é 'expediente' ou 'ordem' — as FKs desnormalizadas de
+    VotoParlamentar. O agrupamento preserva a ordem da query, que herda o
+    `Meta.ordering = ('id',)` do model.
+    """
+    votos = defaultdict(list)
+    if not ids:
+        return votos
+    qs = VotoParlamentar.objects.filter(
+        **{'%s_id__in' % campo: ids}).select_related('parlamentar')
+    for voto in qs:
+        votos[getattr(voto, '%s_id' % campo)].append(voto)
+    return votos
+
+
 def get_materias_expediente(sessao_plenaria):
     materias_expediente = []
-    for m in ExpedienteMateria.objects.select_related("materia").filter(sessao_plenaria_id=sessao_plenaria.id):
-        tramitacao = ''
-        data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
-        for aux_tramitacao in Tramitacao.objects.filter(materia=m.materia, data_tramitacao__lte=data_sessao).order_by(
-                '-data_tramitacao', '-id'):
-            if aux_tramitacao.turno:
-                tramitacao = aux_tramitacao
-                break
+    data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
 
-        rv = m.registrovotacao_set.filter(materia=m.materia).first()
-        rp = m.retiradapauta_set.filter(materia=m.materia).first()
-        rl = m.registroleitura_set.filter(materia=m.materia).first()
+    expedientes = list(prefetch_materias_sessao(
+        ExpedienteMateria.objects.filter(
+            sessao_plenaria_id=sessao_plenaria.id)))
+    votos_por_materia = agrupa_votos_por_materia(
+        'expediente', [m.id for m in expedientes])
+
+    for m in expedientes:
+        tramitacao = next(
+            (t for t in m.materia._tramitacao_prefetch
+             if t.data_tramitacao <= data_sessao), '')
+
+        rv = next((r for r in m._votacao_prefetch
+                   if r.materia_id == m.materia_id), None)
+        rp = next((r for r in m._retirada_prefetch
+                   if r.materia_id == m.materia_id), None)
+        rl = next((r for r in m._leitura_prefetch
+                   if r.materia_id == m.materia_id), None)
         if rv:
             resultado = rv.tipo_resultado_votacao.nome
             resultado_observacao = rv.observacao
@@ -2076,11 +2230,11 @@ def get_materias_expediente(sessao_plenaria):
 
         voto_nominal = []
         if m.tipo_votacao == 2:
-            for voto in VotoParlamentar.objects.filter(expediente=m.id):
+            for voto in votos_por_materia[m.id]:
                 voto_nominal.append(
                     (voto.parlamentar.nome_completo, voto.voto))
 
-        voto = RegistroVotacao.objects.filter(expediente=m.id).last()
+        voto = m._votacao_prefetch[-1] if m._votacao_prefetch else None
         if voto:
             voto_sim = voto.numero_votos_sim
             voto_nao = voto.numero_votos_nao
@@ -2090,7 +2244,9 @@ def get_materias_expediente(sessao_plenaria):
             voto_nao = " Não Informado"
             voto_abstencoes = " Não Informado"
 
-        materia_em_tramitacao = m.materia.materiaemtramitacao_set.first()
+        met = m.materia._met_prefetch
+        materia_em_tramitacao = met[0] if met else None
+        numeracao = m.materia._numeracao_prefetch
         materias_expediente.append({
             'ementa': m.materia.ementa,
             'titulo': m.materia,
@@ -2099,9 +2255,9 @@ def get_materias_expediente(sessao_plenaria):
             'situacao': materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else _("Não informada"),
             'resultado': resultado,
             'resultado_observacao': resultado_observacao,
-            'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=m.materia_id)],
+            'autor': [str(x.autor) for x in m.materia._autoria_prefetch],
             'numero_protocolo': m.materia.numero_protocolo,
-            'numero_processo': m.materia.numeracao_set.last(),
+            'numero_processo': numeracao[-1] if numeracao else None,
             'tipo_votacao': m.TIPO_VOTACAO_CHOICES[m.tipo_votacao],
             'voto_sim': voto_sim,
             'voto_nao': voto_nao,
@@ -2117,12 +2273,13 @@ def get_materias_expediente(sessao_plenaria):
 def get_oradores_expediente(sessao_plenaria):
     oradores = []
     for orador in OradorExpediente.objects.filter(
-            sessao_plenaria_id=sessao_plenaria.id).order_by('numero_ordem'):
+            sessao_plenaria_id=sessao_plenaria.id).select_related(
+            'parlamentar').prefetch_related(
+            prefetch_filiacao()).order_by('numero_ordem'):
         numero_ordem = orador.numero_ordem
         url_discurso = orador.url_discurso
         observacao = orador.observacao
-        parlamentar = Parlamentar.objects.get(
-            id=orador.parlamentar_id)
+        parlamentar = orador.parlamentar
         ora = {'numero_ordem': numero_ordem,
                'url_discurso': url_discurso,
                'parlamentar': parlamentar,
@@ -2135,21 +2292,32 @@ def get_oradores_expediente(sessao_plenaria):
 def get_presenca_ordem_do_dia(sessao_plenaria):
     parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).distinct().order_by('parlamentar__nome_parlamentar')]
+    ).select_related('parlamentar').prefetch_related(
+        prefetch_filiacao()).distinct().order_by('parlamentar__nome_parlamentar')]
 
     return {'presenca_ordem': parlamentares_ordem}
 
 
-def get_assinaturas(sessao_plenaria):
-    mesa_dia = get_mesa_diretora(sessao_plenaria)['mesa']
+def get_assinaturas(sessao_plenaria, mesa=None, presenca_ordem=None):
+    """`mesa` e `presenca_ordem` podem ser reaproveitados de
+    `get_mesa_diretora` / `get_presenca_ordem_do_dia` quando o chamador já os
+    calculou, evitando repetir as duas queries. O `.distinct()` que
+    `get_presenca_ordem_do_dia` aplica é um no-op (a projeção inclui a PK),
+    então as duas listas são equivalentes.
+    """
+    mesa_dia = get_mesa_diretora(
+        sessao_plenaria)['mesa'] if mesa is None else mesa
 
     presidente_dia = [next(iter(
         [m['parlamentar'] for m in mesa_dia if m['cargo'].descricao == 'Presidente']),
         '')]
 
-    parlamentares_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
-        sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('parlamentar__nome_parlamentar')]
+    if presenca_ordem is None:
+        presenca_ordem = [p.parlamentar for p in PresencaOrdemDia.objects.filter(
+            sessao_plenaria_id=sessao_plenaria.id
+        ).select_related('parlamentar').prefetch_related(
+            prefetch_filiacao()).order_by('parlamentar__nome_parlamentar')]
+    parlamentares_ordem = presenca_ordem
 
     parlamentares_mesa = [m['parlamentar'] for m in mesa_dia]
 
@@ -2195,19 +2363,25 @@ def get_assinaturas_presidente(sessao_plenaria):
 
 def get_materias_ordem_do_dia(sessao_plenaria):
     materias_ordem = []
-    for o in OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id):
-        tramitacao = ''
-        data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
-        for aux_tramitacao in Tramitacao.objects.filter(materia=o.materia, data_tramitacao__lte=data_sessao).order_by(
-                '-data_tramitacao', '-id'):
-            if aux_tramitacao.turno:
-                tramitacao = aux_tramitacao
-                break
+    data_sessao = sessao_plenaria.data_fim if sessao_plenaria.data_fim else sessao_plenaria.data_inicio
+
+    ordens = list(prefetch_materias_sessao(
+        OrdemDia.objects.filter(sessao_plenaria_id=sessao_plenaria.id)))
+    votos_por_materia = agrupa_votos_por_materia(
+        'ordem', [o.id for o in ordens])
+
+    for o in ordens:
+        tramitacao = next(
+            (t for t in o.materia._tramitacao_prefetch
+             if t.data_tramitacao <= data_sessao), '')
 
         # Verificar resultado
-        rv = o.registrovotacao_set.filter(materia=o.materia).first()
-        rp = o.retiradapauta_set.filter(materia=o.materia).first()
-        rl = o.registroleitura_set.filter(materia=o.materia).first()
+        rv = next((r for r in o._votacao_prefetch
+                   if r.materia_id == o.materia_id), None)
+        rp = next((r for r in o._retirada_prefetch
+                   if r.materia_id == o.materia_id), None)
+        rl = next((r for r in o._leitura_prefetch
+                   if r.materia_id == o.materia_id), None)
         if rv:
             resultado = rv.tipo_resultado_votacao.nome
             resultado_observacao = rv.observacao
@@ -2224,11 +2398,11 @@ def get_materias_ordem_do_dia(sessao_plenaria):
 
         voto_nominal = []
         if o.tipo_votacao == 2:
-            for voto in VotoParlamentar.objects.filter(ordem=o.id):
+            for voto in votos_por_materia[o.id]:
                 voto_nominal.append(
                     (voto.parlamentar.nome_parlamentar, voto.voto))
 
-        voto = RegistroVotacao.objects.filter(ordem=o.id).last()
+        voto = o._votacao_prefetch[-1] if o._votacao_prefetch else None
         if voto:
             voto_sim = voto.numero_votos_sim
             voto_nao = voto.numero_votos_nao
@@ -2238,7 +2412,9 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             voto_nao = " Não Informado"
             voto_abstencoes = " Não Informado"
 
-        materia_em_tramitacao = o.materia.materiaemtramitacao_set.first()
+        met = o.materia._met_prefetch
+        materia_em_tramitacao = met[0] if met else None
+        numeracao = o.materia._numeracao_prefetch
         materias_ordem.append({
             'ementa': o.materia.ementa,
             'ementa_observacao': o.observacao,
@@ -2248,9 +2424,9 @@ def get_materias_ordem_do_dia(sessao_plenaria):
             'situacao': materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else _("Não informada"),
             'resultado': resultado,
             'resultado_observacao': resultado_observacao,
-            'autor': [str(x.autor) for x in Autoria.objects.select_related("autor").filter(materia_id=o.materia_id)],
+            'autor': [str(x.autor) for x in o.materia._autoria_prefetch],
             'numero_protocolo': o.materia.numero_protocolo,
-            'numero_processo': o.materia.numeracao_set.last(),
+            'numero_processo': numeracao[-1] if numeracao else None,
             'tipo_votacao': o.TIPO_VOTACAO_CHOICES[o.tipo_votacao],
             'voto_sim': voto_sim,
             'voto_nao': voto_nao,
@@ -2267,15 +2443,14 @@ def get_oradores_ordemdia(sessao_plenaria):
 
     oradores_ordem_dia = OradorOrdemDia.objects.filter(
         sessao_plenaria_id=sessao_plenaria.id
-    ).order_by('numero_ordem')
+    ).select_related('parlamentar').prefetch_related(
+        prefetch_filiacao()).order_by('numero_ordem')
 
     for orador in oradores_ordem_dia:
         numero_ordem = orador.numero_ordem
         url_discurso = orador.url_discurso
         observacao = orador.observacao
-        parlamentar = Parlamentar.objects.get(
-            id=orador.parlamentar_id
-        )
+        parlamentar = orador.parlamentar
         o = {
             'numero_ordem': numero_ordem,
             'url_discurso': url_discurso,
@@ -2291,26 +2466,26 @@ def get_oradores_ordemdia(sessao_plenaria):
 def get_oradores_explicacoes_pessoais(sessao_plenaria):
     oradores_explicacoes = []
     for orador in Orador.objects.filter(
-            sessao_plenaria_id=sessao_plenaria.id).order_by('numero_ordem'):
-        for parlamentar in Parlamentar.objects.filter(
-                id=orador.parlamentar.id):
-            partido_sigla = Filiacao.objects.filter(
-                parlamentar=parlamentar).last()
-            if not partido_sigla:
-                sigla = ''
-            else:
-                sigla = partido_sigla.partido.sigla
-            observacao = orador.observacao
-            url_discurso = orador.url_discurso
+            sessao_plenaria_id=sessao_plenaria.id).select_related(
+            'parlamentar').prefetch_related(
+            prefetch_filiacao()).order_by('numero_ordem'):
+        parlamentar = orador.parlamentar
+        # Antes era Filiacao...last() (a filiação mais antiga, dado o
+        # ordering decrescente por data), enquanto o PDF usava .first().
+        # Unifica no critério já usado pelas listas de presença: o partido
+        # vigente na data da sessão.
+        sigla = filiacao_data(parlamentar, sessao_plenaria.data_inicio)
+        observacao = orador.observacao
+        url_discurso = orador.url_discurso
 
-            oradores = {
-                'numero_ordem': orador.numero_ordem,
-                'parlamentar': parlamentar,
-                'sgl_partido': sigla,
-                'observacao': observacao,
-                'url_discurso': url_discurso
-            }
-            oradores_explicacoes.append(oradores)
+        oradores = {
+            'numero_ordem': orador.numero_ordem,
+            'parlamentar': parlamentar,
+            'sgl_partido': sigla,
+            'observacao': observacao,
+            'url_discurso': url_discurso
+        }
+        oradores_explicacoes.append(oradores)
     context = {'oradores_explicacoes': oradores_explicacoes}
     return context
 
@@ -2329,6 +2504,34 @@ def get_consideracoes_finais(sessao_plenaria):
     return context
 
 
+def get_votos_nominais(sessao_plenaria_id, model, campo):
+    """Blocos de votação nominal de uma seção, em 3 queries em vez de 2 por matéria.
+
+    Replica `VotoParlamentar.objects.filter(votacao__in=registro).order_by('parlamentar')`:
+    a query dos votos é ordenada globalmente por parlamentar e o agrupamento
+    preserva essa ordem dentro de cada matéria.
+    """
+    materias = list(model.objects.filter(
+        sessao_plenaria_id=sessao_plenaria_id, tipo_votacao=2
+    ).select_related('materia').order_by('-materia'))
+
+    votos_por_materia = defaultdict(list)
+    if materias:
+        registro_para_materia = {
+            r.id: getattr(r, '%s_id' % campo)
+            for r in RegistroVotacao.objects.filter(
+                **{'%s_id__in' % campo: [m.id for m in materias]})
+        }
+        if registro_para_materia:
+            for vp in VotoParlamentar.objects.filter(
+                    votacao_id__in=registro_para_materia).select_related(
+                    'parlamentar').order_by('parlamentar'):
+                votos_por_materia[registro_para_materia[vp.votacao_id]].append(vp)
+
+    return [{'titulo': m.materia, 'votos': votos_por_materia[m.id]}
+            for m in materias]
+
+
 class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
@@ -2343,22 +2546,8 @@ class ResumoView(DetailView):
         context = self.get_context_data(object=self.object)
 
         # Votos de Votação Nominal de Matérias Expediente
-        votacoes = []
-        for mevn in ExpedienteMateria.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2) \
-                .order_by('-materia'):
-            votos_materia = []
-            titulo_materia = mevn.materia
-            registro = RegistroVotacao.objects.filter(expediente=mevn)
-            if registro:
-                for vp in VotoParlamentar.objects.filter(votacao__in=registro).order_by('parlamentar'):
-                    votos_materia.append(vp)
-
-            votacoes.append({
-                'titulo': titulo_materia,
-                'votos': votos_materia
-            })
-
-        context.update({'votos_nominais_materia_expediente': votacoes})
+        context.update({'votos_nominais_materia_expediente': get_votos_nominais(
+            self.object.id, ExpedienteMateria, 'expediente')})
 
         # =====================================================================
         # Identificação Básica
@@ -2389,25 +2578,15 @@ class ResumoView(DetailView):
         context.update(get_presenca_ordem_do_dia(self.object))
         # =====================================================================
         # Assinaturas
-        context.update(get_assinaturas(self.object))
+        context.update(get_assinaturas(
+            self.object,
+            mesa=context['mesa'],
+            presenca_ordem=context['presenca_ordem']))
         # =====================================================================
         # Matérias Ordem do Dia
         # Votos de Votação Nominal de Matérias Ordem do Dia
-        votacoes_od = []
-        for modvn in OrdemDia.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2).order_by('-materia'):
-            votos_materia_od = []
-            t_materia = modvn.materia
-            registro_od = RegistroVotacao.objects.filter(ordem=modvn)
-            if registro_od:
-                for vp_od in VotoParlamentar.objects.filter(votacao__in=registro_od).order_by('parlamentar'):
-                    votos_materia_od.append(vp_od)
-
-            votacoes_od.append({
-                'titulo': t_materia,
-                'votos': votos_materia_od
-            })
-
-        context.update({'votos_nominais_materia_ordem_dia': votacoes_od})
+        context.update({'votos_nominais_materia_ordem_dia': get_votos_nominais(
+            self.object.id, OrdemDia, 'ordem')})
 
         context.update(get_materias_ordem_do_dia(self.object))
         # =====================================================================

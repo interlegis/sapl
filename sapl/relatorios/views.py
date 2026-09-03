@@ -8,6 +8,7 @@ import unidecode
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Q, F
 from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -23,7 +24,7 @@ from sapl.materia.models import (Autoria, MateriaLegislativa, Numeracao,
                                  TipoMateriaLegislativa, MateriaEmTramitacao, DocumentoAcessorio, TipoDocumento,
                                  StatusTramitacao)
 from sapl.norma.models import TipoNormaJuridica, NormaJuridica
-from sapl.parlamentares.models import Filiacao, Parlamentar, SessaoLegislativa, Legislatura
+from sapl.parlamentares.models import Parlamentar, SessaoLegislativa, Legislatura
 from sapl.protocoloadm.models import (DocumentoAdministrativo, Protocolo,
                                       TramitacaoAdministrativo, StatusTramitacaoAdministrativo,
                                       TipoDocumentoAdministrativo)
@@ -39,7 +40,8 @@ from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 OrdemDia, PresencaOrdemDia, SessaoPlenaria,
                                 SessaoPlenariaPresenca, OcorrenciaSessao,
                                 RegistroVotacao, VotoParlamentar, OradorOrdemDia,
-                                ConsideracoesFinais, ResumoOrdenacao, TipoSessaoPlenaria)
+                                ConsideracoesFinais, ResumoOrdenacao, TipoSessaoPlenaria,
+                                restringe_sessoes_visiveis)
 from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_presenca_sessao, get_expedientes,
                                get_materias_expediente, get_oradores_expediente,
@@ -47,7 +49,8 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_oradores_ordemdia,
                                get_oradores_explicacoes_pessoais, get_consideracoes_finais,
                                get_ocorrencias_da_sessao, get_assinaturas,
-                               get_correspondencias)
+                               get_correspondencias, get_conteudo_multimidia,
+                               get_votos_nominais)
 from sapl.settings import MEDIA_URL, RATE_LIMITER_RATE
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
@@ -92,7 +95,8 @@ def get_imagem(casa):
 
 def get_rodape(casa):
     if len(casa.cep) == 8:
-        cep = casa.cep[:4] + "-" + casa.cep[5:]
+        # CEP tem 8 dígitos e se formata como XXXXX-XXX.
+        cep = casa.cep[:5] + "-" + casa.cep[5:]
     else:
         cep = ""
 
@@ -542,6 +546,8 @@ def get_sessao_plenaria(sessao, casa, user):
     if sessao.tipo.nome == 'Solene':
         inf_basicas_dic["tema_solene"] = sessao.tema_solene
 
+    data_sessao = sessao.data_fim if sessao.data_fim else sessao.data_inicio
+
     # Conteudo multimidia
     cont_mult_dic = {
         "multimidia_audio": str(sessao.url_audio) if sessao.url_audio else "Indisponível",
@@ -553,9 +559,11 @@ def get_sessao_plenaria(sessao, casa, user):
     for composicao in IntegranteMesa.objects.select_related('parlamentar', 'cargo') \
             .filter(sessao_plenaria=sessao) \
             .order_by('cargo_id'):
-        partido_sigla = Filiacao.objects.filter(
-            parlamentar=composicao.parlamentar).first()
-        sigla = '' if not partido_sigla else partido_sigla.partido.sigla
+        # Antes usava Filiacao...first() (filiação mais recente), enquanto a
+        # tela usava .last() (a mais antiga) — e as listas de presença deste
+        # mesmo PDF já usavam filiacao_data. Unifica no critério correto: o
+        # partido vigente na data da sessão.
+        sigla = filiacao_data(composicao.parlamentar, data_sessao)
         lst_mesa.append({
             'nom_parlamentar': composicao.parlamentar.nome_parlamentar,
             'sgl_partido': sigla,
@@ -652,7 +660,7 @@ def get_sessao_plenaria(sessao, casa, user):
             "num_ordem": expediente_materia.numero_ordem,
             "id_materia": f"{materia.tipo.sigla} {materia.tipo.descricao} {str(materia.numero)}/{str(materia.ano)}",
             "des_numeracao": ' ',
-            "des_turno": get_turno(materia)[0],
+            "des_turno": get_turno(materia, data_sessao)[0],
             "situacao": materia_em_tramitacao.tramitacao.status if materia_em_tramitacao else _("Não informada"),
             "txt_ementa": str(materia.ementa),
             "materia_observacao": materia.observacao,
@@ -732,13 +740,11 @@ def get_sessao_plenaria(sessao, casa, user):
     for orador_expediente in OradorExpediente.objects.filter(sessao_plenaria=sessao).order_by('numero_ordem'):
         parlamentar = Parlamentar.objects.get(
             id=orador_expediente.parlamentar.id)
-        partido_sigla = Filiacao.objects.filter(
-            parlamentar=parlamentar).first()
         lst_oradores_expediente.append({
             "num_ordem": orador_expediente.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
             "observacao": orador_expediente.observacao,
-            "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
+            "sgl_partido": filiacao_data(parlamentar, data_sessao)
         })
 
     # Lista presença na ordem do dia
@@ -774,7 +780,7 @@ def get_sessao_plenaria(sessao, casa, user):
 
         materia_em_tramitacao = materia.materiaemtramitacao_set.first()
         dic_votacao.update({
-            "des_turno": get_turno(materia)[0],
+            "des_turno": get_turno(materia, data_sessao)[0],
             # https://github.com/interlegis/sapl/issues/1009
             "txt_ementa": html.unescape(materia.ementa),
             "materia_observacao": materia.observacao,
@@ -849,27 +855,23 @@ def get_sessao_plenaria(sessao, casa, user):
     for orador_ordemdia in oradores_ordem_dia:
         parlamentar_orador = Parlamentar.objects.get(
             id=orador_ordemdia.parlamentar.id)
-        sigla_partido = Filiacao.objects.filter(
-            parlamentar=parlamentar_orador).first()
 
         lst_oradores_ordemdia.append({
             "num_ordem": orador_ordemdia.numero_ordem,
             "nome_parlamentar": parlamentar_orador.nome_parlamentar,
             "observacao": orador_ordemdia.observacao,
-            "sigla": "" if not sigla_partido else sigla_partido.partido.sigla
+            "sigla": filiacao_data(parlamentar_orador, data_sessao)
         })
 
     # Lista dos oradores nas Explicações Pessoais
     lst_oradores = []
     for orador in Orador.objects.select_related('parlamentar').filter(sessao_plenaria=sessao).order_by('numero_ordem'):
         parlamentar = orador.parlamentar
-        partido_sigla = orador.parlamentar.filiacao_set.select_related(
-            'partido', 'parlamentar').first()
         lst_oradores.append({
             "num_ordem": orador.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
             "observacao": orador.observacao,
-            "sgl_partido": "" if not partido_sigla else partido_sigla.partido.sigla
+            "sgl_partido": filiacao_data(parlamentar, data_sessao)
         })
 
     # Ocorrências da Sessão
@@ -930,11 +932,20 @@ def get_sessao_plenaria(sessao, casa, user):
             lst_consideracoes)
 
 
-def get_turno(materia):
+def get_turno(materia, data_sessao=None):
+    """Turno e situação de uma matéria.
+
+    `data_sessao` corta as tramitações posteriores à sessão, como já fazem
+    `get_materias_expediente` / `get_materias_ordem_do_dia` em
+    sapl.sessao.views. Sem esse corte, o PDF do resumo exibia um turno
+    registrado depois da sessão que ele documenta.
+    """
     descricao_turno = ''
     descricao_tramitacao = ''
     tramitacoes = materia.tramitacao_set.order_by(
         '-data_tramitacao', '-id').all()
+    if data_sessao:
+        tramitacoes = tramitacoes.filter(data_tramitacao__lte=data_sessao)
     tramitacoes_turno = tramitacoes.exclude(turno="")
 
     if tramitacoes:
@@ -969,7 +980,8 @@ def relatorio_sessao_plenaria(request, pk):
     try:
         logger.debug("user=" + username +
                      ". Tentando obter SessaoPlenaria com id={}.".format(pk))
-        sessao = SessaoPlenaria.objects.get(id=pk)
+        sessao = restringe_sessoes_visiveis(
+            SessaoPlenaria.objects.all(), request.user).get(id=pk)
     except ObjectDoesNotExist as e:
         logger.error("user=" + username +
                      ". Essa SessaoPlenaria não existe (pk={}). ".format(pk) + str(e))
@@ -1143,8 +1155,29 @@ def relatorio_etiqueta_protocolo(request, nro, ano):
 
 
 def get_etiqueta_protocolos(prots):
+    prot_list = list(prots)
+    if not prot_list:
+        return []
+
+    # Pre-fetch MateriaLegislativa for all protocols in one query.
+    materia_query = Q()
+    for p in prot_list:
+        materia_query |= Q(numero_protocolo=p.numero, ano=p.ano)
+    materias_map = {
+        (m.numero_protocolo, m.ano): m
+        for m in MateriaLegislativa.objects.filter(
+            materia_query).select_related('tipo')
+    }
+
+    # Pre-fetch DocumentoAdministrativo for all protocols in one query.
+    documentos_map = {
+        doc.protocolo_id: doc
+        for doc in DocumentoAdministrativo.objects.filter(
+            protocolo__in=prot_list).select_related('tipo')
+    }
+
     protocolos = []
-    for p in prots:
+    for p in prot_list:
         dic = {}
 
         dic['titulo'] = str(p.numero) + '/' + str(p.ano)
@@ -1161,11 +1194,11 @@ def get_etiqueta_protocolos(prots):
 
         dic['nom_autor'] = str(p.autor or ' ')
 
-        dic['num_materia'] = ''
-        for materia in MateriaLegislativa.objects.filter(
-                numero_protocolo=p.numero, ano=p.ano):
-            dic['num_materia'] = materia.tipo.sigla + ' ' + \
-                                 str(materia.numero) + '/' + str(materia.ano)
+        materia = materias_map.get((p.numero, p.ano))
+        dic['num_materia'] = (
+            materia.tipo.sigla + ' ' + str(materia.numero) + '/' + str(materia.ano)
+            if materia else ''
+        )
 
         dic['natureza'] = ''
         if p.tipo_processo == 0:
@@ -1173,11 +1206,11 @@ def get_etiqueta_protocolos(prots):
         if p.tipo_processo == 1:
             dic['natureza'] = 'Legislativo'
 
-        dic['num_documento'] = ''
-        for documento in DocumentoAdministrativo.objects.filter(
-                protocolo=p):
-            dic['num_documento'] = documento.tipo.sigla + ' ' + \
-                                   str(documento.numero) + '/' + str(documento.ano)
+        documento = documentos_map.get(p.pk)
+        dic['num_documento'] = (
+            documento.tipo.sigla + ' ' + str(documento.numero) + '/' + str(documento.ano)
+            if documento else ''
+        )
 
         dic['ident_processo'] = dic['num_materia'] or dic['num_documento']
 
@@ -1382,9 +1415,15 @@ def make_pdf(base_url, main_template, header_template, main_css='', header_css='
 def resumo_ata_pdf(request, pk):
     base_url = request.build_absolute_uri()
     casa = CasaLegislativa.objects.first()
+    if not casa:
+        raise Http404
     rodape = ' '.join(get_rodape(casa))
 
-    sessao_plenaria = SessaoPlenaria.objects.get(pk=pk)
+    # A mesma restrição de visibilidade aplicada por ResumoAtaView: sem ela,
+    # uma sessão oculta na consulta pública era legível por aqui.
+    sessao_plenaria = get_object_or_404(
+        restringe_sessoes_visiveis(SessaoPlenaria.objects.all(), request.user),
+        pk=pk)
 
     dict_ord_template = {
         'cont_mult': 'conteudo_multimidia.html',
@@ -1408,6 +1447,9 @@ def resumo_ata_pdf(request, pk):
 
     context = {}
     context.update(get_identificacao_basica(sessao_plenaria))
+    # Sem cont_mult / votos nominais, esses blocos saíam vazios no PDF quando
+    # a ResumoOrdenacao os incluía, divergindo da ata exibida em tela.
+    context.update(get_conteudo_multimidia(sessao_plenaria))
     context.update(get_mesa_diretora(sessao_plenaria))
     context.update(get_presenca_sessao(sessao_plenaria))
     context.update(get_correspondencias(sessao_plenaria, request.user))
@@ -1420,7 +1462,14 @@ def resumo_ata_pdf(request, pk):
     context.update(get_ocorrencias_da_sessao(sessao_plenaria))
     context.update(get_consideracoes_finais(sessao_plenaria))
     context.update(get_oradores_explicacoes_pessoais(sessao_plenaria))
-    context.update(get_assinaturas(sessao_plenaria))
+    context.update(get_assinaturas(
+        sessao_plenaria,
+        mesa=context['mesa'],
+        presenca_ordem=context['presenca_ordem']))
+    context.update({'votos_nominais_materia_expediente': get_votos_nominais(
+        sessao_plenaria.id, ExpedienteMateria, 'expediente')})
+    context.update({'votos_nominais_materia_ordem_dia': get_votos_nominais(
+        sessao_plenaria.id, OrdemDia, 'ordem')})
     context.update({'object': sessao_plenaria})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
@@ -1594,7 +1643,8 @@ def relatorio_sessao_plenaria_pdf(request, pk):
     try:
         logger.debug("user=" + username +
                      ". Tentando obter SessaoPlenaria com id={}.".format(pk))
-        sessao = SessaoPlenaria.objects.get(id=pk)
+        sessao = restringe_sessoes_visiveis(
+            SessaoPlenaria.objects.all(), request.user).get(id=pk)
     except ObjectDoesNotExist as e:
         logger.error("user=" + username +
                      ". Essa SessaoPlenaria não existe (pk={}). ".format(pk) + str(e))

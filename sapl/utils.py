@@ -935,21 +935,57 @@ def qs_override_django_filter(self):
 def filiacao_data(parlamentar, data_inicio, data_fim=None):
     from sapl.parlamentares.models import Filiacao
 
-    filiacoes_parlamentar = Filiacao.objects.filter(
-        parlamentar=parlamentar)
+    filiacoes = _filiacoes_prefetchadas(parlamentar, data_inicio, data_fim)
 
-    filiacoes = filiacoes_parlamentar.filter(Q(
-        data__lte=data_inicio,
-        data_desfiliacao__isnull=True) | Q(
-        data__lte=data_inicio,
-        data_desfiliacao__gte=data_inicio))
+    if filiacoes is None:
+        filiacoes_parlamentar = Filiacao.objects.filter(
+            parlamentar=parlamentar)
 
-    if data_fim:
-        filiacoes = filiacoes | filiacoes_parlamentar.filter(
-            data__gte=data_inicio,
-            data__lte=data_fim)
+        filiacoes = filiacoes_parlamentar.filter(Q(
+            data__lte=data_inicio,
+            data_desfiliacao__isnull=True) | Q(
+            data__lte=data_inicio,
+            data_desfiliacao__gte=data_inicio))
+
+        if data_fim:
+            filiacoes = filiacoes | filiacoes_parlamentar.filter(
+                data__gte=data_inicio,
+                data__lte=data_fim)
 
     return ' | '.join([f.partido.sigla for f in filiacoes])
+
+
+def _filiacoes_prefetchadas(parlamentar, data_inicio, data_fim=None):
+    """Aplica em memória o mesmo predicado de `filiacao_data`, quando
+    `filiacao_set` já veio prefetchado.
+
+    O resumo/ata da sessão chama `filiacao_data_filter` duas vezes por
+    parlamentar exibido; sem isso cada chamada custa 1+N queries. Retorna
+    `None` quando não há prefetch, para que o chamador use o caminho SQL.
+
+    O queryset do prefetch deve replicar `Filiacao.Meta.ordering` para que a
+    sequência de siglas saia idêntica à da consulta ao banco.
+    """
+    if not data_inicio:
+        return None
+
+    cache = getattr(parlamentar, '_prefetched_objects_cache', None)
+    if not cache:
+        return None
+
+    cache_name = parlamentar.filiacao_set.field.remote_field.get_cache_name()
+    if cache_name not in cache:
+        return None
+
+    def selecionada(f):
+        if f.data <= data_inicio and (f.data_desfiliacao is None
+                                      or f.data_desfiliacao >= data_inicio):
+            return True
+        if data_fim:
+            return data_inicio <= f.data <= data_fim
+        return False
+
+    return [f for f in cache[cache_name] if selecionada(f)]
 
 
 def parlamentares_ativos(data_inicio, data_fim=None):
