@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
 
+from sapl import settings
 from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
@@ -25,6 +26,7 @@ from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
                                 VotoParlamentar, RegistroLeitura)
 from sapl.utils import filiacao_data, get_client_ip, sort_lista_chave
+from image_cropping.utils import get_backend
 
 from .models import Cronometro
 
@@ -372,7 +374,6 @@ def get_presentes(pk, response, materia):
     else:
         presentes = SessaoPlenariaPresenca.objects.filter(
             sessao_plenaria_id=pk)
-
     sessao = SessaoPlenaria.objects.get(id=pk)
     num_presentes = len(presentes)
     data_sessao = sessao.data_inicio
@@ -399,11 +400,23 @@ def get_presentes(pk, response, materia):
                 partido = 'Sem Registro'
             else:
                 partido = filiacao
-
+            if p.parlamentar.fotografia:
+                thumbnail_url = get_backend().get_thumbnail_url(
+                    p.parlamentar.fotografia,
+                    {
+                        'size': (128, 128),
+                        'box': p.parlamentar.cropping,
+                        'crop': True,
+                        'detail': True,
+                    }
+                )
+            else:
+              thumbnail_url = False
             presentes_list.append(
                 {'id': p.id,
                  'parlamentar_id': p.parlamentar.id,
                  'nome': p.parlamentar.nome_parlamentar,
+                 'fotografia':thumbnail_url,
                  'partido': partido,
                  'voto': ''
                  })

@@ -1,43 +1,159 @@
+:root {
+  --bg-dark: #121212;
+  --bg-panel: #1e1e1e;
+  --text-main: #e0e0e0;
+  --text-highlight: #4fa64d;
+}
 
-.painel-principal {
-  background: #1c1b1b;
-  font-family: Verdana;
-  font-size: x-large;
-  .text-title {
-    color: #4fa64d;
-    margin: 0.5rem;
-	font-weight: bold;
-  }
-  .text-subtitle {
-    color: #459170;
-	font-weight: bold;
-  }
-  .data-hora {
-    font-size: 180%;
-  }
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-bottom: 0;
+}
 
-  .text-value {
-    color: white;
-  }
+.separador-vertical {
+  border-right: 1px solid #333;
+  min-height: 100vh;
+  margin: 0;
+}
 
-  .logo-painel {
-    max-width: 100%;
-  }
-  .painels {
-    flex-wrap: wrap;
-  }
-  .painel{
-    margin-top: 1rem;
-    table {
-      width: 100%;
-    }
-    h2 {
-      margin-bottom: 0.5rem;
-    }
-    #votacao, #oradores_list {
-      text-align: left;
-      display: inline-block;
-      margin-bottom: 1rem;
-    }
-  }
+.text-title {
+  color: var(--text-highlight);
+  letter-spacing: 1px;
+}
+
+.text-subtitle {
+  color: #81c784;
+  font-weight: 600;
+}
+
+.parlamentares-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 190px);
+  width: 100%;
+}
+
+.parlamentar-card {
+  width: 150px;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.foto-container {
+  border-radius: 3px;
+  overflow: hidden;
+  height: 150px;
+}
+
+.parlamentar-card img {
+  width: 100%;
+  height: 150px;
+  display: block;
+  object-fit: fill;
+}
+
+.parlamentar-card .nome {
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: #fff;
+  line-height: 1.1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  margin-bottom: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.parlamentar-card .partido {
+  font-size: 0.8rem;
+  color: #ddd;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.voto-faixa {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  top: -45px;
+  right: -45px;
+  transform: rotate(45deg);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: -2px 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  line-height: 1;
+}
+
+.voto-faixa p {
+  transform: rotate(-45deg);
+  font-size: 2rem;
+  text-transform: uppercase;
+}
+
+.voto-sim .voto-faixa {
+  background-color: #27ae60;
+}
+
+.voto-nao .voto-faixa {
+  background-color: #c0392b;
+}
+
+.voto-abstencao .voto-faixa {
+  background-color: #f39c12;
+}
+
+.voto-informado .voto-faixa {
+  background-color: #d35400;
+}
+
+.voto-ausente .voto-faixa {
+  background-color: #7f8c8d;
+}
+
+.table-custom {
+  color: #ddd;
+}
+
+.table-custom tbody td {
+  padding: 8px;
+  font-size: 1.1rem;
+}
+
+.table-sim {
+  color: #27ae60;
+}
+
+.table-nao {
+  color: #c0392b;
+}
+
+.table-abstencao {
+  color: #f39c12;
+}
+
+.table-total {
+  color: #194BFA;
+}
+
+.logo-painel {
+  max-height: 150px;
+  width: auto;
+}
+
+#oradores_list tr td {
+  font-size: 1.2rem;
+  padding: 5px;
+  text-align: start;
+}
+
+.hora-brasao {
+  border-top: 1px solid #333;
 }
