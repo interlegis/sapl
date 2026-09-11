@@ -12,7 +12,7 @@ from rest_framework.fields import SerializerMethodField
 
 from sapl.base.models import Autor, CasaLegislativa, Metadata
 from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
-from sapl.sessao.models import OrdemDia, SessaoPlenaria
+from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
 
 
 class SaplSerializerMixin(DrfAutoApiSerializerMixin):
@@ -312,6 +312,27 @@ class SessaoPlenariaECidadaniaSerializer(serializers.ModelSerializer):
 
     def get_sigla_orgao(self, obj):
         return self.casa().sigla
+
+
+class OrdemDiaSerializer(SaplSerializerMixin):
+    """
+    votacao_aberta/registro_aberto só podem ser alterados através do fluxo
+    de abrir_votacao()/VotacaoNominalAbstract (sapl/sessao/views.py), que
+    garante a invariante de no máximo uma matéria aberta por vez. Editáveis
+    aqui, a API contornaria essa garantia por completo.
+    """
+    class Meta:
+        model = OrdemDia
+        fields = '__all__'
+        read_only_fields = ('votacao_aberta', 'registro_aberto')
+
+
+class ExpedienteMateriaSerializer(SaplSerializerMixin):
+    """Ver OrdemDiaSerializer — mesmo motivo para os mesmos dois campos."""
+    class Meta:
+        model = ExpedienteMateria
+        fields = '__all__'
+        read_only_fields = ('votacao_aberta', 'registro_aberto')
 
     def get_nome_orgao(self, obj):
         return self.casa().nome

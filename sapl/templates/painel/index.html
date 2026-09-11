@@ -35,6 +35,7 @@
     </style>
   </head>
   <body class="painel-principal">
+      <div id="ws-status-banner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:2000; padding:10px 16px; text-align:center; font-weight:bold; color:#fff;"></div>
       <audio type="hidden" id="audio" src="{% webpack_static 'audio/ring.mp3' %}"></audio>
 
       <div class="d-flex justify-content-center">
@@ -266,20 +267,13 @@
     var aparte_previous;
     var consideracoes_previous;
 
-    const POLL_INTERVAL_MS =
-      window.location.hostname === "localhost" ? 2000 : 500;
-
-    var counter = 1;
-    (function poll() {
-        $.ajax({
-           url: "{% url 'sapl.painel:dados_painel' sessao_id %}",
-           type: "GET",
-           dataType: "json",
-           complete: function() {
-             setTimeout(poll, POLL_INTERVAL_MS);
-           },
-           timeout: 20000, // TODO: decrease
-           success: function(data) {
+    // Renderiza o payload completo que o WebSocket manda em cada broadcast
+    // (build_dados_painel() — antes também servido por um endpoint HTTP de
+    // polling, removido junto com o fallback).
+    function renderDadosPainel(data) {
+              if (!data) {
+                return;
+              }
               $("#sessao_plenaria").text(data["sessao_plenaria"])
               $("#sessao_plenaria_data").text("Data Início: " + data["sessao_plenaria_data"])
               $("#sessao_plenaria_hora_inicio").text("Hora Início: " + data["sessao_plenaria_hora_inicio"])
@@ -496,11 +490,94 @@
                   $("#mat_em_votacao").text("Matéria em Leitura");
                 }
               }
-           },
-           error: function(err) {
-              console.error(err);
-          }
-        })
+    }
+
+      // Sem fallback de polling: esta página vive inteiramente do
+      // WebSocket. PainelConsumer.connect() (sapl/painel/consumers.py)
+      // manda um snapshot completo assim que a conexão é aceita — então
+      // tanto a carga inicial quanto toda atualização depois vêm daqui.
+      // Se a conexão não sobe (Redis/Daphne fora do ar), showWsBanner()
+      // deixa isso visível na página em vez de deixá-la muda em silêncio.
+      (function() {
+        var banner = document.getElementById('ws-status-banner');
+
+        function showWsBanner(message, isError) {
+          if (!banner) return;
+          banner.textContent = message;
+          banner.style.display = 'block';
+          banner.style.background = isError ? '#b00020' : '#b8860b';
+        }
+
+        function hideWsBanner() {
+          if (!banner) return;
+          banner.style.display = 'none';
+        }
+
+        // Fechados explicitamente por PainelConsumer.connect() para
+        // condições que uma nova tentativa não resolve sozinha.
+        var PERMANENT_CLOSE_MESSAGES = {
+          4401: 'Sessão expirada ou usuário não autenticado. Faça login novamente e recarregue a página.',
+          4403: 'Seu usuário não tem permissão para acessar esta tela.',
+          4404: 'Sessão plenária não encontrada.'
+        };
+
+        var wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        var wsUrl = wsProtocol + '//' + window.location.host + '/ws/painel/{{ sessao_id }}/';
+        var MIN_RECONNECT_DELAY_MS = 1000;
+        var MAX_RECONNECT_DELAY_MS = 30000;
+        var reconnectDelayMs = MIN_RECONNECT_DELAY_MS;
+        var socket = null;
+
+        function nextDelay() {
+          var base = Math.min(reconnectDelayMs * 2, MAX_RECONNECT_DELAY_MS);
+          // +/-30% de jitter — evita que várias telas conectadas na mesma
+          // sessão reconectem todas no mesmo instante após uma queda do
+          // Daphne, batendo em build_dados_painel() ao mesmo tempo.
+          return Math.round(base * (0.7 + Math.random() * 0.6));
+        }
+
+        function connect() {
+          socket = new WebSocket(wsUrl);
+
+          socket.onopen = function() {
+            reconnectDelayMs = MIN_RECONNECT_DELAY_MS;
+            hideWsBanner();
+          };
+
+          socket.onmessage = function(event) {
+            var message;
+            try {
+              message = JSON.parse(event.data);
+            } catch (e) {
+              return;
+            }
+            if (message && message.type === 'data') {
+              renderDadosPainel(message.payload);
+            }
+          };
+
+          socket.onclose = function(event) {
+            var permanentMessage = PERMANENT_CLOSE_MESSAGES[event.code];
+            if (permanentMessage) {
+              showWsBanner(permanentMessage, true);
+              return;
+            }
+            showWsBanner(
+              'Conexão em tempo real perdida. Verifique se o Redis e o ' +
+              'Daphne (ou "./manage.py runserver") estão em execução. ' +
+              'Tentando reconectar…',
+              false
+            );
+            setTimeout(connect, reconnectDelayMs);
+            reconnectDelayMs = nextDelay();
+          };
+
+          socket.onerror = function() {
+            socket.close();
+          };
+        }
+
+        connect();
       })();
       });
 

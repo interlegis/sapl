@@ -1,0 +1,34 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping%}
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
+{% block vue_content %}
+<style>[v-cloak]{display:none}</style>
+{{ tipos_resultado|json_script:"tipos-resultado" }}
+<div id="votacao" v-cloak data-controller-id="{{ pk }}">
+    <ws-status-banner :status="wsStatus" :message="wsErrorMessage"></ws-status-banner>
+    <votacao-nominal
+        :is-open="isOpen"
+        :error-message="error_message"
+        :votos-status="votosStatus"
+        @cast-vote="castVote"
+        @cancelar="onCancelar"
+        @fechar="onFechar"
+        ref="votacaoNominal">
+    </votacao-nominal>
+</div>
+{% endblock vue_content %}
+
+{% block webpack_loader_css %}
+    {{ block.super }}
+    {% render_bundle 'votacao' 'css' %}
+{% endblock %}
+
+{% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}
+    {% render_bundle 'votacao' 'js' %}
+{% endblock %}

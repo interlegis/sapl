@@ -6,12 +6,14 @@ from re import sub
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, user_passes_test
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError, transaction
 from django.db.models import Max, Q
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
 from django.http.response import Http404, HttpResponseRedirect
+from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.utils import timezone
@@ -20,6 +22,7 @@ from django.utils.decorators import method_decorator
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (FormView, ListView, TemplateView)
 from django.views.generic.base import RedirectView
@@ -39,6 +42,7 @@ from sapl.materia.forms import filtra_tramitacao_status
 from sapl.materia.models import (Autoria, TipoMateriaLegislativa,
                                  Tramitacao, MateriaEmTramitacao, Numeracao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
+from sapl.painel.views import broadcast_dados_painel
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.protocoloadm.models import TipoDocumentoAdministrativo, \
@@ -52,7 +56,7 @@ from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, 
     MultiFormatOutputMixin, PautaMultiFormatOutputMixin, ratelimit_ip
 
 from .forms import (AdicionarVariasMateriasFilterSet, AdicionarVariasMateriasForm, BancadaForm,
-                    ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm, ListMateriaForm,
+                    ExpedienteForm, JustificativaAusenciaForm, OcorrenciaSessaoForm,
                     MesaForm, OradorExpedienteForm, OradorForm, PautaSessaoFilterSet,
                     PresencaForm, ResumoOrdenacaoForm, SessaoPlenariaFilterSet,
                     SessaoPlenariaForm, VotacaoEditForm, VotacaoForm,
@@ -199,31 +203,77 @@ def abrir_votacao(request, pk, spk):
     if not model:
         raise Http404()
 
-    query_params = "?"
-
     materia_votacao = model.objects.get(id=pk)
     is_leitura = materia_votacao.tipo_votacao == 4
-    if (verifica_presenca(request, presenca_model, spk, is_leitura) and
-            verifica_votacoes_abertas(request) and
-            verifica_sessao_iniciada(request, spk, is_leitura)):
-        materia_votacao.votacao_aberta = True
-        sessao = SessaoPlenaria.objects.get(id=spk)
-        sessao.painel_aberto = True
-        sessao.save()
-        materia_votacao.save()
+    is_expediente = model is ExpedienteMateria
+    opened = False
 
+    with transaction.atomic():
+        # select_for_update trava a linha da SessaoPlenaria durante toda a
+        # checagem+fechamento+abertura, para que dois "abrir votação"
+        # concorrentes (duplo clique, ou uma requisição lenta seguida de
+        # nova tentativa) não deixem duas matérias com votacao_aberta=True
+        # ao mesmo tempo — sapl/painel/views.py::votacao_aberta() trata
+        # esse caso redirecionando todos os tablets sem nenhuma mensagem
+        # clara de erro.
+        SessaoPlenaria.objects.select_for_update().get(id=spk)
+        # Reflete o estado mais atual sob o lock: outra requisição
+        # concorrente pode ter mudado votacao_aberta entre o SELECT inicial
+        # (antes do lock) e aqui.
+        materia_votacao.refresh_from_db()
+        ja_aberta = materia_votacao.votacao_aberta
+
+        # Reabrir a própria matéria que já está aberta precisa ser
+        # idempotente: verifica_votacoes_abertas() existe para fechar
+        # OUTRAS matérias concorrentes, e sua mensagem ("já existem
+        # votações abertas... foram fechadas") não faz sentido quando a
+        # única "conflitante" é ela mesma.
+        if (verifica_presenca(request, presenca_model, spk, is_leitura) and
+                (ja_aberta or verifica_votacoes_abertas(request)) and
+                verifica_sessao_iniciada(request, spk, is_leitura)):
+            materia_votacao.votacao_aberta = True
+            sessao = SessaoPlenaria.objects.get(id=spk)
+            sessao.painel_aberto = True
+            sessao.save()
+            materia_votacao.save()
+            opened = True
+
+    if opened:
+        broadcast_dados_painel(request, spk)
+
+        # Leva direto para a tela de registro do tipo de votação recém
+        # aberta, em vez de voltar para a lista — sem isso, o usuário
+        # precisa de um segundo clique em "Registrar Votação"/"Registrar
+        # Leitura" (que só aparece depois que a lista recarrega) para
+        # chegar aonde queria.
+        registro_view_names_ordem = {
+            SIMBOLICA: 'votacaosimbolica', NOMINAL: 'votacaonominal',
+            SECRETA: 'votacaosecreta', LEITURA: 'leituraod',
+        }
+        registro_view_names_expediente = {
+            SIMBOLICA: 'votacaosimbolicaexp', NOMINAL: 'votacaonominalexp',
+            SECRETA: 'votacaosecretaexp', LEITURA: 'leituraexp',
+        }
+        registro_view_names = (registro_view_names_expediente if is_expediente
+                               else registro_view_names_ordem)
+        registro_view_name = registro_view_names[materia_votacao.tipo_votacao]
+        success_url = reverse('sapl.sessao:' + registro_view_name, kwargs={
+            'pk': spk, 'oid': materia_votacao.pk,
+            'mid': materia_votacao.materia_id})
+        if 'page' in request.GET:
+            success_url += '?page={}'.format(request.GET['page'])
+    else:
+        query_params = "?"
         if 'page' in request.GET:
             query_params += 'page={}&'.format(request.GET['page'])
-
         query_params += "#id{}".format(materia_votacao.materia.id)
-
-    success_url = reverse('sapl.sessao:' + redirect_url, kwargs={'pk': spk})
-    success_url += query_params
+        success_url = reverse('sapl.sessao:' + redirect_url,
+                              kwargs={'pk': spk}) + query_params
 
     return HttpResponseRedirect(success_url)
 
 
-def customize_link_materia(context, pk, has_permission, is_expediente):
+def customize_link_materia(context, pk, has_permission, is_expediente, request=None):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
         obj = context['object_list'][i]
@@ -351,13 +401,26 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
                 if has_permission:
                     if obj.tipo_votacao != LEITURA:
+                        # Votação Nominal é a única que envolve votos individuais
+                        # pelos tablets (VOTACAO_NOMINAL em sapl/painel/views.py), e
+                        # é a única cuja tela de registro (VotacaoNominalAbstract)
+                        # sabe tratar POST sem efeito colateral — por isso só ela é
+                        # convertida para POST aqui; Simbólica/Secreta continuam GET.
+                        metodo = ''
+                        csrf_input = ''
+                        if obj.tipo_votacao == NOMINAL:
+                            metodo = ' method="post"'
+                            csrf_input = (
+                                '<input type="hidden" name="csrfmiddlewaretoken" value="%s" />'
+                                % get_token(request))
                         btn_registrar = '''
-                                        <form action="%s">
+                                        <form action="%s"%s>
+                                        %s
                                         <input type="submit" class="btn btn-primary"
                                         value="Registrar Votação" />
                                         %s
                                     </form>''' % (
-                            url, page_number)
+                            url, metodo, csrf_input, page_number)
                     else:
                         btn_registrar = '''
                                         <form action="%s">
@@ -845,7 +908,8 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             context = super().get_context_data(**kwargs)
 
             has_permition = self.request.user.has_module_perms(AppConfig.label)
-            return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
+            return customize_link_materia(context, self.kwargs['pk'], has_permition, False,
+                                          request=self.request)
 
 
 def recuperar_materia(request):
@@ -921,7 +985,8 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 context['page'] = self.request.GET.get('page')
 
             has_permition = self.request.user.has_module_perms(AppConfig.label)
-            return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
+            return customize_link_materia(context, self.kwargs['pk'], has_permition, True,
+                                          request=self.request)
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
@@ -977,6 +1042,35 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
         layout_key = 'ExpedienteMateriaDetail'
 
 
+class BroadcastPainelOnSaveMixin:
+    """
+    Oradores entram no payload do painel (oradores[]) — sem WS polling como
+    rede de segurança, a fila de oradores só chega ao painel se create/
+    update/delete avisarem explicitamente.
+
+    Não usa self.kwargs['pk']: em MasterDetailCrud isso só é o pk da
+    SessaoPlenaria pai em CreateView (nested direto sob a URL do pai) — em
+    UpdateView/DeleteView 'pk' é o pk do próprio Orador sendo editado ou
+    apagado (ver MasterDetailCrud.DeleteView.get_url_regex(), que usa o
+    mesmo padrão de URL "<model>/<pk>/delete"; get_success_url() já
+    resolve o pai via self.object, não via kwargs, pelo mesmo motivo).
+    form_valid() sempre tem self.object populado (form.save()) depois do
+    super(); delete() precisa capturar o pai antes de apagar, senão não há
+    mais o que ler.
+    """
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        broadcast_dados_painel(self.request, self.object.sessao_plenaria_id)
+        return response
+
+    def delete(self, request, *args, **kwargs):
+        sessao_pk = self.get_object().sessao_plenaria_id
+        response = super().delete(request, *args, **kwargs)
+        broadcast_dados_painel(request, sessao_pk)
+        return response
+
+
 # Orador das Explicações Pessoais
 class OradorCrud(MasterDetailCrud):
     model = Orador
@@ -997,7 +1091,7 @@ class OradorCrud(MasterDetailCrud):
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
-    class CreateView(MasterDetailCrud.CreateView):
+    class CreateView(BroadcastPainelOnSaveMixin, MasterDetailCrud.CreateView):
 
         form_class = OradorForm
         template_name = 'sessao/oradores_create.html'
@@ -1034,7 +1128,7 @@ class OradorCrud(MasterDetailCrud):
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
-    class UpdateView(MasterDetailCrud.UpdateView):
+    class UpdateView(BroadcastPainelOnSaveMixin, MasterDetailCrud.UpdateView):
 
         form_class = OradorForm
 
@@ -1054,7 +1148,7 @@ class OradorCrud(MasterDetailCrud):
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
-    class DeleteView(MasterDetailCrud.DeleteView):
+    class DeleteView(BroadcastPainelOnSaveMixin, MasterDetailCrud.DeleteView):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -1070,7 +1164,7 @@ class OradorCrud(MasterDetailCrud):
 class OradorExpedienteCrud(OradorCrud):
     model = OradorExpediente
 
-    class CreateView(MasterDetailCrud.CreateView):
+    class CreateView(BroadcastPainelOnSaveMixin, MasterDetailCrud.CreateView):
 
         form_class = OradorExpedienteForm
         template_name = 'sessao/oradores_create.html'
@@ -1095,7 +1189,7 @@ class OradorExpedienteCrud(OradorCrud):
             return reverse('sapl.sessao:oradorexpediente_list',
                            kwargs={'pk': self.kwargs['pk']})
 
-    class UpdateView(MasterDetailCrud.UpdateView):
+    class UpdateView(BroadcastPainelOnSaveMixin, MasterDetailCrud.UpdateView):
         form_class = OradorExpedienteForm
 
         def get_initial(self):
@@ -1137,7 +1231,7 @@ class OradorExpedienteCrud(OradorCrud):
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
             return context
 
-    class DeleteView(MasterDetailCrud.DeleteView):
+    class DeleteView(BroadcastPainelOnSaveMixin, MasterDetailCrud.DeleteView):
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
@@ -1153,7 +1247,7 @@ class OradorExpedienteCrud(OradorCrud):
 class OradorOrdemDiaCrud(OradorCrud):
     model = OradorOrdemDia
 
-    class CreateView(MasterDetailCrud.CreateView):
+    class CreateView(BroadcastPainelOnSaveMixin, MasterDetailCrud.CreateView):
         form_class = OradorOrdemDiaForm
         template_name = 'sessao/oradores_create.html'
 
@@ -1171,7 +1265,7 @@ class OradorOrdemDiaCrud(OradorCrud):
             context["ultima_ordem"] = ultimo_orador.numero_ordem if ultimo_orador else 0
             return context
 
-    class UpdateView(MasterDetailCrud.UpdateView):
+    class UpdateView(BroadcastPainelOnSaveMixin, MasterDetailCrud.UpdateView):
         form_class = OradorOrdemDiaForm
 
         def get_initial(self):
@@ -1445,6 +1539,11 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
             msg = _('Presença em Sessão salva com sucesso!')
             messages.add_message(request, messages.SUCCESS, msg)
 
+            # Presença entra no payload do painel (presentes[]) — sem WS
+            # polling como rede de segurança, o painel só sabe que alguém
+            # chegou/saiu se este POST avisar.
+            broadcast_dados_painel(request, self.object.id)
+
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -1561,6 +1660,8 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
             msg = _('Presença em Ordem do Dia salva com sucesso!')
             messages.add_message(request, messages.SUCCESS, msg)
 
+            broadcast_dados_painel(request, self.object.id)
+
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -1568,112 +1669,6 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
     def get_success_url(self):
         pk = self.kwargs['pk']
         return reverse('sapl.sessao:presencaordemdia', kwargs={'pk': pk})
-
-
-class ListMateriaOrdemDiaView(FormMixin, DetailView):
-    template_name = 'sessao/materia_ordemdia_list.html'
-    form_class = ListMateriaForm
-    model = SessaoPlenaria
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
-        pk = self.kwargs['pk']
-        ordem = OrdemDia.objects.filter(sessao_plenaria_id=pk)
-
-        materias_ordem = []
-        for o in ordem:
-            ementa = o.materia.ementa
-            titulo = o.materia
-            numero = o.numero_ordem
-
-            autoria = Autoria.objects.filter(materia_id=o.materia_id)
-            autor = [str(a.autor) for a in autoria]
-
-            mat = {'pk': pk,
-                   'oid': o.id,
-                   'ordem_id': o.materia_id,
-                   'ementa': ementa,
-                   'titulo': titulo,
-                   'numero': numero,
-                   'resultado': o.resultado,
-                   'autor': autor,
-                   'votacao_aberta': o.votacao_aberta,
-                   'tipo_votacao': o.tipo_votacao
-                   }
-            materias_ordem.append(mat)
-
-        sorted(materias_ordem, key=lambda x: x['numero'])
-
-        context.update({'materias_ordem': materias_ordem})
-
-        return self.render_to_response(context)
-
-    @method_decorator(permission_required('sessao.change_ordemdia'))
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        context = self.get_context_data(object=self.object)
-
-        pk = self.kwargs['pk']
-        form = ListMateriaForm(request.POST)
-
-        # TODO: Existe uma forma de atualizar em lote de acordo
-        # com a forma abaixo, mas como setar o primeiro para "1"?
-        # OrdemDia.objects.filter(sessao_plenaria_id=pk)
-        # .order_by('numero_ordem').update(numero_ordem=3)
-
-        if 'materia_reorder' in request.POST:
-            ordens = OrdemDia.objects.filter(sessao_plenaria_id=pk)
-            ordem_num = 1
-            for o in ordens:
-                o.numero_ordem = ordem_num
-                o.save()
-                ordem_num += 1
-        elif 'abrir-votacao' in request.POST:
-            existe_votacao_aberta = OrdemDia.objects.filter(
-                sessao_plenaria_id=pk, votacao_aberta=True).exists()
-            if existe_votacao_aberta:
-                context = self.get_context_data(object=self.object)
-
-                form._errors = {'error_message': 'error_message'}
-                context.update({'form': form})
-
-                pk = self.kwargs['pk']
-                ordem = OrdemDia.objects.filter(sessao_plenaria_id=pk)
-
-                materias_ordem = []
-                for o in ordem:
-                    ementa = o.materia.ementa
-                    titulo = o.materia
-                    numero = o.numero_ordem
-
-                    autoria = Autoria.objects.filter(materia_id=o.materia_id)
-                    autor = [str(a.autor) for a in autoria]
-
-                    mat = {'pk': pk,
-                           'oid': o.id,
-                           'ordem_id': o.materia_id,
-                           'ementa': ementa,
-                           'titulo': titulo,
-                           'numero': numero,
-                           'resultado': o.resultado,
-                           'autor': autor,
-                           'votacao_aberta': o.votacao_aberta,
-                           'tipo_votacao': o.tipo_votacao
-                           }
-                    materias_ordem.append(mat)
-
-                sorted(materias_ordem, key=lambda x: x['numero'])
-                context.update({'materias_ordem': materias_ordem})
-                return self.render_to_response(context)
-            else:
-                ordem_id = request.POST['ordem_id']
-                ordem = OrdemDia.objects.get(id=ordem_id)
-                ordem.votacao_aberta = True
-                ordem.registro_aberto = False
-                ordem.save()
-        return self.get(self, request, args, kwargs)
 
 
 class MesaView(FormMixin, DetailView):
@@ -2761,9 +2756,9 @@ class VotacaoEditView(SessaoPermissionMixin):
 
         url = request.get_full_path()
 
-        if "votsimb" in url:
+        if "votacao/simbolica" in url:
             titulo = _("Votação Simbólica")
-        elif "votsec" in url:
+        elif "votacao/secreta" in url:
             titulo = _("Votação Secreta")
         else:
             titulo = _("Não definida")
@@ -2803,6 +2798,59 @@ class VotacaoEditView(SessaoPermissionMixin):
                        kwargs={'pk': pk}) + page
 
 
+def _check_sessao_permission(user):
+    return user.has_module_perms(AppConfig.label)
+
+
+@never_cache
+@user_passes_test(_check_sessao_permission)
+def votacao_nominal_v2_view(request, pk):
+    """
+    Shell da página Vue de votação nominal. tipos_resultado nunca vem do
+    broadcast do painel (build_dados_painel() não o inclui) — renderizado
+    aqui, uma vez, no contexto inicial, e lido pelo Vue no mount (ver GAP
+    3 do plano de merge). A rota anterior era um TemplateView puro, sem
+    nenhuma checagem de permissão — fechado aqui, mesmo padrão de
+    sapl.painel.views.check_permission.
+    """
+    context = {
+        'pk': pk,
+        'tipos_resultado': list(TipoResultadoVotacao.objects.all().values('id', 'nome')),
+    }
+    return render(request, 'sessao/votacao/votacao_v2.html', context)
+
+
+@never_cache
+@user_passes_test(_check_sessao_permission)
+def votacao_simbolica_v2_view(request, pk, oid, mid):
+    """
+    Shell da página Vue de votação simbólica — mesmo racional de
+    votacao_nominal_v2_view acima. total_presentes/total_votantes seguem
+    o mesmo cálculo de VotacaoView.get() (contagem de presentes
+    ativos/inativos) — não vêm de build_dados_painel(), cujo
+    num_presentes reflete a etapa de ordem-do-dia como um todo, não
+    necessariamente a mesma contagem "com/sem presidente" que esta tela
+    usa.
+    """
+    presentes_id = [
+        presente.parlamentar_id for presente in PresencaOrdemDia.objects.filter(
+            sessao_plenaria_id=pk)
+    ]
+    total_presentes = len(presentes_id)
+    total_votantes = Parlamentar.objects.filter(
+        id__in=presentes_id, ativo=True).count()
+
+    context = {
+        'pk': pk,
+        'oid': oid,
+        'mid': mid,
+        'total_presentes': total_presentes,
+        'total_votantes': total_votantes,
+        'tipos_resultado': list(TipoResultadoVotacao.objects.all().values('id', 'nome')),
+    }
+    return render(request, 'sessao/votacao/votacao_simbolica_v2.html', context)
+
+
 class VotacaoView(SessaoPermissionMixin):
     """
         Votação Simbólica e Secreta
@@ -2819,9 +2867,9 @@ class VotacaoView(SessaoPermissionMixin):
         url = request.get_full_path()
 
         # TODO: HACK, VERIFICAR MELHOR FORMA DE FAZER ISSO
-        if "votsimb" in url:
+        if "votacao/simbolica" in url:
             titulo = _("Votação Simbólica")
-        elif "votsec" in url:
+        elif "votacao/secreta" in url:
             titulo = _("Votação Secreta")
         else:
             titulo = _("Não definida")
@@ -2851,14 +2899,30 @@ class VotacaoView(SessaoPermissionMixin):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = VotacaoForm(request.POST)
+
+        # Branch JSON usada pela página Vue de votação simbólica — gated
+        # em content_type pra não afetar em nada os posts HTML normais
+        # (votacaosecreta e votacaosimbolicabloco, que também passam por
+        # esta view e nunca mandam application/json).
+        wants_json = request.content_type == 'application/json'
+        if wants_json:
+            try:
+                body = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({"ok": False, "message": "JSON inválido."}, status=400)
+            post_data = QueryDict('', mutable=True)
+            post_data.update({k: str(v) for k, v in body.items()})
+        else:
+            post_data = request.POST
+
+        form = VotacaoForm(post_data)
         context = self.get_context_data(object=self.object)
         url = request.get_full_path()
 
         # ====================================================
-        if "votsimb" in url:
+        if "votacao/simbolica" in url:
             titulo = _("Votação Simbólica")
-        elif "votsec" in url:
+        elif "votacao/secreta" in url:
             titulo = _("Votação Secreta")
         else:
             titulo = _("Não definida")
@@ -2886,38 +2950,45 @@ class VotacaoView(SessaoPermissionMixin):
         context.update({'form': form})
         # ====================================================
 
-        if 'cancelar-votacao' in request.POST:
+        if 'cancelar-votacao' in post_data:
             ordem.votacao_aberta = False
             ordem.save()
+            # Faltava aqui: fechar/cancelar a votação nunca notificava o
+            # painel via WebSocket, só no próximo poll (ver plano de merge).
+            broadcast_dados_painel(request, self.kwargs['pk'])
+            if wants_json:
+                return JsonResponse({"ok": True, "redirect_url": self.get_success_url()})
             return self.form_valid(form)
 
         if form.is_valid():
             materia_id = kwargs['mid']
             ordem_id = kwargs['oid']
 
-            qtde_votos = (int(request.POST['votos_sim']) +
-                          int(request.POST['votos_nao']) +
-                          int(request.POST['abstencoes']))
+            qtde_votos = (int(post_data['votos_sim']) +
+                          int(post_data['votos_nao']) +
+                          int(post_data['abstencoes']))
 
-            if (int(request.POST['voto_presidente']) == 0):
+            if (int(post_data['voto_presidente']) == 0):
                 qtde_ativos -= 1
 
             if qtde_votos != qtde_ativos:
                 msg = _(
                     'O total de votos não corresponde com a quantidade de votantes!')
+                if wants_json:
+                    return JsonResponse({"ok": False, "message": str(msg)}, status=400)
                 messages.add_message(request, messages.ERROR, msg)
                 return self.render_to_response(context)
             else:
                 try:
                     votacao = RegistroVotacao()
-                    votacao.numero_votos_sim = int(request.POST['votos_sim'])
-                    votacao.numero_votos_nao = int(request.POST['votos_nao'])
-                    votacao.numero_abstencoes = int(request.POST['abstencoes'])
-                    votacao.observacao = request.POST['observacao']
+                    votacao.numero_votos_sim = int(post_data['votos_sim'])
+                    votacao.numero_votos_nao = int(post_data['votos_nao'])
+                    votacao.numero_abstencoes = int(post_data['abstencoes'])
+                    votacao.observacao = post_data['observacao']
                     votacao.materia_id = materia_id
                     votacao.ordem_id = ordem_id
                     votacao.tipo_resultado_votacao_id = int(
-                        request.POST['resultado_votacao'])
+                        post_data['resultado_votacao'])
                     votacao.user = request.user
                     votacao.ip = get_client_ip(request)
                     votacao.save()
@@ -2926,17 +2997,27 @@ class VotacaoView(SessaoPermissionMixin):
                     self.logger.error('user=' + username + '. Problemas ao salvar RegistroVotacao da materia de id={} '
                                                            'e da ordem de id={}. '.format(materia_id, ordem_id) + str(
                                                                e))
+                    if wants_json:
+                        return JsonResponse({"ok": False, "message": "Erro ao salvar o registro de votação."}, status=400)
                     return self.form_invalid(form)
                 else:
                     ordem = OrdemDia.objects.get(id=ordem_id)
                     resultado = TipoResultadoVotacao.objects.get(
-                        id=request.POST['resultado_votacao'])
+                        id=post_data['resultado_votacao'])
                     ordem.resultado = resultado.nome
                     ordem.votacao_aberta = False
                     ordem.save()
+                    # Idem: fechar a votação com resultado nunca notificava
+                    # o painel via WebSocket.
+                    broadcast_dados_painel(request, self.kwargs['pk'])
 
+                if wants_json:
+                    return JsonResponse({"ok": True, "redirect_url": self.get_success_url()})
                 return self.form_valid(form)
         else:
+            if wants_json:
+                errors = {f: e[0] for f, e in form.errors.items()}
+                return JsonResponse({"ok": False, "message": "Formulário inválido.", "errors": errors}, status=400)
             return self.render_to_response(context)
 
     def get_tipos_votacao(self):
@@ -2977,7 +3058,15 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 
     logger = logging.getLogger(__name__)
 
-    def get(self, request, *args, **kwargs):
+    def _get_materia_votacao(self, request, kwargs):
+        """
+        Resolve a OrdemDia/ExpedienteMateria sendo registrada, sem nenhum
+        efeito colateral (não altera registro_aberto nem qualquer outro
+        estado) — apenas consulta. Retorna
+        (materia_votacao, presentes, total, redirect); quando a matéria não
+        pode ser exibida (já votada ou com a votação fechada), os três
+        primeiros valores são None e `redirect` é a resposta a devolver.
+        """
         username = request.user.username
         if self.ordem:
             ordem_id = kwargs['oid']
@@ -2986,32 +3075,26 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 messages.add_message(request, messages.ERROR, msg)
                 self.logger.info(
                     'user=' + username + '. Matéria (ordem_id={}) já votada!'.format(ordem_id))
-                return HttpResponseRedirect(reverse(
+                return None, None, None, HttpResponseRedirect(reverse(
                     'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
 
             try:
-                ordem = OrdemDia.objects.get(id=ordem_id)
+                materia_votacao = OrdemDia.objects.get(id=ordem_id)
             except ObjectDoesNotExist:
                 self.logger.error(
                     'user=' + username + '. Objeto OrdemDia (pk={}) não existe.'.format(ordem_id))
                 raise Http404()
 
             presentes = PresencaOrdemDia.objects.filter(
-                sessao_plenaria_id=ordem.sessao_plenaria_id)
-            total = presentes.count()
+                sessao_plenaria_id=materia_votacao.sessao_plenaria_id)
 
-            materia_votacao = ordem
-
-            if not ordem.votacao_aberta:
+            if not materia_votacao.votacao_aberta:
                 self.logger.error(
                     'user=' + username + '. A votação para esta OrdemDia (id={}) encontra-se fechada!'.format(ordem_id))
                 msg = _('A votação para esta matéria encontra-se fechada!')
                 messages.add_message(request, messages.ERROR, msg)
-                return HttpResponseRedirect(reverse(
+                return None, None, None, HttpResponseRedirect(reverse(
                     'sapl.sessao:ordemdia_list', kwargs={'pk': kwargs['pk']}))
-
-            ordem.registro_aberto = True
-            ordem.save()
 
         elif self.expediente:
             expediente_id = kwargs['oid']
@@ -3021,194 +3104,246 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     "user=" + username + ". RegistroVotacao (expediente_id={}) já existe.".format(expediente_id))
                 msg = _('Esta matéria já foi votada!')
                 messages.add_message(request, messages.ERROR, msg)
-                return HttpResponseRedirect(reverse(
+                return None, None, None, HttpResponseRedirect(reverse(
                     'sapl.sessao:expedientemateria_list',
                     kwargs={'pk': kwargs['pk']}))
 
             try:
                 self.logger.debug(
                     "user=" + username + ". Tentando obter Objeto ExpedienteMateria com id={}.".format(expediente_id))
-                expediente = ExpedienteMateria.objects.get(id=expediente_id)
+                materia_votacao = ExpedienteMateria.objects.get(id=expediente_id)
             except ObjectDoesNotExist:
                 self.logger.error(
                     'user=' + username + '. Objeto ExpedienteMateria com id={} não existe.'.format(expediente_id))
                 raise Http404()
 
             presentes = SessaoPlenariaPresenca.objects.filter(
-                sessao_plenaria_id=expediente.sessao_plenaria_id)
-            total = presentes.count()
+                sessao_plenaria_id=materia_votacao.sessao_plenaria_id)
 
-            materia_votacao = expediente
-
-            if not expediente.votacao_aberta:
+            if not materia_votacao.votacao_aberta:
                 msg = _(
                     'A votação para este ExpedienteMateria (id={}) encontra-se fechada!'.format(expediente_id))
                 messages.add_message(request, messages.ERROR, msg)
-                return HttpResponseRedirect(reverse(
+                return None, None, None, HttpResponseRedirect(reverse(
                     'sapl.sessao:expedientemateria_list',
                     kwargs={'pk': kwargs['pk']}))
 
-            expediente.registro_aberto = True
-            expediente.save()
+        total = presentes.count()
+        return materia_votacao, presentes, total, None
 
+    def _build_registro_context(self, materia_votacao, presentes, total):
         materia = {'materia': materia_votacao.materia,
                    'ementa': sub(
                        '&nbsp;', ' ', strip_tags(
                            materia_votacao.materia.ementa))}
-        context = {'materia': materia, 'object': self.get_object(),
-                   'parlamentares': self.get_parlamentares(presentes),
-                   'form': self.get_form(),
-                   'total': total}
+        return {'materia': materia, 'object': self.get_object(),
+                'parlamentares': self.get_parlamentares(presentes),
+                'form': self.get_form(),
+                'total': total,
+                'registro_aberto': materia_votacao.registro_aberto}
 
+    def _redirect_same_registro(self, kwargs, page):
+        view = ('sapl.sessao:votacaonominal' if self.ordem
+                else 'sapl.sessao:votacaonominalexp')
+        return HttpResponseRedirect(reverse(view, kwargs={
+            'pk': kwargs['pk'], 'oid': kwargs['oid'], 'mid': kwargs['mid']}) + page)
+
+    def _redirect_lista(self, kwargs, page):
+        view = ('sapl.sessao:ordemdia_list' if self.ordem
+                else 'sapl.sessao:expedientemateria_list')
+        return HttpResponseRedirect(
+            reverse(view, kwargs={'pk': kwargs['pk']}) + page +
+            "#id{}".format(kwargs['mid']))
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get('status') == '1':
+            return self._status_json(kwargs)
+        materia_votacao, presentes, total, redirect = self._get_materia_votacao(
+            request, kwargs)
+        if redirect:
+            return redirect
+        context = self._build_registro_context(materia_votacao, presentes, total)
         return self.render_to_response(context)
+
+    def _status_json(self, kwargs):
+        """
+        Poll leve para a tela de registro (nominal.html) acompanhar, em tempo
+        real, os votos que chegam pelos tablets — sem os efeitos colaterais
+        de _get_materia_votacao (mensagens, redirect quando já votada) e sem
+        a máscara de mostrar_voto do sapl.painel:dados_painel (que é para o
+        telão público; aqui é a tela da própria Mesa, que precisa do valor
+        real para não sobrescrever por engano um voto que mudou).
+        """
+        model = OrdemDia if self.ordem else ExpedienteMateria
+        lookup_field = 'ordem_id' if self.ordem else 'expediente_id'
+        try:
+            materia_votacao = model.objects.get(id=kwargs['oid'])
+        except ObjectDoesNotExist:
+            raise Http404()
+
+        votos = dict(VotoParlamentar.objects.filter(
+            **{lookup_field: materia_votacao.id}).values_list(
+            'parlamentar_id', 'voto'))
+
+        return JsonResponse({
+            'votacao_aberta': materia_votacao.votacao_aberta,
+            'registro_aberto': materia_votacao.registro_aberto,
+            'ja_registrada': RegistroVotacao.objects.filter(
+                **{lookup_field: materia_votacao.id}).exists(),
+            'votos': votos,
+        })
+
+    def _get_or_create_voto_parlamentar(self, lookup_field, lookup_value, parlamentar_id):
+        """
+        get_or_create protegido contra a corrida de duas inserções
+        concorrentes para o mesmo (parlamentar, matéria) — ex.: o tablet do
+        parlamentar e o formulário em lote do operador chegando ao mesmo
+        tempo. Usa um savepoint próprio para que um IntegrityError aqui não
+        derrube a transação inteira do 'Encerrar Votação'.
+        """
+        try:
+            with transaction.atomic():
+                return VotoParlamentar.objects.select_for_update().get_or_create(
+                    parlamentar_id=parlamentar_id, **{lookup_field: lookup_value})
+        except IntegrityError:
+            return VotoParlamentar.objects.select_for_update().get(
+                parlamentar_id=parlamentar_id, **{lookup_field: lookup_value}), False
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.get_form()
         username = request.user.username
 
         page = ''
         if 'page' in self.request.GET:
             page = '?page={}'.format(self.request.GET['page'])
 
-        if self.ordem:
-            ordem_id = kwargs['oid']
-            try:
-                self.logger.debug(
-                    "user=" + username + ". Tentando obter objeto OrdemDia com id={}.".format(ordem_id))
-                materia_votacao = OrdemDia.objects.get(id=ordem_id)
-            except ObjectDoesNotExist:
-                self.logger.error(
-                    'user=' + username + '. Objeto OrdemDia com id={} não existe.'.format(ordem_id))
-                raise Http404()
-        elif self.expediente:
-            expediente_id = kwargs['oid']
-            try:
-                self.logger.debug(
-                    "user=" + username + ". Tentando obter ExpedienteMateria com id={}.".format(expediente_id))
-                materia_votacao = ExpedienteMateria.objects.get(
-                    id=expediente_id)
-            except ObjectDoesNotExist:
-                self.logger.error(
-                    'user=' + username + '. Objeto ExpedienteMateria com id={} não existe.'.format(expediente_id))
-                raise Http404()
+        materia_votacao, presentes, total, redirect = self._get_materia_votacao(
+            request, kwargs)
+        if redirect:
+            return redirect
 
-        if form.is_valid():
-            votos_sim = 0
-            votos_nao = 0
-            abstencoes = 0
-            nao_votou = 0
+        fase_sessao_field = 'ordem_id' if self.ordem else 'expediente_id'
+        fase_sessao_value = kwargs['oid']
 
-            if 'cancelar-votacao' in request.POST:
-                fechar_votacao_materia(materia_votacao)
-                if self.ordem:
-                    return HttpResponseRedirect(
-                        reverse(
-                            'sapl.sessao:ordemdia_list',
-                            kwargs={'pk': kwargs['pk']}
-                        ) + page + "#id{}".format(self.kwargs['mid'])
-                    )
-                else:
-                    return HttpResponseRedirect(
-                        reverse(
-                            'sapl.sessao:expedientemateria_list',
-                            kwargs={'pk': kwargs['pk']}
-                        ) + page + "#id{}".format(self.kwargs['mid'])
-                    )
-            else:
-                if form.cleaned_data['resultado_votacao'] == None:
-                    form.add_error(None, 'Não é possível finalizar a votação sem '
-                                         'nenhum resultado da votação')
+        if 'reabrir-votacao' in request.POST:
+            materia_votacao.registro_aberto = False
+            materia_votacao.save()
+            self.logger.info(
+                'user=' + username + '. Reabriu a matéria (id={}) para novos votos.'.format(fase_sessao_value))
+            broadcast_dados_painel(request, kwargs['pk'])
+            return self._redirect_same_registro(kwargs, page)
+
+        if 'bloquear-registro-votacao' in request.POST:
+            materia_votacao.registro_aberto = True
+            materia_votacao.save()
+            self.logger.info(
+                'user=' + username + '. Bloqueou novos votos para a matéria (id={}).'.format(fase_sessao_value))
+            broadcast_dados_painel(request, kwargs['pk'])
+            return self._redirect_same_registro(kwargs, page)
+
+        if 'cancelar-votacao' in request.POST:
+            fechar_votacao_materia(materia_votacao)
+            broadcast_dados_painel(request, kwargs['pk'])
+            return self._redirect_lista(kwargs, page)
+
+        if 'salvar-votacao' in request.POST:
+            form = self.get_form()
+            if not form.is_valid():
+                return self.form_invalid(form)
+
+            if form.cleaned_data['resultado_votacao'] is None:
+                form.add_error(None, _('Não é possível finalizar a votação sem '
+                                       'nenhum resultado da votação'))
+                return self.form_invalid(form)
+
+            skipped_parlamentares = []
+            with transaction.atomic():
+                for votos in request.POST.getlist('voto_parlamentar'):
+                    voto_submetido, parlamentar_id = votos.split(':')
+                    voto_parlamentar, created = self._get_or_create_voto_parlamentar(
+                        fase_sessao_field, fase_sessao_value, parlamentar_id)
+                    if created:
+                        if voto_submetido == 'Não Votou':
+                            # "Não Votou" é só o valor padrão do <select>
+                            # para quem o operador não escolheu nada — não é
+                            # um voto de fato. Persisti-lo aqui travaria a
+                            # linha desse parlamentar (nominal.html desabilita
+                            # o <select> sempre que existe um VotoParlamentar)
+                            # mesmo quando o fechamento falha por falta de
+                            # votos reais, impedindo o operador de corrigir e
+                            # tentar de novo.
+                            voto_parlamentar.delete()
+                            continue
+                        voto_parlamentar.voto = voto_submetido
+                        voto_parlamentar.user = request.user
+                        voto_parlamentar.ip = get_client_ip(request)
+                        voto_parlamentar.save()
+                    elif voto_parlamentar.voto != voto_submetido:
+                        # Alguém (tipicamente via tablet) já registrou um
+                        # voto diferente do valor deste formulário desde que
+                        # a tela de registro foi carregada. O voto já
+                        # registrado prevalece — não sobrescrevemos com um
+                        # valor obsoleto do formulário em lote.
+                        skipped_parlamentares.append(voto_parlamentar.parlamentar)
+
+                votos_atuais = VotoParlamentar.objects.filter(
+                    **{fase_sessao_field: fase_sessao_value})
+                votos_sim = votos_atuais.filter(voto='Sim').count()
+                votos_nao = votos_atuais.filter(voto='Não').count()
+                abstencoes = votos_atuais.filter(voto='Abstenção').count()
+
+                if votos_sim + votos_nao + abstencoes == 0:
+                    self.logger.error('user=' + username + '. Não é possível finalizar a votação sem '
+                                                           'nenhum voto')
+                    form.add_error(None, _('Não é possível finalizar a votação sem '
+                                           'nenhum voto'))
                     return self.form_invalid(form)
 
-            for votos in request.POST.getlist('voto_parlamentar'):
-                v = votos.split(':')
-                voto = v[0]
-                parlamentar_id = v[1]
-
-                if voto == 'Sim':
-                    votos_sim += 1
-                elif voto == 'Não':
-                    votos_nao += 1
-                elif voto == 'Abstenção':
-                    abstencoes += 1
-                elif voto == 'Não Votou':
-                    nao_votou += 1
-
-            # Caso todas as opções sejam 'Não votou', fecha a votação
-            if nao_votou == len(request.POST.getlist('voto_parlamentar')):
-                self.logger.error('user=' + username + '. Não é possível finalizar a votação sem '
-                                                       'nenhum voto')
-                form.add_error(None, 'Não é possível finalizar a votação sem '
-                                     'nenhum voto')
-                return self.form_invalid(form)
-            # Remove todas as votação desta matéria, caso existam
-            if self.ordem:
-                RegistroVotacao.objects.filter(ordem_id=ordem_id).delete()
-            elif self.expediente:
+                # Remove todas as votação desta matéria, caso existam
                 RegistroVotacao.objects.filter(
-                    expediente_id=expediente_id).delete()
+                    **{fase_sessao_field: fase_sessao_value}).delete()
 
-            votacao = RegistroVotacao()
-            votacao.numero_votos_sim = votos_sim
-            votacao.numero_votos_nao = votos_nao
-            votacao.numero_abstencoes = abstencoes
-            votacao.observacao = request.POST.get('observacao', None)
-            votacao.user = request.user
-            votacao.ip = get_client_ip(request)
+                votacao = RegistroVotacao(
+                    numero_votos_sim=votos_sim,
+                    numero_votos_nao=votos_nao,
+                    numero_abstencoes=abstencoes,
+                    observacao=request.POST.get('observacao', None),
+                    user=request.user,
+                    ip=get_client_ip(request),
+                    materia_id=materia_votacao.materia.id,
+                    tipo_resultado_votacao=form.cleaned_data['resultado_votacao'])
+                setattr(votacao, fase_sessao_field, fase_sessao_value)
+                votacao.save()
 
-            votacao.materia_id = materia_votacao.materia.id
-            if self.ordem:
-                votacao.ordem_id = ordem_id
-            elif self.expediente:
-                votacao.expediente_id = expediente_id
+                votos_atuais.update(votacao_id=votacao.id)
 
-            votacao.tipo_resultado_votacao = form.cleaned_data['resultado_votacao']
-            votacao.save()
-
-            for votos in request.POST.getlist('voto_parlamentar'):
-                v = votos.split(':')
-                voto = v[0]
-                parlamentar_id = v[1]
-
-                if self.ordem:
-                    voto_parlamentar = VotoParlamentar.objects.get_or_create(
-                        parlamentar_id=parlamentar_id,
-                        ordem_id=ordem_id)[0]
-                elif self.expediente:
-                    voto_parlamentar = VotoParlamentar.objects.get_or_create(
-                        parlamentar_id=parlamentar_id,
-                        expediente_id=expediente_id)[0]
-
-                voto_parlamentar.voto = voto
-                voto_parlamentar.parlamentar_id = parlamentar_id
-                voto_parlamentar.votacao_id = votacao.id
-                voto_parlamentar.user = request.user
-                voto_parlamentar.ip = get_client_ip(request)
-                voto_parlamentar.save()
-
-                resultado = form.cleaned_data['resultado_votacao']
-
-                materia_votacao.resultado = resultado.nome
+                materia_votacao.resultado = form.cleaned_data['resultado_votacao'].nome
                 materia_votacao.votacao_aberta = False
+                materia_votacao.registro_aberto = False
                 materia_votacao.save()
 
-            # Verifica se existe algum VotoParlamentar sem RegistroVotacao
-            # Por exemplo, se algum parlamentar votar e sua presença for
-            # removida da ordem do dia/expediente antes da conclusão da
-            # votação
-            if self.ordem:
+                # Verifica se existe algum VotoParlamentar sem RegistroVotacao
+                # Por exemplo, se algum parlamentar votar e sua presença for
+                # removida da ordem do dia/expediente antes da conclusão da
+                # votação
                 VotoParlamentar.objects.filter(
-                    ordem_id=ordem_id,
-                    votacao__isnull=True).delete()
-            elif self.expediente:
-                VotoParlamentar.objects.filter(
-                    expediente_id=expediente_id,
-                    votacao__isnull=True).delete()
+                    **{fase_sessao_field: fase_sessao_value}, votacao__isnull=True).delete()
+
+            broadcast_dados_painel(request, kwargs['pk'])
+
+            if skipped_parlamentares:
+                nomes = ', '.join(p.nome_parlamentar for p in skipped_parlamentares)
+                messages.add_message(
+                    request, messages.WARNING,
+                    _('O(s) voto(s) de %(nomes)s já haviam sido registrados '
+                      'e não foram sobrescritos.') % {'nomes': nomes})
+
             return self.form_valid(form)
 
-        else:
-            return self.form_invalid(form)
+        # Nenhuma chave de ação reconhecida: navegação simples para a tela
+        # de registro (botão "Registrar Votação"), sem efeito colateral.
+        context = self._build_registro_context(materia_votacao, presentes, total)
+        return self.render_to_response(context)
 
     def form_invalid(self, form):
         errors_tuple = [(form[e].label, form.errors[e])
@@ -3575,9 +3710,9 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
         url = request.get_full_path()
 
         # TODO: HACK, VERIFICAR MELHOR FORMA DE FAZER ISSO
-        if "votsimb" in url:
+        if "votacao/simbolica" in url:
             titulo = _("Votação Simbólica")
-        elif "votsec" in url:
+        elif "votacao/secreta" in url:
             titulo = _("Votação Secreta")
         else:
             titulo = _("Não definida")
@@ -3613,9 +3748,9 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
         url = request.get_full_path()
 
         # ====================================================
-        if "votsimb" in url:
+        if "votacao/simbolica" in url:
             titulo = _("Votação Simbólica")
-        elif "votsec" in url:
+        elif "votacao/secreta" in url:
             titulo = _("Votação Secreta")
         else:
             titulo = _("Não definida")
@@ -3741,9 +3876,9 @@ class VotacaoExpedienteEditView(SessaoPermissionMixin):
 
         url = request.get_full_path()
 
-        if "votsimb" in url:
+        if "votacao/simbolica" in url:
             titulo = _("Votação Simbólica")
-        elif "votsec" in url:
+        elif "votacao/secreta" in url:
             titulo = _("Votação Secreta")
         else:
             titulo = _("Não definida")
@@ -4547,6 +4682,8 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, ListView):
                 'Nenhuma matéria selecionada para leitura em Bloco'))
             return self.get(request, self.kwargs)
 
+        broadcast_dados_painel(request, self.kwargs['pk'])
+
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
@@ -4752,6 +4889,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                             expediente.votacao_aberta = False
                             expediente.save()
 
+                broadcast_dados_painel(request, self.kwargs['pk'])
+
                 return HttpResponseRedirect(self.get_success_url())
 
             else:
@@ -4770,6 +4909,8 @@ class VotacaoEmBlocoSimbolicaView(PermissionRequiredForAppCrudMixin, TemplateVie
                 for expediente in expedientes:
                     expediente.votacao_aberta = False
                     expediente.save()
+
+            broadcast_dados_painel(request, self.kwargs['pk'])
 
             return HttpResponseRedirect(self.get_success_url())
 
@@ -4893,6 +5034,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                 for ordem_id in request.POST.getlist('ordens'):
                     ordem = OrdemDia.objects.get(id=ordem_id)
                     fechar_votacao_materia(ordem)
+                broadcast_dados_painel(request, self.kwargs['pk'])
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:ordemdia_list', kwargs={'pk': self.kwargs['pk']}))
             else:
@@ -4900,6 +5042,7 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                     expediente = ExpedienteMateria.objects.get(
                         id=expediente_id)
                     fechar_votacao_materia(expediente)
+                broadcast_dados_painel(request, self.kwargs['pk'])
                 return HttpResponseRedirect(reverse(
                     'sapl.sessao:expedientemateria_list',
                     kwargs={'pk': self.kwargs['pk']}))
@@ -5015,6 +5158,8 @@ class VotacaoEmBlocoNominalView(PermissionRequiredForAppCrudMixin, TemplateView)
                     VotoParlamentar.objects.filter(
                         expediente_id=expediente_id,
                         votacao__isnull=True).delete()
+
+                broadcast_dados_painel(request, self.kwargs['pk'])
 
                 return HttpResponseRedirect(self.get_success_url())
 
@@ -5149,6 +5294,69 @@ class RetiradaPautaCrud(MasterDetailCrud):
 
     class DeleteView(MasterDetailCrud.DeleteView):
         pass
+
+
+@never_cache
+@user_passes_test(_check_sessao_permission)
+def leitura_v2_view(request, pk, oid, mid):
+    """Shell da página Vue de leitura de matéria (só o fluxo de OrdemDia)."""
+    materia = MateriaLegislativa.objects.get(id=mid)
+    ordem = OrdemDia.objects.get(id=oid)
+    registro = RegistroLeitura.objects.filter(materia=materia, ordem=ordem).first()
+    context = {
+        'pk': pk,
+        'oid': oid,
+        'mid': mid,
+        'materia_texto': str(materia),
+        'materia_ementa': materia.ementa,
+        'observacao': registro.observacao if registro else '',
+    }
+    return render(request, 'sessao/votacao/leitura_v2.html', context)
+
+
+@user_passes_test(_check_sessao_permission)
+def leitura_v2_action(request, pk, oid, mid):
+    """
+    Registra a leitura direto, sem passar por OrdemExpedienteLeituraForm
+    (cujos campos materia/ordem/user/ip são HiddenInput preenchidos via
+    initial — desenhado pra um form HTML renderizado pelo Django, não
+    pra receber um POST JSON de fora). update_or_create porque a tela
+    legada permite reeditar a observação de uma leitura já registrada.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"ok": False, "message": "Only POST allowed"}, status=405)
+    if request.content_type == 'application/json':
+        try:
+            body = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"ok": False, "message": "JSON inválido."}, status=400)
+    else:
+        body = request.POST
+
+    materia = MateriaLegislativa.objects.get(id=mid)
+    ordem = OrdemDia.objects.get(id=oid)
+
+    RegistroLeitura.objects.update_or_create(
+        materia=materia, ordem=ordem,
+        defaults={
+            'observacao': body.get('observacao', ''),
+            'user': request.user,
+            'ip': get_client_ip(request),
+        })
+
+    ordem.resultado = "Matéria lida"
+    ordem.votacao_aberta = False
+    ordem.save()
+
+    # Mesmo gap encontrado em VotacaoView.post(): registrar a leitura
+    # também muda o estado da matéria no painel e nunca notificava via
+    # WebSocket, só no próximo poll.
+    broadcast_dados_painel(request, pk)
+
+    return JsonResponse({
+        "ok": True,
+        "redirect_url": reverse('sapl.sessao:ordemdia_list', kwargs={'pk': pk}),
+    })
 
 
 class AbstractLeituraView(FormView):

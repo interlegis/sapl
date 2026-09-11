@@ -16,6 +16,18 @@ dotenv.config({
 
 module.exports = {
   runtimeCompiler: true,
+  configureWebpack: {
+    resolve: {
+      alias: {
+        // This ensures that imports of 'vue' use the build with the template compiler
+        'vue$': 'vue/dist/vue.esm.js'
+      }
+    }
+  },
+
+  // Optional but recommended if Django serves the final HTML:
+  // disable source maps in production builds to avoid exposing source
+  productionSourceMap: false,
   publicPath:
     process.env.NODE_ENV === 'production'
       ? '/static/sapl/frontend'
@@ -126,8 +138,33 @@ module.exports = {
       .end()
 
     config
+      .entry('votacao')
+      .add('./frontend/src/__apps/votacao/main.js')
+      .end()
+
+    config
       .entry('painel')
       .add('./frontend/src/__apps/painel/main.js')
+      .end()
+
+    config
+      .entry('painel-controle')
+      .add('./frontend/src/__apps/painel-controle/main.js')
+      .end()
+
+    config
+      .entry('voto-individual')
+      .add('./frontend/src/__apps/voto-individual/main.js')
+      .end()
+
+    config
+      .entry('votacao-simbolica')
+      .add('./frontend/src/__apps/votacao-simbolica/main.js')
+      .end()
+
+    config
+      .entry('leitura-materia')
+      .add('./frontend/src/__apps/leitura-materia/main.js')
       .end()
 
     config

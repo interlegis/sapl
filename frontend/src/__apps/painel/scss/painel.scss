@@ -1,43 +1,24 @@
+:root {
+  --bg-dark: #121212;
+  --bg-panel: #1e1e1e;
+  --text-main: #e0e0e0;
+  --text-highlight: #4fa64d;
+}
 
-.painel-principal {
-  background: #1c1b1b;
-  font-family: Verdana;
-  font-size: x-large;
-  .text-title {
-    color: #4fa64d;
-    margin: 0.5rem;
-	font-weight: bold;
-  }
-  .text-subtitle {
-    color: #459170;
-	font-weight: bold;
-  }
-  .data-hora {
-    font-size: 180%;
-  }
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-bottom: 0;
+}
 
-  .text-value {
-    color: white;
-  }
+.separador-vertical {
+  border-right: 1px solid #333;
+  min-height: 100vh;
+  margin: 0;
+}
 
-  .logo-painel {
-    max-width: 100%;
-  }
-  .painels {
-    flex-wrap: wrap;
-  }
-  .painel{
-    margin-top: 1rem;
-    table {
-      width: 100%;
-    }
-    h2 {
-      margin-bottom: 0.5rem;
-    }
-    #votacao, #oradores_list {
-      text-align: left;
-      display: inline-block;
-      margin-bottom: 1rem;
-    }
-  }
+.text-subtitle {
+  color: #81c784;
+  font-weight: 600;
 }
