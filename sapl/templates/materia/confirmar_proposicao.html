@@ -17,6 +17,29 @@
           <i class="fa fa-edit"></i> {% trans "Editar com OnlyOffice" %}
         </a>
       {% endif %}
+      {% comment %}
+        Anexos da proposição. Só ficam visíveis como Documento Acessório depois
+        da incorporação, então sem isto o operador de protocolo decide sem ver o
+        que está anexado. Abre em nova aba para não perder o formulário.
+      {% endcomment %}
+      {% if object.anexos.exists %}
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-outline-primary dropdown-toggle"
+                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-paperclip"></i>
+            {% trans "Ver Anexos" %} ({{ object.anexos.count }})
+          </button>
+          <div class="dropdown-menu dropdown-menu-right">
+            {% for anexo in object.anexos.all %}
+              <a class="dropdown-item" href="{{ anexo.arquivo.url }}"
+                 target="_blank" rel="noopener">
+                {{ anexo.nome }}
+                <small class="text-muted">&mdash; {{ anexo.tipo }}</small>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
     </div>
   {% endblock actions%}
 </div>
