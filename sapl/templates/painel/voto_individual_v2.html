@@ -20,7 +20,6 @@
     {% render_bundle 'voto-individual' 'css' %}
 </head>
 <body>
-
 <style>[v-cloak]{display:none}</style>
 <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
 
@@ -34,7 +33,7 @@
 {% render_bundle 'voto-individual' 'js' %}
 
 <script type="text/javascript">
-    window.VOTO_INDIVIDUAL_URL = "{% url 'sapl.painel:voto_individual_v2' %}";
+    window.VOTO_INDIVIDUAL_URL = "{% url 'sapl.painel:voto_individual' %}";
     window.VOTO_INDIVIDUAL_STATUS_URL = "{% url 'sapl.painel:voto_individual_status' %}";
 </script>
 </body>

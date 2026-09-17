@@ -1,18 +1,18 @@
 <template>
     <div class="container-fluid text-center py-4">
         <template v-if="!errorMessage">
-            <h1 class="mb-3">[[ sessaoPlenaria ]]</h1>
+            <h1 class="mb-3">{{ sessaoPlenaria }}</h1>
 
             <h2 class="mb-3">
                 Voto:
-                <span :class="votoColorClass">[[ votoParlamentar ]]</span>
+                <span :class="votoColorClass">{{ votoParlamentar }}</span>
             </h2>
-            <p v-if="statusMessage" class="text-info">[[ statusMessage ]]</p>
+            <p v-if="statusMessage" class="text-info">{{ statusMessage }}</p>
 
             <div class="my-4">
                 <h3 class="mb-2">Matéria em Votação</h3>
-                <div class="fs-4">[[ materia.texto ]]</div>
-                <div class="fs-6 fst-italic">[[ materia.ementa ]]</div>
+                <div class="fs-4">{{ materia.texto }}</div>
+                <div class="fs-6 fst-italic">{{ materia.ementa }}</div>
             </div>
 
             <form method="POST" :action="voteActionUrl">
@@ -27,7 +27,7 @@
 
         <template v-else>
             <h1 class="my-5">⏸</h1>
-            <h2 class="text-warning">[[ errorMessage ]]</h2>
+            <h2 class="text-warning">{{ errorMessage }}</h2>
         </template>
 
         <div class="mt-5">

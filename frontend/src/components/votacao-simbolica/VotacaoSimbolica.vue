@@ -3,17 +3,17 @@
         <legend>Votação Simbólica</legend>
 
         <div v-if="error_message || localError" class="alert alert-danger">
-            [[ error_message || localError ]]
+            {{ error_message || localError }}
         </div>
 
         <div>
-            <b>Matéria:</b> [[ materia.texto ]]
+            <b>Matéria:</b> {{ materia.texto }}
             <br />
-            <b>Ementa:</b> [[ materia.ementa ]]
+            <b>Ementa:</b> {{ materia.ementa }}
             <br /><br />
-            <b>Total presentes:</b> [[ totalPresentes ]] (com presidente)
+            <b>Total presentes:</b> {{ totalPresentes }} (com presidente)
             <br />
-            <b>Total votantes:</b> [[ totalVotantes ]] (com presidente)
+            <b>Total votantes:</b> {{ totalVotantes }} (com presidente)
         </div>
         <br />
 
@@ -42,7 +42,7 @@
                 <select v-model="resultadoSelected" class="form-control">
                     <option value="">---------</option>
                     <option v-for="tipo in tipos_resultado" :key="tipo.id" :value="tipo.id">
-                        [[ tipo.nome ]]
+                        {{ tipo.nome }}
                     </option>
                 </select>
             </div>

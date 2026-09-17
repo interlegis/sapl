@@ -133,30 +133,6 @@ def votacao(context, context_vars):
 
     return context, context_vars
 
-
-@never_cache
-@user_passes_test(check_permission)
-def painel_view(request, pk):
-    logger = logging.getLogger(__name__)
-
-    utc_now = timezone.now()
-    local_now = timezone.localtime(utc_now)
-    utc_offset = int(local_now.utcoffset().total_seconds() / 60)
-    server_epoch_ms = int(utc_now.timestamp() * 1000)
-
-    logger.info(
-        "painel_view pk=%s utc_now=%s local_now=%s utc_offset=%s server_epoch_ms=%s",
-        pk, utc_now, local_now, utc_offset, server_epoch_ms
-    )
-
-    context = {'head_title': str(_('Painel Plenário')),
-               'sessao_id': pk,
-               'server_epoch_ms': server_epoch_ms,
-               'utc_offset': utc_offset,
-               }
-    return render(request, 'painel/index.html', context)
-
-
 def sessao_votacao(context, context_vars):
     pk = context_vars['sessao'].pk
     context.update({'sessao_id': pk})
@@ -314,12 +290,10 @@ def _save_voto_individual(request, context_vars):
 
     broadcast_dados_painel(request, context_vars['sessao'].id)
 
-
 @never_cache
 @login_required
 @permission_required('parlamentares.can_vote', raise_exception=True)
 def votante_view(request):
-    template_name = 'painel/voto_individual.html'
     context, context_vars = _resolve_votante_context(request)
 
     if request.method == 'POST':
@@ -327,23 +301,11 @@ def votante_view(request):
         return HttpResponseRedirect(
             reverse('sapl.painel:voto_individual'))
 
-    return render(request, template_name, context)
+    return render(request, 'painel/voto_individual_v2.html', context)
 
 
 @never_cache
 @login_required
-@permission_required('parlamentares.can_vote', raise_exception=True)
-def votante_view_v2(request):
-    context, context_vars = _resolve_votante_context(request)
-
-    if request.method == 'POST':
-        _save_voto_individual(request, context_vars)
-        return HttpResponseRedirect(
-            reverse('sapl.painel:voto_individual_v2'))
-
-    return render(request, 'painel/voto_individual_v2.html', context)
-
-
 @user_passes_test(check_permission)
 def switch_painel(request):
     sessao = SessaoPlenaria.objects.get(id=request.POST['pk_sessao'])
@@ -358,6 +320,8 @@ def switch_painel(request):
     return JsonResponse({})
 
 
+@never_cache
+@login_required
 @user_passes_test(check_permission)
 def verifica_painel(request):
     sessao = SessaoPlenaria.objects.get(id=request.GET['pk_sessao'])
@@ -698,13 +662,14 @@ def broadcast_dados_painel(request, sessao_id):
 
 @never_cache
 @user_passes_test(check_permission)
-def websocket_view(request, controller_id):
+def painel_view(request, sessao_id):
+    ## O controller da sessao WS é o ID da sessao
     now = timezone.localtime(timezone.now())
     utc_offset = now.utcoffset().total_seconds() / 60
     context = {'head_title': str(_('Painel Plenário')),
                'utc_offset': utc_offset,
                'enable_live_ws': True,
-               'controller_id': controller_id,  # aka, sessao_plenaria_id
+               'controller_id': sessao_id,  # aka, sessao_plenaria_id
                }
     return render(request, "painel/painel_v2.html", context)
 

@@ -85,7 +85,8 @@ new Vue({
           const data = JSON.parse(message.data)
           if (data.type === 'data') {
             // Atualiza o display compartilhado da matéria (sessao/materia)
-            this.painelStore().applyData(data)
+            console.log(`${JSON.stringify(data.payload)}`);
+            this.painelStore().applyData(data.payload)
             // E dispara a checagem do estado pessoal — sem poll periódico,
             // isto é a única forma de saber que algo mudou.
             this.fetchStatus()

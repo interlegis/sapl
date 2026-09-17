@@ -201,7 +201,13 @@ const v = new Vue({ // eslint-disable-line
     updateState (data) {
       try {
         // Toda a normalização/aplicação de estado vive no store Pinia.
-        this.painelStore().applyData(data)
+        // applyData() espera o payload cru (normalizePainelData() lê
+        // d.sessao_iniciada etc. diretamente) — não o envelope {type,
+        // payload} inteiro da mensagem WS, senão sessao_aberta/
+        // painel_aberto nunca saem de DEFAULT_STATE e a tela não renderiza
+        // nada. Mesmo ajuste já feito em painel/main.js e voto-individual/
+        // main.js.
+        this.painelStore().applyData(data.payload)
       } catch (e) {
         console.error('Error updating state:', e)
       }

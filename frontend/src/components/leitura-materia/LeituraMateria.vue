@@ -3,13 +3,13 @@
         <legend>Leitura de Matéria</legend>
 
         <div v-if="error_message" class="alert alert-danger">
-            [[ error_message ]]
+            {{ error_message }}
         </div>
 
         <div>
-            <b>Matéria:</b> [[ materia.texto ]]
+            <b>Matéria:</b> {{ materia.texto }}
             <br />
-            <b>Ementa:</b> [[ materia.ementa ]]
+            <b>Ementa:</b> {{ materia.ementa }}
         </div>
         <br />
 

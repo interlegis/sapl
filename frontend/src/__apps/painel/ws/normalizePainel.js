@@ -75,12 +75,14 @@ export function normalizePainelData (raw) {
       nome_parlamentar: asString(o.nome, '')
     }))
 
+  console.log(d.sessao_iniciada);
+
   return {
     // sessao_iniciada vem de sessao.iniciada is not False (True ou None
     // contam como "iniciada" — sessões legadas ficaram com None, mesma
     // convenção de restringe_sessoes_visiveis() no backend).
     sessao_aberta: !!d.sessao_iniciada && !d.sessao_finalizada,
-    painel_aberto: d.status_painel != null ? !!d.status_painel : DEFAULT_STATE.painel_aberto,
+    painel_aberto: d.status_painel != null ? !!d.status_painel : DEFAULT_STATE.painel_aberto,    
     mostrar_voto: d.mostrar_voto != null ? !!d.mostrar_voto : DEFAULT_STATE.mostrar_voto,
     message: asString(d.msg_painel, DEFAULT_STATE.message),
 

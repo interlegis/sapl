@@ -127,13 +127,17 @@
 			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
 			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
 			$("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
-			var t = setTimeout(function(){
-						conta_votos()
-				}, 500);
 		}
+		// Único disparo automático real removido: um setTimeout(conta_votos, 500)
+		// se re-agendava para sempre, sondando o próprio DOM a cada 500ms — a
+		// única coisa "polling" nesta tela (não os fetches abaixo, que são
+		// disparados por evento, não por temporizador). Substituído por dois
+		// gatilhos por evento: troca manual do operador num <select> (abaixo)
+		// e chegada de voto por WS (dentro de atualiza_votos_ao_vivo(), que já
+        // chama conta_votos() quando algo muda) — mais a chamada única no
+		// carregamento logo abaixo.
 		conta_votos();
-
-		window.onload = conta_votos();
+		$(document).on('change', '[name=voto_parlamentar]', conta_votos);
 
 		$(window).on('beforeunload', function () {
 				$("input[type=submit], input[type=button]").prop("disabled", "disabled");

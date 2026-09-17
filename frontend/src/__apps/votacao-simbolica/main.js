@@ -83,7 +83,10 @@ new Vue({ // eslint-disable-line
         try {
           const data = JSON.parse(message.data)
           if (data.type === 'data') {
-            this.painelStore().applyData(data)
+            // applyData() espera o payload cru, não o envelope {type,
+            // payload} (mesmo ajuste de painel/votacao/voto-individual
+            // main.js).
+            this.painelStore().applyData(data.payload)
           }
         } catch (e) {
           console.error('Votacao simbolica WS parse error:', e)

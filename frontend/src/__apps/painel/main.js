@@ -79,7 +79,7 @@ new Vue({
           // Toda a lógica de estado (flags, sessão, parlamentares, matéria,
           // resultado e votos) vive no store Pinia. O header/footer leem a
           // sessão do store — não há mais escrita via $refs.
-          this.painelStore().applyData(data)
+          this.painelStore().applyData(data.payload);
        } catch (e) {
           console.error('Error applying painel data', e)
        }
@@ -106,8 +106,9 @@ new Vue({
 
       this.ws.addEventListener('message', (message) => {
         try {
-              const data = JSON.parse(message.data)
-
+              // console.log(`Data received from ws: ${JSON.stringify(message.data)}`);
+              const data = JSON.parse(message.data);
+              console.log(JSON.stringify(data));
               if (data.type === 'data') {
                     this.updateState(data);
               } else if (data.type === 'pong') {

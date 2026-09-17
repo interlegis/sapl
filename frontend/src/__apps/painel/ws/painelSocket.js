@@ -38,5 +38,4 @@ export function nextBackoffDelay (currentDelayMs) {
 }
 
 export const DISCONNECTED_MESSAGE =
-  'Conexão em tempo real perdida. Verifique se o Redis e o Daphne (ou ' +
-  '"./manage.py runserver") estão em execução. Tentando reconectar…'
+  'Conexão em tempo real perdida. Tentando reconectar…'
