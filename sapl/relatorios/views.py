@@ -136,6 +136,13 @@ def get_materias(mats):
         dic['nom_autor'] = ', '.join(
             [str(autor) for autor in materia.autores.all()])
 
+        # Buscar relator atual da matéria
+        relatoria = materia.relatoria_set.filter(data_destituicao_relator__isnull=True).order_by('-data_designacao_relator').first()
+        if relatoria:
+            dic['nom_relator'] = str(relatoria.parlamentar)
+        else:
+            dic['nom_relator'] = ''
+
         des_status = ''
         txt_tramitacao = ''
 
@@ -146,27 +153,9 @@ def get_materias(mats):
             '-data_tramitacao', '-id')
 
         for tramitacao in tramitacoes:
-            des_status = tramitacao.status.descricao
+                    dic['nom_relator'] = str(relatoria.parlamentar) if relatoria.parlamentar else ''
             txt_tramitacao = tramitacao.texto
-
-        # for tramitacao in context.zsql
-        #    .tramitacao_obter_zsql(cod_materia
-        #        =materia.cod_materia,ind_ult_tramitacao=1):
-        #     if tramitacao.cod_unid_tram_dest:
-        #         cod_unid_tram = tramitacao.cod_unid_tram_dest
-        #     else:
-        #         cod_unid_tram = tramitacao.cod_unid_tram_local
-        #     for unidade_tramitacao in
-        #         context.zsql
-        #              .unidade_tramitacao_obter_zsql(
-        #                   cod_unid_tramitacao = cod_unid_tram):
-        #         if unidade_tramitacao.cod_orgao:
-        #             dic['localizacao_atual']=unidade_tramitacao.nom_orgao
-        #         else:
-        #             dic['localizacao_atual']=unidade_tramitacao.nom_comissao
-        #     des_status=tramitacao.des_status
-        #     txt_tramitacao=tramitacao.txt_tramitacao
-
+                    dic['nom_relator'] = ''
         dic['des_situacao'] = des_status
         dic['ultima_acao'] = txt_tramitacao
 
