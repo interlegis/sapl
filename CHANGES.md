@@ -1,4 +1,28 @@
 
+3.1.165-RC3 / 2026-09-01
+========================
+
+  * Corrige SQL injection em DispositivoSearchFragmentFormView (#3856)
+  * Remove limite de caracteres do campo Informação Geral da Casa (#3848)
+  * Oculta sessões plenárias não iniciadas da consulta pública (#3845)
+  * hot-fix: Adiciona MIME Media Types opcionais para CSV.
+  * hot-fix: Remove alerta errado
+  * Corrige ordem dos expedientes no PDF do Resumo da Sessão (#3844)
+  * hot-fix: imprime somente contéudo da ocorrência
+  * Fix duplicate normas/matérias in author reports and prevent unfiltered queries
+  * Fix ValueError in audiencia form and AttributeError on HEAD requests
+  * Fix panel clock source and prevent overlapping polling
+  * hot-fix: recover epoch from server always
+  * Corrige polling excessivo e bloqueia não-votantes em /voto-individual/ (#3831)
+  * Hot-fix: corrige cópia de request.data
+  * Release: 3.1.165-RC2
+  * #3821 centralizar geração próximo número para create de matérias legislativas (#3822)
+
+3.1.166-RC0 / 2026-09-01
+========================
+
+
+
 3.1.165-RC2 / 2026-03-26
 ========================
 
