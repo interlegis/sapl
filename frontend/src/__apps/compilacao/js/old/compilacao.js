@@ -282,26 +282,44 @@ function DispositivoSearch (opts) {
 // Escala de leitura do texto articulado, preferência de cada navegador.
 // Aplicada via variável CSS (--cp-font-scale) para não alterar o conteúdo
 // dos dispositivos e para valer também nos que são recarregados via ajax.
-const ESCALA_FONTE_CHAVE = 'compilacao_escala_fonte'
-const ESCALA_FONTE_PASSO = 0.1
-const ESCALA_FONTE_MIN = 0.8
-const ESCALA_FONTE_MAX = 2.5
+const EscalaFonte = Object.freeze({
+  CHAVE: 'compilacao_escala_fonte',
+  PADRAO: 1,
+  PASSO: 0.1,
+  MIN: 0.8,
+  MAX: 2.5
+})
 let escalaFonteAtual = null
+
+// Limita num ao intervalo [lower, upper].
+function clamp (num, lower, upper) {
+  return Math.max(lower, Math.min(num, upper))
+}
 
 function lerEscalaFonte () {
   if (escalaFonteAtual !== null) {
     return escalaFonteAtual
   }
-  let escala = 1
+  let valor = null
   try {
-    escala = parseFloat(window.localStorage.getItem(ESCALA_FONTE_CHAVE)) || 1
+    valor = window.localStorage.getItem(EscalaFonte.CHAVE)
   } catch (e) {
     // localStorage indisponível (ex.: navegação privada bloqueada)
+    console.warn('Escala de fonte: não foi possível ler o localStorage.', e)
+    return EscalaFonte.PADRAO
   }
-  return Math.min(ESCALA_FONTE_MAX, Math.max(ESCALA_FONTE_MIN, escala))
+  if (valor === null) {
+    return EscalaFonte.PADRAO
+  }
+  const escala = parseFloat(valor)
+  if (!Number.isFinite(escala)) {
+    console.warn('Escala de fonte: valor inválido no localStorage, usando o padrão.', valor)
+    return EscalaFonte.PADRAO
+  }
+  return clamp(escala, EscalaFonte.MIN, EscalaFonte.MAX)
 }
 
-function aplicaEscalaFonte (escala) {
+function aplicarEscalaFonte (escala) {
   document.documentElement.style.setProperty('--cp-font-scale', escala)
   if (window.tinymce) {
     window.tinymce.get().forEach(function (editor) {
@@ -312,16 +330,16 @@ function aplicaEscalaFonte (escala) {
   }
 }
 
-function salvaEscalaFonte (escala) {
-  escala = Math.round(
-    Math.min(ESCALA_FONTE_MAX, Math.max(ESCALA_FONTE_MIN, escala)) * 10) / 10
+function salvarEscalaFonte (escala) {
+  escala = Math.round(clamp(escala, EscalaFonte.MIN, EscalaFonte.MAX) * 10) / 10
   try {
-    window.localStorage.setItem(ESCALA_FONTE_CHAVE, escala)
+    window.localStorage.setItem(EscalaFonte.CHAVE, escala)
   } catch (e) {
     // localStorage indisponível: a escala vale apenas até recarregar a página
+    console.warn('Escala de fonte: não foi possível salvar no localStorage.', escala, e)
   }
   escalaFonteAtual = escala
-  aplicaEscalaFonte(escala)
+  aplicarEscalaFonte(escala)
 }
 
 function InitViewTAs () {
@@ -342,12 +360,12 @@ function InitViewTAs () {
     }
   }, 100)
 
-  aplicaEscalaFonte(lerEscalaFonte())
+  aplicarEscalaFonte(lerEscalaFonte())
   $('#btn_font_menos').click(function () {
-    salvaEscalaFonte(lerEscalaFonte() - ESCALA_FONTE_PASSO)
+    salvarEscalaFonte(lerEscalaFonte() - EscalaFonte.PASSO)
   })
   $('#btn_font_mais').click(function () {
-    salvaEscalaFonte(lerEscalaFonte() + ESCALA_FONTE_PASSO)
+    salvarEscalaFonte(lerEscalaFonte() + EscalaFonte.PASSO)
   })
 
   $('.dpt.bloco_alteracao .dpt').each(function () {
@@ -374,6 +392,6 @@ export default {
   insertWaitAjax,
   InitViewTAs,
   lerEscalaFonte,
-  aplicaEscalaFonte,
+  aplicarEscalaFonte,
   DispositivoSearch
 }

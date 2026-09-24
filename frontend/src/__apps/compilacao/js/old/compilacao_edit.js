@@ -245,7 +245,7 @@ window.DispositivoEdit = function () {
           dpt_form.html(data)
           if (editortype === 'tinymce') {
             window.initTextRichEditor(null, false, false).then(function () {
-              window.aplicaEscalaFonte(window.lerEscalaFonte())
+              window.aplicarEscalaFonte(window.lerEscalaFonte())
             })
           }
           // OptionalCustomFrontEnd().init()
