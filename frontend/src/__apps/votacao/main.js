@@ -52,18 +52,38 @@ const v = new Vue({ // eslint-disable-line
       wsStatus: 'connecting',
       wsErrorMessage: 'Conectando ao servidor de tempo real…',
       error_message: '',
-      // Estado real (não mascarado por mostrar_voto) de quem já votou —
-      // nunca vem do broadcast do painel (que é a visão pública/mascarada);
-      // vem de /votos-status, buscado no mount e a cada broadcast recebido.
-      votosStatus: {},
     }
   },
 
   computed: {
     ...mapState(usePainelStore, [
       'sessao_aberta', 'painel_aberto', 'sessao',
-      'parlamentares', 'materia', 'resultado', 'message', 'mostrar_voto'
+      'parlamentares', 'materia', 'resultado', 'message', 'mostrar_voto',
+      'registro_aberto'
     ]),
+    // Estado real (não mascarado) de quem já votou — a conexão WS desta
+    // tela é reconhecida como operador/Mesa pelo backend
+    // (PainelConsumer.is_operator), então parlamentares[].voto já vem sem
+    // máscara aqui, ao contrário da conexão do telão público. Substitui o
+    // fetch a /votos-status (removido — ver PainelConsumer.painel_refresh).
+    votosStatus () {
+      const map = {}
+      this.parlamentares.forEach((p) => {
+        if (p.voto) map[p.parlamentar_id] = p.voto
+      })
+      return map
+    },
+    // Quais linhas devem ficar travadas pro operador — só quando o voto
+    // veio do próprio parlamentar (tablet), nunca quando veio do próprio
+    // operador (por este <select> ou pelo formulário legado em lote):
+    // votosStatus sozinho não distingue isso, ver voto_por_tablet.
+    votosTravados () {
+      const map = {}
+      this.parlamentares.forEach((p) => {
+        if (p.voto_por_tablet) map[p.parlamentar_id] = true
+      })
+      return map
+    },
   },
 
   mounted () {
@@ -84,7 +104,6 @@ const v = new Vue({ // eslint-disable-line
       }
     }
     if (this.controllerId) {
-      this.fetchVotosStatus()
       this.connectWS()
     } else {
       this.error_message = 'Erro: controller_id não definido. Não é possível conectar ao WebSocket.'
@@ -102,44 +121,30 @@ const v = new Vue({ // eslint-disable-line
       return `${proto}://${location.host}/ws/painel/${this.controllerId}/`
     },
 
-    voteURL () {
-      return `/v2/painel/controller/${this.controllerId}/vote`
-    },
-
-    votosStatusURL () {
-      return `/v2/painel/controller/${this.controllerId}/votos-status`
-    },
-
-    // Estado real (não mascarado) de quem já votou — nunca lido do store
-    // (que reflete o broadcast público, mascarado quando mostrar_voto é
-    // False). A Mesa precisa do valor real para não sobrescrever por
-    // engano um voto que já chegou por tablet.
-    fetchVotosStatus () {
-      if (!this.controllerId) return
-      axios.get(this.votosStatusURL())
-        .then(response => {
-          this.votosStatus = response.data.votos || {}
-        })
-        .catch(error => {
-          console.error('Erro ao buscar votos-status:', error)
-        })
-    },
-
+    // Voto vai pelo WebSocket já aberto (PainelConsumer.receive_json,
+    // type: "vote") em vez de um POST HTTP separado — o consumer grava e
+    // já dispara o refresh pro grupo (ver vote_ack/vote_error no
+    // listener de mensagens). vote_controller (HTTP) continua existindo
+    // por compatibilidade, mas esta tela não o chama mais.
     castVote ({ parlamentar_id, voto }) {
       console.log(`Casting vote: parlamentar=${parlamentar_id}, voto=${voto}`)
-      axios.post(this.voteURL(), {
-        parlamentar_id: parlamentar_id,
-        voto: voto
-      }, {
-        headers: { 'Content-Type': 'application/json' }
-      })
-        .then(response => {
-          console.log('Vote cast successfully:', response.data)
-        })
-        .catch(error => {
-          console.error('Error casting vote:', error.response ? error.response.data : error)
-          this.error_message = 'Erro ao registrar voto. Tente novamente.'
-        })
+      if (!this.isOpen) {
+        this.error_message = 'Sem conexão em tempo real. Aguarde reconectar e tente de novo.'
+        return
+      }
+      this.ws.send(JSON.stringify({ type: 'vote', parlamentar_id, voto }))
+    },
+
+    // Bloqueia/reabre o registro de novos votos — equivalente ao
+    // bloquear-registro-votacao/reabrir-votacao de nominal.html (tela
+    // legada), agora pelo WS. aberto=true BLOQUEIA (nome do campo
+    // registro_aberto é herdado do modelo, mesma semântica de sempre).
+    toggleRegistro (aberto) {
+      if (!this.isOpen) {
+        this.error_message = 'Sem conexão em tempo real. Aguarde reconectar e tente de novo.'
+        return
+      }
+      this.ws.send(JSON.stringify({ type: 'registro_toggle', aberto }))
     },
 
     cancelURL () {
@@ -211,9 +216,6 @@ const v = new Vue({ // eslint-disable-line
       } catch (e) {
         console.error('Error updating state:', e)
       }
-      // O broadcast é a visão pública (mascarada); o estado real de quem
-      // já votou vem sempre de votos-status, refeito a cada snapshot.
-      this.fetchVotosStatus()
     },
 
     connectWS () {
@@ -242,6 +244,18 @@ const v = new Vue({ // eslint-disable-line
             this.updateState(data)
           } else if (data.type === 'pong') {
             console.debug('Votacao: pong recebido')
+          } else if (data.type === 'vote_ack') {
+            console.log('Voto confirmado pelo servidor:', data)
+            this.error_message = ''
+          } else if (data.type === 'vote_error') {
+            console.error('Erro ao registrar voto:', data.message)
+            this.error_message = data.message || 'Erro ao registrar voto. Tente novamente.'
+          } else if (data.type === 'registro_toggle_ack') {
+            console.log('Registro bloqueado/reaberto:', data)
+            this.error_message = ''
+          } else if (data.type === 'registro_toggle_error') {
+            console.error('Erro ao bloquear/reabrir registro:', data.message)
+            this.error_message = data.message || 'Erro ao bloquear/reabrir registro. Tente novamente.'
           }
         } catch (e) {
           console.error('Votacao WS parse error:', e)

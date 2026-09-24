@@ -63,6 +63,7 @@ export const usePainelStore = defineStore('painel', {
       this.cronometro_aparte = next.cronometro_aparte
       this.cronometro_ordem = next.cronometro_ordem
       this.cronometro_consideracoes = next.cronometro_consideracoes
+      this.registro_aberto = next.registro_aberto
 
       // arrays: trocar referência (voto já vem aplicado por parlamentar
       // dentro de next.parlamentares — get_votos() no backend já inlina o

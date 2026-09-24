@@ -725,6 +725,12 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
                           max_length=60,
                           blank=True,
                           default='')
+    votado_pelo_parlamentar = models.BooleanField(
+        verbose_name=_('Votado pelo parlamentar'),
+        default=False,
+        help_text=_('Marca se este voto foi lançado pelo próprio parlamentar '
+                    '(voto individual/tablet) — distinto de um registro feito '
+                    'pela Mesa/operador em nome dele.'))
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
         auto_now=True,

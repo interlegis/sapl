@@ -28,6 +28,7 @@ new Vue({ // eslint-disable-line
       sessaoId: null,
       oid: null,
       mid: null,
+      fase: 'ordem',
       totalPresentes: 0,
       totalVotantes: 0,
       ws: null,
@@ -43,6 +44,7 @@ new Vue({ // eslint-disable-line
     this.sessaoId = el.dataset.sessaoId
     this.oid = el.dataset.oid
     this.mid = el.dataset.mid
+    this.fase = el.dataset.fase || 'ordem'
     this.totalPresentes = el.dataset.totalPresentes
     this.totalVotantes = el.dataset.totalVotantes
 
@@ -64,9 +66,12 @@ new Vue({ // eslint-disable-line
       return usePainelStore()
     },
     actionUrl () {
-      // Mesma URL da tela legada (VotacaoView) — sessao/urls.py:
-      // sessao/<pk>/materia/ordemdia/votacao/simbolica/<oid>/<mid>
-      return `/sessao/${this.sessaoId}/materia/ordemdia/votacao/simbolica/${this.oid}/${this.mid}`
+      // Mesma URL da tela legada (VotacaoView/VotacaoExpedienteView) —
+      // sessao/urls.py: continua sendo quem grava o voto (só o shell/GET
+      // mudou pra v2); fase decide ordem do dia ou expediente, mesmo
+      // discriminador usado pelo shell (votacao_simbolica_v2_view).
+      const etapa = this.fase === 'expediente' ? 'expediente' : 'ordemdia'
+      return `/sessao/${this.sessaoId}/materia/${etapa}/votacao/simbolica/${this.oid}/${this.mid}`
     },
     wsURL () {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws'

@@ -18,7 +18,7 @@ from model_bakery import baker
 from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.painel.consumers import PainelConsumer
 from sapl.painel.tests.tests import (NOMINAL, _materia, _ordem_nominal_aberta,
-                                     _presente_com_mandato, _registrar_url,
+                                     _presente_com_mandato,
                                      _votante_com_client)
 from sapl.parlamentares.models import Mandato, Parlamentar
 from sapl.sessao.models import Orador, OrdemDia, PresencaOrdemDia, TipoResultadoVotacao
@@ -118,6 +118,14 @@ async def test_voto_do_tablet_dispara_broadcast_com_voto_atualizado():
 @pytest.mark.django_db(transaction=False)
 @pytest.mark.asyncio
 async def test_encerrar_votacao_dispara_broadcast():
+    """
+    Registro individual de votação nominal (o "salvar-votacao" em lote da
+    tela legada nominal.html não existe mais — ver plano de unificação
+    Expediente/OrdemDia) agora é: um voto por chamada a vote_controller
+    (o mesmo caminho HTTP que PainelConsumer usa por baixo pro type:
+    "vote" — vote_controller continua existindo por compatibilidade),
+    seguido de close_voting pra fechar e apurar o resultado.
+    """
     sessao, ordem = await _setup_ordem_aberta()
     try:
         admin_client, admin_user = await _admin_client_login()
@@ -127,12 +135,16 @@ async def test_encerrar_votacao_dispara_broadcast():
 
         communicator = await _painel_communicator(sessao.pk, admin_user)
 
-        await sync_to_async(admin_client.post)(_registrar_url(sessao, ordem), {
-            'salvar-votacao': '1',
-            'resultado_votacao': str(tipo_resultado.pk),
-            'observacao': '',
-            'voto_parlamentar': ['Sim:{}'.format(parlamentar.pk)],
-        })
+        await sync_to_async(admin_client.post)(
+            reverse('sapl.painel:vote_controller', kwargs={'controller_id': sessao.pk}),
+            {'parlamentar_id': parlamentar.pk, 'voto': 'Sim'})
+        # Descarta o refresh disparado pelo voto — este teste verifica o
+        # broadcast do close_voting especificamente.
+        await communicator.receive_json_from()
+
+        await sync_to_async(admin_client.post)(
+            reverse('sapl.painel:close_voting', kwargs={'controller_id': sessao.pk}),
+            {'resultado_id': tipo_resultado.pk, 'observacoes': ''})
 
         mensagem = await communicator.receive_json_from()
         assert mensagem['type'] == 'data'

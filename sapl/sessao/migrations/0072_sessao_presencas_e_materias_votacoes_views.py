@@ -1,4 +1,4 @@
-from django.db import migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -24,6 +24,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='votoparlamentar',
+            name='votado_pelo_parlamentar',
+            field=models.BooleanField(
+                default=False,
+                help_text='Marca se este voto foi lançado pelo próprio parlamentar '
+                          '(voto individual/tablet) — distinto de um registro feito '
+                          'pela Mesa/operador em nome dele.',
+                verbose_name='Votado pelo parlamentar'),
+        ),
         migrations.RunSQL(
             sql="""
                 DROP VIEW IF EXISTS sessao_presencas_view;
@@ -152,7 +162,8 @@ class Migration(migrations.Migration):
                                       'materia_id', em.materia_id,
                                       'parlamentar_id', vp.parlamentar_id,
                                       'parlamentar_nome', p.nome_parlamentar,
-                                      'voto', vp.voto
+                                      'voto', vp.voto,
+                                      'votado_pelo_parlamentar', vp.votado_pelo_parlamentar
                                      )) as votos_parlamentares
                     FROM sessao_votoparlamentar vp
                     JOIN parlamentares_parlamentar p ON (vp.parlamentar_id = p.id)
@@ -208,7 +219,8 @@ class Migration(migrations.Migration):
                                       'materia_id', od.materia_id,
                                       'parlamentar_id', vp.parlamentar_id,
                                       'parlamentar_nome', p.nome_parlamentar,
-                                      'voto', vp.voto
+                                      'voto', vp.voto,
+                                      'votado_pelo_parlamentar', vp.votado_pelo_parlamentar
                                      )) as votos_parlamentares
                     FROM sessao_votoparlamentar vp
                     JOIN parlamentares_parlamentar p ON (vp.parlamentar_id = p.id)

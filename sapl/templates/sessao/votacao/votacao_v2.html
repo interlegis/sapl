@@ -14,9 +14,12 @@
         :is-open="isOpen"
         :error-message="error_message"
         :votos-status="votosStatus"
+        :votos-travados="votosTravados"
+        :registro-aberto="registro_aberto"
         @cast-vote="castVote"
         @cancelar="onCancelar"
         @fechar="onFechar"
+        @toggle-registro="toggleRegistro"
         ref="votacaoNominal">
     </votacao-nominal>
 </div>

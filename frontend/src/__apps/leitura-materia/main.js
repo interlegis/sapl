@@ -28,6 +28,7 @@ new Vue({ // eslint-disable-line
       sessaoId: null,
       oid: null,
       mid: null,
+      fase: 'ordem',
       initialObservacao: '',
       initialMateriaTexto: '',
       initialMateriaEmenta: '',
@@ -45,12 +46,14 @@ new Vue({ // eslint-disable-line
     this.sessaoId = el.dataset.sessaoId
     this.oid = el.dataset.oid
     this.mid = el.dataset.mid
+    this.fase = el.dataset.fase || 'ordem'
     this.initialObservacao = el.dataset.observacao || ''
     this.initialMateriaTexto = el.dataset.materiaTexto || ''
     this.initialMateriaEmenta = el.dataset.materiaEmenta || ''
     // Mesma URL da tela legada (AbstractLeituraView.cancel_url) —
-    // iso=1 identifica o fluxo de OrdemDia.
-    this.cancelUrl = `/sessao/${this.sessaoId}/1/${this.oid}/retirar-leitura`
+    // iso=1 identifica o fluxo de OrdemDia, iso=0 Expediente.
+    const iso = this.fase === 'expediente' ? 0 : 1
+    this.cancelUrl = `/sessao/${this.sessaoId}/${iso}/${this.oid}/retirar-leitura`
 
     if (this.sessaoId) {
       this.connectWS()
@@ -61,7 +64,8 @@ new Vue({ // eslint-disable-line
       return usePainelStore()
     },
     actionUrl () {
-      return `/sessao/${this.sessaoId}/materia/ordemdia/leitura/v2/${this.oid}/${this.mid}/salvar`
+      const etapa = this.fase === 'expediente' ? 'expediente' : 'ordemdia'
+      return `/sessao/${this.sessaoId}/materia/${etapa}/leitura/v2/${this.oid}/${this.mid}/salvar`
     },
     wsURL () {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws'
@@ -78,9 +82,6 @@ new Vue({ // eslint-disable-line
         try {
           const data = JSON.parse(message.data)
           if (data.type === 'data') {
-            // applyData() espera o payload cru, não o envelope {type,
-            // payload} (mesmo ajuste de painel/votacao/voto-individual
-            // main.js).
             this.painelStore().applyData(data.payload)
           }
         } catch (e) {

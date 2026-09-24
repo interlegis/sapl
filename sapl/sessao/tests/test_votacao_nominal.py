@@ -1,9 +1,11 @@
 import pytest
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.urls import reverse
 from model_bakery import baker
 
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.painel.views import VoteError, _toggle_registro
 from sapl.parlamentares.models import (Legislatura, Parlamentar,
                                        SessaoLegislativa)
 from sapl.sessao.models import (OrdemDia, PresencaOrdemDia, RegistroVotacao,
@@ -41,235 +43,50 @@ def _presente(sessao):
     return parlamentar
 
 
-def _registrar_url(sessao, ordem):
-    return reverse('sapl.sessao:votacaonominal',
-                   kwargs={'pk': sessao.pk, 'oid': ordem.pk, 'mid': ordem.materia_id})
+# Registro individual de votação nominal (Ordem do Dia e Expediente) é
+# feito hoje pela tela v2 (Vue) — votacaonominal_v2, sem oid/mid na URL, a
+# matéria aberta é resolvida via WebSocket (get_materia_aberta/
+# get_materia_expediente_aberta) — não mais pela tela legada nominal.html/
+# VotacaoNominalAbstract/VotacaoNominalView/VotacaoNominalExpedienteView,
+# removida nesta unificação. bloquear-registro-votacao/reabrir-votacao,
+# que só existiam lá, viraram _toggle_registro() (sapl/painel/views.py),
+# testado abaixo. votacaonominaledit/votacaonominalexpedit (edição de um
+# registro já fechado) usam uma base diferente (VotacaoNominalEditAbstract)
+# e continuam intocados.
 
 
 @pytest.mark.django_db(transaction=False)
-def test_get_registrar_votacao_nao_bloqueia_novos_votos(admin_client):
+def test_toggle_registro_bloqueia_e_reabre_sem_mexer_em_votos():
     """
-    Regressão da causa raiz #1: abrir a tela "Registrar Votação" não pode,
-    sozinho, impedir que vereadores que ainda não votaram continuem votando.
+    Regressão do que test_bloquear_e_reabrir_votacao_nao_mexe_em_votos_
+    existentes (tela legada) cobria: bloquear/reabrir o registro não pode
+    alterar nenhum voto já registrado, só a flag que trava votos novos.
     """
-    sessao, ordem = _ordem_nominal_aberta()
-    _presente(sessao)
-
-    response = admin_client.get(_registrar_url(sessao, ordem))
-
-    assert response.status_code == 200
-    ordem.refresh_from_db()
-    assert ordem.registro_aberto is False
-
-
-@pytest.mark.django_db(transaction=False)
-def test_post_sem_acao_reconhecida_apenas_renderiza(admin_client):
-    """
-    O botão "Registrar Votação" agora faz POST (para evitar cache/replay de
-    GET), mas sem nenhuma chave de ação reconhecida isso deve continuar
-    sendo pura navegação, sem nenhum efeito colateral.
-    """
-    sessao, ordem = _ordem_nominal_aberta()
-    _presente(sessao)
-
-    response = admin_client.post(_registrar_url(sessao, ordem), {})
-
-    assert response.status_code == 200
-    ordem.refresh_from_db()
-    assert ordem.registro_aberto is False
-
-
-@pytest.mark.django_db(transaction=False)
-def test_bloquear_e_reabrir_votacao_nao_mexe_em_votos_existentes(admin_client):
     sessao, ordem = _ordem_nominal_aberta()
     votante = _presente(sessao)
     baker.make(VotoParlamentar, ordem=ordem, parlamentar=votante, voto='Sim')
+    user = baker.make(get_user_model())
 
-    url = _registrar_url(sessao, ordem)
-
-    response = admin_client.post(url, {'bloquear-registro-votacao': '1'})
-    assert response.status_code == 302
+    result = _toggle_registro(user, sessao.pk, True)
     ordem.refresh_from_db()
     assert ordem.registro_aberto is True
+    assert result == {"registro_aberto": True}
 
-    response = admin_client.post(url, {'reabrir-votacao': '1'})
-    assert response.status_code == 302
+    result2 = _toggle_registro(user, sessao.pk, False)
     ordem.refresh_from_db()
     assert ordem.registro_aberto is False
+    assert result2 == {"registro_aberto": False}
 
     voto = VotoParlamentar.objects.get(ordem=ordem, parlamentar=votante)
     assert voto.voto == 'Sim'
 
 
 @pytest.mark.django_db(transaction=False)
-def test_salvar_votacao_nao_sobrescreve_voto_ja_registrado(admin_client):
-    """
-    Regressão do modelo de concorrência (3b): um formulário de "Fechar
-    Votação" com um valor obsoleto para quem já votou pelo tablet não pode
-    sobrescrever esse voto — só preenche quem ainda não tem voto registrado.
-    """
-    sessao, ordem = _ordem_nominal_aberta()
-    ja_votou = _presente(sessao)
-    ainda_nao_votou = _presente(sessao)
-    baker.make(VotoParlamentar, ordem=ordem, parlamentar=ja_votou, voto='Sim')
-
-    tipo_resultado = baker.make(TipoResultadoVotacao, nome='Aprovada', natureza='A')
-
-    url = _registrar_url(sessao, ordem)
-    payload = {
-        'salvar-votacao': '1',
-        'resultado_votacao': str(tipo_resultado.pk),
-        'observacao': '',
-        'voto_parlamentar': [
-            # valor obsoleto: a tela do operador ainda não sabia que este
-            # parlamentar já havia votado "Sim" pelo tablet
-            'Não Votou:{}'.format(ja_votou.pk),
-            'Não:{}'.format(ainda_nao_votou.pk),
-        ],
-    }
-
-    response = admin_client.post(url, payload)
-    assert response.status_code == 302
-
-    voto_ja_votou = VotoParlamentar.objects.get(ordem=ordem, parlamentar=ja_votou)
-    assert voto_ja_votou.voto == 'Sim'
-
-    voto_novo = VotoParlamentar.objects.get(ordem=ordem, parlamentar=ainda_nao_votou)
-    assert voto_novo.voto == 'Não'
-
-    registro = RegistroVotacao.objects.get(ordem=ordem)
-    assert registro.numero_votos_sim == 1
-    assert registro.numero_votos_nao == 1
-
-    ordem.refresh_from_db()
-    assert ordem.votacao_aberta is False
-    assert ordem.registro_aberto is False
-
-
-@pytest.mark.django_db(transaction=False)
-def test_salvar_votacao_sem_votos_nao_trava_selects_para_nova_tentativa(admin_client):
-    """
-    Regressão: fechar a votação sem nenhum voto real corretamente mostra um
-    erro, mas antes disso o laço de salvamento em lote criava um
-    VotoParlamentar com voto='Não Votou' para cada parlamentar cujo select
-    não foi tocado (o valor padrão do <select>). Esses registros persistiam
-    mesmo com o fechamento falhando (o bloco atomic não é revertido, já que
-    form_invalid retorna normalmente em vez de lançar), e nominal.html
-    desabilita o <select> de qualquer parlamentar com um VotoParlamentar
-    existente — travando o operador para sempre sem conseguir registrar
-    nenhum voto para essa matéria.
-    """
-    sessao, ordem = _ordem_nominal_aberta()
-    parlamentar = _presente(sessao)
-    tipo_resultado = baker.make(TipoResultadoVotacao, nome='Aprovada', natureza='A')
-
-    url = _registrar_url(sessao, ordem)
-    payload = {
-        'salvar-votacao': '1',
-        'resultado_votacao': str(tipo_resultado.pk),
-        'observacao': '',
-        'voto_parlamentar': ['Não Votou:{}'.format(parlamentar.pk)],
-    }
-
-    response = admin_client.post(url, payload)
-    assert response.status_code == 302
-
-    assert not VotoParlamentar.objects.filter(
-        ordem=ordem, parlamentar=parlamentar).exists()
-
-    ordem.refresh_from_db()
-    assert ordem.votacao_aberta is True
-
-    # O operador consegue tentar de novo, agora com um voto real.
-    response2 = admin_client.post(url, {
-        'salvar-votacao': '1',
-        'resultado_votacao': str(tipo_resultado.pk),
-        'observacao': '',
-        'voto_parlamentar': ['Sim:{}'.format(parlamentar.pk)],
-    })
-    assert response2.status_code == 302
-    ordem.refresh_from_db()
-    assert ordem.votacao_aberta is False
-    assert VotoParlamentar.objects.get(ordem=ordem, parlamentar=parlamentar).voto == 'Sim'
-
-
-@pytest.mark.django_db(transaction=False)
-def test_status_da_votacao_reflete_troca_de_voto_do_parlamentar(admin_client):
-    """
-    Regressão: a tela de registro (nominal.html) não atualizava a linha de
-    um parlamentar que trocou o voto durante a janela de votação — o poll
-    antigo só marcava "já votou" uma vez e nunca revisitava o valor. O poll
-    (?status=1) precisa sempre devolver o voto atual, não só se existe.
-    """
-    sessao, ordem = _ordem_nominal_aberta()
-    parlamentar = _presente(sessao)
-    voto = baker.make(VotoParlamentar, ordem=ordem, parlamentar=parlamentar,
-                      voto='Sim')
-
-    url = _registrar_url(sessao, ordem) + '?status=1'
-    response = admin_client.get(url)
-    assert response.status_code == 200
-    data = response.json()
-    assert data['votos'] == {str(parlamentar.pk): 'Sim'}
-    assert data['votacao_aberta'] is True
-    assert data['registro_aberto'] is False
-    assert data['ja_registrada'] is False
-
-    voto.voto = 'Não'
-    voto.save()
-
-    response2 = admin_client.get(url)
-    assert response2.json()['votos'] == {str(parlamentar.pk): 'Não'}
-
-
-@pytest.mark.django_db(transaction=False)
-def test_status_da_votacao_nao_depende_de_mostrar_voto(admin_client):
-    """
-    O poll da tela de registro é só para a Mesa, não para o público — ao
-    contrário de sapl.painel:dados_painel, ele não pode mascarar o valor
-    real do voto por trás de "Voto Informado" mesmo quando a Casa configura
-    mostrar_voto=False (essa config controla o telão público, não a tela de
-    registro da própria Mesa). Como o endpoint nem consulta essa
-    configuração, isso é garantido por construção — este teste só
-    documenta a expectativa.
-    """
-    sessao, ordem = _ordem_nominal_aberta()
-    parlamentar = _presente(sessao)
-    baker.make(VotoParlamentar, ordem=ordem, parlamentar=parlamentar,
-               voto='Abstenção')
-
-    url = _registrar_url(sessao, ordem) + '?status=1'
-    data = admin_client.get(url).json()
-    assert data['votos'][str(parlamentar.pk)] == 'Abstenção'
-
-
-@pytest.mark.django_db(transaction=False)
-def test_status_da_votacao_nao_redireciona_apos_encerrar_votacao(
-        admin_client):
-    """
-    _get_materia_votacao (usado pelo GET normal) redireciona com uma
-    mensagem quando a matéria já foi votada — comportamento certo para
-    navegação, errado para um poll em background. O branch ?status=1 não
-    pode herdar esse redirect.
-    """
-    sessao, ordem = _ordem_nominal_aberta()
-    parlamentar = _presente(sessao)
-    tipo_resultado = baker.make(TipoResultadoVotacao, nome='Aprovada',
-                                natureza='A')
-
-    url = _registrar_url(sessao, ordem)
-    admin_client.post(url, {
-        'salvar-votacao': '1',
-        'resultado_votacao': str(tipo_resultado.pk),
-        'observacao': '',
-        'voto_parlamentar': ['Sim:{}'.format(parlamentar.pk)],
-    })
-
-    response = admin_client.get(url + '?status=1')
-    assert response.status_code == 200
-    data = response.json()
-    assert data['ja_registrada'] is True
-    assert data['votacao_aberta'] is False
+def test_toggle_registro_falha_sem_materia_nominal_aberta():
+    sessao = _sessao_plenaria()
+    user = baker.make(get_user_model())
+    with pytest.raises(VoteError):
+        _toggle_registro(user, sessao.pk, True)
 
 
 @pytest.mark.django_db(transaction=False)

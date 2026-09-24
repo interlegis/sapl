@@ -28,6 +28,10 @@ export const DEFAULT_STATE = Object.freeze({
   cronometro_ordem: '',
   cronometro_consideracoes: '',
 
+  // Só significa algo enquanto há matéria nominal aberta pra registro —
+  // ver PainelConsumer (type: "registro_toggle") / VotacaoNominal.vue.
+  registro_aberto: false,
+
   parlamentares: [],
   oradores: [],
 
@@ -65,7 +69,11 @@ export function normalizePainelData (raw) {
       nome_parlamentar: asString(p.nome, ''),
       filiacao: asString(p.partido, ''),
       fotografia: p.fotografia != null ? p.fotografia : false,
-      voto: p.voto != null ? p.voto : ''
+      voto: p.voto != null ? p.voto : '',
+      // Só true quando o próprio parlamentar votou (voto individual/
+      // tablet) — nunca quando o voto veio do operador pelo mesmo
+      // <select> que lê isto, mesmo que o valor pareça igual.
+      voto_por_tablet: !!p.voto_por_tablet
     }))
 
   const oradores = asArray(d.oradores)
@@ -99,6 +107,8 @@ export function normalizePainelData (raw) {
     cronometro_aparte: asString(d.cronometro_aparte, DEFAULT_STATE.cronometro_aparte),
     cronometro_ordem: asString(d.cronometro_ordem, DEFAULT_STATE.cronometro_ordem),
     cronometro_consideracoes: asString(d.cronometro_consideracoes, DEFAULT_STATE.cronometro_consideracoes),
+
+    registro_aberto: d.registro_aberto != null ? !!d.registro_aberto : DEFAULT_STATE.registro_aberto,
 
     parlamentares,
     oradores,

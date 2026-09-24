@@ -168,6 +168,11 @@ module.exports = {
       .end()
 
     config
+      .entry('votacao-nominal-bloco')
+      .add('./frontend/src/__apps/votacao-nominal-bloco/main.js')
+      .end()
+
+    config
       .entry('compilacao')
       .add('./frontend/src/__apps/compilacao/main.js')
       .end()

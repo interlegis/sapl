@@ -22,7 +22,8 @@ from sapl.base.models import CasaLegislativa
 from sapl.crud.base import Crud
 from sapl.painel.apps import AppConfig
 from sapl.parlamentares.models import Legislatura, Parlamentar, Votante
-from sapl.sessao.models import (ExpedienteMateria, OradorExpediente, OrdemDia,
+from sapl.sessao.models import (ExpedienteMateria, OradorExpediente,
+                                OradorOrdemDia, OrdemDia,
                                 PresencaOrdemDia, RegistroVotacao,
                                 SessaoMateriasVotacoesView, SessaoPlenaria,
                                 SessaoPlenariaPresenca, SessaoPresencasView,
@@ -249,11 +250,15 @@ def votante_status(request):
     })
 
 
-def _save_voto_individual(request, context_vars):
+def _save_voto_individual(request, context_vars, voto_valor=None, ip=None):
     """
     Salva o voto do Votante autenticado — compartilhado por votante_view
-    (tela legada) e votante_view_v2 (Vue), cada uma redirecionando de
-    volta para a própria URL depois (por isso o redirect não mora aqui).
+    (tela legada), votante_view_v2 (Vue, form HTTP) e
+    PainelConsumer.receive_json (type: "vote_self", WS — ver
+    _handle_vote_self). `voto_valor`/`ip` deixam o caminho WS passar o
+    voto/IP explicitamente em vez de ler de request.POST/request.META,
+    que uma conexão WebSocket não tem; o caminho HTTP não passa nada e
+    mantém o comportamento de sempre.
     """
     logger = logging.getLogger(__name__)
     username = request.user.username
@@ -267,6 +272,11 @@ def _save_voto_individual(request, context_vars):
 
     if fase_sessao is None:
         return
+
+    voto_valor = voto_valor if voto_valor is not None else request.POST['voto']
+    if voto_valor not in VALID_VOTE_VALUES:
+        raise VoteError(
+            f"Invalid vote value: {voto_valor}. Must be one of: {VALID_VOTE_VALUES}")
 
     # select_for_update+atomic evita corrida com uma escrita concorrente
     # na mesma linha (ex.: o operador registrando este mesmo parlamentar
@@ -283,12 +293,16 @@ def _save_voto_individual(request, context_vars):
 
     logger.info("user=" + username + ". VotoParlamentar para parlamentar={} obtido com sucesso."
                 .format(context_vars['parlamentar']))
-    voto.voto = request.POST['voto']
-    voto.ip = get_client_ip(request)
+    voto.voto = voto_valor
+    voto.ip = ip if ip is not None else get_client_ip(request)
     voto.user = request.user
+    # Único caminho onde é o próprio parlamentar votando — vote_controller/
+    # _cast_vote (operador) e o formulário em lote sempre gravam False.
+    voto.votado_pelo_parlamentar = True
     voto.save()
 
     broadcast_dados_painel(request, context_vars['sessao'].id)
+    return voto_valor
 
 @never_cache
 @login_required
@@ -371,7 +385,12 @@ def get_presentes(pk, response, materia):
     presencas = SessaoPresencasView.objects.filter(
         sessao_plenaria_id=pk, etapa_sessao=etapa_sessao)
 
-    oradores = OradorExpediente.objects.filter(
+    # Mesmo discriminador de etapa_sessao usado acima pra SessaoPresencasView
+    # — sem isso, o payload sempre consultava OradorExpediente, nunca
+    # OradorOrdemDia, então um orador de Ordem do Dia nunca aparecia no
+    # painel/telão mesmo com o broadcast disparando corretamente.
+    oradores_model = OradorOrdemDia if etapa_sessao == 'ordemdia' else OradorExpediente
+    oradores = oradores_model.objects.filter(
         sessao_plenaria_id=pk).order_by('numero_ordem')
 
     oradores_list = []
@@ -489,6 +508,14 @@ def get_votos(response, materia, mostrar_voto):
                         response['presentes'][i]['voto'] = voto
                     else:
                         response['presentes'][i]['voto'] = 'Voto Informado'
+                    # Sempre desmascarado (não depende de mostrar_voto): diz
+                    # quem travou a linha, não o que a pessoa votou — é o
+                    # que VotacaoVotos.vue usa pra saber se deve desabilitar
+                    # o <select> do operador (só quando o próprio parlamentar
+                    # votou, não quando foi o próprio operador via este
+                    # mesmo <select> ou o formulário legado em lote).
+                    response['presentes'][i]['voto_por_tablet'] = bool(
+                        voto_entry.get('votado_pelo_parlamentar'))
     elif leitura:
         response.update({
             'numero_votos_sim': 0,
@@ -506,6 +533,8 @@ def get_votos(response, materia, mostrar_voto):
             for i, p in enumerate(response['presentes']):
                 voto_entry = votos_parlamentares.get(str(p['parlamentar_id']))
                 response['presentes'][i]['voto'] = voto_entry['voto'] if voto_entry else None
+                response['presentes'][i]['voto_por_tablet'] = bool(
+                    voto_entry and voto_entry.get('votado_pelo_parlamentar'))
 
         response.update({
             'numero_votos_sim': numero_votos['votos_sim'],
@@ -519,18 +548,32 @@ def get_votos(response, materia, mostrar_voto):
     return response
 
 
-def build_dados_painel(request, pk):
+def build_dados_painel(request, pk, force_mostrar_voto=False):
     """
     Monta o dict completo consumido pelos broadcasts via WebSocket
     (broadcast_dados_painel() abaixo) — era também servido por um endpoint
     HTTP de polling (get_dados_painel), removido quando o polling foi
     eliminado (nenhuma tela restante lê build_dados_painel() por HTTP).
+
+    `force_mostrar_voto`: usado por PainelConsumer para dar à conexão do
+    operador/Mesa (painel/sessao module perms) o voto real de cada
+    parlamentar, mesmo quando a Casa configura mostrar_voto=False para o
+    público. Cada conexão WebSocket pede seu próprio payload (ver
+    PainelConsumer.painel_refresh) em vez de um único payload comum
+    broadcastado a todo o grupo — assim o voto real nunca trafega para a
+    conexão do telão público/tablets, só para quem tem permissão de
+    operação. Sem isso, dar visibilidade real ao operador exigiria colocar
+    o voto real no payload do grupo inteiro (legível no DevTools do telão
+    público mesmo que a UI não o renderize) ou deixar a Mesa cega para
+    votos já registrados por tablet.
     """
     sessao = SessaoPlenaria.objects.get(id=pk)
 
     casa = CasaLegislativa.objects.first()
 
     app_config = ConfiguracoesAplicacao.objects.first()
+
+    efetivo_mostrar_voto = bool(app_config.mostrar_voto) or force_mostrar_voto
 
     brasao = None
     if casa and app_config and (bool(casa.logotipo)):
@@ -555,22 +598,28 @@ def build_dados_painel(request, pk):
         'cronometro_consideracoes': get_cronometro_status(request, 'consideracoes'),
         'status_painel': sessao.painel_aberto,
         'brasao': brasao,
-        'mostrar_voto': app_config.mostrar_voto
+        'mostrar_voto': efetivo_mostrar_voto
     }
 
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
 
     # Caso tenha alguma matéria com votação aberta, ela é mostrada no painel
-    # com prioridade para Ordem do Dia.
+    # com prioridade para Ordem do Dia. registro_aberto só faz sentido
+    # enquanto há uma matéria aberta pra registro — usado pela tela de
+    # operação (VotacaoNominal.vue) pra saber se deve mostrar "Bloquear" ou
+    # "Reabrir Votação" e o aviso de status, equivalente ao que
+    # nominal.html já fazia lendo o context direto.
     if ordem_dia:
+        response['registro_aberto'] = ordem_dia.registro_aberto
         return get_votos(
             get_presentes(pk, response, ordem_dia),
-            ordem_dia, app_config.mostrar_voto)
+            ordem_dia, efetivo_mostrar_voto)
     elif expediente:
+        response['registro_aberto'] = expediente.registro_aberto
         return get_votos(
             get_presentes(pk, response, expediente),
-            expediente, app_config.mostrar_voto)
+            expediente, efetivo_mostrar_voto)
 
     # Caso não tenha nenhuma aberta,
     # a matéria a ser mostrada no Painel deve ser a última votada
@@ -606,7 +655,7 @@ def build_dados_painel(request, pk):
     if ordem_expediente:
         return get_votos(
             get_presentes(pk, response, ordem_expediente),
-            ordem_expediente, app_config.mostrar_voto)
+            ordem_expediente, efetivo_mostrar_voto)
 
     # Retorna que não há nenhuma matéria já votada ou aberta
     response.update({
@@ -616,19 +665,27 @@ def build_dados_painel(request, pk):
 
 def broadcast_dados_painel(request, sessao_id):
     """
-    Envia o estado atual da sessão para o grupo WebSocket correspondente
-    (sapl/painel/consumers.py::PainelConsumer) — chamado pelas views que
-    alteram voto/matéria/registro, sempre depois da escrita já ter sido
-    commitada no banco. `request` é reaproveitado só para
-    get_cronometro_status() dentro de build_dados_painel() (ver o item do
-    cronômetro no plano — ainda lê de request.session, não de storage
-    compartilhado; isso é resolvido por último, não aqui).
+    Avisa o grupo WebSocket correspondente (sapl/painel/consumers.py::
+    PainelConsumer) de que algo mudou — chamado pelas views que alteram
+    voto/matéria/registro, sempre depois da escrita já ter sido commitada
+    no banco. `request` não é mais usado aqui (mantido só para não obrigar
+    a mudar todo call site); build_dados_painel() é chamado depois, uma vez
+    por conexão, não aqui.
+
+    Não carrega mais o payload: manda um sinal leve ("algo mudou nesta
+    sessão") e cada conexão reconsulta build_dados_painel() por conta
+    própria (PainelConsumer.painel_refresh), com o mostrar_voto certo para
+    o seu papel (força unmask para operador/Mesa, nunca para o telão
+    público/tablets — ver o docstring de build_dados_painel()). Um único
+    payload comum não daria pra fazer isso sem vazar o voto real da Mesa
+    para a conexão do telão público (legível via DevTools mesmo sem
+    renderizar), ou sem deixar a Mesa sem visibilidade do voto real.
 
     Best-effort: um Redis fora do ar não pode derrubar a ação que disparou
-    o broadcast (registrar voto, abrir/fechar matéria) — é exatamente por
-    isso que o polling continua existindo como fallback (ver plano). Falha
-    aqui só fica no log; quem está na tela sem WebSocket simplesmente
-    continua vendo a atualização pelo poll de sempre.
+    o broadcast (registrar voto, abrir/fechar matéria). Falha aqui só fica
+    no log — não há mais fallback de polling (removido nesta branch); quem
+    está sem WebSocket fica sem atualização em tempo real até reconectar
+    ou recarregar a tela.
     """
     from asgiref.sync import async_to_sync
     from channels.layers import get_channel_layer
@@ -639,7 +696,7 @@ def broadcast_dados_painel(request, sessao_id):
             return
         async_to_sync(layer.group_send)(
             'sessao_{}'.format(sessao_id),
-            {'type': 'data', 'payload': build_dados_painel(request, sessao_id)})
+            {'type': 'painel.refresh'})
     except Exception:
         logging.getLogger(__name__).exception(
             'Falha ao fazer broadcast do painel para sessao_id={}.'.format(sessao_id))
@@ -677,6 +734,72 @@ def painel_view(request, sessao_id):
 VALID_VOTE_VALUES = ["Sim", "Não", "Abstenção", "Não Votou"]
 
 
+class VoteError(Exception):
+    """
+    Erro de validação ao registrar um voto via _cast_vote() — mensagem já
+    pronta pra virar resposta pro chamador (HTTP ou WebSocket), com o
+    status HTTP equivalente em `status` (ignorado pelo caminho WS).
+    """
+
+    def __init__(self, message, status=400):
+        super().__init__(message)
+        self.message = message
+        self.status = status
+
+
+def _cast_vote(user, controller_id, parlamentar_id, voto, ip=None):
+    """
+    Valida e grava um voto nominal (OrdemDia ou ExpedienteMateria aberta).
+    Compartilhado por vote_controller (POST HTTP, mantido por
+    compatibilidade) e PainelConsumer.receive_json (type: "vote", o
+    caminho que o app votacao usa agora) — mesma validação, mesma escrita;
+    só quem chama broadcast_dados_painel()/group_send depois é diferente
+    (request síncrono vs. group_send assíncrono direto do consumer).
+    """
+    logger = logging.getLogger(__name__)
+    if not parlamentar_id:
+        raise VoteError("parlamentar_id is required")
+    try:
+        parlamentar_id = int(parlamentar_id)
+    except (ValueError, TypeError):
+        raise VoteError("parlamentar_id must be an integer")
+    if voto not in VALID_VOTE_VALUES:
+        raise VoteError(
+            f"Invalid vote value: {voto}. Must be one of: {VALID_VOTE_VALUES}")
+    try:
+        SessaoPlenaria.objects.get(id=controller_id)
+    except SessaoPlenaria.DoesNotExist:
+        raise VoteError("Session not found", status=404)
+    ordem_dia = get_materia_aberta(controller_id)
+    expediente = get_materia_expediente_aberta(controller_id)
+    materia_aberta = ordem_dia or expediente
+    if not materia_aberta:
+        raise VoteError("No open materia for voting")
+    if materia_aberta.tipo_votacao != VOTACAO_NOMINAL:
+        raise VoteError("Materia is not nominal voting type")
+    try:
+        parlamentar = Parlamentar.objects.get(id=parlamentar_id)
+    except Parlamentar.DoesNotExist:
+        raise VoteError(f"Parlamentar {parlamentar_id} not found", status=404)
+
+    # votado_pelo_parlamentar=False explícito (não só o default do campo):
+    # se este parlamentar já tinha um voto marcado como do próprio (tablet)
+    # e o operador está sobrescrevendo agora, a flag precisa acompanhar —
+    # o valor atual deixou de ser o que o parlamentar escolheu.
+    defaults = {'voto': voto, 'user': user, 'ip': ip, 'votado_pelo_parlamentar': False}
+    if ordem_dia:
+        voto_obj, created = VotoParlamentar.objects.update_or_create(
+            parlamentar=parlamentar, ordem=ordem_dia, defaults=defaults)
+    else:
+        voto_obj, created = VotoParlamentar.objects.update_or_create(
+            parlamentar=parlamentar, expediente=expediente, defaults=defaults)
+
+    logger.info(
+        f"Vote {'created' if created else 'updated'}: "
+        f"parlamentar={parlamentar_id}, voto={voto}, sessao={controller_id}")
+    return {"parlamentar_id": parlamentar_id, "voto": voto, "created": created}
+
+
 @user_passes_test(check_permission)
 def vote_controller(request, controller_id):
     """
@@ -686,8 +809,11 @@ def vote_controller(request, controller_id):
     Body (form-encoded or JSON):
         parlamentar_id: int
         voto: str ("Sim", "Não", "Abstenção", "Não Votou")
+
+    Mantido por compatibilidade; o app votacao (VotacaoNominal.vue) manda
+    o voto pelo WebSocket já aberto (PainelConsumer, type: "vote") em vez
+    de chamar isto — ver castVote() em frontend/src/__apps/votacao/main.js.
     """
-    logger = logging.getLogger(__name__)
     if request.method != 'POST':
         return JsonResponse({"type": "error", "message": "Only POST allowed"}, status=405)
     # Parse body: support both form-encoded and JSON
@@ -701,52 +827,44 @@ def vote_controller(request, controller_id):
     else:
         parlamentar_id = request.POST.get("parlamentar_id")
         voto = request.POST.get("voto")
-    # Validate
-    if not parlamentar_id:
-        return JsonResponse({"type": "error", "message": "parlamentar_id is required"}, status=400)
+
     try:
-        parlamentar_id = int(parlamentar_id)
-    except (ValueError, TypeError):
-        return JsonResponse({"type": "error", "message": "parlamentar_id must be an integer"}, status=400)
-    if voto not in VALID_VOTE_VALUES:
-        return JsonResponse({
-            "type": "error",
-            "message": f"Invalid vote value: {voto}. Must be one of: {VALID_VOTE_VALUES}"
-        }, status=400)
-    # Verify session exists
-    try:
-        SessaoPlenaria.objects.get(id=controller_id)
-    except SessaoPlenaria.DoesNotExist:
-        return JsonResponse({"type": "error", "message": "Session not found"}, status=404)
-    # Find open materia (OrdemDia or ExpedienteMateria)
+        result = _cast_vote(
+            request.user, controller_id, parlamentar_id, voto,
+            ip=get_client_ip(request))
+    except VoteError as e:
+        return JsonResponse({"type": "error", "message": e.message}, status=e.status)
+
+    broadcast_dados_painel(request, controller_id)
+    return JsonResponse({"ok": True, **result})
+
+
+def _toggle_registro(user, controller_id, aberto):
+    """
+    Bloqueia/reabre o registro de novos votos numa votação nominal aberta
+    — equivalente a bloquear-registro-votacao/reabrir-votacao de
+    VotacaoNominalAbstract.post() (nominal.html/VotacaoNominalView, tela
+    legada), agora também disponível para a tela v2 (Vue)/WS via
+    PainelConsumer.receive_json (type: "registro_toggle"). Não mexe em
+    nenhum voto já registrado — só na flag que trava votos novos, mesma
+    semântica de lá: aberto=True bloqueia (nome contraintuitivo herdado do
+    campo `registro_aberto`, mantido igual para não confundir quem já
+    conhece o comportamento legado).
+    """
     ordem_dia = get_materia_aberta(controller_id)
     expediente = get_materia_expediente_aberta(controller_id)
     materia_aberta = ordem_dia or expediente
     if not materia_aberta:
-        return JsonResponse({"type": "error", "message": "No open materia for voting"}, status=400)
+        raise VoteError("No open materia for voting")
     if materia_aberta.tipo_votacao != VOTACAO_NOMINAL:
-        return JsonResponse({"type": "error", "message": "Materia is not nominal voting type"}, status=400)
-    # Verify parlamentar exists
-    try:
-        parlamentar = Parlamentar.objects.get(id=parlamentar_id)
-    except Parlamentar.DoesNotExist:
-        return JsonResponse({"type": "error", "message": f"Parlamentar {parlamentar_id} not found"}, status=404)
-    # Save/update vote
-    if ordem_dia:
-        voto_obj, created = VotoParlamentar.objects.update_or_create(
-            parlamentar=parlamentar,
-            ordem=ordem_dia,
-            defaults={'voto': voto, 'user': request.user, 'ip': get_client_ip(request)}
-        )
-    else:
-        voto_obj, created = VotoParlamentar.objects.update_or_create(
-            parlamentar=parlamentar,
-            expediente=expediente,
-            defaults={'voto': voto, 'user': request.user, 'ip': get_client_ip(request)}
-        )
-    logger.info(f"Vote {'created' if created else 'updated'}: parlamentar={parlamentar_id}, voto={voto}, sessao={controller_id}")
-    broadcast_dados_painel(request, controller_id)
-    return JsonResponse({"ok": True, "parlamentar_id": parlamentar_id, "voto": voto, "created": created})
+        raise VoteError("Materia is not nominal voting type")
+
+    materia_aberta.registro_aberto = aberto
+    materia_aberta.save()
+    logging.getLogger(__name__).info(
+        f"registro_aberto={aberto} para materia id={materia_aberta.pk} "
+        f"(sessao={controller_id}, user={user.username})")
+    return {"registro_aberto": aberto}
 
 
 @user_passes_test(check_permission)

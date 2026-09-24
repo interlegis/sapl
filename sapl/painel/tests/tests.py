@@ -93,11 +93,6 @@ def _votante_com_client(sessao):
     return parlamentar, client
 
 
-def _registrar_url(sessao, ordem):
-    return reverse('sapl.sessao:votacaonominal',
-                   kwargs={'pk': sessao.pk, 'oid': ordem.pk, 'mid': ordem.materia_id})
-
-
 @pytest.mark.django_db(transaction=False)
 def test_votante_view_envia_headers_never_cache(admin_client, admin_user):
     sessao, ordem = _ordem_nominal_aberta()
