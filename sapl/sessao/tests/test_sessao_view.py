@@ -1,9 +1,10 @@
 import pytest
-from datetime import date
+from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.db import IntegrityError, transaction
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from model_bakery import baker
 
@@ -155,13 +156,22 @@ class TestResumoView():
         assert resultado_get_ocorrencia['ocorrencias_da_sessao'][0] == ocorrencia
 
 
+# Sessão cadastrada com antecedência: data futura, sem pauta e não iniciada.
+def data_futura():
+    return timezone.localdate() + timedelta(days=30)
+
+
 @pytest.mark.django_db(transaction=False)
 def test_visiveis_para_oculta_do_anonimo_apenas_a_sessao_previa():
-    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False)
-    com_pauta = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=True)
-    iniciada = baker.make(SessaoPlenaria, iniciada=True, publicar_pauta=False)
+    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
+                        data_inicio=data_futura())
+    com_pauta = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=True,
+                           data_inicio=data_futura())
+    iniciada = baker.make(SessaoPlenaria, iniciada=True, publicar_pauta=False,
+                          data_inicio=data_futura())
     # Sessões anteriores à migração 0027 ficaram com `iniciada` em NULL.
-    legada = baker.make(SessaoPlenaria, iniciada=None, publicar_pauta=False)
+    legada = baker.make(SessaoPlenaria, iniciada=None, publicar_pauta=False,
+                        data_inicio=data_futura())
 
     visiveis = restringe_sessoes_visiveis(
         SessaoPlenaria.objects.all(), AnonymousUser())
@@ -173,8 +183,24 @@ def test_visiveis_para_oculta_do_anonimo_apenas_a_sessao_previa():
 
 
 @pytest.mark.django_db(transaction=False)
+def test_visiveis_para_mostra_ao_anonimo_sessao_realizada_nao_marcada():
+    # Casas que não marcam "Sessão iniciada?" nas sessões já realizadas.
+    passada = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
+                         data_inicio=timezone.localdate() - timedelta(days=1))
+    de_hoje = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
+                         data_inicio=timezone.localdate())
+
+    visiveis = restringe_sessoes_visiveis(
+        SessaoPlenaria.objects.all(), AnonymousUser())
+
+    assert passada in visiveis
+    assert de_hoje in visiveis
+
+
+@pytest.mark.django_db(transaction=False)
 def test_visiveis_para_nao_oculta_nada_de_usuario_autenticado():
-    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False)
+    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
+                        data_inicio=data_futura())
 
     operador = baker.make(get_user_model())
 
@@ -185,12 +211,12 @@ def test_visiveis_para_nao_oculta_nada_de_usuario_autenticado():
 @pytest.mark.django_db(transaction=False)
 def test_pesquisar_sessao_nao_lista_sessao_previa_para_anonimo(client):
     previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
-                        data_inicio=date(2025, 11, 5))
+                        data_inicio=data_futura())
     iniciada = baker.make(SessaoPlenaria, iniciada=True, publicar_pauta=False,
-                          data_inicio=date(2025, 11, 5))
+                          data_inicio=data_futura())
 
     response = client.get(reverse('sapl.sessao:pesquisar_sessao'),
-                          {'data_inicio__year': '2025'})
+                          {'data_inicio__year': data_futura().year})
 
     assert response.status_code == 200
     assert previa not in response.context['object_list']
@@ -200,10 +226,10 @@ def test_pesquisar_sessao_nao_lista_sessao_previa_para_anonimo(client):
 @pytest.mark.django_db(transaction=False)
 def test_pesquisar_sessao_lista_sessao_previa_para_autenticado(admin_client):
     previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
-                        data_inicio=date(2025, 11, 5))
+                        data_inicio=data_futura())
 
     response = admin_client.get(reverse('sapl.sessao:pesquisar_sessao'),
-                                {'data_inicio__year': '2025'})
+                                {'data_inicio__year': data_futura().year})
 
     assert response.status_code == 200
     assert previa in response.context['object_list']
@@ -211,7 +237,8 @@ def test_pesquisar_sessao_lista_sessao_previa_para_autenticado(admin_client):
 
 @pytest.mark.django_db(transaction=False)
 def test_detail_sessao_previa_indisponivel_para_anonimo(client):
-    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False)
+    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
+                        data_inicio=data_futura())
 
     response = client.get(reverse('sapl.sessao:sessaoplenaria_detail',
                                   kwargs={'pk': previa.pk}))
@@ -221,7 +248,8 @@ def test_detail_sessao_previa_indisponivel_para_anonimo(client):
 
 @pytest.mark.django_db(transaction=False)
 def test_resumo_de_sessao_previa_indisponivel_para_anonimo(client):
-    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False)
+    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
+                        data_inicio=data_futura())
 
     response = client.get(reverse('sapl.sessao:resumo',
                                   kwargs={'pk': previa.pk}))
