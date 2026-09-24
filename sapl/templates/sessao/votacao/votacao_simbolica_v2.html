@@ -1,0 +1,39 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+{% load crispy_forms_tags cropping%}
+{% load common_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+
+{% block vue_content %}
+<style>[v-cloak]{display:none}</style>
+{{ tipos_resultado|json_script:"tipos-resultado" }}
+<div id="votacao-simbolica" v-cloak
+     data-sessao-id="{{ pk }}"
+     data-oid="{{ oid }}"
+     data-mid="{{ mid }}"
+     data-fase="{{ fase }}"
+     data-total-presentes="{{ total_presentes }}"
+     data-total-votantes="{{ total_votantes }}">
+    <ws-status-banner :status="wsStatus" :message="wsErrorMessage"></ws-status-banner>
+    <votacao-simbolica
+        :error-message="error_message"
+        :total-presentes="totalPresentes"
+        :total-votantes="totalVotantes"
+        @cancelar="onCancelar"
+        @salvar="onSalvar"
+        ref="votacaoSimbolica">
+    </votacao-simbolica>
+</div>
+{% endblock vue_content %}
+
+{% block webpack_loader_css %}
+    {{ block.super }}
+    {% render_bundle 'votacao-simbolica' 'css' %}
+{% endblock %}
+
+{% block webpack_loader_js %}
+    {% render_chunk_vendors 'js' %}
+    {% render_bundle  'global' 'js' %}
+    {% render_bundle 'votacao-simbolica' 'js' %}
+{% endblock %}

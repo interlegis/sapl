@@ -370,6 +370,7 @@ $(document).ready(function(){
             alert("Erro ao verificar o Painel");
         },
         success: function (data) {
+            console.log(`verifica painel: ${data}`);
             if (data['status']) {
                 botao_abrir.hide();
                 botao_fechar.show();

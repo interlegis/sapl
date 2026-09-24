@@ -14,6 +14,7 @@ See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 """
 import logging
+import os
 import socket
 import sys
 
@@ -100,7 +101,24 @@ INSTALLED_APPS = (
 
                      'django_prometheus',
 
+                     'channels',
+
                  ) + SAPL_APPS
+
+# WebSockets (painel/votação em tempo real — ver plano de migração
+# polling->push em docs internas). channels==3.0.3 é a versão mais recente
+# compatível com Django 2.2 (channels 4.x exige Django >= 4.2).
+ASGI_APPLICATION = 'sapl.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [config('REDIS_URL', cast=str, default='redis://127.0.0.1:6379/0')],
+            'capacity': 1000,
+            'expiry': 60,
+        },
+    },
+}
 
 # FTS = Full Text Search
 # Desabilita a indexação textual até encontramos uma solução para a issue

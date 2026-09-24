@@ -1,6 +1,10 @@
+import datetime
+from enum import Enum
 from operator import xor
 
+from django.contrib.postgres.fields.jsonb import JSONField
 from django.core.exceptions import ValidationError
+from django.contrib.postgres.fields.jsonb import JSONField
 from django.db import models
 from django.db.models import Q, F
 from django.utils import timezone, formats
@@ -433,6 +437,15 @@ class ExpedienteMateria(AbstractOrdemDia):
         verbose_name = _('Matéria do Expediente')
         verbose_name_plural = _('Matérias do Expediente')
         ordering = ['numero_ordem']
+        constraints = [
+            # No máximo uma matéria de expediente aberta para votação por
+            # vez (mesma invariante que abrir_votacao() já garante na
+            # aplicação — isto é o backstop no nível do banco).
+            models.UniqueConstraint(
+                fields=['votacao_aberta'],
+                condition=models.Q(votacao_aberta=True),
+                name='sessao_expedientemateria_unique_votacao_aberta'),
+        ]
 
 
 class TipoExpediente(models.Model):
@@ -583,6 +596,15 @@ class OrdemDia(AbstractOrdemDia):
         verbose_name = _('Matéria da Ordem do Dia')
         verbose_name_plural = _('Matérias da Ordem do Dia')
         ordering = ['numero_ordem']
+        constraints = [
+            # No máximo uma matéria de ordem do dia aberta para votação por
+            # vez (mesma invariante que abrir_votacao() já garante na
+            # aplicação — isto é o backstop no nível do banco).
+            models.UniqueConstraint(
+                fields=['votacao_aberta'],
+                condition=models.Q(votacao_aberta=True),
+                name='sessao_ordemdia_unique_votacao_aberta'),
+        ]
 
 
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
@@ -703,6 +725,12 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
                           max_length=60,
                           blank=True,
                           default='')
+    votado_pelo_parlamentar = models.BooleanField(
+        verbose_name=_('Votado pelo parlamentar'),
+        default=False,
+        help_text=_('Marca se este voto foi lançado pelo próprio parlamentar '
+                    '(voto individual/tablet) — distinto de um registro feito '
+                    'pela Mesa/operador em nome dele.'))
     data_hora = models.DateTimeField(
         verbose_name=_('Data/Hora'),
         auto_now=True,
@@ -720,6 +748,20 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         verbose_name = _('Registro de Votação de Parlamentar')
         verbose_name_plural = _('Registros de Votações de Parlamentares')
         ordering = ('id',)
+        constraints = [
+            # Garante, no nível do banco, no máximo um voto por parlamentar
+            # por matéria — get_or_create() sozinho não protege contra duas
+            # inserções concorrentes (ex.: o tablet do parlamentar e o
+            # formulário em lote do operador chegando ao mesmo tempo).
+            models.UniqueConstraint(
+                fields=['parlamentar', 'ordem'],
+                condition=models.Q(ordem__isnull=False),
+                name='sessao_votoparlamentar_unique_parlamentar_ordem'),
+            models.UniqueConstraint(
+                fields=['parlamentar', 'expediente'],
+                condition=models.Q(expediente__isnull=False),
+                name='sessao_votoparlamentar_unique_parlamentar_expediente'),
+        ]
 
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {
@@ -1070,3 +1112,55 @@ class Correspondencia(models.Model):
 
     def __str__(self):
         return _('Correspondência: {}').format(self.documento)
+
+
+class SessaoPresencasView(models.Model):
+    '''
+    Backed by the `sessao_presencas_view` Postgres view (migration 0072) —
+    pré-agrega presença + mandato ativo + filiação partidária, evitando o
+    N+1 que sapl/painel/views.py::get_presentes() fazia consultando
+    mandato_set/filiacao_data() por parlamentar presente. `id` não é
+    globalmente único entre as duas etapas (expediente/ordemdia usam
+    tabelas de presença diferentes, cujas PKs podem colidir numericamente)
+    — sempre filtrar também por etapa_sessao, nunca só por id.
+    '''
+    sessao_plenaria_id = models.IntegerField()
+    etapa_sessao = models.CharField(max_length=20)
+    parlamentar_id = models.IntegerField()
+    nome_parlamentar = models.TextField()
+    filiacao = models.TextField()
+    ativo = models.BooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'sessao_presencas_view'
+
+
+class SessaoMateriasVotacoesView(models.Model):
+    '''
+    Backed by the `sessao_materias_votacoes_view` Postgres view
+    (migration 0072) — pré-agrega o resultado da votação e os votos de
+    cada parlamentar (`votos_parlamentares`, JSONB, chaves string) numa
+    única linha, evitando o N+1 que
+    sapl/painel/views.py::get_votos() fazia consultando VotoParlamentar
+    por parlamentar presente. `id` não é globalmente único entre as duas
+    etapas (ExpedienteMateria/OrdemDia têm PKs independentes) — sempre
+    filtrar também por etapa_sessao.
+    '''
+    sessao_plenaria_id = models.IntegerField()
+    etapa_sessao = models.CharField(max_length=20)
+    numero_ordem = models.IntegerField()
+    materia_id = models.IntegerField()
+    materia_texto = models.TextField()
+    materia_ementa = models.TextField()
+    tipo_votacao = models.IntegerField()
+    tipo_votacao_descricao = models.CharField(max_length=20)
+    resultado_votacao = models.TextField(null=True, blank=True)
+    resultado = models.TextField(null=True, blank=True)
+    numero_votos = JSONField(null=True, blank=True)
+    votos_parlamentares = JSONField(null=True, blank=True)
+    votacao_aberta = models.NullBooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'sessao_materias_votacoes_view'

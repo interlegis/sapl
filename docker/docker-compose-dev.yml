@@ -1,6 +1,12 @@
 version: '3.7'
 
 services:
+  sapl-redis:
+    image: redis:7-alpine
+    container_name: sapl-redis-dev
+    ports:
+      - "6379:6379"
+
   sapl-dev:
     container_name: sapl-dev
     image: sapl:dev
@@ -12,8 +18,11 @@ services:
       - ..:/sapl-dev
     ports:
       - "8000:8000"
+    depends_on:
+      - sapl-redis
     environment:
       SECRET_KEY: '$dkhxm-$zvxdox$g2-&w^1i!_z1juq0xwox6e3#gy6w_88!3t^'
       DEBUG: 'True'
       DATABASE_URL: postgresql://sapl:sapl@host.docker.internal:5432/sapl
+      REDIS_URL: redis://sapl-redis:6379/0
       TZ: America/Sao_Paulo
