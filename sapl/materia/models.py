@@ -1350,6 +1350,9 @@ class Tramitacao(models.Model):
         verbose_name = _('Tramitação')
         verbose_name_plural = _('Tramitações')
         ordering = ('-data_tramitacao', '-id')
+        indexes = [
+            models.Index(fields=['materia', '-id'], name='tram_materia_id_desc'),
+        ]
 
     def __str__(self):
         return _('%(materia)s | %(status)s | %(data)s') % {
