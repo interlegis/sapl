@@ -594,6 +594,9 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
         verbose_name = _('Presença da Ordem do Dia')
         verbose_name_plural = _('Presenças da Ordem do Dia')
         ordering = ['parlamentar__nome_parlamentar']
+        # Presença é um sim/não: mais de uma linha para o mesmo parlamentar
+        # na mesma sessão infla a contagem dos relatórios.
+        unique_together = ('sessao_plenaria', 'parlamentar')
 
     def __str__(self):
         # FIXME ambigous
@@ -736,6 +739,9 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
         ordering = ['parlamentar__nome_parlamentar']
+        # Presença é um sim/não: mais de uma linha para o mesmo parlamentar
+        # na mesma sessão infla a contagem dos relatórios.
+        unique_together = ('sessao_plenaria', 'parlamentar')
 
 
 ORDENACAO_RESUMO = [
