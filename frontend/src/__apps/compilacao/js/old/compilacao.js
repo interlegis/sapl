@@ -279,6 +279,51 @@ function DispositivoSearch (opts) {
   })
 }
 
+// Escala de leitura do texto articulado, preferência de cada navegador.
+// Aplicada via variável CSS (--cp-font-scale) para não alterar o conteúdo
+// dos dispositivos e para valer também nos que são recarregados via ajax.
+const ESCALA_FONTE_CHAVE = 'compilacao_escala_fonte'
+const ESCALA_FONTE_PASSO = 0.1
+const ESCALA_FONTE_MIN = 0.8
+const ESCALA_FONTE_MAX = 2.5
+let escalaFonteAtual = null
+
+function lerEscalaFonte () {
+  if (escalaFonteAtual !== null) {
+    return escalaFonteAtual
+  }
+  let escala = 1
+  try {
+    escala = parseFloat(window.localStorage.getItem(ESCALA_FONTE_CHAVE)) || 1
+  } catch (e) {
+    // localStorage indisponível (ex.: navegação privada bloqueada)
+  }
+  return Math.min(ESCALA_FONTE_MAX, Math.max(ESCALA_FONTE_MIN, escala))
+}
+
+function aplicaEscalaFonte (escala) {
+  document.documentElement.style.setProperty('--cp-font-scale', escala)
+  if (window.tinymce) {
+    window.tinymce.get().forEach(function (editor) {
+      if (editor.getBody()) {
+        editor.getBody().style.fontSize = (escala * 100) + '%'
+      }
+    })
+  }
+}
+
+function salvaEscalaFonte (escala) {
+  escala = Math.round(
+    Math.min(ESCALA_FONTE_MAX, Math.max(ESCALA_FONTE_MIN, escala)) * 10) / 10
+  try {
+    window.localStorage.setItem(ESCALA_FONTE_CHAVE, escala)
+  } catch (e) {
+    // localStorage indisponível: a escala vale apenas até recarregar a página
+  }
+  escalaFonteAtual = escala
+  aplicaEscalaFonte(escala)
+}
+
 function InitViewTAs () {
   setTimeout(function () {
     var href = location.href.split('#')
@@ -297,11 +342,12 @@ function InitViewTAs () {
     }
   }, 100)
 
+  aplicaEscalaFonte(lerEscalaFonte())
   $('#btn_font_menos').click(function () {
-    $('.dpt').css('font-size', '-=1')
+    salvaEscalaFonte(lerEscalaFonte() - ESCALA_FONTE_PASSO)
   })
   $('#btn_font_mais').click(function () {
-    $('.dpt').css('font-size', '+=1')
+    salvaEscalaFonte(lerEscalaFonte() + ESCALA_FONTE_PASSO)
   })
 
   $('.dpt.bloco_alteracao .dpt').each(function () {
@@ -327,5 +373,7 @@ export default {
   ReadCookie,
   insertWaitAjax,
   InitViewTAs,
+  lerEscalaFonte,
+  aplicaEscalaFonte,
   DispositivoSearch
 }

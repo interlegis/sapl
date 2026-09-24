@@ -31,5 +31,5 @@ window.initTextRichEditor = function (elements, readonly = false, paste_as_text 
     configTinymce.menubar = false
     configTinymce.toolbar = false
   }
-  window.tinymce.init(configTinymce)
+  return window.tinymce.init(configTinymce)
 }
