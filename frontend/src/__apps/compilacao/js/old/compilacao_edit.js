@@ -244,7 +244,7 @@ window.DispositivoEdit = function () {
         if (editortype !== 'construct') {
           dpt_form.html(data)
           if (editortype === 'tinymce') {
-            window.initTextRichEditor(null, false, false)
+            window.initTextRichEditor(null, false, false, true)
           }
           // OptionalCustomFrontEnd().init()
         }
