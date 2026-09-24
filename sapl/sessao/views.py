@@ -64,7 +64,7 @@ from .models import (Bancada, CargoBancada, CargoMesa,
                      SessaoPlenaria, SessaoPlenariaPresenca, TipoExpediente,
                      TipoResultadoVotacao, TipoSessaoPlenaria, VotoParlamentar, TipoRetiradaPauta,
                      RetiradaPauta, TipoJustificativa, JustificativaAusencia, OradorOrdemDia,
-                     ORDENACAO_RESUMO, RegistroLeitura)
+                     ORDENACAO_RESUMO, RegistroLeitura, restringe_sessoes_visiveis)
 
 TipoSessaoCrud = CrudAux.build(TipoSessaoPlenaria, 'tipo_sessao_plenaria')
 TipoJustificativaCrud = CrudAux.build(TipoJustificativa, 'tipo_justificativa')
@@ -1348,6 +1348,13 @@ class SessaoCrud(Crud):
 
     class DetailView(Crud.DetailView):
 
+        def get(self, request, *args, **kwargs):
+            if not restringe_sessoes_visiveis(
+                    SessaoPlenaria.objects.filter(pk=kwargs.get('pk')),
+                    request.user).exists():
+                raise Http404()
+            return super().get(request, *args, **kwargs)
+
         @property
         def layout_key(self):
             sessao = self.object
@@ -1413,26 +1420,31 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
-            presentes_banco = SessaoPlenariaPresenca.objects.filter(
+            presentes_banco = set(SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=self.object.id).values_list(
-                'parlamentar_id', flat=True).distinct()
+                'parlamentar_id', flat=True))
 
             # Id dos parlamentares presentes
-            marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+            marcados = set(int(p) for p in
+                           request.POST.getlist('presenca_ativos')
+                           + request.POST.getlist('presenca_inativos'))
 
             # Deletar os que foram desmarcados
-            deletar = set(presentes_banco) - set(marcados)
             SessaoPlenariaPresenca.objects.filter(
-                parlamentar_id__in=deletar,
+                parlamentar_id__in=presentes_banco - marcados,
                 sessao_plenaria_id=self.object.id).delete()
 
-            for p in marcados:
-                sessao = SessaoPlenariaPresenca()
-                sessao.sessao_plenaria = self.object
-                sessao.parlamentar = Parlamentar.objects.get(id=p)
-                sessao.save()
-                username = request.user.username
+            # Criar apenas quem ainda não tem presença registrada. O
+            # ignore_conflicts descarta a inserção duplicada quando o
+            # formulário é submetido duas vezes em paralelo, em vez de
+            # gravar uma segunda linha para o mesmo parlamentar.
+            username = request.user.username
+            novos = marcados - presentes_banco
+            SessaoPlenariaPresenca.objects.bulk_create(
+                [SessaoPlenariaPresenca(sessao_plenaria=self.object,
+                                        parlamentar_id=p) for p in novos],
+                ignore_conflicts=True)
+            for p in novos:
                 self.logger.info(
                     "user=" + username + ". SessaoPlenariaPresenca salva com sucesso (parlamentar_id={})!".format(p))
             msg = _('Presença em Sessão salva com sucesso!')
@@ -1528,26 +1540,29 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
-            presentes_banco = PresencaOrdemDia.objects.filter(
+            presentes_banco = set(PresencaOrdemDia.objects.filter(
                 sessao_plenaria_id=self.object.id).values_list(
-                'parlamentar_id', flat=True).distinct()
+                'parlamentar_id', flat=True))
 
             # Id dos parlamentares presentes
-            marcados = request.POST.getlist('presenca_ativos') \
-                + request.POST.getlist('presenca_inativos')
+            marcados = set(int(p) for p in
+                           request.POST.getlist('presenca_ativos')
+                           + request.POST.getlist('presenca_inativos'))
 
             # Deletar os que foram desmarcados
-            deletar = set(presentes_banco) - set(marcados)
             PresencaOrdemDia.objects.filter(
-                parlamentar_id__in=deletar,
+                parlamentar_id__in=presentes_banco - marcados,
                 sessao_plenaria_id=self.object.id).delete()
 
-            for p in marcados:
-                ordem = PresencaOrdemDia()
-                ordem.sessao_plenaria = self.object
-                ordem.parlamentar = Parlamentar.objects.get(id=p)
-                ordem.save()
-                username = request.user.username
+            # Criar apenas quem ainda não tem presença registrada. Ver
+            # comentário equivalente em PresencaView.post.
+            username = request.user.username
+            novos = marcados - presentes_banco
+            PresencaOrdemDia.objects.bulk_create(
+                [PresencaOrdemDia(sessao_plenaria=self.object,
+                                  parlamentar_id=p) for p in novos],
+                ignore_conflicts=True)
+            for p in novos:
                 self.logger.info(
                     'user=' + username + '. PresencaOrdemDia (parlamentar com id={}) salva com sucesso!'.format(p))
 
@@ -2326,6 +2341,10 @@ class ResumoView(DetailView):
     template_name = 'sessao/resumo.html'
     model = SessaoPlenaria
     logger = logging.getLogger(__name__)
+
+    def get_queryset(self):
+        return restringe_sessoes_visiveis(
+            SessaoPlenaria.objects.all(), self.request.user)
 
     def get_context(self, *args, **kwargs):
         self.object = self.get_object()
@@ -3833,6 +3852,12 @@ class PautaSessaoDetailView(PautaMultiFormatOutputMixin, DetailView):
         ('situacao', 'Situação')
     )
 
+    def get_queryset(self):
+        qs = SessaoPlenaria.objects.all()
+        if not self.request.user.is_authenticated:
+            qs = qs.filter(publicar_pauta=True)
+        return qs
+
     def hook_autor(self, obj):
         return ','.join(obj['autor'])
 
@@ -4027,6 +4052,8 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
 
         qs = self.get_queryset().select_related(
             'tipo', 'sessao_legislativa', 'legislatura')
+
+        qs = restringe_sessoes_visiveis(qs, self.request.user)
 
         qs = qs.distinct().order_by(
             '-legislatura__numero', '-data_inicio', '-hora_inicio')

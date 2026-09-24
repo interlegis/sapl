@@ -49,7 +49,7 @@ from sapl.compilacao.models import (STATUS_TA_EDITION, STATUS_TA_PRIVATE,
                                     VeiculoPublicacao, Vide)
 from sapl.compilacao.utils import (DISPOSITIVO_SELECT_RELATED,
                                    DISPOSITIVO_SELECT_RELATED_EDIT,
-                                   get_integrations_view_names)
+                                   get_integrations_view_names, valid_int)
 from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, CrudAux, CrudListView,\
     make_pagination
 from sapl.settings import BASE_DIR
@@ -3177,14 +3177,14 @@ class DispositivoSearchFragmentFormView(ListView):
         result = []
 
         try:
-            tipo_model = self.request.GET.get('tipo_model', '')
+            tipo_model = valid_int(self.request.GET.get('tipo_model', ''))
             limit = int(self.request.GET.get('max_results', 100))
-            tipo_ta = self.request.GET.get('tipo_ta', '')
+            tipo_ta = valid_int(self.request.GET.get('tipo_ta', ''))
             num_ta = self.request.GET.get('num_ta', '')
-            ano_ta = self.request.GET.get('ano_ta', '')
+            ano_ta = valid_int(self.request.GET.get('ano_ta', ''))
             rotulo = self.request.GET.get('rotulo', '')
             str_texto = self.request.GET.get('texto', '')
-            texto = str_texto.split(' ')
+            texto_valores = str_texto.split(' ')
 
             tipo_resultado = self.request.GET.get('tipo_resultado', '')
             tipo_resultado = '' if tipo_resultado == 'False' else tipo_resultado
@@ -3228,20 +3228,24 @@ class DispositivoSearchFragmentFormView(ListView):
                     AND_CONTROLS = '''AND td.dispositivo_de_alteracao = true 
                                     AND td.dispositivo_de_articulacao = true'''
 
-            texto = list(map("d.texto ~* '{}'".format, texto))
+            texto = ['d.texto ~* %s'] * len(texto_valores)
             AND_TEXTO_ROTULO = ''
+            texto_rotulo_params = []
             if str_texto and rotulo:
-                AND_TEXTO_ROTULO = '''AND (  ({BUSCA_TEXTO} AND d.rotulo ~* '{BUSCA_ROTULO}')  OR
-                                         ({BUSCA_TEXTO} AND d.rotulo = '' AND dp.rotulo ~* '{BUSCA_ROTULO}')  
+                busca_texto = ' AND '.join(texto)
+                AND_TEXTO_ROTULO = '''AND (  ({BUSCA_TEXTO} AND d.rotulo ~* %s)  OR
+                                         ({BUSCA_TEXTO} AND d.rotulo = '' AND dp.rotulo ~* %s)
                                       )'''.format(
-                    BUSCA_TEXTO=' AND '.join(texto),
-                    BUSCA_ROTULO=rotulo
+                    BUSCA_TEXTO=busca_texto,
                 )
+                texto_rotulo_params = (
+                    texto_valores + [rotulo] + texto_valores + [rotulo])
             elif str_texto:
-                AND_TEXTO_ROTULO = ' AND %s' % ' AND '.join(texto)
+                AND_TEXTO_ROTULO = ' AND ' + ' AND '.join(texto)
+                texto_rotulo_params = texto_valores
             elif rotulo:
-                AND_TEXTO_ROTULO = "AND d.rotulo ~* '{BUSCA_ROTULO}'".format(
-                    BUSCA_ROTULO=rotulo)
+                AND_TEXTO_ROTULO = "AND d.rotulo ~* %s"
+                texto_rotulo_params = [rotulo]
             else:
                 AND_TEXTO_ROTULO = ''
 
@@ -3288,17 +3292,21 @@ class DispositivoSearchFragmentFormView(ListView):
                 AND3_TIPO_TA="AND ta.tipo_ta_id = {}".format(
                     tipo_ta.id) if tipo_ta else '',
 
-                AND2_ANO="AND ta.ano = {}".format(
-                    ano_ta) if ano_ta else '',
+                AND2_ANO="AND ta.ano = %s" if ano_ta else '',
 
-                AND1_NUMERO="AND ta.numero ~* '{}'".format(
-                    num_ta) if num_ta else '',
+                AND1_NUMERO="AND ta.numero ~* %s" if num_ta else '',
 
                 AND_TEXTO_ROTULO=AND_TEXTO_ROTULO if AND_TEXTO_ROTULO else '',
                 AND_CONTROLS=AND_CONTROLS if AND_CONTROLS else ''
             )
 
-            result = Dispositivo.objects.raw(sql)
+            params = texto_rotulo_params.copy()
+            if num_ta:
+                params.append(num_ta)
+            if ano_ta:
+                params.append(ano_ta)
+
+            result = Dispositivo.objects.raw(sql, params)
 
             r = []
             ids = set()

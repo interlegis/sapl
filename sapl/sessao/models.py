@@ -153,6 +153,26 @@ def anexo_upload_path(instance, filename):
     # return get_sessao_media_path(instance, 'anexo', filename)
 
 
+def restringe_sessoes_visiveis(qs, user):
+    """Restringe o queryset às sessões visíveis na consulta pública.
+
+    Usuário autenticado enxerga todas. Para o público, ficam ocultas as
+    sessões cadastradas com antecedência, ou seja, as marcadas como não
+    iniciadas e sem pauta publicada.
+
+    `iniciada` nulo conta como visível: o default do campo só surgiu na
+    migração 0027, que não preencheu as linhas já existentes, então bases
+    antigas têm sessões realizadas com o campo em NULL.
+    """
+    if user.is_authenticated:
+        return qs
+
+    return qs.filter(
+        Q(publicar_pauta=True) |
+        Q(iniciada=True) |
+        Q(iniciada__isnull=True))
+
+
 class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
     # andamento_sessao = models.ForeignKey(
@@ -574,6 +594,9 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
         verbose_name = _('Presença da Ordem do Dia')
         verbose_name_plural = _('Presenças da Ordem do Dia')
         ordering = ['parlamentar__nome_parlamentar']
+        # Presença é um sim/não: mais de uma linha para o mesmo parlamentar
+        # na mesma sessão infla a contagem dos relatórios.
+        unique_together = ('sessao_plenaria', 'parlamentar')
 
     def __str__(self):
         # FIXME ambigous
@@ -716,6 +739,9 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
         ordering = ['parlamentar__nome_parlamentar']
+        # Presença é um sim/não: mais de uma linha para o mesmo parlamentar
+        # na mesma sessão infla a contagem dos relatórios.
+        unique_together = ('sessao_plenaria', 'parlamentar')
 
 
 ORDENACAO_RESUMO = [

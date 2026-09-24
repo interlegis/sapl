@@ -73,8 +73,10 @@ class CasaLegislativa(models.Model):
         max_length=100, blank=True, verbose_name=_('HomePage'))
     email = models.EmailField(
         max_length=100, blank=True, verbose_name=_('E-mail'))
+    # Campo editado via editor de texto rico (TinyMCE), portanto o valor
+    # armazenado é HTML. Não deve ter max_length: as tags consomem o limite
+    # e impedem o salvamento de textos curtos.
     informacao_geral = models.TextField(
-        max_length=100,
         blank=True,
         verbose_name=_('Informação Geral'))
 

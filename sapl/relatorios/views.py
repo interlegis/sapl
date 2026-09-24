@@ -609,8 +609,10 @@ def get_sessao_plenaria(sessao, casa, user):
 
     # Exibe os Expedientes
     lst_expedientes = []
+    # A ordenação deve ser a mesma de sapl.sessao.views.get_expedientes, para
+    # que o PDF confira com o Resumo exibido em tela. OSTicket #125461
     expedientes = ExpedienteSessao.objects.filter(
-        sessao_plenaria=sessao).order_by('tipo__nome')
+        sessao_plenaria=sessao).order_by('tipo__ordenacao', 'tipo__nome')
     for e in expedientes:
         conteudo = e.conteudo
         if not is_empty(conteudo):
@@ -2078,17 +2080,22 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
         parlamentares_id = parlamentares_qs.values_list('id', flat=True)
 
         # Presenças de cada Parlamentar em Sessões
+        # Conta sessões distintas, e não linhas de presença: bases com
+        # presenças repetidas para o mesmo parlamentar na mesma sessão
+        # produziam percentuais acima de 100%.
         presenca_sessao = SessaoPlenariaPresenca.objects.filter(
-            **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
+            **param0).values_list('parlamentar_id').annotate(
+            sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         # Presenças de cada Ordem do Dia
         presenca_ordem = PresencaOrdemDia.objects.filter(
-            **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
+            **param0).values_list('parlamentar_id').annotate(
+            sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         # Ausencias justificadas
         ausencia_justificadas = JustificativaAusencia.objects.filter(
             **param0, ausencia=2).values_list('parlamentar_id')\
-            .annotate(sessao_count=Count('id'))
+            .annotate(sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         total_ordemdia = PresencaOrdemDia.objects.filter(
             **param0).distinct('sessao_plenaria__id').order_by('sessao_plenaria__id').count()
