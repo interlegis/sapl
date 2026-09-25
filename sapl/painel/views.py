@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import (login_required, permission_required,
                                             user_passes_test)
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db import IntegrityError, transaction
 from django.urls import reverse
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -98,41 +99,35 @@ def votacao_aberta(request):
 def votacao(context, context_vars):
     logger = logging.getLogger(__name__)
     parlamentar = context_vars['votante'].parlamentar
-    parlamentar_presente = False
-    if parlamentar.id in context_vars['presentes']:
-        parlamentar_presente = True
-        context_vars.update({'parlamentar': parlamentar})
-    else:
-        context.update({'error_message':
-                            'Não há presentes na Sessão com a '
-                            'matéria em votação.'})
 
-    if parlamentar_presente:
-        voto = []
-        if context_vars['ordem_dia']:
-            voto = VotoParlamentar.objects.filter(
-                ordem=context_vars['ordem_dia'])
-        elif context_vars['expediente']:
-            voto = VotoParlamentar.objects.filter(
-                expediente=context_vars['expediente'])
-
-        if voto:
-            try:
-                logger.debug(
-                    "Tentando obter objeto VotoParlamentar com parlamentar={}.".format(context_vars['parlamentar']))
-                voto = voto.get(parlamentar=context_vars['parlamentar'])
-                context.update({'voto_parlamentar': voto.voto})
-            except ObjectDoesNotExist:
-                logger.error("Voto do parlamentar {} não computado.".format(context_vars['parlamentar']))
-                context.update(
-                    {'voto_parlamentar': 'Voto não '
-                                         'computado.'})
-    else:
+    if parlamentar.id not in context_vars['presentes']:
         logger.error("Parlamentar com id={} não está presente na "
                      "Ordem do Dia/Expediente em votação.".format(parlamentar.id))
         context.update({'error_message':
                             'Você não está presente na '
                             'Ordem do Dia/Expediente em votação.'})
+        return context, context_vars
+
+    context_vars.update({'parlamentar': parlamentar})
+
+    if context_vars['ordem_dia']:
+        voto = VotoParlamentar.objects.filter(
+            ordem=context_vars['ordem_dia'], parlamentar=parlamentar).first()
+    elif context_vars['expediente']:
+        voto = VotoParlamentar.objects.filter(
+            expediente=context_vars['expediente'], parlamentar=parlamentar).first()
+    else:
+        voto = None
+
+    if voto:
+        context.update({
+            'voto_parlamentar': voto.voto,
+            'status_message': 'Voto registrado. Aguardando o encerramento '
+                              'da votação pela Mesa.',
+        })
+    else:
+        context.update({'status_message': 'Aguardando seu voto.'})
+
     return context, context_vars
 
 
@@ -171,8 +166,11 @@ def sessao_votacao(context, context_vars):
     ordem_dia = get_materia_aberta(pk)
     expediente = get_materia_expediente_aberta(pk)
     errors_msgs = {'materia': 'Não há nenhuma matéria aberta.',
-                   'registro': 'A votação para esta matéria já encerrou.',
-                   'tipo': 'A matéria aberta não é do tipo votação nominal.'}
+                   'registro': 'A Mesa encerrou o recebimento de novos votos '
+                              'para apurar o resultado desta matéria. '
+                              'Aguarde a próxima matéria.',
+                   'tipo': 'Esta matéria não é votada individualmente pelos '
+                          'tablets — a Mesa registra o resultado diretamente.'}
 
     materia_aberta = None
     if ordem_dia:
@@ -218,86 +216,129 @@ def can_vote(context, context_vars, request):
     context_vars.update({'sessao': sessao})
     if sessao and not msg:
         context, context_vars = sessao_votacao(context, context_vars)
-    elif not sessao and msg:
-        return HttpResponseRedirect('/')
+    elif msg:
+        # Mais de uma votação aberta ao mesmo tempo (não deveria acontecer
+        # mais, dado o invariante garantido em abrir_votacao(), mas se
+        # acontecer é preferível mostrar isso explicitamente ao vereador do
+        # que redirecioná-lo silenciosamente para "/".
+        context.update({'error_message': msg})
     else:
         context.update(
             {'error_message': 'Não há nenhuma sessão com matéria aberta.'})
     return context, context_vars
 
 
+def _resolve_votante_context(request):
+    """
+    Resolve o estado atual de votação para o Votante autenticado — usado
+    tanto por votante_view (renderização completa) quanto por
+    votante_status (endpoint leve de polling), para as duas views
+    compartilharem a mesma lógica de can_vote() em vez de duplicá-la.
+    """
+    username = request.user.username
+    if not Votante.objects.filter(user=request.user).exists():
+        logging.getLogger(__name__).warning(
+            f'user={username} sem cadastro de Votante tentou acessar /voto-individual/.'
+        )
+        raise PermissionDenied
+
+    context = {'head_title': str(_('Votação Individual'))}
+    context_vars = {'votante': Votante.objects.get(user=request.user)}
+    return can_vote(context, context_vars, request)
+
+
+@never_cache
+@login_required
+@permission_required('parlamentares.can_vote', raise_exception=True)
+def votante_status(request):
+    """
+    Endpoint leve para o polling automático do tablet (voto_individual.html)
+    — devolve só o suficiente pra decidir se algo mudou desde o último
+    carregamento da página, sem o custo de renderizar a página inteira a
+    cada poll. Não reaproveita get_dados_painel: aquele endpoint exige a
+    permissão do módulo painel (check_permission), que uma conta só-Votante
+    não necessariamente tem.
+    """
+    context, context_vars = _resolve_votante_context(request)
+    materia = context.get('materia')
+    return JsonResponse({
+        'materia_id': materia.id if materia else None,
+        'error_message': context.get('error_message'),
+        'status_message': context.get('status_message'),
+        'voto_parlamentar': context.get('voto_parlamentar'),
+    })
+
+
+@never_cache
 @login_required
 @permission_required('parlamentares.can_vote', raise_exception=True)
 def votante_view(request):
     logger = logging.getLogger(__name__)
     username = request.user.username
 
-    if not Votante.objects.filter(user=request.user).exists():
-        logger.warning(
-            f'user={username} sem cadastro de Votante tentou acessar /voto-individual/.'
-        )
-        raise PermissionDenied
-
     template_name = 'painel/voto_individual.html'
-    context = {'head_title': str(_('Votação Individual'))}
-    context_vars = {'votante': Votante.objects.get(user=request.user)}
-
-    context, context_vars = can_vote(context, context_vars, request)
+    context, context_vars = _resolve_votante_context(request)
 
     # Salva o voto
     if request.method == 'POST':
-        if context_vars['ordem_dia']:
-            try:
-                logger.info("user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e "
-                                                 "ordem={}. "
-                            .format(context_vars['parlamentar'], context_vars['ordem_dia']))
-                voto = VotoParlamentar.objects.get(
-                    parlamentar=context_vars['parlamentar'],
-                    ordem=context_vars['ordem_dia'])
-            except ObjectDoesNotExist:
-                logger.error("user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e ordem={}. "
-                                                  "Criando objeto. "
-                             .format(context_vars['parlamentar'], context_vars['ordem_dia']))
-                voto = VotoParlamentar.objects.create(
-                    parlamentar=context_vars['parlamentar'],
-                    voto=request.POST['voto'],
-                    user=request.user,
-                    ip=get_client_ip(request),
-                    ordem=context_vars['ordem_dia'])
-            else:
-                logger.info("user=" + username + ". VotoParlamentar para parlamentar={} e ordem={} obtido com sucesso."
-                            .format(context_vars['parlamentar'], context_vars['ordem_dia']))
-                voto.voto = request.POST['voto']
-                voto.ip = get_client_ip(request)
-                voto.user = request.user
-                voto.save()
+        voto_submetido = request.POST.get('voto')
+        votos_validos = ('Sim', 'Não', 'Abstenção')
+        ordem = context_vars.get('ordem_dia')
+        expediente = context_vars.get('expediente')
+        parlamentar = context_vars.get('parlamentar')
 
-        elif context_vars['expediente']:
+        if voto_submetido not in votos_validos:
+            messages.error(request, _('Voto inválido.'))
+        elif parlamentar and (ordem or expediente):
             try:
-                logger.info(
-                    "user=" + username + ". Tentando obter objeto VotoParlamentar para parlamentar={} e expediente={}."
-                    .format(context_vars['parlamentar'], context_vars['expediente']))
-                voto = VotoParlamentar.objects.get(
-                    parlamentar=context_vars['parlamentar'],
-                    expediente=context_vars['expediente'])
-            except ObjectDoesNotExist:
-                logger.error(
-                    "user=" + username + ". Erro ao obter VotoParlamentar para parlamentar={} e expediente={}. Criando objeto."
-                    .format(context_vars['parlamentar'], context_vars['expediente']))
-                voto = VotoParlamentar.objects.create(
-                    parlamentar=context_vars['parlamentar'],
-                    voto=request.POST['voto'],
-                    user=request.user,
-                    ip=get_client_ip(request),
-                    expediente=context_vars['expediente'])
-            else:
-                logger.info(
-                    "user=" + username + ". VotoParlamentar para parlamentar={} e expediente={} obtido com sucesso."
-                    .format(context_vars['parlamentar'], context_vars['expediente']))
-                voto.voto = request.POST['voto']
-                voto.ip = get_client_ip(request)
-                voto.user = request.user
-                voto.save()
+                with transaction.atomic():
+                    if ordem:
+                        materia = OrdemDia.objects.select_for_update().get(pk=ordem.pk)
+                        fase_sessao = {'ordem': materia}
+                    else:
+                        materia = ExpedienteMateria.objects.select_for_update().get(
+                            pk=expediente.pk)
+                        fase_sessao = {'expediente': materia}
+
+                    presenca_model = (PresencaOrdemDia if ordem
+                                      else SessaoPlenariaPresenca)
+                    esta_presente = presenca_model.objects.filter(
+                        sessao_plenaria_id=materia.sessao_plenaria_id,
+                        parlamentar=parlamentar).exists()
+
+                    if (not esta_presente or not materia.votacao_aberta or
+                            materia.registro_aberto or
+                            materia.tipo_votacao != VOTACAO_NOMINAL or
+                            RegistroVotacao.objects.filter(**fase_sessao).exists()):
+                        messages.error(
+                            request,
+                            _('A votação não está mais disponível para novos votos.'))
+                    else:
+                        try:
+                            with transaction.atomic():
+                                voto, created = (VotoParlamentar.objects
+                                                 .select_for_update().get_or_create(
+                                                     parlamentar=parlamentar,
+                                                     **fase_sessao))
+                        except IntegrityError:
+                            voto = VotoParlamentar.objects.select_for_update().get(
+                                parlamentar=parlamentar, **fase_sessao)
+
+                        voto.voto = voto_submetido
+                        voto.ip = get_client_ip(request)
+                        voto.user = request.user
+                        voto.save()
+                        logger.info(
+                            "user=%s. VotoParlamentar para parlamentar=%s "
+                            "salvo com sucesso.", username, parlamentar)
+            except IntegrityError:
+                logger.exception(
+                    "user=%s. Falha de integridade ao salvar voto de parlamentar=%s.",
+                    username, parlamentar)
+                messages.error(request, _('Não foi possível registrar o voto. Tente novamente.'))
+        else:
+            messages.error(
+                request, _('A votação não está disponível para novos votos.'))
 
         return HttpResponseRedirect(
             reverse('sapl.painel:voto_individual'))
@@ -550,6 +591,7 @@ def get_votos(response, materia, mostrar_voto):
     return response
 
 
+@never_cache
 @user_passes_test(check_permission)
 def get_dados_painel(request, pk):
     sessao = SessaoPlenaria.objects.get(id=pk)
