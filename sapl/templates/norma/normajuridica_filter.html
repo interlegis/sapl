@@ -62,7 +62,7 @@
               {% endif %}
 
               <strong>Ementa:</strong><br>
-              {{n.ementa|safe}}<br>
+              {{n.ementa}}<br>
 
               {% if n.texto_articulado.exists and not n.texto_articulado.first.privacidade %}
                 <a href="{% url 'sapl.norma:normajuridica_detail' n.id %}">

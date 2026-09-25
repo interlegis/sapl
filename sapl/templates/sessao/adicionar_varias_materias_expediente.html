@@ -65,7 +65,7 @@
                 <strong>Localização Atual:</strong> &nbsp;{{ m.tramitacao_set.first.unidade_tramitacao_destino|default_if_none:"Não informado" }}</br>
                 <strong>Status:</strong> &nbsp;{{ m.tramitacao_set.first.status|default_if_none:"Não informado" }}</br>
                 <strong>Data da última Tramitação:</strong> &nbsp;{{ m.tramitacao_set.first.data_tramitacao|default_if_none:"Não informado" }}</br>
-                <strong>Ementa:</strong>&nbsp;{{ m.ementa|safe }}</br>
+                <strong>Ementa:</strong>&nbsp;{{ m.ementa }}</br>
                 <p></p>
                 <td width="20%%">
                   <input type="radio" name="tipo_votacao_{{ m.id }}" id="tipo_votacao_{{ m.id }}_1" value="1"> <label for="tipo_votacao_{{ m.id }}_1">Simbólica</label>

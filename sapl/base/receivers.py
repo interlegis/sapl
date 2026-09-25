@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
+from django.db.models import TextField
 from django.db.models.fields.files import FileField
 from django.db.models.signals import post_delete, post_save, \
     post_migrate, pre_save, pre_migrate
@@ -22,10 +23,14 @@ from sapl.decorators import receiver_multi_senders
 from sapl.materia.models import Tramitacao
 from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import TramitacaoAdministrativo
+from sapl.sanitize import sanitize_field
 from sapl.utils import get_base_url, models_with_gr_for_model
 
 
 models_with_gr_for_autor = models_with_gr_for_model(Autor)
+
+SAPL_APP_LABELS = frozenset(
+    app.rsplit('.', 1)[-1] for app in settings.SAPL_APPS)
 
 
 @receiver_multi_senders(post_save, senders=models_with_gr_for_autor)
@@ -477,6 +482,43 @@ def signed_files_extraction_pre_save_signal(sender, instance, **kwargs):
     signed_files_extraction_function(sender, instance, **kwargs)
 
 
+# Cache dos TextField por modelo: a introspecção de _meta.fields a cada save
+# pesa mais que a própria sanitização, e compilacao salva Dispositivo em laço.
+_text_fields_cache = {}
+
+
+def get_text_fields(model):
+    try:
+        return _text_fields_cache[model]
+    except KeyError:
+        fields = [f.name for f in model._meta.fields
+                  if isinstance(f, TextField)]
+        _text_fields_cache[model] = fields
+        return fields
+
+
+@receiver(pre_save, dispatch_uid='sanitize_textfields_pre_save_signal')
+def sanitize_textfields_pre_save_signal(sender, instance, **kwargs):
+    """Remove HTML/JavaScript perigoso de todo TextField dos modelos do SAPL.
+
+    Cobre forms, a API do drfautoapi, o admin e o shell num único ponto.
+    Ver sapl.sanitize para as políticas por campo.
+    """
+    if sender._meta.app_label not in SAPL_APP_LABELS:
+        return
+
+    for fieldname in get_text_fields(sender):
+        value = getattr(instance, fieldname, None)
+        if not value:
+            continue
+        sanitized = sanitize_field(sender, fieldname, value)
+        if sanitized != value:
+            setattr(instance, fieldname, sanitized)
+
+
 @receiver(pre_migrate, dispatch_uid='disconnect_signals_pre_migrate')
 def disconnect_signals_pre_migrate(*args, **kwargs):
+    # sanitize_textfields_pre_save_signal não é desconectado aqui de propósito:
+    # é barato e idempotente, e desconectá-lo deixaria sem proteção qualquer
+    # migrate rodado no mesmo processo (é o caso da suíte de testes).
     pre_save.disconnect(dispatch_uid='signed_files_extraction_pre_save_signal')

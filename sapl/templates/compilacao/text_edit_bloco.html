@@ -43,7 +43,7 @@
           {% if not node.dpt.texto and not node.td.dispositivo_de_articulacao %}
             <span class="semtexto">({{node.td}} sem texto)</span>
           {%else%}
-            {% if node.da and node.dpt.texto_atualizador and node in node.da.alts%}{{ node.dpt.texto_atualizador|safe }}{% else %}{{ node.dpt.texto|safe }}{% endif %}
+            {% if node.da and node.dpt.texto_atualizador and node in node.da.alts%}{{ node.dpt.texto_atualizador|sanitize }}{% else %}{{ node.dpt.texto|sanitize }}{% endif %}
           {%endif%}
           {% if node.na %}
             <a class="dpt-link nota-alteracao" href="{% url 'sapl.compilacao:ta_text_edit' node.da.dpt.ta_id %}#{{node.da.dpt.pk}}" title="{% trans 'Abrir Edição do Dispositivo Alterador'%}">

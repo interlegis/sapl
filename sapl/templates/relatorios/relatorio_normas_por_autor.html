@@ -47,7 +47,7 @@
                     <td>
                       {{norma.tipo.sigla}} {{norma.numero}}/{{norma.ano}}
                     </td>
-                    <td>{% autoescape off %}{{norma.ementa}}<br>{{norma.observacao}}{% endautoescape %}</td>
+                    <td>{{norma.ementa}}<br>{{norma.observacao}}</td>
                     <td>
                         {% if norma.autorianorma_set.first != norma.autorianorma_set.last %}
                           {% for autor in norma.autorianorma_set.all %}

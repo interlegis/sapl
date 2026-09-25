@@ -52,7 +52,7 @@
                     <td><a href="{% url 'sapl.norma:normajuridica_detail' norma.pk %}">
                       {{norma.tipo.sigla}} {{norma.numero}}/{{norma.ano}}
                     </a></td>
-                    <td>{% autoescape off %}{{norma.ementa}}<br>{{norma.observacao}}{% endautoescape %}</td>
+                    <td>{{norma.ementa}}<br>{{norma.observacao}}</td>
                     <td>
                           {% for autoria in norma.autorianorma_set.all %}
                             {% if autoria.autor != autor %}

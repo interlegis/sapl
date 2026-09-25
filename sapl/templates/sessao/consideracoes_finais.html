@@ -15,7 +15,7 @@
       <input type="submit" name="delete" value="Apagar" class="btn btn-danger" />
     </form>
   {% else %}
-  {{object.consideracoesfinais.conteudo|safe}}
+  {{object.consideracoesfinais.conteudo|sanitize}}
   {% endif %}
 {% endblock detail_content %}
 
