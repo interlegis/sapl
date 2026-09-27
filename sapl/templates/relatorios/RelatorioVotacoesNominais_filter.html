@@ -51,13 +51,13 @@
                    <b><a href="{% url 'sapl.materia:materialegislativa_detail' rv.ordem.materia_id %}">{{ rv.ordem.materia }}</a></b> - {{ rv.ordem.materia.ementa }}<br />
                    <b>Momento da Votação: </b><a href="{% url 'sapl.sessao:ordemdia_list' rv.ordem.sessao_plenaria_id %}">Ordem do Dia</a> -
                    <a href="{% url 'sapl.sessao:sessaoplenaria_detail' rv.ordem.sessao_plenaria_id %}">{{ rv.ordem.sessao_plenaria }}</a><br />
-                   <b>Data da Votação: </b>{{ rv.data_hora|date:"d/m/Y" }}<br />
+                   <b>Data da Votação: </b>{{ rv.ordem.data_ordem|date:"d/m/Y" }}<br />
                    <b>Resultado: </b>{{ rv.ordem.resultado }}
                  {% else %}
                    <b><a href="{% url 'sapl.materia:materialegislativa_detail' rv.expediente.materia_id %}">{{ rv.expediente.materia }}</a></b> - {{ rv.expediente.materia.ementa }}<br />
                    <b>Momento da Votação: </b><a href="{% url 'sapl.sessao:expedientemateria_list' rv.expediente.sessao_plenaria_id %}">Expediente</a> -
                    <a href="{% url 'sapl.sessao:sessaoplenaria_detail' rv.expediente.sessao_plenaria_id %}">{{ rv.expediente.sessao_plenaria }}</a><br />
-                   <b>Data da Votação: </b>{{ rv.data_hora|date:"d/m/Y" }}<br />
+                   <b>Data da Votação: </b>{{ rv.expediente.data_ordem|date:"d/m/Y" }}<br />
                    <b>Resultado: </b>{{ rv.expediente.resultado }}
                  {% endif %}
              </td>

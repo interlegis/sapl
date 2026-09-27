@@ -31,12 +31,12 @@
           {% if rv.ordem %}
             <b>Matéria: {{ rv.ordem.materia }}</b> - {{ rv.ordem.materia.ementa }}<br />
             <b>Momento da Votação: </b>Ordem do Dia - {{ rv.ordem.sessao_plenaria }}<br />
-            <b>Data da Votação: </b>{{ rv.data_hora|date:"d/m/Y" }}<br />
+            <b>Data da Votação: </b>{{ rv.ordem.data_ordem|date:"d/m/Y" }}<br />
             <b>Resultado: </b>{{ rv.ordem.resultado }}<br /><br />
           {% else %}
             <b>Matéria: {{ rv.expediente.materia }}</b> - {{ rv.expediente.materia.ementa }}<br />
             <b>Momento da Votação: </b>Expediente - {{ rv.expediente.sessao_plenaria }}<br />
-            <b>Data da Votação: </b>{{ rv.data_hora|date:"d/m/Y" }}<br />
+            <b>Data da Votação: </b>{{ rv.expediente.data_ordem|date:"d/m/Y" }}<br />
             <b>Resultado: </b>{{ rv.expediente.resultado }}<br /><br />
           {% endif %}
          </div>
