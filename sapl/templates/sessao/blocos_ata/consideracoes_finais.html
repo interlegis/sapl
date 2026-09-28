@@ -1,8 +1,9 @@
+{% load common_tags %}
 {% if object.consideracoesfinais.conteudo %}
     <fieldset>
         <p style="text-align: justify;margin-top: 0">
                 <strong>Considerações Finais: </strong>
-                {{object.consideracoesfinais.conteudo|striptags}}
+                {{object.consideracoesfinais.conteudo|sanitize|striptags}}
         </p>
     </fieldset>
 {% endif %}

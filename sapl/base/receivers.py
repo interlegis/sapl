@@ -504,6 +504,9 @@ def sanitize_textfields_pre_save_signal(sender, instance, **kwargs):
     Cobre forms, a API do drfautoapi, o admin e o shell num único ponto.
     Ver sapl.sanitize para as políticas por campo.
     """
+    # loaddata (inclusive dentro de migrations) grava o objeto literalmente
+    if kwargs.get('raw'):
+        return
     if sender._meta.app_label not in SAPL_APP_LABELS:
         return
 

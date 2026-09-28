@@ -1,10 +1,16 @@
 import pytest
+from django.db.models.signals import pre_save
+from django.template import Context, Template
 from model_bakery import baker
 
+from sapl.compilacao.forms import TipoDispositivoForm
+from sapl.compilacao.models import TipoDispositivo, TipoTextoArticulado
 from sapl.crispy_layout_mixin import get_field_display
 from sapl.lexml.models import LexmlProvedor
+from sapl.parlamentares.models import Parlamentar
 from sapl.protocoloadm.models import TramitacaoAdministrativo
-from sapl.sanitize import sanitize_field, sanitize_html, sanitize_scope
+from sapl.sanitize import (html_fragment_is_balanced, sanitize_field,
+                           sanitize_html, sanitize_scope)
 from sapl.sessao.models import ExpedienteSessao
 
 
@@ -16,9 +22,10 @@ def test_plain_remove_marcacao_e_preserva_texto():
     assert sanitize_html('<div>a</div><div>b</div>') == 'ab'
 
 
-def test_plain_escapa_caracteres_especiais():
-    assert sanitize_html('Valor < 10 & prazo > 5') == \
-        'Valor &lt; 10 &amp; prazo &gt; 5'
+def test_plain_guarda_texto_puro_sem_escape():
+    """O escape é da renderização; gravado escapado, apareceria &amp; na tela."""
+    assert sanitize_html('Valor < 10 & prazo > 5') == 'Valor < 10 & prazo > 5'
+    assert sanitize_html('ALFA &amp; BETA') == 'ALFA & BETA'
 
 
 def test_plain_preserva_quebras_de_linha():
@@ -39,11 +46,7 @@ def test_valores_vazios_atravessam():
     'texto &amp; cia',
 ])
 def test_plain_e_idempotente(valor):
-    """Propriedade da qual dependem as duas camadas (pre_save + renderização).
-
-    Se sanitizar duas vezes não fosse estável, o valor gravado seria
-    re-escapado a cada exibição.
-    """
+    """Salvar de novo um registro já sanitizado não altera o texto."""
     uma_vez = sanitize_html(valor)
     assert sanitize_html(uma_vez) == uma_vez
 
@@ -108,6 +111,8 @@ def test_sanitize_scope():
     assert sanitize_scope(TramitacaoAdministrativo, 'texto') == 'plain'
     assert sanitize_scope(ExpedienteSessao, 'conteudo') == 'rich'
     assert sanitize_scope(LexmlProvedor, 'xml') == 'exempt'
+    assert sanitize_scope(TipoTextoArticulado, 'rodape_global') == 'exempt'
+    assert sanitize_scope(Parlamentar, 'biografia') == 'rich'
 
 
 def test_sanitize_field_respeita_isencao():
@@ -161,3 +166,63 @@ def test_get_field_display_protege_linha_legada():
 
     __, display = get_field_display(t, 'texto')
     assert '<script>' not in display
+
+
+def test_pre_save_ignora_raw():
+    """loaddata (inclusive em migrations) grava o objeto literalmente."""
+    t = TramitacaoAdministrativo(texto='<b>fixture</b>')
+    pre_save.send(sender=TramitacaoAdministrativo, instance=t, raw=True)
+    assert t.texto == '<b>fixture</b>'
+
+
+def test_get_field_display_escapa_texto_puro_uma_unica_vez():
+    t = TramitacaoAdministrativo(texto='ALFA & BETA < 30')
+    __, display = get_field_display(t, 'texto')
+    assert 'ALFA &amp; BETA &lt; 30' in display
+    assert '&amp;amp;' not in display
+
+
+def test_get_field_display_escapa_campo_isento():
+    p = LexmlProvedor(xml='<xml><script>x</script></xml>')
+    __, display = get_field_display(p, 'xml')
+    assert '<script>' not in display
+    assert '&lt;xml&gt;' in display
+
+
+def test_striptags_apos_sanitize_nao_escapa_duas_vezes():
+    """Blocos da ata: texto puro, sem entidades escapadas de novo."""
+    t = Template('{% load common_tags %}{{ v|sanitize|striptags }}')
+    saida = t.render(Context({
+        'v': '<p>Ofício&nbsp;12 lido &amp; arquivado</p>'
+             '<script>alert(1)</script><img src=x onerror=alert(1)>'}))
+    assert saida == 'Ofício&nbsp;12 lido &amp; arquivado'
+
+
+@pytest.mark.parametrize('valor, esperado', [
+    ('<br>', True),
+    ('<br/>', True),
+    ('<div class="titulo">Justificativa</div>', True),
+    ('Art. ', True),
+    ('<span class="x">', False),
+    ('</span>', False),
+    ('<b><i>x</b></i>', False),
+])
+def test_html_fragment_is_balanced(valor, esperado):
+    assert html_fragment_is_balanced(valor) is esperado
+
+
+@pytest.mark.django_db
+def test_tipo_dispositivo_form_rejeita_fragmento_desbalanceado():
+    td = baker.make(TipoDispositivo)
+    dados = {f: getattr(td, f) or '' for f in TipoDispositivoForm.Meta.fields}
+    dados['rotulo_prefixo_html'] = '<span class="rotulo">'
+    dados['rotulo_sufixo_html'] = '</span>'
+    form = TipoDispositivoForm(data=dados, instance=td)
+    assert not form.is_valid()
+    assert 'rotulo_prefixo_html' in form.errors
+    assert 'rotulo_sufixo_html' in form.errors
+
+    dados['rotulo_prefixo_html'] = '<br/>'
+    dados['rotulo_sufixo_html'] = ''
+    form = TipoDispositivoForm(data=dados, instance=td)
+    assert 'rotulo_prefixo_html' not in form.errors

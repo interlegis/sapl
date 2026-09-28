@@ -6,15 +6,21 @@ e ``sapl.utils`` já importa ``sapl.crispy_layout_mixin``.
 
 Duas políticas:
 
-* ``plain`` — remove toda a marcação e preserva o texto. É o padrão para
+* ``plain`` — remove toda a marcação e guarda texto puro, com as entidades
+  já decodificadas: o escape fica por conta da renderização. É o padrão para
   qualquer ``TextField``.
 * ``rich`` — allowlist para os campos editados via TinyMCE, que contêm HTML
   legítimo (negrito, listas, tabelas e links).
 
-Ambas são idempotentes: aplicar duas vezes produz o mesmo resultado. É essa
-propriedade que permite sanitizar tanto no ``pre_save`` quanto na renderização
-sem que os efeitos se acumulem.
+A ``rich`` é idempotente, o que permite aplicá-la tanto no ``pre_save`` quanto
+na renderização. A ``plain`` só não é idempotente para texto que seja HTML
+codificado em entidades (``&lt;b&gt;``): a primeira passada decodifica, a
+segunda remove a tag. Na renderização, campos ``plain`` são escapados em vez
+de re-sanitizados.
 """
+
+import html
+from html.parser import HTMLParser
 
 import nh3
 
@@ -54,6 +60,10 @@ SANITIZE_CLEAN_CONTENT_TAGS = {'script', 'style'}
 # compilacao.TipoDispositivo são fragmentos de template configurados por
 # administradores.
 RICH_TEXT_FIELDS = {
+    'base.CasaLegislativa': {'informacao_geral'},
+    'norma.NormaRelacionada': {'resumo'},
+    'parlamentares.Legislatura': {'observacao'},
+    'parlamentares.Parlamentar': {'biografia'},
     'sessao.ExpedienteSessao': {'conteudo'},
     'sessao.OcorrenciaSessao': {'conteudo'},
     'sessao.ConsideracoesFinais': {'conteudo'},
@@ -65,12 +75,12 @@ RICH_TEXT_FIELDS = {
     },
 }
 
-# Modelos cujos TextField não devem ser tocados em hipótese alguma.
-SANITIZE_EXEMPT_MODELS = {
+# Campos que não devem ser tocados em hipótese alguma.
+SANITIZE_EXEMPT_FIELDS = {
     # xml é XML fornecido pela equipe do LexML; já é escapado em pretty_xml
-    'lexml.LexmlProvedor',
+    'lexml.LexmlProvedor': {'xml'},
     # rodape_global é interpolado dentro de um content: de CSS
-    'compilacao.TipoTextoArticulado',
+    'compilacao.TipoTextoArticulado': {'rodape_global'},
 }
 
 
@@ -81,7 +91,7 @@ def model_key(model):
 def sanitize_scope(model, fieldname):
     """Retorna 'exempt', 'rich' ou 'plain' para um campo de um modelo."""
     key = model_key(model)
-    if key in SANITIZE_EXEMPT_MODELS:
+    if fieldname in SANITIZE_EXEMPT_FIELDS.get(key, ()):
         return 'exempt'
     if fieldname in RICH_TEXT_FIELDS.get(key, ()):
         return 'rich'
@@ -91,7 +101,8 @@ def sanitize_scope(model, fieldname):
 def sanitize_html(value, rich=False):
     """Remove HTML/JavaScript perigoso de ``value``.
 
-    Com ``rich=False`` toda a marcação é removida e apenas o texto sobra.
+    Com ``rich=False`` toda a marcação é removida e apenas o texto sobra,
+    sem escape: ``&`` continua ``&``.
     Com ``rich=True`` aplica-se a allowlist: links são preservados, mas
     esquemas de URL fora de SANITIZE_URL_SCHEMES (javascript:, data:) e
     manipuladores de evento (onclick, onerror) são descartados.
@@ -112,21 +123,60 @@ def sanitize_html(value, rich=False):
             link_rel='noopener noreferrer',
             strip_comments=True)
 
-    return nh3.clean(
+    return html.unescape(nh3.clean(
         value,
         tags=set(),
         attributes={},
         clean_content_tags=SANITIZE_CLEAN_CONTENT_TAGS,
         link_rel=None,
-        strip_comments=True)
+        strip_comments=True))
 
 
 def sanitize_field(model, fieldname, value):
     """Sanitiza ``value`` conforme a política do campo.
 
-    Campos de modelos isentos atravessam sem modificação.
+    Campos isentos atravessam sem modificação.
     """
     scope = sanitize_scope(model, fieldname)
     if scope == 'exempt':
         return value
     return sanitize_html(value, rich=(scope == 'rich'))
+
+
+_VOID_TAGS = {
+    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link',
+    'meta', 'param', 'source', 'track', 'wbr',
+}
+
+
+class _BalanceChecker(HTMLParser):
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.stack = []
+        self.balanced = True
+
+    def handle_starttag(self, tag, attrs):
+        if tag not in _VOID_TAGS:
+            self.stack.append(tag)
+
+    def handle_startendtag(self, tag, attrs):
+        pass
+
+    def handle_endtag(self, tag):
+        if tag in _VOID_TAGS:
+            return
+        if not self.stack or self.stack.pop() != tag:
+            self.balanced = False
+
+
+def html_fragment_is_balanced(value):
+    """Indica se toda tag aberta em ``value`` é fechada nele mesmo.
+
+    Fragmentos desbalanceados (``<span>`` num campo, ``</span>`` em outro)
+    são reescritos pela sanitização ``rich``, que fecha ou descarta as tags.
+    """
+    checker = _BalanceChecker()
+    checker.feed(value)
+    checker.close()
+    return checker.balanced and not checker.stack
