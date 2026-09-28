@@ -1,4 +1,8 @@
+import re
+from unittest import mock
+
 import pytest
+from django.contrib.messages import get_messages
 from django.db import IntegrityError
 from django.urls import reverse
 from model_bakery import baker
@@ -63,20 +67,35 @@ def test_get_registrar_votacao_nao_bloqueia_novos_votos(admin_client):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_post_sem_acao_reconhecida_apenas_renderiza(admin_client):
-    """
-    O botão "Registrar Votação" agora faz POST (para evitar cache/replay de
-    GET), mas sem nenhuma chave de ação reconhecida isso deve continuar
-    sendo pura navegação, sem nenhum efeito colateral.
-    """
+def test_post_sem_acao_reconhecida_redireciona_para_registro(admin_client):
     sessao, ordem = _ordem_nominal_aberta()
     _presente(sessao)
 
-    response = admin_client.post(_registrar_url(sessao, ordem), {})
+    response = admin_client.post(_registrar_url(sessao, ordem) + '?page=2', {})
 
-    assert response.status_code == 200
+    assert response.status_code == 302
+    assert response.url == _registrar_url(sessao, ordem) + '?page=2'
     ordem.refresh_from_db()
     assert ordem.registro_aberto is False
+
+
+@pytest.mark.django_db(transaction=False)
+def test_botao_registrar_votacao_nominal_usa_get(admin_client):
+    """
+    A tela de registro não tem efeito colateral no GET; com o botão em GET
+    o ?page vai na URL e é preservado até o redirect final do post().
+    """
+    sessao, ordem = _ordem_nominal_aberta()
+
+    response = admin_client.get(
+        reverse('sapl.sessao:ordemdia_list', kwargs={'pk': sessao.pk}))
+
+    conteudo = response.content.decode()
+    form = re.search(
+        r'<form action="%s"[^>]*>' % re.escape(_registrar_url(sessao, ordem)),
+        conteudo)
+    assert form
+    assert form.group(0) == '<form action="%s">' % _registrar_url(sessao, ordem)
 
 
 @pytest.mark.django_db(transaction=False)
@@ -144,6 +163,88 @@ def test_salvar_votacao_nao_sobrescreve_voto_ja_registrado(admin_client):
     ordem.refresh_from_db()
     assert ordem.votacao_aberta is False
     assert ordem.registro_aberto is False
+
+    # O 'Não Votou' enviado para quem já votou é só o valor padrão do
+    # <select>, não um conflito — não pode gerar o aviso de não sobrescrito.
+    avisos = [str(m) for m in get_messages(response.wsgi_request)]
+    assert not any('não foram sobrescritos' in a for a in avisos)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_salvar_votacao_avisa_quando_voto_do_tablet_diverge_do_formulario(admin_client):
+    sessao, ordem = _ordem_nominal_aberta()
+    ja_votou = _presente(sessao)
+    baker.make(VotoParlamentar, ordem=ordem, parlamentar=ja_votou, voto='Sim')
+    tipo_resultado = baker.make(TipoResultadoVotacao, nome='Aprovada', natureza='A')
+
+    response = admin_client.post(_registrar_url(sessao, ordem), {
+        'salvar-votacao': '1',
+        'resultado_votacao': str(tipo_resultado.pk),
+        'observacao': '',
+        'voto_parlamentar': ['Não:{}'.format(ja_votou.pk)],
+    })
+
+    assert response.status_code == 302
+    assert VotoParlamentar.objects.get(ordem=ordem, parlamentar=ja_votou).voto == 'Sim'
+    avisos = [str(m) for m in get_messages(response.wsgi_request)]
+    assert any('não foram sobrescritos' in a for a in avisos)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_salvar_votacao_registra_nao_votou_para_presentes_sem_voto(admin_client):
+    """
+    Relatórios, transparência e o painel leem VotoParlamentar por votação:
+    quem estava presente e não votou precisa ficar registrado como
+    'Não Votou', vinculado ao RegistroVotacao.
+    """
+    sessao, ordem = _ordem_nominal_aberta()
+    votou = _presente(sessao)
+    nao_votou = _presente(sessao)
+    tipo_resultado = baker.make(TipoResultadoVotacao, nome='Aprovada', natureza='A')
+
+    response = admin_client.post(_registrar_url(sessao, ordem), {
+        'salvar-votacao': '1',
+        'resultado_votacao': str(tipo_resultado.pk),
+        'observacao': '',
+        'voto_parlamentar': [
+            'Sim:{}'.format(votou.pk),
+            'Não Votou:{}'.format(nao_votou.pk),
+        ],
+    })
+
+    assert response.status_code == 302
+    registro = RegistroVotacao.objects.get(ordem=ordem)
+    assert registro.numero_votos_sim == 1
+    voto = VotoParlamentar.objects.get(ordem=ordem, parlamentar=nao_votou)
+    assert voto.voto == 'Não Votou'
+    assert voto.votacao_id == registro.id
+
+
+@pytest.mark.django_db(transaction=False)
+def test_salvar_votacao_ignora_voto_de_quem_teve_presenca_removida(admin_client):
+    """
+    Parlamentar vota pelo tablet, sai e tem a presença removida antes do
+    encerramento: o voto não entra na contagem e é apagado.
+    """
+    sessao, ordem = _ordem_nominal_aberta()
+    presente = _presente(sessao)
+    saiu = _presente(sessao)
+    baker.make(VotoParlamentar, ordem=ordem, parlamentar=saiu, voto='Sim')
+    PresencaOrdemDia.objects.filter(sessao_plenaria=sessao, parlamentar=saiu).delete()
+    tipo_resultado = baker.make(TipoResultadoVotacao, nome='Rejeitada', natureza='R')
+
+    response = admin_client.post(_registrar_url(sessao, ordem), {
+        'salvar-votacao': '1',
+        'resultado_votacao': str(tipo_resultado.pk),
+        'observacao': '',
+        'voto_parlamentar': ['Não:{}'.format(presente.pk)],
+    })
+
+    assert response.status_code == 302
+    registro = RegistroVotacao.objects.get(ordem=ordem)
+    assert registro.numero_votos_sim == 0
+    assert registro.numero_votos_nao == 1
+    assert not VotoParlamentar.objects.filter(ordem=ordem, parlamentar=saiu).exists()
 
 
 @pytest.mark.django_db(transaction=False)
@@ -304,6 +405,93 @@ def test_abrir_votacao_ja_aberta_e_idempotente(admin_client):
     assert not any('foram fechadas' in m for m in mensagens)
 
 
+def _abrir_votacao_url(sessao, ordem):
+    return reverse('sapl.sessao:abrir_votacao',
+                   kwargs={'pk': ordem.pk, 'spk': sessao.pk}) + '?tipo_materia=ordem'
+
+
+@pytest.mark.django_db(transaction=False)
+def test_abrir_outra_votacao_zera_bloqueio_da_anterior(admin_client):
+    """
+    Abrir Y sem encerrar X fecha X; X não pode voltar com os tablets
+    bloqueados (registro_aberto=True) quando for reaberta.
+    """
+    sessao, x = _ordem_nominal_aberta()
+    sessao.iniciada = True
+    sessao.finalizada = False
+    sessao.save()
+    _presente(sessao)
+    x.registro_aberto = True
+    x.save()
+    y = baker.make(OrdemDia, sessao_plenaria=sessao, materia=_materia(),
+                   tipo_votacao=NOMINAL, votacao_aberta=False)
+
+    admin_client.get(_abrir_votacao_url(sessao, y))
+
+    x.refresh_from_db()
+    y.refresh_from_db()
+    assert y.votacao_aberta is True
+    assert x.votacao_aberta is False
+    assert x.registro_aberto is False
+
+    # Legado: matéria fechada que ficou com registro_aberto=True.
+    OrdemDia.objects.filter(pk=x.pk).update(registro_aberto=True)
+    admin_client.get(_abrir_votacao_url(sessao, x))
+
+    x.refresh_from_db()
+    assert x.votacao_aberta is True
+    assert x.registro_aberto is False
+
+
+@pytest.mark.django_db(transaction=False)
+def test_abrir_votacao_concorrente_mostra_erro_em_vez_de_500(admin_client):
+    """
+    O lock de abrir_votacao() é por sessão, mas a unicidade de
+    votacao_aberta é global: uma abertura simultânea em outra sessão faz o
+    save cair no índice parcial. O fechamento das outras votações é
+    desfeito junto, então a mensagem "foram fechadas" não pode aparecer.
+    """
+    sessao, ordem = _ordem_nominal_aberta()
+    ordem.votacao_aberta = False
+    ordem.save()
+    _, outra = _ordem_nominal_aberta()
+    sessao.iniciada = True
+    sessao.finalizada = False
+    sessao.save()
+    _presente(sessao)
+
+    with mock.patch.object(OrdemDia, 'save', side_effect=IntegrityError):
+        response = admin_client.get(_abrir_votacao_url(sessao, ordem), follow=True)
+
+    assert response.status_code == 200
+    ordem.refresh_from_db()
+    outra.refresh_from_db()
+    assert ordem.votacao_aberta is False
+    assert outra.votacao_aberta is True
+    mensagens = [str(m) for m in response.context['messages']]
+    assert any('aberta simultaneamente' in m for m in mensagens)
+    assert not any('foram fechadas' in m for m in mensagens)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_abrir_votacao_avisa_que_fechou_as_outras(admin_client):
+    sessao, ordem = _ordem_nominal_aberta()
+    ordem.votacao_aberta = False
+    ordem.save()
+    _, outra = _ordem_nominal_aberta()
+    sessao.iniciada = True
+    sessao.finalizada = False
+    sessao.save()
+    _presente(sessao)
+
+    response = admin_client.get(_abrir_votacao_url(sessao, ordem), follow=True)
+
+    outra.refresh_from_db()
+    assert outra.votacao_aberta is False
+    mensagens = [str(m) for m in response.context['messages']]
+    assert any('foram fechadas' in m for m in mensagens)
+
+
 @pytest.mark.django_db(transaction=False)
 def test_unique_constraint_impede_voto_duplicado(admin_client):
     sessao, ordem = _ordem_nominal_aberta()
@@ -327,14 +515,14 @@ def test_unique_constraint_impede_duas_ordens_abertas():
 
 
 @pytest.mark.django_db(transaction=False)
-def test_migracao_0070_remove_votos_duplicados_antes_da_constraint():
+def test_migracao_0071_remove_votos_duplicados_antes_da_constraint():
     import importlib
 
     from django.apps import apps as real_apps
     from django.db import connection
 
     migracao = importlib.import_module(
-        'sapl.sessao.migrations.0070_votoparlamentar_unique_constraint')
+        'sapl.sessao.migrations.0071_votoparlamentar_unique_constraint')
 
     with connection.cursor() as cursor:
         cursor.execute(
@@ -356,9 +544,9 @@ def test_migracao_0070_remove_votos_duplicados_antes_da_constraint():
 
 
 @pytest.mark.django_db(transaction=False)
-def test_migracao_0071_fecha_duplicatas_antes_da_constraint():
+def test_migracao_0072_fecha_duplicatas_antes_da_constraint():
     """
-    A função de dados da migration 0071 precisa fechar duplicatas
+    A função de dados da migration 0072 precisa fechar duplicatas
     pré-existentes antes do AddConstraint — senão a migration falharia ao
     ser aplicada num banco com dado antigo (de antes desta invariante
     existir). Testa a função isoladamente: como o teste roda dentro de uma
@@ -371,7 +559,7 @@ def test_migracao_0071_fecha_duplicatas_antes_da_constraint():
     from django.db import connection
 
     migracao = importlib.import_module(
-        'sapl.sessao.migrations.0071_votacao_aberta_unique_constraint')
+        'sapl.sessao.migrations.0072_votacao_aberta_unique_constraint')
 
     with connection.cursor() as cursor:
         cursor.execute('DROP INDEX sessao_ordemdia_unique_votacao_aberta')
@@ -379,15 +567,23 @@ def test_migracao_0071_fecha_duplicatas_antes_da_constraint():
     sessao, mais_antiga = _ordem_nominal_aberta()
     mais_recente = baker.make(OrdemDia, sessao_plenaria=sessao,
                               materia=mais_antiga.materia, tipo_votacao=NOMINAL,
-                              votacao_aberta=True)
+                              votacao_aberta=True, registro_aberto=True)
     assert mais_recente.pk > mais_antiga.pk
+    # Legado: o GET antigo da tela de registro deixava registro_aberto=True
+    # em matérias já encerradas.
+    encerrada = baker.make(OrdemDia, sessao_plenaria=sessao,
+                           materia=mais_antiga.materia, tipo_votacao=NOMINAL,
+                           votacao_aberta=False, registro_aberto=True)
 
-    migracao.fecha_matérias_abertas_duplicadas(real_apps, None)
+    migracao.fecha_materias_abertas_duplicadas(real_apps, None)
 
     mais_antiga.refresh_from_db()
     mais_recente.refresh_from_db()
+    encerrada.refresh_from_db()
     assert mais_antiga.votacao_aberta is False
     assert mais_recente.votacao_aberta is True
+    assert mais_recente.registro_aberto is False
+    assert encerrada.registro_aberto is False
 
 
 @pytest.mark.django_db(transaction=False)

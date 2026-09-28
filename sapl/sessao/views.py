@@ -13,7 +13,6 @@ from django.db import IntegrityError, transaction
 from django.db.models import Max, Q
 from django.http import JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
-from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.utils import timezone
@@ -130,7 +129,12 @@ def verifica_presenca(request, model, spk, is_leitura=False):
     return True
 
 
-def verifica_votacoes_abertas(request):
+def verifica_votacoes_abertas(request, mensagens):
+    """
+    Fecha as votações abertas. A mensagem para o usuário vai para
+    `mensagens`, e o chamador só a registra depois do commit: se a transação
+    for desfeita, as votações não foram fechadas.
+    """
     votacoes_abertas = SessaoPlenaria.objects.filter(
         Q(ordemdia__votacao_aberta=True) |
         Q(expedientemateria__votacao_aberta=True)).distinct()
@@ -149,18 +153,15 @@ def verifica_votacoes_abertas(request):
                     ', '.join(msg_abertas) + '. Estas votações ou leituras foram fechadas.')
         msg = _('Já existem votações ou leituras abertas nas seguintes Sessões: ' +
                 ', '.join(msg_abertas) + '. Estas votações ou leituras foram fechadas.')
-        messages.add_message(request, messages.INFO, msg)
+        mensagens.append(msg)
 
-        for sessao in votacoes_abertas:
-            ordens = sessao.ordemdia_set.filter(votacao_aberta=True)
-            expediente = sessao.expedientemateria_set.filter(
-                votacao_aberta=True)
-            for o in ordens:
-                o.votacao_aberta = False
-                o.save()
-            for e in expediente:
-                e.votacao_aberta = False
-                e.save()
+        # update() em vez de save(): só toca estes dois campos e reavalia o
+        # WHERE sob o lock da linha, sem regravar um resultado que um
+        # "Encerrar Votação" concorrente tenha acabado de salvar.
+        OrdemDia.objects.filter(votacao_aberta=True).update(
+            votacao_aberta=False, registro_aberto=False)
+        ExpedienteMateria.objects.filter(votacao_aberta=True).update(
+            votacao_aberta=False, registro_aberto=False)
 
     return True
 
@@ -205,36 +206,49 @@ def abrir_votacao(request, pk, spk):
     is_leitura = materia_votacao.tipo_votacao == 4
     is_expediente = model is ExpedienteMateria
     opened = False
+    mensagens = []
 
-    with transaction.atomic():
-        # select_for_update trava a linha da SessaoPlenaria durante toda a
-        # checagem+fechamento+abertura, para que dois "abrir votação"
-        # concorrentes (duplo clique, ou uma requisição lenta seguida de
-        # nova tentativa) não deixem duas matérias com votacao_aberta=True
-        # ao mesmo tempo — sapl/painel/views.py::votacao_aberta() trata
-        # esse caso redirecionando todos os tablets sem nenhuma mensagem
-        # clara de erro.
-        SessaoPlenaria.objects.select_for_update().get(id=spk)
-        # Reflete o estado mais atual sob o lock: outra requisição
-        # concorrente pode ter mudado votacao_aberta entre o SELECT inicial
-        # (antes do lock) e aqui.
-        materia_votacao.refresh_from_db()
-        ja_aberta = materia_votacao.votacao_aberta
+    try:
+        with transaction.atomic():
+            # select_for_update trava a linha da SessaoPlenaria durante toda a
+            # checagem+fechamento+abertura, para que dois "abrir votação"
+            # concorrentes (duplo clique, ou uma requisição lenta seguida de
+            # nova tentativa) não deixem duas matérias com votacao_aberta=True
+            # ao mesmo tempo — sapl/painel/views.py::votacao_aberta() trata
+            # esse caso redirecionando todos os tablets sem nenhuma mensagem
+            # clara de erro.
+            SessaoPlenaria.objects.select_for_update().get(id=spk)
+            # Reflete o estado mais atual sob o lock: outra requisição
+            # concorrente pode ter mudado votacao_aberta entre o SELECT inicial
+            # (antes do lock) e aqui.
+            materia_votacao.refresh_from_db()
+            ja_aberta = materia_votacao.votacao_aberta
 
-        # Reabrir a própria matéria que já está aberta precisa ser
-        # idempotente: verifica_votacoes_abertas() existe para fechar
-        # OUTRAS matérias concorrentes, e sua mensagem ("já existem
-        # votações abertas... foram fechadas") não faz sentido quando a
-        # única "conflitante" é ela mesma.
-        if (verifica_presenca(request, presenca_model, spk, is_leitura) and
-                (ja_aberta or verifica_votacoes_abertas(request)) and
-                verifica_sessao_iniciada(request, spk, is_leitura)):
-            materia_votacao.votacao_aberta = True
-            sessao = SessaoPlenaria.objects.get(id=spk)
-            sessao.painel_aberto = True
-            sessao.save()
-            materia_votacao.save()
-            opened = True
+            # Reabrir a própria matéria que já está aberta precisa ser
+            # idempotente: verifica_votacoes_abertas() existe para fechar
+            # OUTRAS matérias concorrentes, e sua mensagem ("já existem
+            # votações abertas... foram fechadas") não faz sentido quando a
+            # única "conflitante" é ela mesma.
+            if (verifica_presenca(request, presenca_model, spk, is_leitura) and
+                    (ja_aberta or verifica_votacoes_abertas(request, mensagens)) and
+                    verifica_sessao_iniciada(request, spk, is_leitura)):
+                materia_votacao.votacao_aberta = True
+                if not ja_aberta:
+                    materia_votacao.registro_aberto = False
+                sessao = SessaoPlenaria.objects.get(id=spk)
+                sessao.painel_aberto = True
+                sessao.save()
+                materia_votacao.save()
+                opened = True
+        for msg in mensagens:
+            messages.add_message(request, messages.INFO, msg)
+    except IntegrityError:
+        # O lock acima é por sessão, mas a unicidade de votacao_aberta é
+        # global: uma abertura simultânea em outra sessão cai no índice
+        # parcial.
+        opened = False
+        messages.add_message(request, messages.ERROR, _(
+            'Outra votação foi aberta simultaneamente. Tente novamente.'))
 
     if opened:
         # Leva direto para a tela de registro do tipo de votação recém
@@ -269,7 +283,7 @@ def abrir_votacao(request, pk, spk):
     return HttpResponseRedirect(success_url)
 
 
-def customize_link_materia(context, pk, has_permission, is_expediente, request=None):
+def customize_link_materia(context, pk, has_permission, is_expediente):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
         obj = context['object_list'][i]
@@ -397,26 +411,13 @@ def customize_link_materia(context, pk, has_permission, is_expediente, request=N
 
                 if has_permission:
                     if obj.tipo_votacao != LEITURA:
-                        # Votação Nominal é a única que envolve votos individuais
-                        # pelos tablets (VOTACAO_NOMINAL em sapl/painel/views.py), e
-                        # é a única cuja tela de registro (VotacaoNominalAbstract)
-                        # sabe tratar POST sem efeito colateral — por isso só ela é
-                        # convertida para POST aqui; Simbólica/Secreta continuam GET.
-                        metodo = ''
-                        csrf_input = ''
-                        if obj.tipo_votacao == NOMINAL:
-                            metodo = ' method="post"'
-                            csrf_input = (
-                                '<input type="hidden" name="csrfmiddlewaretoken" value="%s" />'
-                                % get_token(request))
                         btn_registrar = '''
-                                        <form action="%s"%s>
-                                        %s
+                                        <form action="%s">
                                         <input type="submit" class="btn btn-primary"
                                         value="Registrar Votação" />
                                         %s
                                     </form>''' % (
-                            url, metodo, csrf_input, page_number)
+                            url, page_number)
                     else:
                         btn_registrar = '''
                                         <form action="%s">
@@ -904,8 +905,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             context = super().get_context_data(**kwargs)
 
             has_permition = self.request.user.has_module_perms(AppConfig.label)
-            return customize_link_materia(context, self.kwargs['pk'], has_permition, False,
-                                          request=self.request)
+            return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
 
 
 def recuperar_materia(request):
@@ -981,8 +981,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 context['page'] = self.request.GET.get('page')
 
             has_permition = self.request.user.has_module_perms(AppConfig.label)
-            return customize_link_materia(context, self.kwargs['pk'], has_permition, True,
-                                          request=self.request)
+            return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
@@ -3075,22 +3074,6 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             'votos': votos,
         })
 
-    def _get_or_create_voto_parlamentar(self, lookup_field, lookup_value, parlamentar_id):
-        """
-        get_or_create protegido contra a corrida de duas inserções
-        concorrentes para o mesmo (parlamentar, matéria) — ex.: o tablet do
-        parlamentar e o formulário em lote do operador chegando ao mesmo
-        tempo. Usa um savepoint próprio para que um IntegrityError aqui não
-        derrube a transação inteira do 'Encerrar Votação'.
-        """
-        try:
-            with transaction.atomic():
-                return VotoParlamentar.objects.select_for_update().get_or_create(
-                    parlamentar_id=parlamentar_id, **{lookup_field: lookup_value})
-        except IntegrityError:
-            return VotoParlamentar.objects.select_for_update().get(
-                parlamentar_id=parlamentar_id, **{lookup_field: lookup_value}), False
-
     def _lock_materia_votacao(self, materia_votacao):
         model = OrdemDia if self.ordem else ExpedienteMateria
         return model.objects.select_for_update().get(pk=materia_votacao.pk)
@@ -3168,20 +3151,20 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     return self._redirect_lista(kwargs, page)
 
                 for voto_submetido, parlamentar_id in votos_submetidos:
-                    voto_parlamentar, created = self._get_or_create_voto_parlamentar(
-                        fase_sessao_field, fase_sessao_value, parlamentar_id)
+                    if voto_submetido == 'Não Votou':
+                        # "Não Votou" é só o valor padrão do <select> para
+                        # quem o operador não escolheu nada — não é um voto
+                        # de fato. Gravá-lo agora travaria a linha desse
+                        # parlamentar (nominal.html desabilita o <select>
+                        # sempre que existe um VotoParlamentar) mesmo quando
+                        # o fechamento falha por falta de votos reais. Os
+                        # presentes que continuarem sem voto recebem
+                        # 'Não Votou' só depois que o RegistroVotacao existe.
+                        continue
+                    voto_parlamentar, created = VotoParlamentar.objects.select_for_update().get_or_create(
+                        parlamentar_id=parlamentar_id,
+                        **{fase_sessao_field: fase_sessao_value})
                     if created:
-                        if voto_submetido == 'Não Votou':
-                            # "Não Votou" é só o valor padrão do <select>
-                            # para quem o operador não escolheu nada — não é
-                            # um voto de fato. Persisti-lo aqui travaria a
-                            # linha desse parlamentar (nominal.html desabilita
-                            # o <select> sempre que existe um VotoParlamentar)
-                            # mesmo quando o fechamento falha por falta de
-                            # votos reais, impedindo o operador de corrigir e
-                            # tentar de novo.
-                            voto_parlamentar.delete()
-                            continue
                         voto_parlamentar.voto = voto_submetido
                         voto_parlamentar.user = request.user
                         voto_parlamentar.ip = get_client_ip(request)
@@ -3195,7 +3178,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                         skipped_parlamentares.append(voto_parlamentar.parlamentar)
 
                 votos_atuais = VotoParlamentar.objects.filter(
-                    **{fase_sessao_field: fase_sessao_value})
+                    **{fase_sessao_field: fase_sessao_value},
+                    parlamentar_id__in=presentes.values('parlamentar_id'))
                 votos_sim = votos_atuais.filter(voto='Sim').count()
                 votos_nao = votos_atuais.filter(voto='Não').count()
                 abstencoes = votos_atuais.filter(voto='Abstenção').count()
@@ -3206,10 +3190,6 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     form.add_error(None, _('Não é possível finalizar a votação sem '
                                            'nenhum voto'))
                     return self.form_invalid(form)
-
-                # Remove todas as votação desta matéria, caso existam
-                RegistroVotacao.objects.filter(
-                    **{fase_sessao_field: fase_sessao_value}).delete()
 
                 votacao = RegistroVotacao(
                     numero_votos_sim=votos_sim,
@@ -3224,6 +3204,16 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                 votacao.save()
 
                 votos_atuais.update(votacao_id=votacao.id)
+                VotoParlamentar.objects.bulk_create([
+                    VotoParlamentar(
+                        parlamentar_id=presenca.parlamentar_id,
+                        voto='Não Votou',
+                        votacao=votacao,
+                        user=request.user,
+                        ip=get_client_ip(request),
+                        **{fase_sessao_field: fase_sessao_value})
+                    for presenca in presentes.exclude(
+                        parlamentar_id__in=votos_atuais.values('parlamentar_id'))])
 
                 materia_votacao.resultado = form.cleaned_data['resultado_votacao'].nome
                 materia_votacao.votacao_aberta = False
@@ -3246,10 +3236,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
 
             return self.form_valid(form)
 
-        # Nenhuma chave de ação reconhecida: navegação simples para a tela
-        # de registro (botão "Registrar Votação"), sem efeito colateral.
-        context = self._build_registro_context(materia_votacao, presentes, total)
-        return self.render_to_response(context)
+        # Nenhuma ação reconhecida: volta para a tela de registro (GET).
+        return self._redirect_same_registro(kwargs, page)
 
     def form_invalid(self, form):
         errors_tuple = [(form[e].label, form.errors[e])

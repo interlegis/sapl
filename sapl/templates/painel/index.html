@@ -331,7 +331,7 @@
                           + '</td></tr>')
                     }
                     else{
-                      $('#parlamentares_list').append(show_voto(parlamentar))
+                      $('#parlamentares_list').append(show_voto(parlamentar, !!data['registro']))
                     }
 
                   });
@@ -510,10 +510,11 @@
       })();
       });
 
-     function show_voto(parlamentar) {
+     function show_voto(parlamentar, registrada) {
       color = 'white'
 
-      if (!parlamentar.voto) {
+      // Com a votação ainda aberta, voto vazio só significa "ainda não votou".
+      if (!parlamentar.voto && registrada) {
           parlamentar.voto = "Não votou";
       }
       if (parlamentar.voto == "Sim"){
