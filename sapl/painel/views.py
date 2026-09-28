@@ -45,6 +45,10 @@ def votacao_aberta(request):
     Função que verifica se há somente 1 uma matéria aberta ou
     nenhuma. É utilizada como uma função auxiliar para a view
     votante_view.
+
+    A mensagem de erro volta como texto puro e é exibida pelo chamador em
+    error_message (inclusive no poll JSON do tablet), então não é
+    registrada em messages — senão cada poll empilharia uma cópia na sessão.
     '''
     logger = logging.getLogger(__name__)
     username = request.user.username
@@ -54,19 +58,13 @@ def votacao_aberta(request):
         Q(expedientemateria__votacao_aberta=True)).distinct()
 
     if len(votacoes_abertas) > 1:
-        msg_abertas = []
-        for v in votacoes_abertas:
-            msg_abertas.append('''<li><a href="%s">%s</a></li>''' % (
-                reverse('sapl.sessao:sessaoplenaria_detail',
-                        kwargs={'pk': v.id}),
-                v.__str__()))
+        sessoes = ', '.join(str(v) for v in votacoes_abertas)
         logger.info('user=' + username + '. Existe mais de uma votações aberta. Elas se encontram '
-                                         'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
-                                                                                              'Para votar, peça para que o Operador feche-as.')
+                                         'nas seguintes Sessões: ' + sessoes + '. '
+                                         'Para votar, peça para que o Operador feche-as.')
         msg = _('Existe mais de uma votações aberta. Elas se encontram '
-                'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
-                                                                     'Para votar, peça para que o Operador feche-as.')
-        messages.add_message(request, messages.INFO, msg)
+                'nas seguintes Sessões: ' + sessoes + '. '
+                'Para votar, peça para que o Operador feche-as.')
         return None, msg
 
     elif len(votacoes_abertas) == 1:
@@ -79,18 +77,11 @@ def votacao_aberta(request):
 
         numero_materias_abertas = len(ordens) + len(expedientes)
         if numero_materias_abertas > 1:
+            sessao = str(votacoes_abertas.first())
             logger.info('user=' + username + '. Existe mais de uma votação aberta na Sessão: ' +
-                        ('''<li><a href="%s">%s</a></li>''' % (
-                            reverse('sapl.sessao:sessaoplenaria_detail',
-                                    kwargs={'pk': votacoes_abertas.first().id}),
-                            votacoes_abertas.first().__str__())))
-            msg = _('Existe mais de uma votação aberta na Sessão: ' +
-                    ('''<li><a href="%s">%s</a></li>''' % (
-                        reverse('sapl.sessao:sessaoplenaria_detail',
-                                kwargs={'pk': votacoes_abertas.first().id}),
-                        votacoes_abertas.first().__str__())) +
-                    'Para votar, peça para que o Operador as feche.')
-            messages.add_message(request, messages.INFO, msg)
+                        sessao)
+            msg = _('Existe mais de uma votação aberta na Sessão: ' + sessao +
+                    '. Para votar, peça para que o Operador as feche.')
             return None, msg
 
     return votacoes_abertas.first(), None
@@ -314,16 +305,13 @@ def votante_view(request):
                             request,
                             _('A votação não está mais disponível para novos votos.'))
                     else:
-                        try:
-                            with transaction.atomic():
-                                voto, created = (VotoParlamentar.objects
-                                                 .select_for_update().get_or_create(
-                                                     parlamentar=parlamentar,
-                                                     **fase_sessao))
-                        except IntegrityError:
-                            voto = VotoParlamentar.objects.select_for_update().get(
-                                parlamentar=parlamentar, **fase_sessao)
-
+                        # get_or_create já cria num savepoint e, se der
+                        # IntegrityError, refaz o get() no mesmo queryset
+                        # (com select_for_update).
+                        voto, _created = (VotoParlamentar.objects
+                                          .select_for_update().get_or_create(
+                                              parlamentar=parlamentar,
+                                              **fase_sessao))
                         voto.voto = voto_submetido
                         voto.ip = get_client_ip(request)
                         voto.user = request.user

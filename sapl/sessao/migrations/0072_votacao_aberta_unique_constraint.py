@@ -3,16 +3,22 @@
 from django.db import migrations, models
 
 
-def fecha_matérias_abertas_duplicadas(apps, schema_editor):
+def fecha_materias_abertas_duplicadas(apps, schema_editor):
     """
     Pré-requisito para o AddConstraint abaixo: se já existir mais de uma
     OrdemDia/ExpedienteMateria com votacao_aberta=True (dado deixado por
     versões anteriores, que não garantiam essa invariante), a constraint
-    falharia ao ser criada. Mantém aberta apenas a mais recentemente
-    modificada de cada tabela e fecha as demais.
+    falharia ao ser criada. Mantém aberta apenas a criada por último (maior
+    id) de cada tabela e fecha as demais.
+
+    Também zera registro_aberto, que mudou de significado ("a Mesa abriu a
+    tela de registro" -> "novos votos bloqueados"): o fluxo antigo marcava
+    True ao abrir a tela e não voltava para False ao encerrar, o que faria
+    uma matéria reaberta voltar com os tablets bloqueados.
     """
     for model_name in ('OrdemDia', 'ExpedienteMateria'):
         model = apps.get_model('sessao', model_name)
+        model.objects.filter(registro_aberto=True).update(registro_aberto=False)
         abertas = model.objects.filter(votacao_aberta=True).order_by('-id')
         for materia in abertas[1:]:
             materia.votacao_aberta = False
@@ -22,12 +28,12 @@ def fecha_matérias_abertas_duplicadas(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('sessao', '0070_votoparlamentar_unique_constraint'),
+        ('sessao', '0071_votoparlamentar_unique_constraint'),
     ]
 
     operations = [
         migrations.RunPython(
-            fecha_matérias_abertas_duplicadas, migrations.RunPython.noop),
+            fecha_materias_abertas_duplicadas, migrations.RunPython.noop),
         migrations.AddConstraint(
             model_name='expedientemateria',
             constraint=models.UniqueConstraint(condition=models.Q(votacao_aberta=True), fields=('votacao_aberta',), name='sessao_expedientemateria_unique_votacao_aberta'),

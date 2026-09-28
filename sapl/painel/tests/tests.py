@@ -9,7 +9,8 @@ from sapl.base.models import AppConfig as ConfiguracoesAplicacao
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
 from sapl.parlamentares.models import (Legislatura, Mandato, Parlamentar,
                                        SessaoLegislativa, Votante)
-from sapl.sessao.models import (OrdemDia, PresencaOrdemDia, SessaoPlenaria,
+from sapl.sessao.models import (ExpedienteMateria, OrdemDia,
+                                PresencaOrdemDia, SessaoPlenaria,
                                 TipoResultadoVotacao, TipoSessaoPlenaria,
                                 VotoParlamentar)
 
@@ -158,6 +159,11 @@ def test_post_de_voto_bloqueado_nao_persiste(admin_client, admin_user):
     assert not VotoParlamentar.objects.filter(
         ordem=ordem, parlamentar=parlamentar).exists()
 
+    # voto_individual.html é avulso (não herda base.html): o erro precisa
+    # aparecer na própria tela do tablet.
+    pagina = admin_client.get(response.url)
+    assert 'A votação não está disponível para novos votos.' in pagina.content.decode()
+
 
 @pytest.mark.django_db(transaction=False)
 def test_post_rejeita_valor_de_voto_invalido(admin_client, admin_user):
@@ -170,6 +176,9 @@ def test_post_rejeita_valor_de_voto_invalido(admin_client, admin_user):
     assert response.status_code == 302
     assert not VotoParlamentar.objects.filter(
         ordem=ordem, parlamentar=parlamentar).exists()
+
+    pagina = admin_client.get(response.url)
+    assert 'Voto inválido.' in pagina.content.decode()
 
 
 @pytest.mark.django_db(transaction=False)
@@ -193,7 +202,6 @@ def test_propria_tela_nao_mostra_voto_de_outra_materia(admin_client):
     ordem_antiga.save()
     baker.make(OrdemDia, sessao_plenaria=sessao, materia=_materia(),
                tipo_votacao=NOMINAL, votacao_aberta=True, registro_aberto=False)
-    baker.make(PresencaOrdemDia, sessao_plenaria=sessao, parlamentar=vereador)
 
     status_url = reverse('sapl.painel:voto_individual_status')
 
@@ -228,10 +236,10 @@ def test_get_dados_painel_nao_usa_etag_incompleto(admin_client):
 @pytest.mark.django_db(transaction=False)
 def test_painel_exibe_nao_votou_para_parlamentar_sem_voto(admin_client):
     """
-    Regressão: depois que o fechamento deixou de persistir o valor
-    provisório "Não Votou", parlamentares sem VotoParlamentar passaram a
-    chegar ao painel como null. O JavaScript não pode renderizar esse null
-    literalmente no telão.
+    Quem estava presente e não votou chega ao painel como 'Não Votou' depois
+    do encerramento. Para dado legado sem VotoParlamentar (voto null), o
+    JavaScript mostra "Não votou" só com a votação registrada — com ela
+    aberta, voto vazio significa apenas "ainda não votou".
     """
     baker.make(ConfiguracoesAplicacao, mostrar_voto=True,
                mostrar_brasao_painel=False)
@@ -261,12 +269,12 @@ def test_painel_exibe_nao_votou_para_parlamentar_sem_voto(admin_client):
         'sapl.painel:dados_painel', kwargs={'pk': sessao.pk})).json()
     parlamentar_sem_voto = next(
         p for p in dados['presentes'] if p['parlamentar_id'] == nao_votou.pk)
-    assert parlamentar_sem_voto['voto'] is None
+    assert parlamentar_sem_voto['voto'] == 'Não Votou'
 
     painel = admin_client.get(reverse(
         'sapl.painel:painel_principal', kwargs={'pk': sessao.pk}))
     assert painel.status_code == 200
-    assert b'if (!parlamentar.voto)' in painel.content
+    assert b'if (!parlamentar.voto && registrada)' in painel.content
     assert 'Não votou'.encode() in painel.content
 
 
@@ -332,3 +340,25 @@ def test_votante_status_reflete_estado_e_nao_exige_permissao_do_painel():
     data2 = resposta2.json()
     assert data2['voto_parlamentar'] == 'Não'
     assert 'encerramento da votação' in data2['status_message']
+
+
+@pytest.mark.django_db(transaction=False)
+def test_votante_status_com_duas_votacoes_abertas_nao_acumula_mensagens():
+    """
+    Uma OrdemDia e uma ExpedienteMateria abertas ao mesmo tempo (as
+    constraints são por tabela): o poll do tablet devolve o erro em
+    error_message, em texto puro, sem empilhar mensagens na sessão.
+    """
+    sessao, ordem = _ordem_nominal_aberta()
+    vereador, votante_client = _votante_com_client(sessao)
+    outra_sessao = _sessao_plenaria()
+    baker.make(ExpedienteMateria, sessao_plenaria=outra_sessao,
+               materia=_materia(), tipo_votacao=NOMINAL, votacao_aberta=True)
+
+    status_url = reverse('sapl.painel:voto_individual_status')
+    for _ in range(2):
+        data = votante_client.get(status_url).json()
+
+    assert 'mais de uma' in data['error_message']
+    assert '<' not in data['error_message']
+    assert '_messages' not in votante_client.session

@@ -46,6 +46,10 @@
   </head>
   <body>
 
+  {% for message in messages %}
+    <h3><font color="#f0ad4e"><p align="center" style="font-family:Verdana">{{ message }}</p></font></h3>
+  {% endfor %}
+
   {% if not error_message  %}
     <div id="blocoprincipal" style="display:block">
       <h1><b><font color="#4FA64D"><p align="center">{{sessao}}</p></font></b></h1>
@@ -213,7 +217,17 @@
 
     function verificaEstado() {
       fetch("{% url 'sapl.painel:voto_individual_status' %}", {credentials: 'same-origin'})
-        .then(function(resp) { return resp.json(); })
+        .then(function(resp) {
+          // Sessão expirada (redirect para o login), 403 ou 500: recarrega
+          // para o tablet não ficar parado na tela antiga.
+          var contentType = resp.headers.get('content-type') || '';
+          if (!resp.ok || resp.redirected ||
+              contentType.indexOf('application/json') === -1) {
+            document.location.reload();
+            throw new Error('resposta inesperada');
+          }
+          return resp.json();
+        })
         .then(function(data) {
           var novo = {
             materiaId: data.materia_id ? String(data.materia_id) : "",
@@ -228,9 +242,14 @@
             document.location.reload();
           }
         })
-        .catch(function() { /* tenta de novo no próximo poll */ });
+        .catch(function() { /* falha de rede: tenta de novo no próximo poll */ })
+        .then(function() {
+          // Agenda o próximo só depois deste terminar, para não sobrepor
+          // polls quando o servidor está lento.
+          setTimeout(verificaEstado, 5000);
+        });
     }
 
-    setInterval(verificaEstado, 5000);
+    setTimeout(verificaEstado, 5000);
   })();
 </script>
