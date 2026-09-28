@@ -711,7 +711,7 @@ def get_sessao_plenaria(sessao, casa, user):
     lst_expediente_materia_vot_nom = []
 
     materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
-        .order_by('-materia')
+        .order_by('numero_ordem')
 
     for mevn in materias_expediente_votacao_nominal:
         votos_materia = []
@@ -824,7 +824,7 @@ def get_sessao_plenaria(sessao, casa, user):
     lst_votacao_vot_nom = []
 
     materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
-        .order_by('-materia')
+        .order_by('numero_ordem')
 
     for modvn in materias_ordem_dia_votacao_nominal:
         votos_materia_od = []
@@ -1792,7 +1792,7 @@ def relatorio_materia_tramitacao(request, pk):
     'materia': materia_legislativa,
     'ano': materia_legislativa.ano,
     'numero': materia_legislativa.numero,
-    'autor': materia_legislativa.autores.first(),
+    'autores': materia_legislativa.autores.all(),
     'tipo': materia_legislativa.tipo.descricao,
     'rodape': rodape,
     'data': dt.today().strftime('%d/%m/%Y'),
@@ -2080,17 +2080,22 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
         parlamentares_id = parlamentares_qs.values_list('id', flat=True)
 
         # Presenças de cada Parlamentar em Sessões
+        # Conta sessões distintas, e não linhas de presença: bases com
+        # presenças repetidas para o mesmo parlamentar na mesma sessão
+        # produziam percentuais acima de 100%.
         presenca_sessao = SessaoPlenariaPresenca.objects.filter(
-            **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
+            **param0).values_list('parlamentar_id').annotate(
+            sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         # Presenças de cada Ordem do Dia
         presenca_ordem = PresencaOrdemDia.objects.filter(
-            **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
+            **param0).values_list('parlamentar_id').annotate(
+            sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         # Ausencias justificadas
         ausencia_justificadas = JustificativaAusencia.objects.filter(
             **param0, ausencia=2).values_list('parlamentar_id')\
-            .annotate(sessao_count=Count('id'))
+            .annotate(sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         total_ordemdia = PresencaOrdemDia.objects.filter(
             **param0).distinct('sessao_plenaria__id').order_by('sessao_plenaria__id').count()

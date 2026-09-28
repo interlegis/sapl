@@ -9,7 +9,7 @@
 <h2>Histórico de Tramitações da Matéria: {{ numero }}/{{ ano }}</h2>
 
     Tipo de matéria: {{ tipo }}<br />
-    Autor: {{ autor }}<br />
+    {% if autores|length > 1 %}Autores: {% else %}Autor: {% endif %}{{ autores|join:", " }}<br />
 
     <table class="grayTable">
         {% for tramitacao in object%}
