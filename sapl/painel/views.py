@@ -328,21 +328,6 @@ def verifica_painel(request):
 
 
 @user_passes_test(check_permission)
-def painel_mensagem_view(request):
-    return render(request, 'painel/mensagem.html')
-
-
-@user_passes_test(check_permission)
-def painel_parlamentar_view(request):
-    return render(request, 'painel/parlamentares.html')
-
-
-@user_passes_test(check_permission)
-def painel_votacao_view(request):
-    return render(request, 'painel/votacao.html')
-
-
-@user_passes_test(check_permission)
 def cronometro_painel(request):
     request.session[request.GET['tipo']] = request.GET['action']
     return HttpResponse({})
