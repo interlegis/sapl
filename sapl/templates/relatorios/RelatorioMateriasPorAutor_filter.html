@@ -54,7 +54,7 @@
                   {{materia.tipo.sigla}} {{materia.numero}}/{{materia.ano}}
                 </a>
               </td>
-              <td>{% autoescape off %}{{materia.ementa}}<br>{{materia.observacao}}{% endautoescape %}</td>
+              <td>{{materia.ementa}}<br>{{materia.observacao}}</td>
               <td>
                 {% for autoria in materia.autoria_set.all %}
                   {% if autoria.autor != autor %}

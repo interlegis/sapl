@@ -38,6 +38,7 @@ django-prometheus==2.2.0
 
 asn1crypto==1.5.1
 XlsxWriter==3.2.0
+nh3==0.2.22
 
 setuptools==80.9.0
 

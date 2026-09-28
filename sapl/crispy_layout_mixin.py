@@ -8,8 +8,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse, reverse_lazy
 from django.utils import formats
 from django.utils.encoding import force_text
+from django.utils.html import escape
 from django.utils.translation import ugettext as _
 import yaml
+
+from sapl.sanitize import sanitize_html, sanitize_scope
 
 
 def heads_and_tails(list_of_lists):
@@ -167,7 +170,14 @@ def get_field_display(obj, fieldname):
                 args=(value.id,)),
             value)
     elif 'TextField' in str_type_from_field:
-        display = value.replace('\n', '<br/>')
+        scope = sanitize_scope(obj._meta.model, fieldname)
+        if scope == 'rich':
+            display = sanitize_html(value, rich=True)
+        elif scope == 'plain':
+            display = escape(sanitize_html(value))
+        else:
+            display = escape(value)
+        display = display.replace('\n', '<br/>')
         display = '<div class="dont-break-out">{}</div>'.format(display)
     else:
         display = str(value)

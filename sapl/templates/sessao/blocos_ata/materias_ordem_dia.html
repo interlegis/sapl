@@ -5,7 +5,7 @@
             <strong>Matérias da Ordem do Dia: </strong>
             {% for m in materias_ordem %}
                 <b>{{ m.numero }} - {{ m.titulo }}</b>,
-                {{ m.ementa|safe }}
+                {{ m.ementa }}
                 {% if m.observacao %} - Obs.: {{ m.observacao }} {% endif %}
                 Autor{{ m.autor|length|pluralize:"es" }}: {{ m.autor|join:', ' }},
                 {% if m.numero_protocolo %}
