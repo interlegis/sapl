@@ -49,8 +49,7 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_oradores_ordemdia,
                                get_oradores_explicacoes_pessoais, get_consideracoes_finais,
                                get_ocorrencias_da_sessao, get_assinaturas,
-                               get_correspondencias, get_conteudo_multimidia,
-                               get_votos_nominais)
+                               get_correspondencias)
 from sapl.settings import MEDIA_URL, RATE_LIMITER_RATE
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
@@ -561,9 +560,9 @@ def get_sessao_plenaria(sessao, casa, user):
             .order_by('cargo_id'):
         # Antes usava Filiacao...first() (filiação mais recente), enquanto a
         # tela usava .last() (a mais antiga) — e as listas de presença deste
-        # mesmo PDF já usavam filiacao_data. Unifica no critério correto: o
-        # partido vigente na data da sessão.
-        sigla = filiacao_data(composicao.parlamentar, data_sessao)
+        # mesmo PDF já usavam filiacao_data. Unifica no critério das listas
+        # de presença e do Resumo: o partido vigente em data_inicio.
+        sigla = filiacao_data(composicao.parlamentar, sessao.data_inicio)
         lst_mesa.append({
             'nom_parlamentar': composicao.parlamentar.nome_parlamentar,
             'sgl_partido': sigla,
@@ -719,7 +718,7 @@ def get_sessao_plenaria(sessao, casa, user):
     lst_expediente_materia_vot_nom = []
 
     materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
-        .order_by('-materia')
+        .order_by('numero_ordem')
 
     for mevn in materias_expediente_votacao_nominal:
         votos_materia = []
@@ -744,7 +743,7 @@ def get_sessao_plenaria(sessao, casa, user):
             "num_ordem": orador_expediente.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
             "observacao": orador_expediente.observacao,
-            "sgl_partido": filiacao_data(parlamentar, data_sessao)
+            "sgl_partido": filiacao_data(parlamentar, sessao.data_inicio)
         })
 
     # Lista presença na ordem do dia
@@ -830,7 +829,7 @@ def get_sessao_plenaria(sessao, casa, user):
     lst_votacao_vot_nom = []
 
     materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
-        .order_by('-materia')
+        .order_by('numero_ordem')
 
     for modvn in materias_ordem_dia_votacao_nominal:
         votos_materia_od = []
@@ -860,7 +859,7 @@ def get_sessao_plenaria(sessao, casa, user):
             "num_ordem": orador_ordemdia.numero_ordem,
             "nome_parlamentar": parlamentar_orador.nome_parlamentar,
             "observacao": orador_ordemdia.observacao,
-            "sigla": filiacao_data(parlamentar_orador, data_sessao)
+            "sigla": filiacao_data(parlamentar_orador, sessao.data_inicio)
         })
 
     # Lista dos oradores nas Explicações Pessoais
@@ -871,7 +870,7 @@ def get_sessao_plenaria(sessao, casa, user):
             "num_ordem": orador.numero_ordem,
             "nom_parlamentar": parlamentar.nome_parlamentar,
             "observacao": orador.observacao,
-            "sgl_partido": filiacao_data(parlamentar, data_sessao)
+            "sgl_partido": filiacao_data(parlamentar, sessao.data_inicio)
         })
 
     # Ocorrências da Sessão
@@ -1447,9 +1446,6 @@ def resumo_ata_pdf(request, pk):
 
     context = {}
     context.update(get_identificacao_basica(sessao_plenaria))
-    # Sem cont_mult / votos nominais, esses blocos saíam vazios no PDF quando
-    # a ResumoOrdenacao os incluía, divergindo da ata exibida em tela.
-    context.update(get_conteudo_multimidia(sessao_plenaria))
     context.update(get_mesa_diretora(sessao_plenaria))
     context.update(get_presenca_sessao(sessao_plenaria))
     context.update(get_correspondencias(sessao_plenaria, request.user))
@@ -1466,10 +1462,6 @@ def resumo_ata_pdf(request, pk):
         sessao_plenaria,
         mesa=context['mesa'],
         presenca_ordem=context['presenca_ordem']))
-    context.update({'votos_nominais_materia_expediente': get_votos_nominais(
-        sessao_plenaria.id, ExpedienteMateria, 'expediente')})
-    context.update({'votos_nominais_materia_ordem_dia': get_votos_nominais(
-        sessao_plenaria.id, OrdemDia, 'ordem')})
     context.update({'object': sessao_plenaria})
     context.update({'data': dt.today().strftime('%d/%m/%Y')})
     context.update({'rodape': rodape})
@@ -1842,7 +1834,7 @@ def relatorio_materia_tramitacao(request, pk):
     'materia': materia_legislativa,
     'ano': materia_legislativa.ano,
     'numero': materia_legislativa.numero,
-    'autor': materia_legislativa.autores.first(),
+    'autores': materia_legislativa.autores.all(),
     'tipo': materia_legislativa.tipo.descricao,
     'rodape': rodape,
     'data': dt.today().strftime('%d/%m/%Y'),

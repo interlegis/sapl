@@ -44,6 +44,27 @@ class Migration(migrations.Migration):
         migrations.RunSQL(sql=_NEW_VIEW, reverse_sql=_OLD_VIEW),
         migrations.SeparateDatabaseAndState(
             database_operations=[
+                # Um CREATE INDEX CONCURRENTLY interrompido deixa o índice
+                # criado porém inválido, e o IF NOT EXISTS abaixo o pularia
+                # na próxima execução. DROP INDEX sem CONCURRENTLY porque
+                # este não roda dentro de um bloco DO.
+                migrations.RunSQL(
+                    sql="""
+                        DO $$
+                        BEGIN
+                            IF EXISTS (
+                                SELECT 1
+                                FROM pg_index i
+                                JOIN pg_class c ON c.oid = i.indexrelid
+                                WHERE c.relname = 'tram_materia_id_desc'
+                                  AND NOT i.indisvalid
+                            ) THEN
+                                DROP INDEX tram_materia_id_desc;
+                            END IF;
+                        END $$;
+                    """,
+                    reverse_sql=migrations.RunSQL.noop,
+                ),
                 migrations.RunSQL(
                     sql="""
                         CREATE INDEX CONCURRENTLY IF NOT EXISTS

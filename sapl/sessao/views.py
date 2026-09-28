@@ -260,8 +260,6 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     turno = t[1]
                     break
 
-        materia_em_tramitacao = materia._met_prefetch[0] if materia._met_prefetch else None
-
         # idUnica para cada materia
         idAutor = "autor" + str(i)
         idAutores = "autores" + str(i)
@@ -287,9 +285,17 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
         # url em toda a string de title_materia
         context['rows'][i][1] = (title_materia, None)
 
-        exist_resultado = bool(obj._votacao_prefetch)
-        exist_retirada = bool(obj._retirada_prefetch)
-        exist_leitura = bool(obj._leitura_prefetch)
+        # A matéria do item pode ter sido trocada depois de votada: só contam
+        # os registros da matéria atual.
+        votacoes = [r for r in obj._votacao_prefetch
+                    if r.materia_id == obj.materia_id]
+        retiradas = [r for r in obj._retirada_prefetch
+                     if r.materia_id == obj.materia_id]
+        leituras = [r for r in obj._leitura_prefetch
+                    if r.materia_id == obj.materia_id]
+        exist_resultado = bool(votacoes)
+        exist_retirada = bool(retiradas)
+        exist_leitura = bool(leituras)
 
         if (obj.tipo_votacao != LEITURA and not exist_resultado and not exist_retirada) or \
                 (obj.tipo_votacao == LEITURA and not exist_leitura):
@@ -411,7 +417,7 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
                     resultado = '''Não há resultado'''
 
         elif exist_retirada:
-            retirada = obj._retirada_prefetch[-1]
+            retirada = retiradas[-1]
             retirada_descricao = retirada.tipo_de_retirada.descricao
             retirada_observacao = retirada.observacao
             url = reverse('sapl.sessao:retiradapauta_detail',
@@ -423,11 +429,11 @@ def customize_link_materia(context, pk, has_permission, is_expediente):
 
         else:
             if obj.tipo_votacao == LEITURA:
-                resultado = obj._leitura_prefetch[-1]
+                resultado = leituras[-1]
                 resultado_descricao = "Matéria lida"
                 resultado_observacao = resultado.observacao
             else:
-                resultado = obj._votacao_prefetch[-1]
+                resultado = votacoes[-1]
                 resultado_descricao = resultado.tipo_resultado_votacao.nome
                 resultado_observacao = resultado.observacao
 
@@ -833,57 +839,19 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
         layout_key = 'OrdemDiaDetail'
 
     class ListView(MasterDetailCrud.ListView):
-        paginate_by = 100
+        paginate_by = None
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
+            self.paginate_by = 50 if self.object_list.count() > 500 else None
             context = super().get_context_data(**kwargs)
             has_permition = self.request.user.has_module_perms(AppConfig.label)
             return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
 
         def get_queryset(self):
-            return super().get_queryset().select_related(
-                'materia', 'materia__tipo', 'sessao_plenaria',
-            ).prefetch_related(
-                Prefetch(
-                    'materia__materiaemtramitacao_set',
-                    to_attr='_met_prefetch',
-                ),
-                Prefetch(
-                    'materia__numeracao_set',
-                    to_attr='_numeracao_prefetch',
-                ),
-                Prefetch(
-                    'materia__autoria_set',
-                    queryset=Autoria.objects.select_related('autor'),
-                    to_attr='_autoria_prefetch',
-                ),
-                Prefetch(
-                    'materia__tramitacao_set',
-                    queryset=Tramitacao.objects.filter(
-                        turno__isnull=False,
-                    ).exclude(turno='').order_by('-data_tramitacao', '-id'),
-                    to_attr='_tramitacao_prefetch',
-                ),
-                Prefetch(
-                    'registrovotacao_set',
-                    queryset=RegistroVotacao.objects.select_related(
-                        'tipo_resultado_votacao',
-                    ),
-                    to_attr='_votacao_prefetch',
-                ),
-                Prefetch(
-                    'retiradapauta_set',
-                    queryset=RetiradaPauta.objects.select_related(
-                        'tipo_de_retirada',
-                    ),
-                    to_attr='_retirada_prefetch',
-                ),
-                Prefetch(
-                    'registroleitura_set',
-                    to_attr='_leitura_prefetch',
-                ),
-            )
+            return prefetch_materias_sessao(
+                super().get_queryset().select_related('sessao_plenaria'),
+                com_situacao=False)
 
 
 def recuperar_materia(request):
@@ -943,10 +911,11 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                             'resultado']
 
     class ListView(MasterDetailCrud.ListView):
-        paginate_by = 100
+        paginate_by = None
         ordering = ['numero_ordem', 'materia', 'resultado']
 
         def get_context_data(self, **kwargs):
+            self.paginate_by = 50 if self.object_list.count() > 500 else None
             context = super().get_context_data(**kwargs)
             if self.request.GET.get('page'):
                 context['page'] = self.request.GET.get('page')
@@ -954,48 +923,9 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
             return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
 
         def get_queryset(self):
-            return super().get_queryset().select_related(
-                'materia', 'materia__tipo', 'sessao_plenaria',
-            ).prefetch_related(
-                Prefetch(
-                    'materia__materiaemtramitacao_set',
-                    to_attr='_met_prefetch',
-                ),
-                Prefetch(
-                    'materia__numeracao_set',
-                    to_attr='_numeracao_prefetch',
-                ),
-                Prefetch(
-                    'materia__autoria_set',
-                    queryset=Autoria.objects.select_related('autor'),
-                    to_attr='_autoria_prefetch',
-                ),
-                Prefetch(
-                    'materia__tramitacao_set',
-                    queryset=Tramitacao.objects.filter(
-                        turno__isnull=False,
-                    ).exclude(turno='').order_by('-data_tramitacao', '-id'),
-                    to_attr='_tramitacao_prefetch',
-                ),
-                Prefetch(
-                    'registrovotacao_set',
-                    queryset=RegistroVotacao.objects.select_related(
-                        'tipo_resultado_votacao',
-                    ),
-                    to_attr='_votacao_prefetch',
-                ),
-                Prefetch(
-                    'retiradapauta_set',
-                    queryset=RetiradaPauta.objects.select_related(
-                        'tipo_de_retirada',
-                    ),
-                    to_attr='_retirada_prefetch',
-                ),
-                Prefetch(
-                    'registroleitura_set',
-                    to_attr='_leitura_prefetch',
-                ),
-            )
+            return prefetch_materias_sessao(
+                super().get_queryset().select_related('sessao_plenaria'),
+                com_situacao=False)
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
@@ -2147,25 +2077,24 @@ def get_expedientes(sessao_plenaria):
     return ({'expedientes': expedientes})
 
 
-def prefetch_materias_sessao(qs):
-    """Prefetches compartilhados por `get_materias_expediente` e
-    `get_materias_ordem_do_dia`.
+def prefetch_materias_sessao(qs, com_situacao=True):
+    """Prefetches compartilhados por `get_materias_expediente`,
+    `get_materias_ordem_do_dia` e pelas ListViews de OrdemDia e
+    ExpedienteMateria.
 
     Os querysets dos `Prefetch` não recebem `order_by` explícito justamente
     para herdarem o `Meta.ordering` de cada model — é dele que dependem os
     `.first()` / `.last()` que este código substitui por indexação de lista.
+
+    `com_situacao=False` dispensa o prefetch de `MateriaEmTramitacao`, que
+    as ListViews não usam.
     """
-    return qs.select_related('materia', 'materia__tipo').prefetch_related(
+    prefetches = [
         Prefetch(
             'materia__tramitacao_set',
             queryset=Tramitacao.objects.exclude(turno='').order_by(
                 '-data_tramitacao', '-id'),
             to_attr='_tramitacao_prefetch'),
-        Prefetch(
-            'materia__materiaemtramitacao_set',
-            queryset=MateriaEmTramitacao.objects.select_related(
-                'tramitacao', 'tramitacao__status'),
-            to_attr='_met_prefetch'),
         Prefetch('materia__numeracao_set', to_attr='_numeracao_prefetch'),
         Prefetch(
             'materia__autoria_set',
@@ -2181,7 +2110,15 @@ def prefetch_materias_sessao(qs):
             queryset=RetiradaPauta.objects.select_related('tipo_de_retirada'),
             to_attr='_retirada_prefetch'),
         Prefetch('registroleitura_set', to_attr='_leitura_prefetch'),
-    )
+    ]
+    if com_situacao:
+        prefetches.append(Prefetch(
+            'materia__materiaemtramitacao_set',
+            queryset=MateriaEmTramitacao.objects.select_related(
+                'tramitacao', 'tramitacao__status'),
+            to_attr='_met_prefetch'))
+    return qs.select_related('materia', 'materia__tipo').prefetch_related(
+        *prefetches)
 
 
 def agrupa_votos_por_materia(campo, ids):
@@ -2521,7 +2458,7 @@ def get_votos_nominais(sessao_plenaria_id, model, campo):
     """
     materias = list(model.objects.filter(
         sessao_plenaria_id=sessao_plenaria_id, tipo_votacao=2
-    ).select_related('materia').order_by('-materia'))
+    ).select_related('materia').order_by('numero_ordem'))
 
     votos_por_materia = defaultdict(list)
     if materias:
