@@ -67,7 +67,7 @@
   {% if view.openapi_url %}
   <div class="container justify-content-end d-flex">
     <div class="actions btn-group" role="group">
-      <a href="{{ view.openapi_url }}" class="btn btn-sm btn-info py-0">
+      <a href="{{ view.openapi_url }}?utc_time={% now 'U' %}" class="btn btn-sm btn-info py-0">
         <small class="text-white">
           {% trans 'OpenAPI' %}
         </small>

@@ -4,6 +4,8 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db.models import Q
+from django.urls import reverse
+from drfautoapi.drfautoapi import DrfAutoApiSerializerMixin
 from image_cropping.utils import get_backend
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
@@ -13,15 +15,12 @@ from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
 from sapl.sessao.models import OrdemDia, SessaoPlenaria
 
 
-class SaplSerializerMixin(serializers.ModelSerializer):
-    __str__ = SerializerMethodField()
+class SaplSerializerMixin(DrfAutoApiSerializerMixin):
+    link_detail_backend = serializers.SerializerMethodField()
     metadata = SerializerMethodField()
 
-    class Meta:
+    class Meta(DrfAutoApiSerializerMixin.Meta):
         fields = '__all__'
-
-    def get___str__(self, obj) -> str:
-        return str(obj)
 
     def get_metadata(self, obj) -> dict:
         try:
@@ -34,6 +33,13 @@ class SaplSerializerMixin(serializers.ModelSerializer):
             metadata = {}
         finally:
             return metadata
+
+    def get_link_detail_backend(self, obj) -> str:
+        try:
+            return reverse(f'{self.Meta.model._meta.app_config.name}:{self.Meta.model._meta.model_name}_detail',
+                           kwargs={'pk': obj.pk})
+        except:
+            return ''
 
 
 class ChoiceSerializer(serializers.Serializer):

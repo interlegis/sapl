@@ -127,6 +127,13 @@
               <td> Listagem e totalização de normas por autor, com filtros para tipo e período.</td>
             </tr>
         {% endif %}
+        {% url 'sapl.relatorios:relatorio_votacoes_nominais' as relatorio_votacoes_nominais %}
+        {% if request|is_report_visible:relatorio_votacoes_nominais %}
+            <tr>
+              <td><a href="{{ relatorio_votacoes_nominais }}"> Votações Nominais</a></td>
+              <td> Votações Nominais em Expedientes e Ordens do Dia por data. </td>
+            </tr>
+        {% endif %}
     </tbody>
   </table>
 </fieldset>

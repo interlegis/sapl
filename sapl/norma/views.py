@@ -19,6 +19,9 @@ from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
 
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+
 from sapl import settings
 import sapl
 from sapl.base.models import AppConfig
@@ -27,15 +30,15 @@ from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Orgao
-from sapl.utils import show_results_filter_set, get_client_ip,\
-    sapn_is_enabled, MultiFormatOutputMixin
+from sapl.utils import show_results_filter_set, get_client_ip, \
+    sapn_is_enabled, MultiFormatOutputMixin, ratelimit_ip
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
                     NormaPesquisaSimplesForm, NormaRelacionadaForm,
                     AutoriaNormaForm, AssuntoNormaFilterSet)
 from .models import (AnexoNormaJuridica, AssuntoNorma, NormaJuridica, NormaRelacionada,
                      TipoNormaJuridica, TipoVinculoNormaJuridica, AutoriaNorma, NormaEstatisticas)
-
+from ..settings import RATE_LIMITER_RATE
 
 # LegislacaoCitadaCrud = Crud.build(LegislacaoCitada, '')
 TipoNormaCrud = CrudAux.build(
@@ -57,6 +60,10 @@ class AssuntoNormaCrud(CrudAux):
             return reverse('sapl.norma:pesquisar_assuntonorma')
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarAssuntoNormaView(FilterView):
     model = AssuntoNorma
     filterset_class = AssuntoNormaFilterSet
@@ -147,19 +154,18 @@ class NormaRelacionadaCrud(MasterDetailCrud):
         layout_key = 'NormaRelacionadaDetail'
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class NormaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = NormaJuridica
     filterset_class = NormaFilterSet
     paginate_by = 50
 
-    fields_base_report = [
+    export_fields = [
         'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'texto_integral', 'ementa'
     ]
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
 
     def hook_texto_integral(self, obj):
         url = self.request.build_absolute_uri('/')[:-1]
@@ -494,7 +500,7 @@ def recuperar_numero_norma(request):
     norma = NormaJuridica.objects.filter(**param).order_by(
         'tipo', 'ano', 'numero').values_list('numero', flat=True)
     if norma:
-        numeros = sorted([int(re.sub("[^0-9].*", '', n)) for n in norma])
+        numeros = sorted([int(re.sub(r"[^0-9].*", '', n)) for n in norma])
         next_num = numeros.pop() + 1
         response = JsonResponse({'numero': next_num,
                                  'ano': param['ano']})

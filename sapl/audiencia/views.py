@@ -9,6 +9,12 @@ from sapl.crud.base import RP_DETAIL, RP_LIST, Crud, MasterDetailCrud
 from .forms import AudienciaForm, AnexoAudienciaPublicaForm
 from .models import AudienciaPublica, AnexoAudienciaPublica
 
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+
+from ..settings import RATE_LIMITER_RATE
+from ..utils import ratelimit_ip
+
 
 def index(request):
     return HttpResponse("Audiência  Pública")
@@ -105,6 +111,3 @@ class AnexoAudienciaPublicaCrud(MasterDetailCrud):
             qs = super(MasterDetailCrud.ListView, self).get_queryset()
             kwargs = {self.crud.parent_field: self.kwargs['pk']}
             return qs.filter(**kwargs).order_by('-data', '-id')
-
-    class DetailView(AudienciaPublicaMixin, MasterDetailCrud.DetailView):
-        pass

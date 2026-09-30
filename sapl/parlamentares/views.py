@@ -33,7 +33,7 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.norma.models import AutoriaNorma, NormaJuridica
 from sapl.parlamentares.apps import AppConfig
 from sapl.rules import SAPL_GROUP_VOTANTE
-from sapl.utils import (parlamentares_ativos, show_results_filter_set)
+from sapl.utils import (parlamentares_ativos, show_results_filter_set, ratelimit_ip)
 
 from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
@@ -44,6 +44,11 @@ from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante,
                      Bloco, FrenteCargo, FrenteParlamentar, BlocoCargo, BlocoMembro, MesaDiretora)
+
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+
+from ..settings import RATE_LIMITER_RATE
 
 FrenteCargoCrud = CrudAux.build(FrenteCargo, 'frente_cargo')
 BlocoCargoCrud = CrudAux.build(BlocoCargo, 'bloco_cargo')
@@ -183,6 +188,10 @@ class ProposicaoParlamentarCrud(CrudBaseForListAndDetailExternalAppView):
                     _('Texto Eletrônico'))
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarParlamentarView(FilterView):
     model = Parlamentar
     filterset_class = ParlamentarFilterSet
@@ -245,6 +254,10 @@ class PesquisarParlamentarView(FilterView):
         return self.render_to_response(context)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarColigacaoView(FilterView):
     model = Coligacao
     filterset_class = ColigacaoFilterSet
@@ -301,6 +314,10 @@ class PesquisarColigacaoView(FilterView):
         return self.render_to_response(context)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarPartidoView(FilterView):
     model = Partido
     filterset_class = PartidoFilterSet

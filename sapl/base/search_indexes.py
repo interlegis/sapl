@@ -108,7 +108,7 @@ class TextExtractField(CharField):
                 continue
             data += getattr(self, func)(value) + '  '
 
-        data = data.replace('\n', ' ')
+        data = data.replace('\\n', ' ')
 
         return data
 

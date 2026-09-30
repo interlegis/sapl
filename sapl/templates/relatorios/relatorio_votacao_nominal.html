@@ -1,0 +1,53 @@
+{% extends "relatorios/base_relatorio.html" %}
+{% load i18n %}
+{% load common_tags %}
+{% load static %}
+
+{% block content %}
+    <h2>Votações Nominais</h2>
+    <span style="font-size:x-small">
+      <b>PARÂMETROS DE PESQUISA:<br /></b>
+      {% if tipo_materia %}
+        Tipo de matéria: {{ tipo_materia }}<br />
+      {% endif %}
+      {% if numero %}
+        Número: {{ numero }}<br />
+      {% endif %}
+      {% if ano %}
+        Ano: {{ ano }}<br />
+      {% endif %}
+      Período: {{ periodo }}<br />
+    </span>
+
+    {% if object_list %}
+      {% if qtde_votacoes > 1 %}
+        <h3>Foram encontradas {{qtde_votacoes}} votações.</h3>
+      {% elif qtde_votacoes == 1 %}
+        <h3>Foi encontrada {{qtde_votacoes}} votação.</h3>
+      {% endif %}
+
+      {% for rv in object_list %}
+         <div style="border-top: 1px solid black;margin-top:0.3cm;font-size:small">
+          {% if rv.ordem %}
+            <b>Matéria: {{ rv.ordem.materia }}</b> - {{ rv.ordem.materia.ementa }}<br />
+            <b>Momento da Votação: </b>Ordem do Dia - {{ rv.ordem.sessao_plenaria }}<br />
+            <b>Data da Votação: </b>{{ rv.data_hora|date:"d/m/Y" }}<br />
+            <b>Resultado: </b>{{ rv.ordem.resultado }}<br /><br />
+          {% else %}
+            <b>Matéria: {{ rv.expediente.materia }}</b> - {{ rv.expediente.materia.ementa }}<br />
+            <b>Momento da Votação: </b>Expediente - {{ rv.expediente.sessao_plenaria }}<br />
+            <b>Data da Votação: </b>{{ rv.data_hora|date:"d/m/Y" }}<br />
+            <b>Resultado: </b>{{ rv.expediente.resultado }}<br /><br />
+          {% endif %}
+         </div>
+        <ul style="columns: 2; list-style-type: none;font-size:small">
+          {% for voto in rv.votoparlamentar_set.all|dictsort:"parlamentar.nome_parlamentar" %}
+            <li>{{ voto.parlamentar }} - <b>{{ voto.voto }}</b></li>
+          {% endfor %}
+        </ul>
+      {% endfor %}
+    {% else %}
+       <tr><td><h3 style="text-align: left;">Nenhuma votação encontrada com esses parâmetros.</h3></td></tr><br><br>
+    {% endif %}
+
+{% endblock content %}

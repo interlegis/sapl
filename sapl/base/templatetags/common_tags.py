@@ -300,7 +300,7 @@ def youtube_url(value):
     # Test if YouTube video
     # tested on https://pythex.org/
     value = value.lower()
-    youtube_pattern = "^((https?://)?(www\.)?youtube\.com\/watch\?v=)"
+    youtube_pattern = r"^((https?://)?(www\.)?youtube\.com\/watch\?v=)"
     r = re.findall(youtube_pattern, value)
     return True if r else False
 
@@ -308,7 +308,7 @@ def youtube_url(value):
 @register.filter
 def facebook_url(value):
     value = value.lower()
-    facebook_pattern = "^((https?://)?((www|pt-br)\.)?facebook\.com(\/.+)?\/videos(\/.*)?)"
+    facebook_pattern = r"^((https?://)?((www|pt-br)\.)?facebook\.com(\/.+)?\/videos(\/.*)?)"
     r = re.findall(facebook_pattern, value)
     return True if r else False
 

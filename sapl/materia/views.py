@@ -16,6 +16,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError
+from django.db import transaction
 from django.db.models import Max, Q
 from django.http import HttpResponse, JsonResponse
 from django.http.response import Http404, HttpResponseRedirect
@@ -24,13 +25,15 @@ from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
 from django.utils import formats, timezone
-from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, TemplateView, UpdateView
 from django.views.generic.base import RedirectView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
 import weasyprint
+
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
@@ -49,12 +52,12 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT
+from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT, RATE_LIMITER_RATE
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, get_tempfile_dir,
-                        google_recaptcha_configured, MultiFormatOutputMixin)
+                        google_recaptcha_configured, MultiFormatOutputMixin, ratelimit_ip)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -132,6 +135,10 @@ def proposicao_texto(request, pk):
     raise Http404
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class AdicionarVariasAutorias(PermissionRequiredForAppCrudMixin, FilterView):
     app_label = sapl.materia.apps.AppConfig.label
     filterset_class = AdicionarVariasAutoriasFilterSet
@@ -331,56 +338,18 @@ class ProposicaoTaView(IntegracaoTaView):
         else:
             return self.get_redirect_deactivated()
 
-
+@transaction.atomic
 @permission_required('materia.detail_materialegislativa')
 def recuperar_materia(request):
-    logger = logging.getLogger(__name__)
-    username = request.user.username
     tipo = TipoMateriaLegislativa.objects.get(pk=request.GET['tipo'])
-    ano = request.GET.get('ano', '')
+    ano = request.GET.get('ano', None)
 
-    if not (tipo and ano):
-        return JsonResponse({'numero': '', 'ano': ''})
-
-    numeracao = None
-    try:
-        logger.debug("user=" + username +
-                     ". Tentando obter numeração da matéria.")
-        numeracao = sapl.base.models.AppConfig.objects.last(
-        ).sequencia_numeracao_protocolo
-    except AttributeError as e:
-        logger.error("user=" + username + ". " + str(e) +
-                     " Numeracao da matéria definida como None.")
-        pass
-
-    if tipo.sequencia_numeracao:
-        numeracao = tipo.sequencia_numeracao
-
-    if numeracao == 'A':
-        numero = MateriaLegislativa.objects.filter(
-            ano=ano, tipo=tipo).aggregate(Max('numero'))
-    elif numeracao == 'L':
-        legislatura = Legislatura.objects.filter(
-            data_inicio__year__lte=ano,
-            data_fim__year__gte=ano).first()
-        data_inicio = legislatura.data_inicio
-        data_fim = legislatura.data_fim
-        numero = MateriaLegislativa.objects.filter(
-            data_apresentacao__gte=data_inicio,
-            data_apresentacao__lte=data_fim,
-            tipo=tipo).aggregate(
-            Max('numero'))
-    elif numeracao == 'U':
-        numero = MateriaLegislativa.objects.filter(
-            tipo=tipo).aggregate(Max('numero'))
-
-    if numeracao is None:
-        numero['numero__max'] = 0
-
-    max_numero = numero['numero__max'] + 1 if numero['numero__max'] else 1
+    max_numero, ano = MateriaLegislativa.get_proximo_numero(
+        tipo=tipo,
+        ano=int(ano) if ano else None
+    )
 
     response = JsonResponse({'numero': max_numero, 'ano': ano})
-
     return response
 
 
@@ -392,6 +361,10 @@ class StatusTramitacaoCrud(CrudAux):
             return reverse('sapl.materia:pesquisar_statustramitacao')
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarStatusTramitacaoView(FilterView):
     model = StatusTramitacao
     filterset_class = StatusTramitacaoFilterSet
@@ -2080,26 +2053,37 @@ class AcompanhamentoExcluirView(TemplateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class MateriaLegislativaPesquisaView(MultiFormatOutputMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = MateriaLegislativaFilterSet
     paginate_by = 50
 
-    fields_base_report = [
-        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'autoria__autor__nome', 'texto_original', 'ementa'
+    export_fields = [
+        'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'autoria', 'texto_original', 'ementa'
     ]
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
 
     def hook_texto_original(self, obj):
         url = self.request.build_absolute_uri('/')[:-1]
         texto_original = obj.texto_original if not isinstance(
             obj, dict) else obj["texto_original"]
-
         return f'{url}/media/{texto_original}'
+
+    def hook_autoria(self, obj):
+        """
+        Hook específico para pegar nomes dos autores (reverse query)
+        """
+        try:
+            autores = [
+                str(autoria.autor.nome)
+                for autoria in obj.autoria_set.select_related('autor').all()
+            ]
+            return ', '.join(autores)
+        except AttributeError:
+            return ''
 
     def get_filterset_kwargs(self, filterset_class):
         super().get_filterset_kwargs(filterset_class)
@@ -2334,6 +2318,10 @@ class AcompanhamentoMateriaView(CreateView):
                        kwargs={'pk': self.kwargs['pk']})
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AcessorioEmLoteFilterSet
     template_name = 'materia/em_lote/acessorio.html'
@@ -2446,6 +2434,10 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
         return self.get(request, self.kwargs)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AnexadaEmLoteFilterSet
     template_name = 'materia/em_lote/anexada.html'
@@ -2570,6 +2562,10 @@ class MateriaAnexadaEmLoteView(PermissionRequiredMixin, FilterView):
         return HttpResponseRedirect(success_url)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PrimeiraTramitacaoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteFilterSet
     template_name = 'materia/em_lote/tramitacao.html'

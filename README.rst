@@ -1,5 +1,4 @@
-.. image:: https://travis-ci.org/interlegis/sapl.svg?branch=3.1.x
- :target: https://travis-ci.org/interlegis/sapl
+
 
 
 ***********************************************

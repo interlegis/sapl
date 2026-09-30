@@ -225,7 +225,7 @@ def signed_files_extraction_function(sender, instance, **kwargs):
                     issuer = cert.native['tbs_certificate']['issuer']
                     oname = issuer.get('organization_name', '')
 
-                    if oname == 'Gov-Br':
+                    if oname in ('Gov-Br', '1Doc'):
                         nome = subject['common_name'].split(':')[0]
                         continue
 
@@ -336,7 +336,7 @@ def signed_files_extraction_function(sender, instance, **kwargs):
                         issuer = cert.native['tbs_certificate']['issuer']
                         oname = issuer.get('organization_name', '')
 
-                        if oname == 'Gov-Br':
+                        if oname in ('Gov-Br', '1Doc'):
                             nome = subject['common_name'].split(':')[0]
                             continue
 

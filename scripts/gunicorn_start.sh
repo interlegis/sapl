@@ -15,8 +15,8 @@ then
 fi
 
 NAME="SAPL"                                     # Name of the application (*)
-DJANGODIR=$SAPL_DIR/                            # Django project directory (*)
-SOCKFILE=$SAPL_DIR/run/gunicorn.sock            # we will communicate using this unix socket (*)
+DJANGODIR="$SAPL_DIR/"                          # Django project directory (*)
+SOCKFILE="$SAPL_DIR/run/gunicorn.sock"          # we will communicate using this unix socket (*)
 USER=`whoami`                                   # the user to run as (*)
 GROUP=`whoami`                                  # the group to run as (*)
 NUM_WORKERS=3                                   # how many worker processes should Gunicorn spawn (*)

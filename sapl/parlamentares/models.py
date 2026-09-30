@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 from model_utils import Choices
-from prompt_toolkit.key_binding.bindings.named_commands import self_insert
 
 from sapl.base.models import Autor
 from sapl.decorators import vigencia_atual
@@ -194,6 +193,10 @@ class Parlamentar(models.Model):
     SEXO_CHOICE = ((FEMININO, _('Feminino')),
                    (MASCULINO, _('Masculino')))
 
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True, auto_now=True,
+        verbose_name=_('Data da Última Atualização'))
+
     nivel_instrucao = models.ForeignKey(
         NivelInstrucao,
         blank=True,
@@ -207,9 +210,9 @@ class Parlamentar(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('Situação Militar'))
     nome_completo = models.CharField(
-        max_length=50, verbose_name=_('Nome Completo'))
+        max_length=80, verbose_name=_('Nome Completo'))
     nome_parlamentar = models.CharField(
-        max_length=50,
+        max_length=80,
         verbose_name=_('Nome Parlamentar'))
     sexo = models.CharField(
         max_length=1, verbose_name=_('Sexo'), choices=SEXO_CHOICE)

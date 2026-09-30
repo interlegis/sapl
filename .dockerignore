@@ -12,3 +12,10 @@ bower
 .travis.yml
 .env
 .idea
+.DS_Store
+.coveragerc
+*.swp
+.coveragerc
+.drone.yml
+.github
+release.sh

@@ -47,7 +47,7 @@ from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
-                        google_recaptcha_configured, get_tempfile_dir, MultiFormatOutputMixin)
+                        google_recaptcha_configured, get_tempfile_dir, MultiFormatOutputMixin, ratelimit_ip)
 
 from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, AnexadoForm,
                     AnularProtocoloAdmForm, compara_tramitacoes_doc,
@@ -62,7 +62,10 @@ from .forms import (AcompanhamentoDocumentoForm, AnexadoEmLoteFilterSet, Anexado
 from .models import (Anexado, AcompanhamentoDocumento, DocumentoAcessorioAdministrativo,
                      DocumentoAdministrativo, StatusTramitacaoAdministrativo,
                      TipoDocumentoAdministrativo, TramitacaoAdministrativo)
-from ..settings import MEDIA_ROOT
+from ..settings import MEDIA_ROOT, RATE_LIMITER_RATE
+
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 TipoDocumentoAdministrativoCrud = CrudAux.build(
     TipoDocumentoAdministrativo, '')
@@ -453,7 +456,7 @@ class DocumentoAdministrativoCrud(Crud):
 
         def form_valid(self, form):
             form.instance.complemento = re.sub(
-                '\s+', '', form.instance.complemento).upper()
+                r'\s+', '', form.instance.complemento).upper()
             return super().form_valid(form)
 
     class UpdateView(Crud.UpdateView):
@@ -486,7 +489,7 @@ class DocumentoAdministrativoCrud(Crud):
                     break
 
             form.instance.complemento = re.sub(
-                '\s+', '', form.instance.complemento).upper()
+                r'\s+', '', form.instance.complemento).upper()
 
             return super().form_valid(form)
 
@@ -540,6 +543,10 @@ class StatusTramitacaoAdministrativoCrud(CrudAux):
         ordering = 'sigla'
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
     model = Protocolo
     filterset_class = ProtocoloFilterSet
@@ -997,7 +1004,6 @@ class ProtocoloMateriaView(PermissionRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super(CreateView, self).get_context_data(**kwargs)
         autores_ativos = self.autores_ativos()
-
         autores = []
         autores.append(['0', '------'])
         for a in autores_ativos:
@@ -1038,6 +1044,10 @@ class ProtocoloMateriaTemplateView(PermissionRequiredMixin, TemplateView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
                                            MultiFormatOutputMixin,
                                            PermissionRequiredMixin,
@@ -1047,14 +1057,9 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
     paginate_by = 10
     permission_required = ('protocoloadm.list_documentoadministrativo', )
 
-    fields_base_report = [
+    export_fields = [
         'id', 'ano', 'numero', 'tipo__sigla', 'tipo__descricao', 'assunto'
     ]
-    fields_report = {
-        'csv': fields_base_report,
-        'xlsx': fields_base_report,
-        'json': fields_base_report,
-    }
 
     def get_filterset_kwargs(self, filterset_class):
         super(PesquisarDocumentoAdministrativoView,
@@ -1176,6 +1181,10 @@ class AnexadoCrud(MasterDetailCrud):
             return 'AnexadoDetail'
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class DocumentoAnexadoEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = AnexadoEmLoteFilterSet
     template_name = 'protocoloadm/em_lote/anexado.html'
@@ -1689,6 +1698,10 @@ class FichaSelecionaAdmView(PermissionRequiredMixin, FormView):
                                    'materia/impressos/ficha_adm_pdf.html')
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class PrimeiraTramitacaoEmLoteAdmView(PermissionRequiredMixin, FilterView):
     filterset_class = PrimeiraTramitacaoEmLoteAdmFilterSet
     template_name = 'protocoloadm/em_lote/tramitacaoadm.html'
@@ -1925,6 +1938,10 @@ class VinculoDocAdminMateriaCrud(MasterDetailCrud):
             return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class VinculoDocAdminMateriaEmLoteView(PermissionRequiredMixin, FilterView):
     filterset_class = VinculoDocAdminMateriaEmLoteFilterSet
     template_name = 'protocoloadm/em_lote/vinculodocadminmateria.html'

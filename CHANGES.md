@@ -1,4 +1,94 @@
 
+3.1.165-RC3 / 2026-09-01
+========================
+
+  * Corrige SQL injection em DispositivoSearchFragmentFormView (#3856)
+  * Remove limite de caracteres do campo Informação Geral da Casa (#3848)
+  * Oculta sessões plenárias não iniciadas da consulta pública (#3845)
+  * hot-fix: Adiciona MIME Media Types opcionais para CSV.
+  * hot-fix: Remove alerta errado
+  * Corrige ordem dos expedientes no PDF do Resumo da Sessão (#3844)
+  * hot-fix: imprime somente contéudo da ocorrência
+  * Fix duplicate normas/matérias in author reports and prevent unfiltered queries
+  * Fix ValueError in audiencia form and AttributeError on HEAD requests
+  * Fix panel clock source and prevent overlapping polling
+  * hot-fix: recover epoch from server always
+  * Corrige polling excessivo e bloqueia não-votantes em /voto-individual/ (#3831)
+  * Hot-fix: corrige cópia de request.data
+  * Release: 3.1.165-RC2
+  * #3821 centralizar geração próximo número para create de matérias legislativas (#3822)
+
+3.1.166-RC0 / 2026-09-01
+========================
+
+
+
+3.1.165-RC2 / 2026-03-26
+========================
+
+  * Aumenta RATE_LIMITER_RATE default de 10/m para 35/m (#3824)
+  * #3821 centralizar geração próximo número para create de matérias legislativas (#3822)
+
+3.1.165-RC1 / 2026-02-24
+========================
+
+  * Hot-fix: fixes setup tool for Haystack
+
+3.1.165-RC0 / 2026-02-20
+========================
+
+  * Implementa Header LastModified na Api (#3808)
+  * Impl expansão dinâmica de campos na API (#3809)
+  * Seleciona tipo de votação para múltiplas matérias ao incluir na Ordem do Dia ou Expediente (#3781)
+  * Adiciona requestId em requisições
+  * Hot-fix: conserta erro em JS de voto individual
+  * Coloca negrito em resultado de votação
+  * Inversão da ordem de ano e número em Adicionar Norma
+  * Aumento de nome de parlamentar
+  * Aumento do tamanho de Nome e Tema da Audiência Pública
+  * Conserta bug na pesquisa do Relatório de Votações Nominais (#3803)
+  * feat: impl filtro m2m com lookup '__in' para buscas com multiplos ids (#3807)
+  * Refatora rate limiter
+  * Release: 3.1.164-RC5
+
+3.1.164-RC5 / 2025-09-22
+========================
+
+  * Adiciona smoke test for rate limiter
+  * Hot-fix: rate limiter get ip
+
+3.1.164-RC4 / 2025-09-22
+========================
+
+  * Fix recibo proposição e adiciona rate limiter em matéria e norma
+
+3.1.164-RC3 / 2025-09-16
+========================
+
+  * Health and Ready endpoints (#3788)
+  * Fix read-only mount on k8s
+  * Remove setup.py do projeto SAPL
+
+3.1.164-RC2 / 2025-09-08
+========================
+
+  * Restaura prod settings de docker-compose
+  * Restringe tipos de arquivos para upload (#3794)
+  * feat: cria script para remocao de proposicoes de um autor (#3703)
+  * HOT-Fix: Conserta erro introduzido no PR #3785
+  * Atualização da imagem base Docker (#3787)
+  * Ajustes solicitados - Relatório de Votações Nominais (#3785)
+  * Refatora lógica de geração de CSV/json/xlsx (#3786)
+  * Remove btn libras de media print (#3777)
+
+3.1.164-RC1 / 2025-08-05
+========================
+
+  * Adiciona botoes de impressao na pesquisa de doc adm
+  * Fix: conserta erro em historico proposicao
+  * Desabilita detalhe de Justificativa Ausência para acesso público
+  * Adiciona homepage do parlamentar a perfil público
+
 3.1.164-RC0 / 2025-07-09
 ========================
 

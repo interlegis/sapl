@@ -9,7 +9,9 @@ services:
       POSTGRES_PASSWORD: sapl
       POSTGRES_USER: sapl
       POSTGRES_DB: sapl
-      PGDATA : /var/lib/postgresql/data/
+      PGDATA: /var/lib/postgresql/data/
+      TZ: UTC
+      PG_TZ: UTC
     volumes:
       - sapldb_data:/var/lib/postgresql/data/
     ports:
@@ -31,7 +33,7 @@ services:
     networks:
       - sapl-net
   sapl:
-    image: interlegis/sapl:3.1.164-RC0
+    image: interlegis/sapl:3.1.165-RC3
 #    build:
 #      context: ../
 #      dockerfile: ./docker/Dockerfile

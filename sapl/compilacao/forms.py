@@ -987,7 +987,7 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
             p.pk, _('%s realizada em %s. %s') % (
                 p.tipo_publicacao,
                 defaultfilters.date(
-                    p.data, "d \d\e F \d\e Y"),
+                    p.data, r"d \d\e F \d\e Y"),
                 str(p.ta))) for p in pubs]
 
         dvs = Dispositivo.objects.order_by('ordem').filter(

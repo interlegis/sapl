@@ -31,7 +31,8 @@ from sapl.relatorios.forms import RelatorioNormasPorAutorFilterSet, RelatorioHis
     RelatorioNormasVigenciaFilterSet, RelatorioNormasMesFilterSet, RelatorioMateriasPorAutorFilterSet, \
     RelatorioMateriasPorAnoAutorTipoFilterSet, RelatorioMateriasTramitacaoFilterSet, RelatorioAudienciaFilterSet, \
     RelatorioReuniaoFilterSet, RelatorioDataFimPrazoTramitacaoFilterSet, RelatorioHistoricoTramitacaoFilterSet, \
-    RelatorioPresencaSessaoFilterSet, RelatorioAtasFilterSet, RelatorioDocumentosAcessoriosFilterSet
+    RelatorioPresencaSessaoFilterSet, RelatorioAtasFilterSet, RelatorioDocumentosAcessoriosFilterSet, \
+    RelatorioVotacoesNominaisFilterSet
 from sapl.sessao.models import (ExpedienteMateria, ExpedienteSessao,
                                 IntegranteMesa, JustificativaAusencia,
                                 Orador, OradorExpediente,
@@ -47,16 +48,19 @@ from sapl.sessao.views import (get_identificacao_basica, get_mesa_diretora,
                                get_oradores_explicacoes_pessoais, get_consideracoes_finais,
                                get_ocorrencias_da_sessao, get_assinaturas,
                                get_correspondencias)
-from sapl.settings import MEDIA_URL
+from sapl.settings import MEDIA_URL, RATE_LIMITER_RATE
 from sapl.settings import STATIC_ROOT
 from sapl.utils import LISTA_DE_UFS, TrocaTag, filiacao_data, create_barcode, show_results_filter_set, \
-    num_materias_por_tipo, parlamentares_ativos
+    num_materias_por_tipo, parlamentares_ativos, MultiFormatOutputMixin, ratelimit_ip
 from .templates import (pdf_capa_processo_gerar,
                         pdf_documento_administrativo_gerar, pdf_espelho_gerar,
                         pdf_etiqueta_protocolo_gerar, pdf_materia_gerar,
                         pdf_ordem_dia_gerar, pdf_pauta_sessao_gerar,
                         pdf_protocolo_gerar, pdf_sessao_plenaria_gerar)
 from sapl.crud.base import make_pagination
+
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 
 def get_kwargs_params(request, fields):
@@ -605,20 +609,22 @@ def get_sessao_plenaria(sessao, casa, user):
 
     # Exibe os Expedientes
     lst_expedientes = []
+    # A ordenação deve ser a mesma de sapl.sessao.views.get_expedientes, para
+    # que o PDF confira com o Resumo exibido em tela. OSTicket #125461
     expedientes = ExpedienteSessao.objects.filter(
-        sessao_plenaria=sessao).order_by('tipo__nome')
+        sessao_plenaria=sessao).order_by('tipo__ordenacao', 'tipo__nome')
     for e in expedientes:
         conteudo = e.conteudo
         if not is_empty(conteudo):
             # unescape HTML codes
             # https://github.com/interlegis/sapl/issues/1046
-            conteudo = re.sub('style=".*?"', '', conteudo)
-            conteudo = re.sub('class=".*?"', '', conteudo)
+            conteudo = re.sub(r'style=".*?"', '', conteudo)
+            conteudo = re.sub(r'class=".*?"', '', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('align=".*?"', '', conteudo)
-            conteudo = re.sub('<p\s+>', '<p>', conteudo)
+            conteudo = re.sub(r'align=".*?"', '', conteudo)
+            conteudo = re.sub(r'<p\s+>', '<p>', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)
+            conteudo = re.sub(r'<br\s+/>', '<br/>', conteudo)
             conteudo = html.unescape(conteudo)
 
             # escape special character '&'
@@ -705,7 +711,7 @@ def get_sessao_plenaria(sessao, casa, user):
     lst_expediente_materia_vot_nom = []
 
     materias_expediente_votacao_nominal = ExpedienteMateria.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
-        .order_by('-materia')
+        .order_by('numero_ordem')
 
     for mevn in materias_expediente_votacao_nominal:
         votos_materia = []
@@ -818,7 +824,7 @@ def get_sessao_plenaria(sessao, casa, user):
     lst_votacao_vot_nom = []
 
     materias_ordem_dia_votacao_nominal = OrdemDia.objects.filter(sessao_plenaria=sessao, tipo_votacao=2) \
-        .order_by('-materia')
+        .order_by('numero_ordem')
 
     for modvn in materias_ordem_dia_votacao_nominal:
         votos_materia_od = []
@@ -874,7 +880,7 @@ def get_sessao_plenaria(sessao, casa, user):
 
         # unescape HTML codes
         # https://github.com/interlegis/sapl/issues/1046
-        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = re.sub(r'style=".*?"', '', conteudo)
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
@@ -894,7 +900,7 @@ def get_sessao_plenaria(sessao, casa, user):
 
         # unescape HTML codes
         # https://github.com/interlegis/sapl/issues/1046
-        conteudo = re.sub('style=".*?"', '', conteudo)
+        conteudo = re.sub(r'style=".*?"', '', conteudo)
         conteudo = html.unescape(conteudo)
 
         # escape special character '&'
@@ -1321,13 +1327,13 @@ def get_pauta_sessao(sessao, casa):
         if not is_empty(conteudo):
             # unescape HTML codes
             # https://github.com/interlegis/sapl/issues/1046
-            conteudo = re.sub('style=".*?"', '', conteudo)
-            conteudo = re.sub('class=".*?"', '', conteudo)
+            conteudo = re.sub(r'style=".*?"', '', conteudo)
+            conteudo = re.sub(r'class=".*?"', '', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('align=".*?"', '', conteudo)
-            conteudo = re.sub('<p\s+>', '<p>', conteudo)
+            conteudo = re.sub(r'align=".*?"', '', conteudo)
+            conteudo = re.sub(r'<p\s+>', '<p>', conteudo)
             # OSTicket Ticket #796450
-            conteudo = re.sub('<br\s+/>', '<br/>', conteudo)
+            conteudo = re.sub(r'<br\s+/>', '<br/>', conteudo)
             conteudo = html.unescape(conteudo)
 
             # escape special character '&'
@@ -1560,6 +1566,10 @@ def relatorio_documento_acessorio(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_documento_acessorio.html')
 
 
+def relatorio_votacao_nominal(obj, request, context):
+    return cria_relatorio(request, context, 'relatorios/relatorio_votacao_nominal.html')
+
+
 def relatorio_normas_por_autor(obj, request, context):
     return cria_relatorio(request, context, 'relatorios/relatorio_normas_por_autor.html')
 
@@ -1782,7 +1792,7 @@ def relatorio_materia_tramitacao(request, pk):
     'materia': materia_legislativa,
     'ano': materia_legislativa.ano,
     'numero': materia_legislativa.numero,
-    'autor': materia_legislativa.autores.first(),
+    'autores': materia_legislativa.autores.all(),
     'tipo': materia_legislativa.tipo.descricao,
     'rodape': rodape,
     'data': dt.today().strftime('%d/%m/%Y'),
@@ -1836,6 +1846,10 @@ class RelatorioMixin:
             return self.render_to_response(context)
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
     model = DocumentoAcessorio
     filterset_class = RelatorioDocumentosAcessoriosFilterSet
@@ -1880,6 +1894,83 @@ class RelatorioDocumentosAcessoriosView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
+class RelatorioVotacoesNominaisView(RelatorioMixin, MultiFormatOutputMixin, FilterView):
+    model = VotoParlamentar
+    filterset_class = RelatorioVotacoesNominaisFilterSet
+    template_name = 'relatorios/RelatorioVotacoesNominais_filter.html'
+    relatorio = relatorio_votacao_nominal
+    paginate_by = 20
+
+    export_fields = [
+        'votacao_id', 'votacao', 'parlamentar__nome_parlamentar', 'voto'
+    ]
+
+    def get_queryset(self):
+        query_params = Q(ordem__tipo_votacao=2)|Q(expediente__tipo_votacao=2)
+        if 'format' in self.request.GET:
+            order_fields = ['-votacao_id', 'parlamentar']
+            qs = VotoParlamentar.objects.filter(query_params).order_by(*order_fields)
+        else:
+            order_fields = ['-id']
+            qs = RegistroVotacao.objects.filter(query_params).order_by(*order_fields)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['title'] = _('Votações Nominais')
+
+        if not self.filterset.form.is_valid():
+            return context
+
+        query_dict = self.request.GET.copy()
+        if 'page' in query_dict:
+            del query_dict['page']
+        context['filter_url'] = f"&{query_dict.urlencode()}" if query_dict else ''
+        context['show_results'] = show_results_filter_set(query_dict)
+
+        data_inicial = self.request.GET.get('data_hora_0', '')
+        data_final = self.request.GET.get('data_hora_1', '')
+        if not data_inicial:
+            data_inicial = "Data Inicial não definida"
+        if not data_final:
+            data_final = "Data Final não definida"
+        context['periodo'] = f"{data_inicial} - {data_final}"
+
+        tipo_id = self.request.GET.get('tipo_id')
+        numero = self.request.GET.get('numero')
+        ano = self.request.GET.get('ano')
+
+        if tipo_id:
+            context['tipo_materia'] = TipoMateriaLegislativa.objects.get(id=tipo_id)
+        if numero:
+            context['numero'] = int(numero)
+        if ano:
+            context['ano'] = ano
+
+        if 'relatorio' not in self.request.GET:
+            paginator = context['paginator']
+            page_obj = context['page_obj']
+
+            context['page_range'] = make_pagination(
+                page_obj.number, paginator.num_pages)
+
+            context['qtde_votacoes'] = paginator.count
+        else:
+            self.paginate_by = None
+            context['qtde_votacoes'] = len(context['object_list'])
+
+        return context
+
+
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioAtasView(RelatorioMixin, FilterView):
     model = SessaoPlenaria
     filterset_class = RelatorioAtasFilterSet
@@ -1905,6 +1996,10 @@ class RelatorioAtasView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
     logger = logging.getLogger(__name__)
     model = SessaoPlenaria
@@ -1985,17 +2080,22 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
         parlamentares_id = parlamentares_qs.values_list('id', flat=True)
 
         # Presenças de cada Parlamentar em Sessões
+        # Conta sessões distintas, e não linhas de presença: bases com
+        # presenças repetidas para o mesmo parlamentar na mesma sessão
+        # produziam percentuais acima de 100%.
         presenca_sessao = SessaoPlenariaPresenca.objects.filter(
-            **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
+            **param0).values_list('parlamentar_id').annotate(
+            sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         # Presenças de cada Ordem do Dia
         presenca_ordem = PresencaOrdemDia.objects.filter(
-            **param0).values_list('parlamentar_id').annotate(sessao_count=Count('id'))
+            **param0).values_list('parlamentar_id').annotate(
+            sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         # Ausencias justificadas
         ausencia_justificadas = JustificativaAusencia.objects.filter(
             **param0, ausencia=2).values_list('parlamentar_id')\
-            .annotate(sessao_count=Count('id'))
+            .annotate(sessao_count=Count('sessao_plenaria_id', distinct=True))
 
         total_ordemdia = PresencaOrdemDia.objects.filter(
             **param0).distinct('sessao_plenaria__id').order_by('sessao_plenaria__id').count()
@@ -2139,6 +2239,10 @@ class RelatorioPresencaSessaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioHistoricoTramitacaoView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioHistoricoTramitacaoFilterSet
@@ -2196,6 +2300,10 @@ class RelatorioHistoricoTramitacaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
     model = MateriaEmTramitacao
     filterset_class = RelatorioDataFimPrazoTramitacaoFilterSet
@@ -2259,6 +2367,10 @@ class RelatorioDataFimPrazoTramitacaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioReuniaoView(RelatorioMixin, FilterView):
     model = Reuniao
     filterset_class = RelatorioReuniaoFilterSet
@@ -2293,6 +2405,10 @@ class RelatorioReuniaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioAudienciaView(RelatorioMixin, FilterView):
     model = AudienciaPublica
     filterset_class = RelatorioAudienciaFilterSet
@@ -2327,6 +2443,10 @@ class RelatorioAudienciaView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
     model = MateriaEmTramitacao
     filterset_class = RelatorioMateriasTramitacaoFilterSet
@@ -2441,6 +2561,10 @@ class RelatorioMateriasTramitacaoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioMateriasPorAnoAutorTipoView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasPorAnoAutorTipoFilterSet
@@ -2520,6 +2644,10 @@ class RelatorioMateriasPorAnoAutorTipoView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
     model = MateriaLegislativa
     filterset_class = RelatorioMateriasPorAutorFilterSet
@@ -2539,7 +2667,6 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
             return context
 
         qs = context['object_list']
-        context['materias_resultado'] = list(collections.OrderedDict.fromkeys(qs))
         context['qtdes'] = num_materias_por_tipo(qs)
 
         qr = self.request.GET.copy()
@@ -2554,9 +2681,9 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
             context['tipo'] = ''
         if self.request.GET['autoria__autor']:
             autor = int(self.request.GET['autoria__autor'])
-            context['autor'] = (str(Autor.objects.get(id=autor)))
+            context['autor'] = Autor.objects.get(id=autor)
         else:
-            context['autor'] = ''
+            context['autor'] = None
         context['periodo'] = (
                 self.request.GET['data_apresentacao_0'] +
                 ' - ' + self.request.GET['data_apresentacao_1'])
@@ -2591,6 +2718,10 @@ class RelatorioMateriaAnoAssuntoView(ListView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioNormasPublicadasMesView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasMesFilterSet
@@ -2631,6 +2762,10 @@ class RelatorioNormasPublicadasMesView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasVigenciaFilterSet
@@ -2695,6 +2830,10 @@ class RelatorioNormasVigenciaView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
     model = DocumentoAdministrativo
     filterset_class = RelatorioHistoricoTramitacaoAdmFilterSet
@@ -2745,6 +2884,10 @@ class RelatorioHistoricoTramitacaoAdmView(RelatorioMixin, FilterView):
         return context
 
 
+@method_decorator(ratelimit(key=ratelimit_ip,
+                            rate=RATE_LIMITER_RATE,
+                            block=True),
+                  name='dispatch')
 class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
     model = NormaJuridica
     filterset_class = RelatorioNormasPorAutorFilterSet
@@ -2784,9 +2927,9 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
 
         if self.request.GET['autorianorma__autor']:
             autor = int(self.request.GET['autorianorma__autor'])
-            context['autor'] = (str(Autor.objects.get(id=autor)))
+            context['autor'] = Autor.objects.get(id=autor)
         else:
-            context['autor'] = ''
+            context['autor'] = None
         context['periodo'] = (
                 self.request.GET['data_0'] +
                 ' - ' + self.request.GET['data_1'])

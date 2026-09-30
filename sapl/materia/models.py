@@ -1,18 +1,21 @@
-
 from datetime import datetime
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Max
 from django.db.models.functions import Concat
 from django.template import defaultfilters
 from django.utils import formats, timezone
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor
+
+from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor, AppConfig as BaseAppConfig
 from sapl.comissoes.models import Comissao, Reuniao
+from sapl.parlamentares.models import Legislatura
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
                                     TextoArticulado)
 from sapl.parlamentares.models import Parlamentar
@@ -21,8 +24,7 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         texto_upload_path, get_settings_auth_user_model,
                         OverwriteStorage)
 
-
-#from sapl.protocoloadm.models import Protocolo
+# from sapl.protocoloadm.models import Protocolo
 EM_TRAMITACAO = [(1, 'Sim'),
                  (0, 'Não')]
 
@@ -185,7 +187,6 @@ def anexo_upload_path(instance, filename):
 
 
 class MateriaLegislativa(models.Model):
-
     tipo = models.ForeignKey(
         TipoMateriaLegislativa,
         on_delete=models.PROTECT,
@@ -282,7 +283,7 @@ class MateriaLegislativa(models.Model):
         Autor,
         through='Autoria',
         through_fields=('materia', 'autor'),
-        symmetrical=False,)
+        symmetrical=False, )
 
     data_ultima_atualizacao = models.DateTimeField(
         blank=True, null=True,
@@ -325,7 +326,7 @@ class MateriaLegislativa(models.Model):
             'numero': self.numero,
             'data': defaultfilters.date(
                 self.data_apresentacao,
-                "d \d\e F \d\e Y"
+                r"d \d\e F \d\e Y"
             )}
 
     def data_entrada_protocolo(self):
@@ -385,6 +386,106 @@ class MateriaLegislativa(models.Model):
                                  using=using,
                                  update_fields=update_fields)
 
+    @staticmethod
+    def get_proximo_numero(tipo, ano=None, numero_candidato=None):
+        """
+        Retorna o próximo número disponível para uma MateriaLegislativa
+        baseado no tipo e nas configurações de numeração.
+
+        IMPORTANTE: Este método utiliza select_for_update() e DEVE ser
+        chamado dentro de uma transação (transaction.atomic) para garantir
+        proteção contra race conditions em acessos concorrentes.
+
+        Args:
+            tipo: TipoMateriaLegislativa ou int/str - o tipo da matéria
+            ano: int - o ano da matéria (default: ano atual)
+            numero_candidato: int - número candidato/desejado (opcional).
+                Se fornecido e disponível, será retornado. Caso contrário,
+                retorna o próximo sequencial.
+
+        Returns:
+            tuple[int, int]: Uma tupla contendo (numero, ano) da matéria.
+        """
+
+        if ano is None:
+            ano = timezone.now().year
+
+        # Obtém a configuração de numeração
+        numeracao = None
+        try:
+            numeracao = BaseAppConfig.objects.last(
+            ).sequencia_numeracao_protocolo
+        except AttributeError:
+            pass
+
+        if not isinstance(tipo, TipoMateriaLegislativa):
+            if tipo is None:
+                raise ValidationError(_("O tipo é obrigatório."))
+
+            try:
+                tipo_id = int(tipo)
+            except (ValueError, TypeError):
+                raise ValidationError(_("Tipo inválido: '%s'") % tipo)
+
+            try:
+                tipo = TipoMateriaLegislativa.objects.get(pk=tipo_id)
+            except TipoMateriaLegislativa.DoesNotExist:
+                raise TipoMateriaLegislativa.DoesNotExist(
+                    _("TipoMateriaLegislativa with pk '%s' does not exist.") % tipo_id
+                )
+
+        # Lock na linha do TipoMateriaLegislativa para serializar
+        # gerações concorrentes de número do mesmo tipo.
+        # Requer que o chamador esteja dentro de transaction.atomic().
+        TipoMateriaLegislativa.objects.select_for_update().get(pk=tipo.pk)
+
+        # O tipo pode sobrescrever a configuração global
+        if tipo.sequencia_numeracao:
+            numeracao = tipo.sequencia_numeracao
+
+        # Calcula o próximo número baseado no tipo de numeração
+        materias_select_for_update = MateriaLegislativa.objects.select_for_update()
+        if numeracao == 'A':  # Por ano
+            numero = materias_select_for_update.filter(
+                ano=ano, tipo=tipo).aggregate(Max('numero'))
+        elif numeracao == 'L':  # Por legislatura
+            legislatura = Legislatura.objects.filter(
+                data_inicio__year__lte=ano,
+                data_fim__year__gte=ano).first()
+            if legislatura:
+                data_inicio = legislatura.data_inicio
+                data_fim = legislatura.data_fim
+                numero = materias_select_for_update.filter(
+                    data_apresentacao__gte=data_inicio,
+                    data_apresentacao__lte=data_fim,
+                    tipo=tipo).aggregate(Max('numero'))
+            else:
+                numero = {'numero__max': 0}
+        elif numeracao == 'U':  # Único/Universal
+            numero = materias_select_for_update.filter(
+                tipo=tipo).aggregate(Max('numero'))
+        else:
+            numero = {'numero__max': 0}
+
+        # Converte o número candidato para inteiro, se possível
+        numero_candidato_int = None
+        if numero_candidato is not None:
+            try:
+                numero_candidato_int = int(numero_candidato)
+            except (TypeError, ValueError):
+                numero_candidato_int = None
+
+        # Verifica se o número candidato está disponível
+        if numero_candidato_int is not None and not materias_select_for_update.filter(
+                tipo=tipo,
+                ano=ano,
+                numero=numero_candidato_int).exists():
+            return numero_candidato_int, ano
+
+        # Retorna o próximo número sequencial
+        max_numero = numero['numero__max']
+        return ((max_numero + 1) if max_numero else 1), ano
+
 
 class Autoria(models.Model):
     autor = models.ForeignKey(Autor,
@@ -400,7 +501,7 @@ class Autoria(models.Model):
     class Meta:
         verbose_name = _('Autoria')
         verbose_name_plural = _('Autorias')
-        unique_together = (('autor', 'materia'), )
+        unique_together = (('autor', 'materia'),)
         ordering = ('-primeiro_autor', 'autor__nome')
 
     def __str__(self):
@@ -456,9 +557,9 @@ class PautaReuniao(models.Model):
     def __str__(self):
         return _('Reunião: %(reuniao)s'
                  ' - Matéria: %(materia)s') % {
-                     'reuniao': self.reuniao,
-                     'materia': self.materia
-        }
+                   'reuniao': self.reuniao,
+                   'materia': self.materia
+               }
 
 
 class Anexada(models.Model):
@@ -482,8 +583,8 @@ class Anexada(models.Model):
     def __str__(self):
         return _('Principal: %(materia_principal)s'
                  ' - Anexada: %(materia_anexada)s') % {
-            'materia_principal': self.materia_principal,
-            'materia_anexada': self.materia_anexada}
+                   'materia_principal': self.materia_principal,
+                   'materia_anexada': self.materia_anexada}
 
 
 class AssuntoMateria(models.Model):
@@ -760,7 +861,6 @@ class Parecer(models.Model):
 
 
 class Proposicao(models.Model):
-
     autor = models.ForeignKey(
         Autor,
         null=True,
@@ -983,13 +1083,13 @@ class Proposicao(models.Model):
         return '%s nº _____ %s' % (
             self.tipo, formats.date_format(
                 self.data_envio if self.data_envio else timezone.now(),
-                "\d\e d \d\e F \d\e Y"))
+                r"\d\e d \d\e F \d\e Y"))
 
     class Meta:
         ordering = ['-data_recebimento']
         verbose_name = _('Proposição')
         verbose_name_plural = _('Proposições')
-        unique_together = (('content_type', 'object_id'), )
+        unique_together = (('content_type', 'object_id'),)
         permissions = (
             ('detail_proposicao_enviada',
              _('Pode acessar detalhes de uma proposição enviada.')),
@@ -1021,7 +1121,7 @@ class Proposicao(models.Model):
             'numero': self.numero_proposicao,
             'data': defaultfilters.date(
                 self.data_envio if self.data_envio else timezone.now(),
-                "d \d\e F \d\e Y"
+                r"d \d\e F \d\e Y"
             )}
 
     def delete(self, using=None, keep_parents=False):

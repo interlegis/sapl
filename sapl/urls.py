@@ -36,6 +36,8 @@ import sapl.redireciona_urls.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
 
+from sapl.api.views_health import AppzVersionView, HealthzView, ReadyzView
+
 urlpatterns = []
 
 urlpatterns += [
@@ -69,6 +71,12 @@ urlpatterns += [
     path("robots.txt", TemplateView.as_view(
         template_name="robots.txt", content_type="text/plain")),
 
+    # Health and Readiness
+    url(r'^version/$', AppzVersionView.as_view(), name="version"),
+    url(r"^health/$", HealthzView.as_view(), name="health"),
+    url(r"^ready/$", ReadyzView.as_view(), name="ready"),
+
+    # Monitoring
     path(r'', include('django_prometheus.urls')),
 
 ]
@@ -92,3 +100,18 @@ if settings.DEBUG:
             'document_root': settings.MEDIA_ROOT,
         }),
     ]
+
+
+# Make the rate limiter return 429 (Too Many Requests) instead of 403 (Forbidden Access)
+def custom_permission_denied_view(request, exception=None):
+    from django.http import HttpResponse, HttpResponseForbidden
+    from ratelimit.exceptions import Ratelimited
+
+    if isinstance(exception, Ratelimited):
+        resp = HttpResponse('Too many requests', status=429)
+        resp['Retry-After'] = '60'
+        return resp
+    return HttpResponseForbidden('Forbidden')
+
+
+handler403 = custom_permission_denied_view
