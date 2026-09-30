@@ -330,11 +330,17 @@ class AcompanhamentoMateriaForm(GoogleRecapthaMixin, ModelForm):
 
 class DocumentoAcessorioForm(FileFieldCheckMixin, ModelForm):
     data = forms.DateField(required=True)
+    restrito = forms.ChoiceField(
+        label=_('Documento Restrito?'),
+        widget=forms.RadioSelect(),
+        choices=YES_NO_CHOICES,
+        initial=False)
 
     class Meta:
         model = DocumentoAcessorio
         fields = ['tipo', 'nome', 'data', 'autor',
-                  'ementa', 'indexacao', 'arquivo']
+                  'ementa', 'indexacao', 'arquivo',
+                  'restrito', 'justificativa_restricao']
 
     def clean(self):
         super(DocumentoAcessorioForm, self).clean()

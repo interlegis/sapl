@@ -60,9 +60,12 @@ class _DocumentoAcessorioAdministrativoViewSet:
 
     def get_queryset(self):
         qs = super().get_queryset()
+        user = self.request.user
 
-        if self.request.user.is_anonymous:
+        if user.is_anonymous or 'protocoloadm.change_documentoacessorioadministrativo' not in user.get_all_permissions():
+#        if self.request.user.is_anonymous:
             qs = qs.exclude(documento__restrito=True)
+            qs = qs.exclude(restrito=True)
         return qs
 
 

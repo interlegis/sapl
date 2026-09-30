@@ -24,6 +24,8 @@ DocumentoAcessorioAdministrativo:
   - nome  data
   - arquivo
   - assunto
+  - restrito
+  - justificativa_restricao
 
 StatusTramitacaoAdministrativo:
   {% trans 'Status Tramitação Administrativo' %}:
