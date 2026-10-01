@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
     """
 
     dependencies = [
-        ('sessao', '0071_votacao_aberta_unique_constraint'),
+        ('sessao', '0072_votacao_aberta_unique_constraint'),
     ]
 
     operations = [

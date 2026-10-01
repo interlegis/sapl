@@ -59,8 +59,8 @@ def int_to_letter(int_value):
 
 def get_integrations_view_names():
     result = []
-    modules = sys.modules
-    for key, value in modules.items():
+    # list(): importar um módulo durante a varredura altera sys.modules.
+    for key, value in list(sys.modules.items()):
         if key.endswith('.views'):
             for v in value.__dict__.values():
                 if hasattr(v, '__bases__'):

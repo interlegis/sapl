@@ -313,6 +313,12 @@ class SessaoPlenariaECidadaniaSerializer(serializers.ModelSerializer):
     def get_sigla_orgao(self, obj):
         return self.casa().sigla
 
+    def get_nome_orgao(self, obj):
+        return self.casa().nome
+
+    def casa(self):
+        return CasaLegislativa.objects.first()
+
 
 class OrdemDiaSerializer(SaplSerializerMixin):
     """
@@ -333,10 +339,3 @@ class ExpedienteMateriaSerializer(SaplSerializerMixin):
         model = ExpedienteMateria
         fields = '__all__'
         read_only_fields = ('votacao_aberta', 'registro_aberto')
-
-    def get_nome_orgao(self, obj):
-        return self.casa().nome
-
-    def casa(self):
-        casa = CasaLegislativa.objects.first()
-        return casa

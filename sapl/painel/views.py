@@ -2,12 +2,11 @@ import html
 import json
 import logging
 
-from django.contrib import messages
 from django.contrib.auth.decorators import (login_required, permission_required,
                                             user_passes_test)
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.urls import reverse
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
@@ -49,6 +48,10 @@ def votacao_aberta(request):
     Função que verifica se há somente 1 uma matéria aberta ou
     nenhuma. É utilizada como uma função auxiliar para a view
     votante_view.
+
+    A mensagem de erro volta como texto puro e é exibida pelo chamador em
+    error_message (inclusive no poll JSON do tablet), então não é
+    registrada em messages — senão cada poll empilharia uma cópia na sessão.
     '''
     logger = logging.getLogger(__name__)
     username = request.user.username
@@ -58,19 +61,13 @@ def votacao_aberta(request):
         Q(expedientemateria__votacao_aberta=True)).distinct()
 
     if len(votacoes_abertas) > 1:
-        msg_abertas = []
-        for v in votacoes_abertas:
-            msg_abertas.append('''<li><a href="%s">%s</a></li>''' % (
-                reverse('sapl.sessao:sessaoplenaria_detail',
-                        kwargs={'pk': v.id}),
-                v.__str__()))
+        sessoes = ', '.join(str(v) for v in votacoes_abertas)
         logger.info('user=' + username + '. Existe mais de uma votações aberta. Elas se encontram '
-                                         'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
-                                                                                              'Para votar, peça para que o Operador feche-as.')
+                                         'nas seguintes Sessões: ' + sessoes + '. '
+                                         'Para votar, peça para que o Operador feche-as.')
         msg = _('Existe mais de uma votações aberta. Elas se encontram '
-                'nas seguintes Sessões: ' + ', '.join(msg_abertas) + '. '
-                                                                     'Para votar, peça para que o Operador feche-as.')
-        messages.add_message(request, messages.INFO, msg)
+                'nas seguintes Sessões: ' + sessoes + '. '
+                'Para votar, peça para que o Operador feche-as.')
         return None, msg
 
     elif len(votacoes_abertas) == 1:
@@ -83,18 +80,11 @@ def votacao_aberta(request):
 
         numero_materias_abertas = len(ordens) + len(expedientes)
         if numero_materias_abertas > 1:
+            sessao = str(votacoes_abertas.first())
             logger.info('user=' + username + '. Existe mais de uma votação aberta na Sessão: ' +
-                        ('''<li><a href="%s">%s</a></li>''' % (
-                            reverse('sapl.sessao:sessaoplenaria_detail',
-                                    kwargs={'pk': votacoes_abertas.first().id}),
-                            votacoes_abertas.first().__str__())))
-            msg = _('Existe mais de uma votação aberta na Sessão: ' +
-                    ('''<li><a href="%s">%s</a></li>''' % (
-                        reverse('sapl.sessao:sessaoplenaria_detail',
-                                kwargs={'pk': votacoes_abertas.first().id}),
-                        votacoes_abertas.first().__str__())) +
-                    'Para votar, peça para que o Operador as feche.')
-            messages.add_message(request, messages.INFO, msg)
+                        sessao)
+            msg = _('Existe mais de uma votação aberta na Sessão: ' + sessao +
+                    '. Para votar, peça para que o Operador as feche.')
             return None, msg
 
     return votacoes_abertas.first(), None
@@ -250,6 +240,37 @@ def votante_status(request):
     })
 
 
+def _trava_materia_para_voto(materia, parlamentar):
+    """
+    Trava a linha da matéria (select_for_update) e confere, sob o lock, que
+    ela ainda aceita voto deste parlamentar: presente, votação aberta, não
+    bloqueada pela Mesa, nominal e ainda sem RegistroVotacao. Deve ser
+    chamada dentro de transaction.atomic(). Devolve o filtro da matéria
+    para VotoParlamentar ({'ordem': ...} ou {'expediente': ...}).
+    """
+    if isinstance(materia, OrdemDia):
+        materia = OrdemDia.objects.select_for_update().get(pk=materia.pk)
+        fase_sessao = {'ordem': materia}
+        presenca_model = PresencaOrdemDia
+    else:
+        materia = ExpedienteMateria.objects.select_for_update().get(pk=materia.pk)
+        fase_sessao = {'expediente': materia}
+        presenca_model = SessaoPlenariaPresenca
+
+    esta_presente = presenca_model.objects.filter(
+        sessao_plenaria_id=materia.sessao_plenaria_id,
+        parlamentar=parlamentar).exists()
+    if not esta_presente:
+        raise VoteError(
+            "O parlamentar não está presente na sessão.", status=409)
+    if (not materia.votacao_aberta or materia.registro_aberto or
+            materia.tipo_votacao != VOTACAO_NOMINAL or
+            RegistroVotacao.objects.filter(**fase_sessao).exists()):
+        raise VoteError(
+            "A votação não está mais disponível para novos votos.", status=409)
+    return fase_sessao
+
+
 def _save_voto_individual(request, context_vars, voto_valor=None, ip=None):
     """
     Salva o voto do Votante autenticado — compartilhado por votante_view
@@ -259,48 +280,37 @@ def _save_voto_individual(request, context_vars, voto_valor=None, ip=None):
     voto/IP explicitamente em vez de ler de request.POST/request.META,
     que uma conexão WebSocket não tem; o caminho HTTP não passa nada e
     mantém o comportamento de sempre.
+
+    O voto do próprio parlamentar sempre prevalece sobre um valor lançado
+    pela Mesa. Levanta VoteError quando a votação não aceita mais votos.
     """
     logger = logging.getLogger(__name__)
     username = request.user.username
 
-    if context_vars['ordem_dia']:
-        fase_sessao = {'ordem': context_vars['ordem_dia']}
-    elif context_vars['expediente']:
-        fase_sessao = {'expediente': context_vars['expediente']}
-    else:
-        fase_sessao = None
+    materia = context_vars.get('ordem_dia') or context_vars.get('expediente')
+    parlamentar = context_vars.get('parlamentar')
+    if not materia or not parlamentar:
+        raise VoteError("A votação não está disponível para novos votos.", status=409)
 
-    if fase_sessao is None:
-        return
-
-    voto_valor = voto_valor if voto_valor is not None else request.POST['voto']
-    if voto_valor not in VALID_VOTE_VALUES:
+    voto_valor = voto_valor if voto_valor is not None else request.POST.get('voto')
+    if voto_valor not in VOTOS_REAIS:
         raise VoteError(
-            f"Invalid vote value: {voto_valor}. Must be one of: {VALID_VOTE_VALUES}")
+            f"Invalid vote value: {voto_valor}. Must be one of: {list(VOTOS_REAIS)}")
 
-    # select_for_update+atomic evita corrida com uma escrita concorrente
-    # na mesma linha (ex.: o operador registrando este mesmo parlamentar
-    # em lote na tela "Registrar Votação" ao mesmo tempo). Diferente do
-    # formulário em lote do operador, aqui é sempre seguro aplicar o
-    # valor enviado: é o próprio parlamentar atualizando o próprio voto.
-    try:
-        with transaction.atomic():
-            voto, created = VotoParlamentar.objects.select_for_update().get_or_create(
-                parlamentar=context_vars['parlamentar'], **fase_sessao)
-    except IntegrityError:
-        voto = VotoParlamentar.objects.select_for_update().get(
-            parlamentar=context_vars['parlamentar'], **fase_sessao)
+    with transaction.atomic():
+        fase_sessao = _trava_materia_para_voto(materia, parlamentar)
+        voto, _created = VotoParlamentar.objects.select_for_update().get_or_create(
+            parlamentar=parlamentar, **fase_sessao)
+        voto.voto = voto_valor
+        voto.ip = ip if ip is not None else get_client_ip(request)
+        voto.user = request.user
+        # Único caminho onde é o próprio parlamentar votando — vote_controller/
+        # _cast_vote (operador) sempre grava False.
+        voto.votado_pelo_parlamentar = True
+        voto.save()
 
-    logger.info("user=" + username + ". VotoParlamentar para parlamentar={} obtido com sucesso."
-                .format(context_vars['parlamentar']))
-    voto.voto = voto_valor
-    voto.ip = ip if ip is not None else get_client_ip(request)
-    voto.user = request.user
-    # Único caminho onde é o próprio parlamentar votando — vote_controller/
-    # _cast_vote (operador) e o formulário em lote sempre gravam False.
-    voto.votado_pelo_parlamentar = True
-    voto.save()
-
+    logger.info("user=" + username + ". VotoParlamentar para parlamentar={} salvo com sucesso."
+                .format(parlamentar))
     broadcast_dados_painel(request, context_vars['sessao'].id)
     return voto_valor
 
@@ -311,7 +321,13 @@ def votante_view(request):
     context, context_vars = _resolve_votante_context(request)
 
     if request.method == 'POST':
-        _save_voto_individual(request, context_vars)
+        try:
+            _save_voto_individual(request, context_vars)
+        except VoteError as e:
+            # Recarregar a tela já mostra o estado atual (bloqueada,
+            # encerrada, ausente) em error_message.
+            logging.getLogger(__name__).info(
+                "user=%s. Voto recusado: %s", request.user.username, e.message)
         return HttpResponseRedirect(
             reverse('sapl.painel:voto_individual'))
 
@@ -732,6 +748,8 @@ def painel_view(request, sessao_id):
 
 
 VALID_VOTE_VALUES = ["Sim", "Não", "Abstenção", "Não Votou"]
+# Valores que contam como voto; "Não Votou" só é gravado no encerramento.
+VOTOS_REAIS = ("Sim", "Não", "Abstenção")
 
 
 class VoteError(Exception):
@@ -782,17 +800,33 @@ def _cast_vote(user, controller_id, parlamentar_id, voto, ip=None):
     except Parlamentar.DoesNotExist:
         raise VoteError(f"Parlamentar {parlamentar_id} not found", status=404)
 
-    # votado_pelo_parlamentar=False explícito (não só o default do campo):
-    # se este parlamentar já tinha um voto marcado como do próprio (tablet)
-    # e o operador está sobrescrevendo agora, a flag precisa acompanhar —
-    # o valor atual deixou de ser o que o parlamentar escolheu.
-    defaults = {'voto': voto, 'user': user, 'ip': ip, 'votado_pelo_parlamentar': False}
-    if ordem_dia:
-        voto_obj, created = VotoParlamentar.objects.update_or_create(
-            parlamentar=parlamentar, ordem=ordem_dia, defaults=defaults)
-    else:
-        voto_obj, created = VotoParlamentar.objects.update_or_create(
-            parlamentar=parlamentar, expediente=expediente, defaults=defaults)
+    with transaction.atomic():
+        fase_sessao = _trava_materia_para_voto(materia_aberta, parlamentar)
+        voto_obj = VotoParlamentar.objects.select_for_update().filter(
+            parlamentar=parlamentar, **fase_sessao).first()
+
+        # O voto registrado pelo próprio parlamentar (tablet) prevalece: a
+        # Mesa só lança ou corrige votos que ela mesma registrou.
+        if voto_obj and voto_obj.votado_pelo_parlamentar:
+            raise VoteError(
+                f"O voto de {parlamentar.nome_parlamentar} já foi registrado "
+                f"pelo próprio parlamentar e não pode ser alterado pela Mesa.",
+                status=409)
+
+        created = voto_obj is None
+        if voto == 'Não Votou':
+            # Desfaz o lançamento da Mesa; a linha 'Não Votou' só é
+            # gravada no encerramento, para os presentes sem voto.
+            if voto_obj:
+                voto_obj.delete()
+        else:
+            if created:
+                voto_obj = VotoParlamentar(parlamentar=parlamentar, **fase_sessao)
+            voto_obj.voto = voto
+            voto_obj.user = user
+            voto_obj.ip = ip
+            voto_obj.votado_pelo_parlamentar = False
+            voto_obj.save()
 
     logger.info(
         f"Vote {'created' if created else 'updated'}: "
@@ -859,8 +893,10 @@ def _toggle_registro(user, controller_id, aberto):
     if materia_aberta.tipo_votacao != VOTACAO_NOMINAL:
         raise VoteError("Materia is not nominal voting type")
 
-    materia_aberta.registro_aberto = aberto
-    materia_aberta.save()
+    # update() só toca registro_aberto: um save() completo regravaria
+    # resultado/votacao_aberta lidos antes de um encerramento concorrente.
+    type(materia_aberta).objects.filter(pk=materia_aberta.pk).update(
+        registro_aberto=aberto)
     logging.getLogger(__name__).info(
         f"registro_aberto={aberto} para materia id={materia_aberta.pk} "
         f"(sessao={controller_id}, user={user.username})")
@@ -985,74 +1021,85 @@ def close_voting(request, controller_id):
     if not materia_aberta:
         return JsonResponse({"type": "error", "message": "No open materia for voting"}, status=400)
 
-    # Count votes from VotoParlamentar
-    if ordem_dia:
-        votos = VotoParlamentar.objects.filter(ordem=ordem_dia)
-    else:
-        votos = VotoParlamentar.objects.filter(expediente=expediente)
+    with transaction.atomic():
+        # Trava a matéria: votos do tablet/da Mesa esperam o encerramento
+        # terminar, e um segundo "Encerrar" (duplo clique) vê a votação já
+        # registrada.
+        materia = type(materia_aberta).objects.select_for_update().get(
+            pk=materia_aberta.pk)
+        if ordem_dia:
+            fase_sessao = {'ordem': materia}
+            presenca_model = PresencaOrdemDia
+        else:
+            fase_sessao = {'expediente': materia}
+            presenca_model = SessaoPlenariaPresenca
 
-    votos_sim = votos.filter(voto='Sim').count()
-    votos_nao = votos.filter(voto='Não').count()
-    abstencoes = votos.filter(voto='Abstenção').count()
+        if (not materia.votacao_aberta or
+                RegistroVotacao.objects.filter(**fase_sessao).exists()):
+            return JsonResponse({
+                "type": "error",
+                "message": "A votação já foi encerrada por outra operação."
+            }, status=409)
 
-    # All votes must not be "Não Votou"
-    total_votados = votos_sim + votos_nao + abstencoes
-    if total_votados == 0:
-        return JsonResponse({
-            "type": "error",
-            "message": "Não é possível finalizar a votação sem nenhum voto"
-        }, status=400)
+        # Só contam os presentes: quem votou e teve a presença removida
+        # antes do encerramento fica de fora (e o voto é apagado abaixo).
+        presentes = presenca_model.objects.filter(
+            sessao_plenaria_id=materia.sessao_plenaria_id)
+        votos = VotoParlamentar.objects.filter(
+            **fase_sessao,
+            parlamentar_id__in=presentes.values('parlamentar_id'))
 
-    # Remove old RegistroVotacao if exists
-    if ordem_dia:
-        RegistroVotacao.objects.filter(ordem=ordem_dia).delete()
-    else:
-        RegistroVotacao.objects.filter(expediente=expediente).delete()
+        votos_sim = votos.filter(voto='Sim').count()
+        votos_nao = votos.filter(voto='Não').count()
+        abstencoes = votos.filter(voto='Abstenção').count()
 
-    # Create RegistroVotacao
-    registro = RegistroVotacao()
-    registro.numero_votos_sim = votos_sim
-    registro.numero_votos_nao = votos_nao
-    registro.numero_abstencoes = abstencoes
-    registro.observacao = observacoes
-    registro.user = request.user
-    registro.ip = get_client_ip(request)
-    registro.materia = materia_aberta.materia
-    registro.tipo_resultado_votacao = tipo_resultado
+        if votos_sim + votos_nao + abstencoes == 0:
+            return JsonResponse({
+                "type": "error",
+                "message": "Não é possível finalizar a votação sem nenhum voto"
+            }, status=400)
 
-    if ordem_dia:
-        registro.ordem = ordem_dia
-    else:
-        registro.expediente = expediente
+        registro = RegistroVotacao(
+            numero_votos_sim=votos_sim,
+            numero_votos_nao=votos_nao,
+            numero_abstencoes=abstencoes,
+            observacao=observacoes,
+            user=request.user,
+            ip=get_client_ip(request),
+            materia=materia.materia,
+            tipo_resultado_votacao=tipo_resultado,
+            **fase_sessao)
+        registro.save()
 
-    registro.save()
+        # user/ip de cada voto continuam sendo de quem votou.
+        votos.update(votacao=registro)
+        VotoParlamentar.objects.bulk_create([
+            VotoParlamentar(
+                parlamentar_id=presenca.parlamentar_id,
+                voto='Não Votou',
+                votacao=registro,
+                user=request.user,
+                ip=get_client_ip(request),
+                **fase_sessao)
+            for presenca in presentes.exclude(
+                parlamentar_id__in=votos.values('parlamentar_id'))])
 
-    # Link VotoParlamentar records to RegistroVotacao and update user/ip
-    for voto_obj in votos:
-        voto_obj.votacao = registro
-        voto_obj.user = request.user
-        voto_obj.ip = get_client_ip(request)
-        voto_obj.save()
+        materia.resultado = tipo_resultado.nome
+        materia.votacao_aberta = False
+        materia.registro_aberto = False
+        materia.save()
 
-    # Build redirect URL before closing
-    materia_id = materia_aberta.materia_id
+        VotoParlamentar.objects.filter(
+            **fase_sessao, votacao__isnull=True).delete()
+
+    # Build redirect URL
+    materia_id = materia.materia_id
     if ordem_dia:
         redirect_url = reverse('sapl.sessao:ordemdia_list',
                                kwargs={'pk': controller_id}) + f'#id{materia_id}'
     else:
         redirect_url = reverse('sapl.sessao:expedientemateria_list',
                                kwargs={'pk': controller_id}) + f'#id{materia_id}'
-
-    # Close materia with resultado
-    materia_aberta.resultado = tipo_resultado.nome
-    materia_aberta.votacao_aberta = False
-    materia_aberta.save()
-
-    # Clean up orphan VotoParlamentar (without votacao)
-    if ordem_dia:
-        VotoParlamentar.objects.filter(ordem=ordem_dia, votacao__isnull=True).delete()
-    else:
-        VotoParlamentar.objects.filter(expediente=expediente, votacao__isnull=True).delete()
 
     logger.info(
         f"Voting closed for sessao={controller_id}: "

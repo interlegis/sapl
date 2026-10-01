@@ -13,7 +13,6 @@ from django.db import IntegrityError, transaction
 from django.db.models import Max, Q
 from django.http import JsonResponse, QueryDict
 from django.http.response import Http404, HttpResponseRedirect
-from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -133,7 +132,12 @@ def verifica_presenca(request, model, spk, is_leitura=False):
     return True
 
 
-def verifica_votacoes_abertas(request):
+def verifica_votacoes_abertas(request, mensagens):
+    """
+    Fecha as votações abertas. A mensagem para o usuário vai para
+    `mensagens`, e o chamador só a registra depois do commit: se a transação
+    for desfeita, as votações não foram fechadas.
+    """
     votacoes_abertas = SessaoPlenaria.objects.filter(
         Q(ordemdia__votacao_aberta=True) |
         Q(expedientemateria__votacao_aberta=True)).distinct()
@@ -152,18 +156,15 @@ def verifica_votacoes_abertas(request):
                     ', '.join(msg_abertas) + '. Estas votações ou leituras foram fechadas.')
         msg = _('Já existem votações ou leituras abertas nas seguintes Sessões: ' +
                 ', '.join(msg_abertas) + '. Estas votações ou leituras foram fechadas.')
-        messages.add_message(request, messages.INFO, msg)
+        mensagens.append(msg)
 
-        for sessao in votacoes_abertas:
-            ordens = sessao.ordemdia_set.filter(votacao_aberta=True)
-            expediente = sessao.expedientemateria_set.filter(
-                votacao_aberta=True)
-            for o in ordens:
-                o.votacao_aberta = False
-                o.save()
-            for e in expediente:
-                e.votacao_aberta = False
-                e.save()
+        # update() em vez de save(): só toca estes dois campos e reavalia o
+        # WHERE sob o lock da linha, sem regravar um resultado que um
+        # "Encerrar Votação" concorrente tenha acabado de salvar.
+        OrdemDia.objects.filter(votacao_aberta=True).update(
+            votacao_aberta=False, registro_aberto=False)
+        ExpedienteMateria.objects.filter(votacao_aberta=True).update(
+            votacao_aberta=False, registro_aberto=False)
 
     return True
 
@@ -208,36 +209,49 @@ def abrir_votacao(request, pk, spk):
     is_leitura = materia_votacao.tipo_votacao == 4
     is_expediente = model is ExpedienteMateria
     opened = False
+    mensagens = []
 
-    with transaction.atomic():
-        # select_for_update trava a linha da SessaoPlenaria durante toda a
-        # checagem+fechamento+abertura, para que dois "abrir votação"
-        # concorrentes (duplo clique, ou uma requisição lenta seguida de
-        # nova tentativa) não deixem duas matérias com votacao_aberta=True
-        # ao mesmo tempo — sapl/painel/views.py::votacao_aberta() trata
-        # esse caso redirecionando todos os tablets sem nenhuma mensagem
-        # clara de erro.
-        SessaoPlenaria.objects.select_for_update().get(id=spk)
-        # Reflete o estado mais atual sob o lock: outra requisição
-        # concorrente pode ter mudado votacao_aberta entre o SELECT inicial
-        # (antes do lock) e aqui.
-        materia_votacao.refresh_from_db()
-        ja_aberta = materia_votacao.votacao_aberta
+    try:
+        with transaction.atomic():
+            # select_for_update trava a linha da SessaoPlenaria durante toda a
+            # checagem+fechamento+abertura, para que dois "abrir votação"
+            # concorrentes (duplo clique, ou uma requisição lenta seguida de
+            # nova tentativa) não deixem duas matérias com votacao_aberta=True
+            # ao mesmo tempo — sapl/painel/views.py::votacao_aberta() trata
+            # esse caso redirecionando todos os tablets sem nenhuma mensagem
+            # clara de erro.
+            SessaoPlenaria.objects.select_for_update().get(id=spk)
+            # Reflete o estado mais atual sob o lock: outra requisição
+            # concorrente pode ter mudado votacao_aberta entre o SELECT inicial
+            # (antes do lock) e aqui.
+            materia_votacao.refresh_from_db()
+            ja_aberta = materia_votacao.votacao_aberta
 
-        # Reabrir a própria matéria que já está aberta precisa ser
-        # idempotente: verifica_votacoes_abertas() existe para fechar
-        # OUTRAS matérias concorrentes, e sua mensagem ("já existem
-        # votações abertas... foram fechadas") não faz sentido quando a
-        # única "conflitante" é ela mesma.
-        if (verifica_presenca(request, presenca_model, spk, is_leitura) and
-                (ja_aberta or verifica_votacoes_abertas(request)) and
-                verifica_sessao_iniciada(request, spk, is_leitura)):
-            materia_votacao.votacao_aberta = True
-            sessao = SessaoPlenaria.objects.get(id=spk)
-            sessao.painel_aberto = True
-            sessao.save()
-            materia_votacao.save()
-            opened = True
+            # Reabrir a própria matéria que já está aberta precisa ser
+            # idempotente: verifica_votacoes_abertas() existe para fechar
+            # OUTRAS matérias concorrentes, e sua mensagem ("já existem
+            # votações abertas... foram fechadas") não faz sentido quando a
+            # única "conflitante" é ela mesma.
+            if (verifica_presenca(request, presenca_model, spk, is_leitura) and
+                    (ja_aberta or verifica_votacoes_abertas(request, mensagens)) and
+                    verifica_sessao_iniciada(request, spk, is_leitura)):
+                materia_votacao.votacao_aberta = True
+                if not ja_aberta:
+                    materia_votacao.registro_aberto = False
+                sessao = SessaoPlenaria.objects.get(id=spk)
+                sessao.painel_aberto = True
+                sessao.save()
+                materia_votacao.save()
+                opened = True
+        for msg in mensagens:
+            messages.add_message(request, messages.INFO, msg)
+    except IntegrityError:
+        # O lock acima é por sessão, mas a unicidade de votacao_aberta é
+        # global: uma abertura simultânea em outra sessão cai no índice
+        # parcial.
+        opened = False
+        messages.add_message(request, messages.ERROR, _(
+            'Outra votação foi aberta simultaneamente. Tente novamente.'))
 
     if opened:
         broadcast_dados_painel(request, spk)
@@ -298,7 +312,7 @@ def abrir_votacao(request, pk, spk):
     return HttpResponseRedirect(success_url)
 
 
-def customize_link_materia(context, pk, has_permission, is_expediente, request=None):
+def customize_link_materia(context, pk, has_permission, is_expediente):
     for i, row in enumerate(context['rows']):
         materia = context['object_list'][i].materia
         obj = context['object_list'][i]
@@ -429,23 +443,13 @@ def customize_link_materia(context, pk, has_permission, is_expediente, request=N
 
                 if has_permission:
                     if obj.tipo_votacao != TipoVotacao.LEITURA:
-                        # Nominal (Ordem do Dia e Expediente, ambos agora)
-                        # aponta para votacaonominal_v2, que só faz GET —
-                        # mesmo tratamento de Simbólica/Secreta. O POST
-                        # especial que existia aqui só para Nominal de
-                        # Expediente era necessário quando ela ainda
-                        # apontava para VotacaoNominalAbstract/nominal.html
-                        # (retirado desta unificação — ver plano).
-                        metodo = ''
-                        csrf_input = ''
                         btn_registrar = '''
-                                        <form action="%s"%s>
-                                        %s
+                                        <form action="%s">
                                         <input type="submit" class="btn btn-primary"
                                         value="Registrar Votação" />
                                         %s
                                     </form>''' % (
-                            url, metodo, csrf_input, page_number)
+                            url, page_number)
                     else:
                         btn_registrar = '''
                                         <form action="%s">
@@ -933,8 +937,7 @@ class MateriaOrdemDiaCrud(MasterDetailCrud):
             context = super().get_context_data(**kwargs)
 
             has_permition = self.request.user.has_module_perms(AppConfig.label)
-            return customize_link_materia(context, self.kwargs['pk'], has_permition, False,
-                                          request=self.request)
+            return customize_link_materia(context, self.kwargs['pk'], has_permition, False)
 
 
 def recuperar_materia(request):
@@ -1010,8 +1013,7 @@ class ExpedienteMateriaCrud(MasterDetailCrud):
                 context['page'] = self.request.GET.get('page')
 
             has_permition = self.request.user.has_module_perms(AppConfig.label)
-            return customize_link_materia(context, self.kwargs['pk'], has_permition, True,
-                                          request=self.request)
+            return customize_link_materia(context, self.kwargs['pk'], has_permition, True)
 
     class CreateView(MasterDetailCrud.CreateView):
         form_class = ExpedienteMateriaForm
@@ -1539,26 +1541,31 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
-            presentes_banco = SessaoPlenariaPresenca.objects.filter(
+            presentes_banco = set(SessaoPlenariaPresenca.objects.filter(
                 sessao_plenaria_id=self.object.id).values_list(
-                'parlamentar_id', flat=True).distinct()
+                'parlamentar_id', flat=True))
 
             # Id dos parlamentares presentes
-            marcados = request.POST.getlist('presenca_ativos') \
-                       + request.POST.getlist('presenca_inativos')
+            marcados = set(int(p) for p in
+                           request.POST.getlist('presenca_ativos')
+                           + request.POST.getlist('presenca_inativos'))
 
             # Deletar os que foram desmarcados
-            deletar = set(presentes_banco) - set(marcados)
             SessaoPlenariaPresenca.objects.filter(
-                parlamentar_id__in=deletar,
+                parlamentar_id__in=presentes_banco - marcados,
                 sessao_plenaria_id=self.object.id).delete()
 
-            for p in marcados:
-                sessao = SessaoPlenariaPresenca()
-                sessao.sessao_plenaria = self.object
-                sessao.parlamentar = Parlamentar.objects.get(id=p)
-                sessao.save()
-                username = request.user.username
+            # Criar apenas quem ainda não tem presença registrada. O
+            # ignore_conflicts descarta a inserção duplicada quando o
+            # formulário é submetido duas vezes em paralelo, em vez de
+            # gravar uma segunda linha para o mesmo parlamentar.
+            username = request.user.username
+            novos = marcados - presentes_banco
+            SessaoPlenariaPresenca.objects.bulk_create(
+                [SessaoPlenariaPresenca(sessao_plenaria=self.object,
+                                        parlamentar_id=p) for p in novos],
+                ignore_conflicts=True)
+            for p in novos:
                 self.logger.info(
                     "user=" + username + ". SessaoPlenariaPresenca salva com sucesso (parlamentar_id={})!".format(p))
             msg = _('Presença em Sessão salva com sucesso!')
@@ -1664,26 +1671,29 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
 
         if form.is_valid():
             # Pegar os presentes salvos no banco
-            presentes_banco = PresencaOrdemDia.objects.filter(
+            presentes_banco = set(PresencaOrdemDia.objects.filter(
                 sessao_plenaria_id=self.object.id).values_list(
-                'parlamentar_id', flat=True).distinct()
+                'parlamentar_id', flat=True))
 
             # Id dos parlamentares presentes
-            marcados = request.POST.getlist('presenca_ativos') \
-                       + request.POST.getlist('presenca_inativos')
+            marcados = set(int(p) for p in
+                           request.POST.getlist('presenca_ativos')
+                           + request.POST.getlist('presenca_inativos'))
 
             # Deletar os que foram desmarcados
-            deletar = set(presentes_banco) - set(marcados)
             PresencaOrdemDia.objects.filter(
-                parlamentar_id__in=deletar,
+                parlamentar_id__in=presentes_banco - marcados,
                 sessao_plenaria_id=self.object.id).delete()
 
-            for p in marcados:
-                ordem = PresencaOrdemDia()
-                ordem.sessao_plenaria = self.object
-                ordem.parlamentar = Parlamentar.objects.get(id=p)
-                ordem.save()
-                username = request.user.username
+            # Criar apenas quem ainda não tem presença registrada. Ver
+            # comentário equivalente em PresencaView.post.
+            username = request.user.username
+            novos = marcados - presentes_banco
+            PresencaOrdemDia.objects.bulk_create(
+                [PresencaOrdemDia(sessao_plenaria=self.object,
+                                  parlamentar_id=p) for p in novos],
+                ignore_conflicts=True)
+            for p in novos:
                 self.logger.info(
                     'user=' + username + '. PresencaOrdemDia (parlamentar com id={}) salva com sucesso!'.format(p))
 
@@ -2370,7 +2380,7 @@ class ResumoView(DetailView):
         # Votos de Votação Nominal de Matérias Expediente
         votacoes = []
         for mevn in ExpedienteMateria.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2) \
-                .order_by('-materia'):
+                .order_by('numero_ordem'):
             votos_materia = []
             titulo_materia = mevn.materia
             registro = RegistroVotacao.objects.filter(expediente=mevn)
@@ -2419,7 +2429,7 @@ class ResumoView(DetailView):
         # Matérias Ordem do Dia
         # Votos de Votação Nominal de Matérias Ordem do Dia
         votacoes_od = []
-        for modvn in OrdemDia.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2).order_by('-materia'):
+        for modvn in OrdemDia.objects.filter(sessao_plenaria_id=self.object.id, tipo_votacao=2).order_by('numero_ordem'):
             votos_materia_od = []
             t_materia = modvn.materia
             registro_od = RegistroVotacao.objects.filter(ordem=modvn)

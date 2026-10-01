@@ -13,7 +13,8 @@ from sapl.painel.views import build_dados_painel
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, Partido,
                                        SessaoLegislativa, Votante)
-from sapl.sessao.models import (OrdemDia, PresencaOrdemDia, SessaoPlenaria,
+from sapl.sessao.models import (ExpedienteMateria, OrdemDia,
+                                PresencaOrdemDia, SessaoPlenaria,
                                 TipoResultadoVotacao, TipoSessaoPlenaria,
                                 VotoParlamentar)
 
@@ -183,7 +184,6 @@ def test_propria_tela_nao_mostra_voto_de_outra_materia(admin_client):
     ordem_antiga.save()
     baker.make(OrdemDia, sessao_plenaria=sessao, materia=_materia(),
                tipo_votacao=NOMINAL, votacao_aberta=True, registro_aberto=False)
-    baker.make(PresencaOrdemDia, sessao_plenaria=sessao, parlamentar=vereador)
 
     status_url = reverse('sapl.painel:voto_individual_status')
 
@@ -262,3 +262,63 @@ def test_votante_status_reflete_estado_e_nao_exige_permissao_do_painel():
     data2 = resposta2.json()
     assert data2['voto_parlamentar'] == 'Não'
     assert 'encerramento da votação' in data2['status_message']
+
+
+@pytest.mark.django_db(transaction=False)
+def test_votante_status_com_duas_votacoes_abertas_nao_acumula_mensagens():
+    """
+    Uma OrdemDia e uma ExpedienteMateria abertas ao mesmo tempo (as
+    constraints são por tabela): o poll do tablet devolve o erro em
+    error_message, em texto puro, sem empilhar mensagens na sessão.
+    """
+    sessao, ordem = _ordem_nominal_aberta()
+    vereador, votante_client = _votante_com_client(sessao)
+    outra_sessao = _sessao_plenaria()
+    baker.make(ExpedienteMateria, sessao_plenaria=outra_sessao,
+               materia=_materia(), tipo_votacao=NOMINAL, votacao_aberta=True)
+
+    status_url = reverse('sapl.painel:voto_individual_status')
+    for _ in range(2):
+        data = votante_client.get(status_url).json()
+
+    assert 'mais de uma' in data['error_message']
+    assert '<' not in data['error_message']
+    assert '_messages' not in votante_client.session
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('voto, registro_aberto', [
+    ('Não Votou', False),  # não é um voto de fato
+    ('Sim', True),         # Mesa bloqueou novos votos
+])
+def test_tablet_rejeita_voto_sem_erro_500(voto, registro_aberto):
+    sessao, ordem = _ordem_nominal_aberta(registro_aberto=registro_aberto)
+    vereador, votante_client = _votante_com_client(sessao)
+
+    response = votante_client.post(
+        reverse('sapl.painel:voto_individual'), {'voto': voto})
+
+    assert response.status_code == 302
+    assert not VotoParlamentar.objects.filter(
+        ordem=ordem, parlamentar=vereador).exists()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_tablet_revalida_presenca_no_momento_do_voto():
+    """
+    A presença é conferida de novo sob o lock da matéria, não só quando o
+    contexto do tablet foi resolvido.
+    """
+    from sapl.painel.views import (VoteError, _resolve_votante_context,
+                                   _save_voto_individual)
+    sessao, ordem = _ordem_nominal_aberta()
+    vereador, votante_client = _votante_com_client(sessao)
+    request = votante_client.get(reverse('sapl.painel:voto_individual')).wsgi_request
+    request.user = Votante.objects.get(parlamentar=vereador).user
+    _, context_vars = _resolve_votante_context(request)
+    PresencaOrdemDia.objects.filter(sessao_plenaria=sessao, parlamentar=vereador).delete()
+
+    with pytest.raises(VoteError):
+        _save_voto_individual(request, context_vars, voto_valor='Sim', ip='127.0.0.1')
+
+    assert not VotoParlamentar.objects.filter(ordem=ordem, parlamentar=vereador).exists()
