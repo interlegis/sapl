@@ -54,160 +54,152 @@
 </template>
 
 <script>
-    import { mapState } from 'pinia';
-    import { usePainelStore } from '@/__apps/painel/store/painelStore';
-    import Cronometro from './Cronometro.vue';
+import { mapState } from 'pinia'
+import { usePainelStore } from '@/__apps/painel/store/painelStore'
+import Cronometro from './Cronometro.vue'
 
-    // Mapa: key do cronômetro → ref do componente filho
-    const CRONOMETRO_REFS = [
-      { key: 'discurso',       ref: 'childRef_0' },
-      { key: 'aparte',         ref: 'childRef_1' },
-      { key: 'ordem',          ref: 'childRef_2' },
-      { key: 'consideracoes',  ref: 'childRef_3' },
-    ];
+export default {
+  name: 'CronometroList',
+  components: {
+    Cronometro
+  },
+  data () {
+    return {
+      // Qual cronômetro está visível no momento.
+      // Regra de prioridade ao rodar: ordem > aparte > consideracoes > discurso.
+      // Quando nenhum está rodando: mantém o último visível (para mostrar
+      // o tempo "parado" do cronômetro que acabou de ser parado).
+      visibleCronometro: 'discurso',
+      childrenMounted: 0,
+      allChildrenMounted: false
+    }
+  },
+  mounted () {
+    console.log('CronometroList mounted')
+    // Os filhos podem não ter montado ainda — aplica via nextTick após
+    // todos os filhos emitirem 'child-mounted' (ver handleChildMounted).
+  },
+  computed: {
+    ...mapState(usePainelStore, [
+      'canRender',
+      'cronometro_ativo',
+      'cronometro_discurso', 'cronometro_aparte',
+      'cronometro_ordem', 'cronometro_consideracoes'
+    ])
+  },
+  watch: {
+    // Quando o painel abre (canRender muda para true), os filhos
+    // acabam de montar — aplica o estado inicial de todos.
+    canRender (newVal) {
+      if (newVal) {
+        this.$nextTick(() => this.applyAllStates())
+      }
+    },
 
-    export default {
-        name: 'CronometroList',
-        components: {
-            Cronometro,
-        },
-        data() {
-            return {
-                // Qual cronômetro está visível no momento.
-                // Regra de prioridade ao rodar: ordem > aparte > consideracoes > discurso.
-                // Quando nenhum está rodando: mantém o último visível (para mostrar
-                // o tempo "parado" do cronômetro que acabou de ser parado).
-                visibleCronometro: 'discurso',
-                childrenMounted: 0,
-                allChildrenMounted: false,
-            }
-        },
-        mounted() {
-          console.log('CronometroList mounted');
-          // Os filhos podem não ter montado ainda — aplica via nextTick após
-          // todos os filhos emitirem 'child-mounted' (ver handleChildMounted).
-        },
-        computed: {
-           ...mapState(usePainelStore, [
-             "canRender",
-             "cronometro_ativo",
-             "cronometro_discurso", "cronometro_aparte",
-             "cronometro_ordem", "cronometro_consideracoes"
-           ])
-        },
-        watch: {
-          // Quando o painel abre (canRender muda para true), os filhos
-          // acabam de montar — aplica o estado inicial de todos.
-          canRender(newVal) {
-            if (newVal) {
-              this.$nextTick(() => this.applyAllStates());
-            }
-          },
+    cronometro_ativo (newVal) {
+      if (newVal) {
+        this.updateVisibility()
+      }
+    },
 
-          cronometro_ativo(newVal) {
-            if (newVal) {
-              this.updateVisibility();
-            }
-          },
-
-          // Watchers profundos para cada cronômetro: disparam quando o objeto
-          // mudar (nova action, duration, etc.) mas NÃO quando o broadcast
-          // chega com o mesmo valor (deep watch compara referência, mas o
-          // store substitui o objeto inteiro — a comparação de ação é feita
-          // dentro de applyState do filho para ser idempotente).
-          cronometro_discurso(newVal) {
-            this.applyOneState('childRef_0', newVal);
-          },
-          cronometro_aparte(newVal) {
-            this.applyOneState('childRef_1', newVal);
-          },
-          cronometro_ordem(newVal) {
-            this.applyOneState('childRef_2', newVal);
-          },
-          cronometro_consideracoes(newVal) {
-            this.applyOneState('childRef_3', newVal);
-          },
-        },
-        methods: {
-          /**
+    // Watchers profundos para cada cronômetro: disparam quando o objeto
+    // mudar (nova action, duration, etc.) mas NÃO quando o broadcast
+    // chega com o mesmo valor (deep watch compara referência, mas o
+    // store substitui o objeto inteiro — a comparação de ação é feita
+    // dentro de applyState do filho para ser idempotente).
+    cronometro_discurso (newVal) {
+      this.applyOneState('childRef_0', newVal)
+    },
+    cronometro_aparte (newVal) {
+      this.applyOneState('childRef_1', newVal)
+    },
+    cronometro_ordem (newVal) {
+      this.applyOneState('childRef_2', newVal)
+    },
+    cronometro_consideracoes (newVal) {
+      this.applyOneState('childRef_3', newVal)
+    }
+  },
+  methods: {
+    /**
            * Aplica o estado de todos os cronômetros de uma vez.
            * Usado na montagem e quando o painel é aberto.
            */
-          applyAllStates() {
-            this.applyOneState('childRef_0', this.cronometro_discurso);
-            this.applyOneState('childRef_1', this.cronometro_aparte);
-            this.applyOneState('childRef_2', this.cronometro_ordem);
-            this.applyOneState('childRef_3', this.cronometro_consideracoes);
-            this.updateVisibility();
-          },
+    applyAllStates () {
+      this.applyOneState('childRef_0', this.cronometro_discurso)
+      this.applyOneState('childRef_1', this.cronometro_aparte)
+      this.applyOneState('childRef_2', this.cronometro_ordem)
+      this.applyOneState('childRef_3', this.cronometro_consideracoes)
+      this.updateVisibility()
+    },
 
-          /**
+    /**
            * Aplica o estado de um único cronômetro chamando applyState() no filho.
            * @param {string} refName - nome do ref ('childRef_0' etc.)
            * @param {Object|null} state - { action, duration, start_ts?, remaining_at_stop? }
            */
-          applyOneState(refName, state) {
-            const comp = this.$refs[refName];
-            if (!comp) return;
-            comp.applyState(state);
-            this.updateVisibility();
-          },
+    applyOneState (refName, state) {
+      const comp = this.$refs[refName]
+      if (!comp) return
+      comp.applyState(state)
+      this.updateVisibility()
+    },
 
-          /**
+    /**
            * Chamado quando um filho monta. Quando todos os 4 filhos
            * montaram, aplica o estado inicial.
            */
-          handleChildMounted() {
-            this.childrenMounted++;
-            console.log(`Cronometro child mounted (${this.childrenMounted}/4)`);
-            if (this.childrenMounted >= 4) {
-              this.allChildrenMounted = true;
-              this.applyAllStates();
-            }
-          },
+    handleChildMounted () {
+      this.childrenMounted++
+      console.log(`Cronometro child mounted (${this.childrenMounted}/4)`)
+      if (this.childrenMounted >= 4) {
+        this.allChildrenMounted = true
+        this.applyAllStates()
+      }
+    },
 
-          /**
+    /**
            * Chamado quando um filho muda de estado (start/stop).
            * Atualiza a visibilidade.
            */
-          handleStateChanged() {
-            this.updateVisibility();
-          },
+    handleStateChanged () {
+      this.updateVisibility()
+    },
 
-          /**
+    /**
            * Decide qual cronômetro mostrar.
            *
            * Prioridade ao rodar: ordem > aparte > consideracoes > discurso.
            * Se nenhum estiver rodando, mantém o último visível para exibir
            * o tempo no momento em que foi parado (comportamento igual ao discurso).
            */
-          updateVisibility() {
-            // Prioridade 1: se algum cronômetro estiver rodando, mostra o que está rodando
-            const priority = [
-              { key: 'ordem',         ref: 'childRef_2' },
-              { key: 'aparte',        ref: 'childRef_1' },
-              { key: 'consideracoes', ref: 'childRef_3' },
-              { key: 'discurso',      ref: 'childRef_0' },
-            ];
-            for (const item of priority) {
-              const comp = this.$refs[item.ref];
-              if (comp && comp.isRunning) {
-                this.visibleCronometro = item.key;
-                return;
-              }
-            }
+    updateVisibility () {
+      // Prioridade 1: se algum cronômetro estiver rodando, mostra o que está rodando
+      const priority = [
+        { key: 'ordem', ref: 'childRef_2' },
+        { key: 'aparte', ref: 'childRef_1' },
+        { key: 'consideracoes', ref: 'childRef_3' },
+        { key: 'discurso', ref: 'childRef_0' }
+      ]
+      for (const item of priority) {
+        const comp = this.$refs[item.ref]
+        if (comp && comp.isRunning) {
+          this.visibleCronometro = item.key
+          return
+        }
+      }
 
-            // Prioridade 2: nenhum rodando. Mostra o último cronômetro operado pelo operador
-            if (this.cronometro_ativo) {
-              this.visibleCronometro = this.cronometro_ativo;
-              return;
-            }
+      // Prioridade 2: nenhum rodando. Mostra o último cronômetro operado pelo operador
+      if (this.cronometro_ativo) {
+        this.visibleCronometro = this.cronometro_ativo
+        return
+      }
 
-            // Fallback padrão
-            this.visibleCronometro = 'discurso';
-          }
-        },
-    };
+      // Fallback padrão
+      this.visibleCronometro = 'discurso'
+    }
+  }
+}
 </script>
 
 <style scoped>

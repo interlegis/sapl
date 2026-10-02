@@ -80,7 +80,7 @@ function normalizeCronometro (v) {
       start_ts: null,
       remaining_at_start: 300,
       remaining_at_stop: null,
-      updated_at: null,
+      updated_at: null
     }
   }
   if (typeof v === 'object') {
@@ -89,11 +89,11 @@ function normalizeCronometro (v) {
     const remaining_at_stop = v.remaining_at_stop != null ? v.remaining_at_stop : null
     return {
       action: v.action || '',
-      duration: duration,
+      duration,
       start_ts: v.start_ts != null ? v.start_ts : null,
-      remaining_at_start: remaining_at_start,
-      remaining_at_stop: remaining_at_stop,
-      updated_at: v.updated_at != null ? v.updated_at : null,
+      remaining_at_start,
+      remaining_at_stop,
+      updated_at: v.updated_at != null ? v.updated_at : null
     }
   }
   return null
@@ -124,7 +124,7 @@ export function normalizePainelData (raw) {
       nome_parlamentar: asString(o.nome, '')
     }))
 
-  console.log(d.sessao_iniciada);
+  console.log(d.sessao_iniciada)
 
   return {
     // sessao_iniciada vem de sessao.iniciada is not False (True ou None
