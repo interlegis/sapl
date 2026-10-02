@@ -1633,6 +1633,16 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
         sessao_pk = kwargs['pk']
         sessao = SessaoPlenaria.objects.get(pk=sessao_pk)
         context = TemplateView.get_context_data(self, **kwargs)
+
+        from django.core.cache import cache
+        from sapl.painel.views import CRONOMETRO_CACHE_KEY
+        cronometros_status = {
+            'discurso': cache.get(CRONOMETRO_CACHE_KEY.format('discurso')),
+            'aparte': cache.get(CRONOMETRO_CACHE_KEY.format('aparte')),
+            'ordem': cache.get(CRONOMETRO_CACHE_KEY.format('ordem')),
+            'consideracoes': cache.get(CRONOMETRO_CACHE_KEY.format('consideracoes')),
+        }
+
         context.update({
             'head_title': str(_('Painel Plenário')),
             'sessao_id': sessao_pk,
@@ -1641,7 +1651,8 @@ class PainelView(PermissionRequiredForAppCrudMixin, TemplateView):
             'cronometro_discurso': cronometro_discurso,
             'cronometro_aparte': cronometro_aparte,
             'cronometro_ordem': cronometro_ordem,
-            'cronometro_consideracoes': cronometro_consideracoes})
+            'cronometro_consideracoes': cronometro_consideracoes,
+            'cronometros_status_json': json.dumps(cronometros_status)})
 
         tipo_sessao = sessao.tipo
         if tipo_sessao.nome == "Solene":

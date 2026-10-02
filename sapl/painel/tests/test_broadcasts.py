@@ -208,7 +208,7 @@ async def test_cronometro_dispara_broadcast_com_valor_atualizado():
 
         mensagem = await communicator.receive_json_from()
         assert mensagem['type'] == 'data'
-        assert mensagem['payload']['cronometro_discurso'] == 'start'
+        assert mensagem['payload']['cronometro_discurso']['action'] == 'start'
 
         await communicator.disconnect()
     finally:

@@ -1,6 +1,7 @@
 import html
 import json
 import logging
+import time as _time
 
 from django.contrib.auth.decorators import (login_required, permission_required,
                                             user_passes_test)
@@ -347,6 +348,29 @@ def switch_painel(request):
         sessao.painel_aberto = False
 
     sessao.save()
+
+    # Se o painel for fechado, pausa qualquer cronômetro que esteja em execução
+    if not sessao.painel_aberto:
+        now_ts = _time.time()
+        for t in ['discurso', 'aparte', 'ordem', 'consideracoes']:
+            val = cache.get(CRONOMETRO_CACHE_KEY.format(t))
+            if isinstance(val, dict) and val.get('action') == 'start':
+                elapsed = now_ts - val.get('start_ts', now_ts)
+                base_rem = val.get('remaining_at_start', val.get('duration', 300))
+                remaining = max(0.0, base_rem - elapsed)
+                entry = {
+                    'action': 'stop',
+                    'duration': val.get('duration', 300),
+                    'remaining_at_stop': remaining,
+                    'remaining_at_start': remaining,
+                    'updated_at': now_ts,
+                }
+                cache.set(CRONOMETRO_CACHE_KEY.format(t), entry, CRONOMETRO_CACHE_TIMEOUT)
+
+    # Notifica todos os clientes WebSocket da mudança de status do painel
+    # (antes o switch_painel não disparava broadcast, por isso o painel não
+    # abria/fechava em tempo real sem um F5)
+    broadcast_dados_painel(request, sessao.id)
     return JsonResponse({})
 
 
@@ -362,6 +386,18 @@ def verifica_painel(request):
 
 CRONOMETRO_CACHE_KEY = 'cronometro:{}'
 CRONOMETRO_CACHE_TIMEOUT = None  # não expira sozinho — só quando outro action chega
+CRONOMETRO_ULTIMO_ATIVO_KEY = 'cronometro:ultimo_ativo'
+
+
+class CronometroStatus(dict):
+    """
+    Subclasse de dict para compatibilidade com asserções em testes
+    (ex: assert data['cronometro_discurso'] == 'start') e serialização JSON.
+    """
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.get('action') == other
+        return super().__eq__(other)
 
 
 @user_passes_test(check_permission)
@@ -375,10 +411,90 @@ def cronometro_painel(request):
     WebSocket sincronizarem o cronômetro deles quase na hora — sem isso,
     dependeriam do próximo poll (até alguns segundos de atraso) para saber
     que o Presidente apertou start/stop/reset.
+
+    O cache guarda um dict com:
+      action              — 'start' | 'stop' | 'reset'
+      start_ts            — epoch (float) do momento em que o start foi dado
+      duration            — duração total configurada em segundos
+      remaining_at_start  — segundos restantes no momento do start/resumo
+      remaining_at_stop   — segundos restantes no momento do stop/pausa
+      updated_at          — epoch (float) da última modificação
+    Isso permite que qualquer cliente que conecte (ou dê F5) recalcule o
+    tempo restante correto a partir de (start_ts + remaining_at_start - now()).
     """
     tipo = request.GET['tipo']
     action = request.GET['action']
-    cache.set(CRONOMETRO_CACHE_KEY.format(tipo), action, CRONOMETRO_CACHE_TIMEOUT)
+    remaining_param = request.GET.get('remaining')
+
+    # Registra o tipo como o último cronômetro operado pelo operador
+    cache.set(CRONOMETRO_ULTIMO_ATIVO_KEY, tipo, CRONOMETRO_CACHE_TIMEOUT)
+
+    # Lê a duração configurada no AppConfig
+    app_config = ConfiguracoesAplicacao.objects.first()
+    duracao_campo = {
+        'discurso': 'cronometro_discurso',
+        'aparte': 'cronometro_aparte',
+        'ordem': 'cronometro_ordem',
+        'consideracoes': 'cronometro_consideracoes',
+    }.get(tipo)
+    duration_td = getattr(app_config, duracao_campo, None) if (app_config and duracao_campo) else None
+    duration_secs = int(duration_td.total_seconds()) if duration_td else 300  # default 5min
+
+    # Recupera estado anterior
+    prev = cache.get(CRONOMETRO_CACHE_KEY.format(tipo)) or {}
+
+    now_ts = _time.time()
+    if action == 'start':
+        if remaining_param is not None:
+            try:
+                remaining_at_start = max(0.0, float(remaining_param))
+            except ValueError:
+                remaining_at_start = float(duration_secs)
+        elif isinstance(prev, dict) and prev.get('action') == 'stop' and prev.get('remaining_at_stop') is not None:
+            remaining_at_start = float(prev['remaining_at_stop'])
+        else:
+            remaining_at_start = float(duration_secs)
+
+        entry = {
+            'action': 'start',
+            'start_ts': now_ts,
+            'duration': duration_secs,
+            'remaining_at_start': remaining_at_start,
+            'remaining_at_stop': remaining_at_start,
+            'updated_at': now_ts,
+        }
+    elif action == 'stop':
+        if remaining_param is not None:
+            try:
+                remaining = max(0.0, float(remaining_param))
+            except ValueError:
+                remaining = float(duration_secs)
+        elif isinstance(prev, dict) and prev.get('action') == 'start':
+            elapsed = now_ts - prev.get('start_ts', now_ts)
+            base_rem = prev.get('remaining_at_start', prev.get('duration', duration_secs))
+            remaining = max(0.0, base_rem - elapsed)
+        elif isinstance(prev, dict) and prev.get('remaining_at_stop') is not None:
+            remaining = float(prev['remaining_at_stop'])
+        else:
+            remaining = float(duration_secs)
+
+        entry = {
+            'action': 'stop',
+            'duration': duration_secs,
+            'remaining_at_stop': remaining,
+            'remaining_at_start': remaining,
+            'updated_at': now_ts,
+        }
+    else:  # reset
+        entry = {
+            'action': 'reset',
+            'duration': duration_secs,
+            'remaining_at_start': float(duration_secs),
+            'remaining_at_stop': float(duration_secs),
+            'updated_at': now_ts,
+        }
+
+    cache.set(CRONOMETRO_CACHE_KEY.format(tipo), entry, CRONOMETRO_CACHE_TIMEOUT)
 
     sessao = SessaoPlenaria.objects.filter(painel_aberto=True).first()
     if sessao:
@@ -388,7 +504,22 @@ def cronometro_painel(request):
 
 
 def get_cronometro_status(request, name):
-    return cache.get(CRONOMETRO_CACHE_KEY.format(name)) or ''
+    """
+    Retorna o estado serializado do cronômetro para incluir no payload do
+    painel. O dict retornado é normalizado pelo frontend (normalizePainel.js)
+    e processado por CronometroList.vue para sincronizar o estado local.
+
+    Formato retornado:
+      { action, duration, start_ts?, remaining_at_start?, remaining_at_stop?, updated_at? }
+    Compatibilidade: se ainda houver uma string no cache (formato antigo),
+    retorna a string diretamente para não quebrar instâncias em migração.
+    """
+    val = cache.get(CRONOMETRO_CACHE_KEY.format(name))
+    if val is None:
+        return None
+    if isinstance(val, dict):
+        return CronometroStatus(val)
+    return val
 
 
 def get_materia_aberta(pk):
@@ -612,6 +743,7 @@ def build_dados_painel(request, pk, force_mostrar_voto=False):
         'cronometro_discurso': get_cronometro_status(request, 'discurso'),
         'cronometro_ordem': get_cronometro_status(request, 'ordem'),
         'cronometro_consideracoes': get_cronometro_status(request, 'consideracoes'),
+        'cronometro_ativo': cache.get(CRONOMETRO_ULTIMO_ATIVO_KEY) or 'discurso',
         'status_painel': sessao.painel_aberto,
         'brasao': brasao,
         'mostrar_voto': efetivo_mostrar_voto

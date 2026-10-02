@@ -51,6 +51,7 @@ export const usePainelStore = defineStore('painel', {
       this.painel_aberto = next.painel_aberto
       this.mostrar_voto = next.mostrar_voto
       this.message = next.message
+      this.cronometro_ativo = next.cronometro_ativo
 
       // objeto aninhado: patch (preserva reatividade dos campos)
       Object.assign(this.sessao, next.sessao)

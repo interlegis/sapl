@@ -23,10 +23,11 @@ export const DEFAULT_STATE = Object.freeze({
     brasao: ''
   },
 
-  cronometro_discurso: '',
-  cronometro_aparte: '',
-  cronometro_ordem: '',
-  cronometro_consideracoes: '',
+  cronometro_discurso: null,
+  cronometro_aparte: null,
+  cronometro_ordem: null,
+  cronometro_consideracoes: null,
+  cronometro_ativo: 'discurso',
 
   // Só significa algo enquanto há matéria nominal aberta pra registro —
   // ver PainelConsumer (type: "registro_toggle") / VotacaoNominal.vue.
@@ -56,6 +57,46 @@ function asArray (v) {
 
 function asString (v, fallback) {
   return v != null ? v : fallback
+}
+
+/**
+ * Normaliza o valor do cronômetro recebido do backend.
+ *
+ * O backend novo envia um dict:
+ *   { action, duration, start_ts?, remaining_at_stop? }
+ *
+ * O backend antigo (cache legado) pode enviar uma string ('start'|'stop'|'reset').
+ * O valor null/undefined significa "sem estado" (nunca foi configurado).
+ *
+ * Retorna sempre um objeto normalizado ou null.
+ */
+function normalizeCronometro (v) {
+  if (v == null) return null
+  // Formato legado: string simples
+  if (typeof v === 'string') {
+    return {
+      action: v,
+      duration: 300,
+      start_ts: null,
+      remaining_at_start: 300,
+      remaining_at_stop: null,
+      updated_at: null,
+    }
+  }
+  if (typeof v === 'object') {
+    const duration = v.duration != null ? v.duration : 300
+    const remaining_at_start = v.remaining_at_start != null ? v.remaining_at_start : duration
+    const remaining_at_stop = v.remaining_at_stop != null ? v.remaining_at_stop : null
+    return {
+      action: v.action || '',
+      duration: duration,
+      start_ts: v.start_ts != null ? v.start_ts : null,
+      remaining_at_start: remaining_at_start,
+      remaining_at_stop: remaining_at_stop,
+      updated_at: v.updated_at != null ? v.updated_at : null,
+    }
+  }
+  return null
 }
 
 export function normalizePainelData (raw) {
@@ -90,7 +131,7 @@ export function normalizePainelData (raw) {
     // contam como "iniciada" — sessões legadas ficaram com None, mesma
     // convenção de restringe_sessoes_visiveis() no backend).
     sessao_aberta: !!d.sessao_iniciada && !d.sessao_finalizada,
-    painel_aberto: d.status_painel != null ? !!d.status_painel : DEFAULT_STATE.painel_aberto,    
+    painel_aberto: d.status_painel != null ? !!d.status_painel : DEFAULT_STATE.painel_aberto,
     mostrar_voto: d.mostrar_voto != null ? !!d.mostrar_voto : DEFAULT_STATE.mostrar_voto,
     message: asString(d.msg_painel, DEFAULT_STATE.message),
 
@@ -103,10 +144,14 @@ export function normalizePainelData (raw) {
       brasao: asString(d.brasao, DEFAULT_STATE.sessao.brasao)
     },
 
-    cronometro_discurso: asString(d.cronometro_discurso, DEFAULT_STATE.cronometro_discurso),
-    cronometro_aparte: asString(d.cronometro_aparte, DEFAULT_STATE.cronometro_aparte),
-    cronometro_ordem: asString(d.cronometro_ordem, DEFAULT_STATE.cronometro_ordem),
-    cronometro_consideracoes: asString(d.cronometro_consideracoes, DEFAULT_STATE.cronometro_consideracoes),
+    // Cronômetros: agora objetos {action, duration, start_ts?, remaining_at_stop?}
+    // ou null quando nunca configurados. O store repassa para CronometroList.vue
+    // que aplica a ação e configura o tempo inicial de cada Cronometro.vue.
+    cronometro_discurso: normalizeCronometro(d.cronometro_discurso),
+    cronometro_aparte: normalizeCronometro(d.cronometro_aparte),
+    cronometro_ordem: normalizeCronometro(d.cronometro_ordem),
+    cronometro_consideracoes: normalizeCronometro(d.cronometro_consideracoes),
+    cronometro_ativo: asString(d.cronometro_ativo, DEFAULT_STATE.cronometro_ativo),
 
     registro_aberto: d.registro_aberto != null ? !!d.registro_aberto : DEFAULT_STATE.registro_aberto,
 
