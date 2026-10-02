@@ -1,0 +1,18 @@
+:root {
+  --bg-dark: #1c1b1b;
+  --text-main: #e0e0e0;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: Verdana, 'Segoe UI', Tahoma, Geneva, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.btn-voto {
+  min-width: 9rem;
+  min-height: 4rem;
+  font-size: 1.5rem;
+}

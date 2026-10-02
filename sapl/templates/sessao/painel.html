@@ -17,84 +17,89 @@
 
   <div class="row">
     <div class="col-md-6"><a href="" onclick="window.open('{% url 'sapl.painel:painel_principal' pk %}','Comprovante','width=800, height=800, scrollbars=yes'); return false;" class="btn btn-primary btn-sm active">Iniciar painel completo</a></div>
-    <div class="col-md-3"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active" style="display: none">Abrir Painel</button></div>
-    <div class="col-md-3"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-danger btn-sm active" style="display: none;">Fechar Painel</button></div>
+    <div class="col-md-3"><button onclick="switch_painel(true)" id="id_abrir_painel" class="btn btn-primary btn-sm active" style="display: {% if sessaoplenaria.painel_aberto %}none{% else %}inline-block{% endif %};">Abrir Painel</button></div>
+    <div class="col-md-3"><button onclick="switch_painel(false)" id="id_fechar_painel" class="btn btn-danger btn-sm active" style="display: {% if sessaoplenaria.painel_aberto %}inline-block{% else %}none{% endif %};">Fechar Painel</button></div>
   </div>
 	<br />
 
 	<h1>Operação do Painel Eletrônico</h1>
 	<h2><span id="relogio"></span></h2>
 	<br />
-  <div class="row">
-    <div class="col-md-12 mb-2"><h3>Cronômetro do Discurso</h3></div>
-  </div>
 
-  <div class="row">
-    <div class="col-md-2"><input size="2" id="discurso" name="discurso" value="" readyonly="true" class="form-control"></div>
-  </div>
-	<br />
+  <div id="bloco_cronometros" style="display: {% if sessaoplenaria.painel_aberto %}block{% else %}none{% endif %};">
+    <div class="row">
+      <div class="col-md-12 mb-2"><h3>Cronômetro do Discurso</h3></div>
+    </div>
 
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="discursoStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="discursoReset" class="btn btn-success">Reiniciar</button></div>
-  </div>
+    <div class="row">
+      <div class="col-md-2"><input size="2" id="discurso" name="discurso" value="" readyonly="true" class="form-control"></div>
+    </div>
+    <br />
 
-	<br /><br >
-  <div class="row">
-    <div class="col-md-12 mb-2"><h3>Cronômetro do Aparte</h3></div>
-  </div>
+    <div class="row">
+      <div class="col-md-6"><button type="button" id="discursoStart" class="btn btn-success">Iniciar</button></div>
+      <div class="col-md-6"><button type="button" id="discursoReset" class="btn btn-success">Reiniciar</button></div>
+    </div>
 
-  <div class="row">
-    <div class="col-md-2"><input size="2" id="aparte" name="aparte" value="" readyonly="true" class="form-control"></div>
-  </div>
-	<br />
+    <br /><br >
+    <div class="row">
+      <div class="col-md-12 mb-2"><h3>Cronômetro do Aparte</h3></div>
+    </div>
 
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="aparteStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="aparteReset" class="btn btn-success" class="btn btn-success">Reiniciar</button></div>
-  </div>
+    <div class="row">
+      <div class="col-md-2"><input size="2" id="aparte" name="aparte" value="" readyonly="true" class="form-control"></div>
+    </div>
+    <br />
 
-	<br /><br >
-  <div class="row">
-    <div class="col-md-12 mb-2"><h3>Cronômetro da Questão de Ordem </h3></div>
-  </div>
+    <div class="row">
+      <div class="col-md-6"><button type="button" id="aparteStart" class="btn btn-success">Iniciar</button></div>
+      <div class="col-md-6"><button type="button" id="aparteReset" class="btn btn-success" class="btn btn-success">Reiniciar</button></div>
+    </div>
 
-  <div class="row">
-    <div class="col-md-2"><input size="2" id="ordem" name="ordem" value="" readyonly="true" class="form-control"></div>
-  </div>
-	<br />
+    <br /><br >
+    <div class="row">
+      <div class="col-md-12 mb-2"><h3>Cronômetro da Questão de Ordem </h3></div>
+    </div>
 
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="ordemStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="ordemReset" class="btn btn-success">Reiniciar</button></div>
-  </div>
+    <div class="row">
+      <div class="col-md-2"><input size="2" id="ordem" name="ordem" value="" readyonly="true" class="form-control"></div>
+    </div>
+    <br />
 
-  <br/>
-  <br/>
+    <div class="row">
+      <div class="col-md-6"><button type="button" id="ordemStart" class="btn btn-success">Iniciar</button></div>
+      <div class="col-md-6"><button type="button" id="ordemReset" class="btn btn-success">Reiniciar</button></div>
+    </div>
 
-  <div class="row">
-    <div class="col-md-12 mb-2"><h3>Cronômetro de Considerações Finais</h3></div>
-  </div>
+    <br/>
+    <br/>
 
-  <div class="row">
-    <div class="col-md-4"><input size="2" id="consideracoes" name="consideracoes" value="" readyonly="true" class="form-control"></div>
-  </div>
-  <br />
+    <div class="row">
+      <div class="col-md-12 mb-2"><h3>Cronômetro de Considerações Finais</h3></div>
+    </div>
 
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="consideracoesStart" class="btn btn-success">Iniciar</button></div>
-    <div class="col-md-6"><button type="button" id="consideracoesReset" class="btn btn-success">Reiniciar</button></div>
-  </div>
-  <br /><br >
+    <div class="row">
+      <div class="col-md-4"><input size="2" id="consideracoes" name="consideracoes" value="" readyonly="true" class="form-control"></div>
+    </div>
+    <br />
 
-  <div class="row">
-    <div class="col-md-6"><button type="button" id="sinalSonoro" class="btn btn-success" onclick="document.getElementById('audio').play();">Sinal Sonoro</button></div>
+    <div class="row">
+      <div class="col-md-6"><button type="button" id="consideracoesStart" class="btn btn-success">Iniciar</button></div>
+      <div class="col-md-6"><button type="button" id="consideracoesReset" class="btn btn-success">Reiniciar</button></div>
+    </div>
+    <br /><br >
+
+    <div class="row">
+      <div class="col-md-6"><button type="button" id="sinalSonoro" class="btn btn-success" onclick="document.getElementById('audio').play();">Sinal Sonoro</button></div>
+    </div>
   </div>
 
 {% endblock detail_content %}
 
 {% block extra_js %}
 <script language="JavaScript">
+var cronometrosStatus = {{ cronometros_status_json|default:"{}"|safe }};
+
 $(function() {
 
 	function checkTime(i) {
@@ -117,220 +122,104 @@ $(function() {
 
 	startTime();
     var audioAlertFinish = document.getElementById("audio");
-	$('#discurso').prop('disabled', false);
-	$('#aparte').prop('disabled', false);
-	$('#ordem').prop('disabled', false);
-    $('#consideracoes').prop('disabled', false);
 
-    $('#discurso').runner({
-        autostart: false,
-        countdown: true,
-        startAt: {{cronometro_discurso}} * 1000,
-        stopAt: 0,
-        milliseconds: false,
-        format: function(value) {
-          let h = Math.floor((value/1000) / 3600);
-          h = checkTime(h);
-          let m = Math.floor((value/1000) % 3600 / 60);
-          m = checkTime(m);
-          let s = Math.floor((value/1000) % 3600 % 60);
-          s = checkTime(s);
-          return h.toString() + ":" + m.toString() + ":" + s.toString();
+    function formatTime(value) {
+        let h = Math.floor((value/1000) / 3600);
+        h = checkTime(h);
+        let m = Math.floor((value/1000) % 3600 / 60);
+        m = checkTime(m);
+        let s = Math.floor((value/1000) % 3600 % 60);
+        s = checkTime(s);
+        return h.toString() + ":" + m.toString() + ":" + s.toString();
+    }
+
+    function setupCronometro(tipo, startAtSecs, initialStatus) {
+        var startAtMs = startAtSecs * 1000;
+        var $el = $('#' + tipo);
+        var $btnStart = $('#' + tipo + 'Start');
+        var $btnReset = $('#' + tipo + 'Reset');
+
+        $el.prop('disabled', false);
+
+        var currentStartAt = startAtMs;
+        var initialAction = initialStatus ? initialStatus.action : null;
+        var remainingAtStop = initialStatus ? initialStatus.remaining_at_stop : null;
+        var remainingAtStart = initialStatus ? initialStatus.remaining_at_start : null;
+        var startTs = initialStatus ? initialStatus.start_ts : null;
+
+        if (initialAction === 'stop' && remainingAtStop != null) {
+            currentStartAt = Math.max(0, Math.round(remainingAtStop)) * 1000;
+        } else if (initialAction === 'start' && startTs != null) {
+            var elapsed = (Date.now() / 1000) - startTs;
+            var baseRem = remainingAtStart != null ? remainingAtStart : startAtSecs;
+            currentStartAt = Math.max(0, Math.round(baseRem - elapsed)) * 1000;
         }
-	}).on('runnerFinish', function(eventObject, info){
-        $.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
-        audioAlertFinish.play();
-        $('#discursoReset').show();
-        $('#discurso').runner('stop');
-        $('#discursoStart').text('Iniciar');
 
-    });
+        $el.runner({
+            autostart: false,
+            countdown: true,
+            startAt: currentStartAt,
+            stopAt: 0,
+            milliseconds: false,
+            format: formatTime
+        }).on('runnerFinish', function(eventObject, info){
+            $.get('/painel/cronometro', { tipo: tipo, action: 'stop', remaining: 0 } );
+            if (audioAlertFinish) {
+                audioAlertFinish.play();
+            }
+            $btnReset.show();
+            $el.runner('stop');
+            $btnStart.text('Iniciar');
+        });
 
-    $('#discursoStart').click(function() {
-
-		if ($('#discursoStart').text() == 'Iniciar'){
-
-			$.get('/painel/cronometro', { tipo: 'discurso', action: 'start' } );
-
-			$('#discursoReset').hide();
-			$('#discurso').runner('start');
-			$('#discursoStart').text('Parar');
-
-		} else {
-
-			$.get('/painel/cronometro', { tipo: 'discurso', action: 'stop' } );
-
-			$('#discursoReset').show();
-			$('#discurso').runner('stop');
-			$('#discursoStart').text('Iniciar');
-		}
-    });
-
-    $('#discursoReset').click(function() {
-
-		$.get('/painel/cronometro', { tipo: 'discurso', action: 'reset' } );
-
-        $('#discurso').runner('stop');
-        $('#discurso').runner('reset');
-    });
-
-    $('#aparte').runner({
-        autostart: false,
-        countdown: true,
-        startAt: {{cronometro_aparte}} * 1000,
-        stopAt: 0,
-        milliseconds: false,
-        format: function(value) {
-          let h = Math.floor((value/1000) / 3600);
-          h = checkTime(h);
-          let m = Math.floor((value/1000) % 3600 / 60);
-          m = checkTime(m);
-          let s = Math.floor((value/1000) % 3600 % 60);
-          s = checkTime(s);
-          return h.toString() + ":" + m.toString() + ":" + s.toString();
-        }
-	}).on('runnerFinish', function(eventObject, info){
-        $.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
-        audioAlertFinish.play();
-        $('#aparteReset').show();
-        $('#aparte').runner('stop');
-        $('#aparteStart').text('Iniciar');
-
-    });
-
-	$('#aparteStart').click(function(){
-		if ($('#aparteStart').text() == 'Iniciar') {
-
-			$.get('/painel/cronometro', { tipo: 'aparte', action: 'start' } );
-
-			$('#aparteReset').hide();
-	        $('#aparte').runner('start');
-			$('#aparteStart').text('Parar');
-
-		} else {
-
-			$.get('/painel/cronometro', { tipo: 'aparte', action: 'stop' } );
-
-			$('#aparteReset').show();
-			$('#aparte').runner('stop');
-			$('#aparteStart').text('Iniciar');
-
-		}
-    });
-
-    $('#aparteReset').click(function() {
-
-		$.get('/painel/cronometro', { tipo: 'aparte', action: 'reset' } );
-
-        $('#aparte').runner('stop');
-        $('#aparte').runner('reset');
-    });
-
-    $('#ordem').runner({
-        autostart: false,
-        countdown: true,
-        startAt: {{cronometro_ordem}} * 1000,
-        stopAt: 0,
-        milliseconds: false,
-        format: function(value) {
-          let h = Math.floor((value/1000) / 3600);
-          h = checkTime(h);
-          let m = Math.floor((value/1000) % 3600 / 60);
-          m = checkTime(m);
-          let s = Math.floor((value/1000) % 3600 % 60);
-          s = checkTime(s);
-          return h.toString() + ":" + m.toString() + ":" + s.toString();
-        }
-	}).on('runnerFinish', function(eventObject, info){
-        $.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
-        audioAlertFinish.play();
-        $('#ordemReset').show();
-        $('#ordem').runner('stop');
-        $('#ordemStart').text('Iniciar');
-
-    });
-
-    $('#ordemStart').click(function() {
-		if ($('#ordemStart').text() == 'Iniciar') {
-
-			$.get('/painel/cronometro', { tipo: 'ordem', action: 'start' } );
-
-			$('#ordemReset').hide();
-	        $('#ordem').runner('start');
-			$('#ordemStart').text('Parar');
-
-
-		} else {
-
-			$.get('/painel/cronometro', { tipo: 'ordem', action: 'stop' } );
-
-			$('#ordemReset').show();
-	        $('#ordem').runner('stop');
-			$('#ordemStart').text('Iniciar');
-
-		}
-    });
-
-    $('#ordemReset').click(function() {
-
-		$.get('/painel/cronometro', { tipo: 'ordem', action: 'reset' } );
-
-        $('#ordem').runner('stop');
-        $('#ordem').runner('reset');
-    });
-
-     $('#consideracoes').runner({
-        autostart: false,
-        countdown: true,
-        startAt: {{cronometro_consideracoes}} * 1000,
-        stopAt: 0,
-        milliseconds: false,
-        format: function(value) {
-          let h = Math.floor((value/1000) / 3600);
-          h = checkTime(h);
-          let m = Math.floor((value/1000) % 3600 / 60);
-          m = checkTime(m);
-          let s = Math.floor((value/1000) % 3600 % 60);
-          s = checkTime(s);
-          return h.toString() + ":" + m.toString() + ":" + s.toString();
-        }
-    }).on('runnerFinish', function(eventObject, info){
-        $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
-        audioAlertFinish.play();
-        $('#consideracoesReset').show();
-        $('#consideracoes').runner('stop');
-        $('#consideracoesStart').text('Iniciar');
-
-
-    });
-
-    $('#consideracoesStart').click(function(){
-        if ($('#consideracoesStart').text() == 'Iniciar') {
-
-            $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'start' } );
-
-            $('#consideracoesReset').hide();
-            $('#consideracoes').runner('start');
-            $('#consideracoesStart').text('Parar');
-
+        if (initialAction === 'start' && currentStartAt > 0) {
+            $el.runner('start');
+            $btnStart.text('Parar');
+            $btnReset.hide();
+        } else if (initialAction === 'stop') {
+            $btnStart.text('Resumir');
+            $btnReset.show();
         } else {
-
-            $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'stop' } );
-
-            $('#consideracoesReset').show();
-            $('#consideracoes').runner('stop');
-            $('#consideracoesStart').text('Iniciar');
-
+            $btnStart.text('Iniciar');
+            $btnReset.show();
         }
-    });
 
-    $('#consideracoesReset').click(function() {
+        $btnStart.click(function() {
+            if ($btnStart.text() === 'Parar') {
+                $el.runner('stop');
+                var remaining = Math.max(0, Math.round($el.runner('info').time / 1000));
+                $.get('/painel/cronometro', { tipo: tipo, action: 'stop', remaining: remaining } );
+                $btnReset.show();
+                $btnStart.text('Resumir');
+            } else {
+                $el.runner('start');
+                var remaining = Math.max(0, Math.round($el.runner('info').time / 1000));
+                $.get('/painel/cronometro', { tipo: tipo, action: 'start', remaining: remaining } );
+                $btnReset.hide();
+                $btnStart.text('Parar');
+            }
+        });
 
-        $.get('/painel/cronometro', { tipo: 'consideracoes', action: 'reset' } );
+        $btnReset.click(function() {
+            $el.runner('stop');
+            $el.runner({
+                autostart: false,
+                countdown: true,
+                startAt: startAtMs,
+                stopAt: 0,
+                milliseconds: false,
+                format: formatTime
+            });
+            $el.runner('reset');
+            $btnStart.text('Iniciar');
+            $.get('/painel/cronometro', { tipo: tipo, action: 'reset' } );
+        });
+    }
 
-        $('#consideracoes').runner('stop');
-        $('#consideracoes').runner('reset');
-    });
+    setupCronometro('discurso', {{cronometro_discurso}}, cronometrosStatus.discurso);
+    setupCronometro('aparte', {{cronometro_aparte}}, cronometrosStatus.aparte);
+    setupCronometro('ordem', {{cronometro_ordem}}, cronometrosStatus.ordem);
+    setupCronometro('consideracoes', {{cronometro_consideracoes}}, cronometrosStatus.consideracoes);
 
 });
 
@@ -338,7 +227,7 @@ function switch_painel(aberto) {
     var pk_sessao = {{root_pk}};
     var botao_abrir = $('#id_abrir_painel');
     var botao_fechar = $('#id_fechar_painel');
-
+    var bloco_cronometros = $('#bloco_cronometros');
 
     $.ajax({
         data: {pk_sessao: pk_sessao, aberto: aberto},
@@ -350,9 +239,20 @@ function switch_painel(aberto) {
     if (aberto) {
         botao_abrir.hide();
         botao_fechar.show();
+        bloco_cronometros.show();
     } else {
         botao_abrir.show();
         botao_fechar.hide();
+        bloco_cronometros.hide();
+        ['discurso', 'aparte', 'ordem', 'consideracoes'].forEach(function(tipo) {
+            var $el = $('#' + tipo);
+            var $btn = $('#' + tipo + 'Start');
+            if ($btn.text() === 'Parar') {
+                $el.runner('stop');
+                $btn.text('Resumir');
+                $('#' + tipo + 'Reset').show();
+            }
+        });
     }
 }
 
@@ -360,6 +260,7 @@ $(document).ready(function(){
     var pk_sessao = {{root_pk}};
     var botao_abrir = $('#id_abrir_painel');
     var botao_fechar = $('#id_fechar_painel');
+    var bloco_cronometros = $('#bloco_cronometros');
 
     $.ajax({
         data: {pk_sessao: pk_sessao},
@@ -370,12 +271,15 @@ $(document).ready(function(){
             alert("Erro ao verificar o Painel");
         },
         success: function (data) {
+            console.log(`verifica painel: ${data}`);
             if (data['status']) {
                 botao_abrir.hide();
                 botao_fechar.show();
+                bloco_cronometros.show();
             } else {
                 botao_abrir.show();
                 botao_fechar.hide();
+                bloco_cronometros.hide();
             }
         },
     });

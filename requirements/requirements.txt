@@ -26,6 +26,10 @@ reportlab==3.6.13
 WeasyPrint==66
 trml2pdf==0.6
 gunicorn==23.0.0
+channels==3.0.3
+daphne==3.0.2
+channels-redis==3.4.1
+asgiref==3.7.2
 more-itertools==8.2.0
 pysolr==3.6.0
 PyPDF4==1.27.0
