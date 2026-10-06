@@ -1,0 +1,95 @@
+{% extends "crud/detail_detail.html" %}
+{% load i18n common_tags %}
+{% load tz %}
+
+{% block detail_content %}
+
+  {% if not object.restrito and not doc_adm_restrito or 'protocoloadm.change_documentoacessorioadministrativo' in user.get_all_permissions %}
+     <div class="row">
+      <div class="col-sm-6">
+        <div id="div_id_tipo" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'tipo'%}</p>
+          <div class="controls">
+            <div class="form-control-static">{{object.tipo}} </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div id="div_id_autor" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'autor'%}</p>
+          <div class="controls">
+            <div class="form-control-static">{{object.autor}}</div>
+          </div>
+        </div>
+      </div>
+     </div>
+     <div class="row">
+      <div class="col-sm-6">
+        <div id="div_id_nome" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'nome'%}</p>
+          <div class="controls">
+            <div class="form-control-static">{{object.nome}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div id="div_id_data" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'data'%}</p>
+          <div class="controls">
+            <div class="form-control-static">{{object.data}}</div>
+          </div>
+        </div>
+      </div>
+     </div>
+     <div class="row">
+      <div class="col-sm-12">
+        <div id="div_id_arquivo" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'arquivo'%}</p>
+          <div class="controls">
+            <div class="form-control-static">
+              {% if object.arquivo %}
+                <a href="{{object.arquivo.url}}">{{object.arquivo.name}}</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+     </div>
+     <div class="row">
+      <div class="col-sm-12">
+        <div id="div_id_assunto" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'assunto'%}</p>
+          <div class="controls">
+            <div class="form-control-static">{{object.assunto}}</div>
+          </div>
+        </div>
+      </div>
+     </div>
+     <div class="row">
+      <div class="col-sm-2">
+        <div id="div_id_restrito" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'restrito'%}</p>
+          <div class="controls">
+            <div class="form-control-static">{% if object.restrito %}Sim{% else %}Não{% endif %}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-10">
+        <div id="div_id_justificativa_restricao" class="form-group">
+          <p class="control-label">{%field_verbose_name object 'justificativa_restricao'%}</p>
+          <div class="controls">
+            <div class="form-control-static">{{object.justificativa_restricao}}</div>
+          </div>
+        </div>
+      </div>
+     </div>
+  {% else %}
+     <br><br>
+      <div class="alert alert-danger alert-dismissible" role="alert">
+        <h3>Documento restrito</h3>
+        {% if object.restrito %}
+          {{ object.justificativa_restricao }}
+        {% endif %}
+      </div>
+  {% endif %}
+{% endblock detail_content %}

@@ -75,6 +75,8 @@ DocumentoAcessorio:
   - ementa
   - indexacao
   - arquivo
+  - restrito
+  - justificativa_restricao
 
 Numeracao:
   {% trans 'Numeração' %}:
