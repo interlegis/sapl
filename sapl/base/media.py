@@ -95,10 +95,14 @@ def media(request, path):
 
     if settings.DEBUG:
         try:
+            media_root = os.path.realpath(settings.MEDIA_ROOT)
+            caminho = os.path.realpath(os.path.join(media_root, nome))
+            if os.path.commonpath([media_root, caminho]) != media_root:
+                raise Http404
             response = FileResponse(
-                open(os.path.join(settings.MEDIA_ROOT, nome), 'rb'),
+                open(caminho, 'rb'),
                 content_type=content_type)
-        except (FileNotFoundError, IsADirectoryError):
+        except (FileNotFoundError, IsADirectoryError, ValueError):
             raise Http404
     else:
         response = HttpResponse(content_type=content_type)
