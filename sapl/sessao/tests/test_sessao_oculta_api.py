@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.utils import timezone
 from model_bakery import baker
 import pytest
 
@@ -16,7 +19,9 @@ def limpa_cache_appconfig():
 
 @pytest.fixture
 def sessoes():
-    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False)
+    # só a sessão futura, não iniciada e sem pauta fica oculta do público
+    previa = baker.make(SessaoPlenaria, iniciada=False, publicar_pauta=False,
+                        data_inicio=timezone.localdate() + timedelta(days=7))
     iniciada = baker.make(SessaoPlenaria, iniciada=True, publicar_pauta=False)
     baker.make(Orador, sessao_plenaria=previa)
     baker.make(Orador, sessao_plenaria=iniciada)
