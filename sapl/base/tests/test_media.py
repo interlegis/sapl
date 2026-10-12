@@ -71,9 +71,10 @@ def _assert_servido(response, path):
     ('O', True, None, False),
     ('O', True, 'logado', True),
     ('R', False, None, False),
-    ('R', False, 'logado', True),
+    ('R', False, 'logado', False),
     ('R', True, None, False),
-    ('R', True, 'logado', True),
+    ('R', True, 'logado', False),
+    ('R', True, 'com_permissao', True),
 ])
 def test_documento_administrativo(client, comportamento, restrito, perfil,
                                   pode_ver):
@@ -82,6 +83,9 @@ def test_documento_administrativo(client, comportamento, restrito, perfil,
                texto_integral=DOC_PATH)
     if perfil == 'logado':
         _login(client, 'logado')
+    elif perfil == 'com_permissao':
+        _login(client, 'perm',
+               'protocoloadm.detail_documentoadministrativo')
 
     response = _get(client, DOC_PATH)
 

@@ -70,9 +70,20 @@ def test_api_mostra_sessao_previa_ao_usuario_autenticado(client, sessoes):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_media_de_sessao_e_publica(client, settings, sessoes):
+def test_media_de_sessao_oculta_do_anonimo(client, settings, sessoes):
     settings.DEBUG = False
-    for sessao in sessoes:
-        response = client.get(
-            '/media/sapl/public/sessaoplenaria/%s/pauta/p.pdf' % sessao.pk)
-        assert response.status_code == 200
+    previa, iniciada = sessoes
+    orador_previa = Orador.objects.get(sessao_plenaria=previa)
+    orador_iniciada = Orador.objects.get(sessao_plenaria=iniciada)
+
+    def get(path):
+        return client.get('/media/sapl/public/' + path).status_code
+
+    assert get('sessaoplenaria/%s/pauta/p.pdf' % previa.pk) == 404
+    assert get('sessaoplenaria/%s/pauta/p.pdf' % iniciada.pk) == 200
+    assert get('orador/%s/anexo/a.pdf' % orador_previa.pk) == 404
+    assert get('orador/%s/anexo/a.pdf' % orador_iniciada.pk) == 200
+
+    client.force_login(baker.make(get_user_model()))
+    assert get('sessaoplenaria/%s/pauta/p.pdf' % previa.pk) == 200
+    assert get('orador/%s/anexo/a.pdf' % orador_previa.pk) == 200

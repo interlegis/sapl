@@ -62,10 +62,10 @@ ACESSO = [
     ('O', True, 'sem_permissao', True),
     ('O', True, 'com_permissao', True),
     ('R', False, 'anonimo', False),
-    ('R', False, 'sem_permissao', True),
+    ('R', False, 'sem_permissao', False),
     ('R', False, 'com_permissao', True),
     ('R', True, 'anonimo', False),
-    ('R', True, 'sem_permissao', True),
+    ('R', True, 'sem_permissao', False),
     ('R', True, 'com_permissao', True),
 ]
 

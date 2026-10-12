@@ -343,10 +343,10 @@ class DocumentoAdministrativo(models.Model):
 
 
 def pode_ver_documento_adm(user, documento):
-    if user.is_authenticated:
-        return True
-    return not documento.restrito and SaplAppConfig.attr(
-        'documentos_administrativos') == DOC_ADM_OSTENSIVO
+    """Mesmas regras da página de detalhe do documento (CRUD)."""
+    if SaplAppConfig.attr('documentos_administrativos') == DOC_ADM_OSTENSIVO:
+        return not (documento.restrito and user.is_anonymous)
+    return user.has_perm('protocoloadm.detail_documentoadministrativo')
 
 
 class DocumentoAcessorioAdministrativo(models.Model):

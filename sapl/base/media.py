@@ -10,6 +10,9 @@ from sapl.materia.models import Proposicao, pode_ver_proposicao
 from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
                                       DocumentoAdministrativo,
                                       pode_ver_documento_adm)
+from sapl.sessao.models import (JustificativaAusencia, Orador,
+                                OradorExpediente, OradorOrdemDia,
+                                SessaoPlenaria, restringe_sessoes_visiveis)
 from sapl.utils import EXTENSOES_ATIVAS, tipo_ativo
 
 X_ACCEL_PREFIX = '/media-interna/'
@@ -29,6 +32,28 @@ RESOLVEDORES = {
     'proposicao': (
         Proposicao, 'texto_original', pode_ver_proposicao),
 }
+
+
+# Arquivos gravados em sapl/public/<model>/<pk>/..., que seguem a
+# visibilidade da sessão plenária a que pertencem.
+MODELOS_DE_SESSAO = {m._meta.model_name: m for m in (
+    SessaoPlenaria, Orador, OradorExpediente, OradorOrdemDia,
+    JustificativaAusencia)}
+
+
+def _de_sessao_oculta(request, partes):
+    model = MODELOS_DE_SESSAO.get(partes[2])
+    if request.user.is_authenticated or not model or len(partes) < 5 or \
+            partes[1] != 'public' or not partes[3].isdigit():
+        return False
+    if model is SessaoPlenaria:
+        sessoes = SessaoPlenaria.objects.filter(pk=partes[3])
+    else:
+        sessoes = SessaoPlenaria.objects.filter(
+            pk__in=model.objects.filter(pk=partes[3]).values(
+                'sessao_plenaria_id'))
+    return sessoes.exists() and not restringe_sessoes_visiveis(
+        sessoes, request.user).exists()
 
 
 def _nome_protegido(request, path):
@@ -56,6 +81,9 @@ def media(request, path):
     protegido = path.startswith('sapl/private/') or bool(
         PROTEGIDO_RE.match(path))
     nome = _nome_protegido(request, path) if protegido else path
+
+    if len(partes) > 2 and _de_sessao_oculta(request, partes):
+        raise Http404
     nome_arquivo = os.path.basename(nome)
 
     content_type = (mimetypes.guess_type(nome_arquivo)[0] or
