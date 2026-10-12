@@ -70,16 +70,9 @@ def test_api_mostra_sessao_previa_ao_usuario_autenticado(client, sessoes):
 
 
 @pytest.mark.django_db(transaction=False)
-def test_media_de_sessao_previa_oculta_do_anonimo(client, settings, sessoes):
+def test_media_de_sessao_e_publica(client, settings, sessoes):
     settings.DEBUG = False
-    previa, iniciada = sessoes
-
-    def get(sessao):
-        return client.get('/media/sapl/public/sessaoplenaria/%s/pauta/p.pdf'
-                          % sessao.pk)
-
-    assert get(previa).status_code == 404
-    assert get(iniciada).status_code == 200
-
-    client.force_login(baker.make(get_user_model()))
-    assert get(previa).status_code == 200
+    for sessao in sessoes:
+        response = client.get(
+            '/media/sapl/public/sessaoplenaria/%s/pauta/p.pdf' % sessao.pk)
+        assert response.status_code == 200

@@ -74,7 +74,7 @@ from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     ReceberProposicaoForm, RelatoriaForm,
                     TramitacaoEmLoteFilterSet, TramitacaoEmLoteForm,
                     UnidadeTramitacaoForm, StatusTramitacaoFilterSet)
-from .models import (AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria, DespachoInicial,
+from .models import (pode_ver_proposicao, AcompanhamentoMateria, Anexada, AssuntoMateria, Autoria, DespachoInicial,
                      DocumentoAcessorio, MateriaAssunto, MateriaLegislativa, Numeracao, Orgao,
                      Origem, Proposicao, RegimeTramitacao, Relatoria, StatusTramitacao,
                      TipoDocumento, TipoFimRelatoria, TipoMateriaLegislativa, TipoProposicao,
@@ -106,14 +106,10 @@ def proposicao_texto(request, pk):
     username = request.user.username
     logger.debug('user=' + username +
                  '. Tentando obter objeto Proposicao com pk = {}.'.format(pk))
-    proposicao = Proposicao.objects.get(pk=pk)
+    proposicao = get_object_or_404(Proposicao, pk=pk)
 
     if proposicao.texto_original:
-        if (not proposicao.data_recebimento and
-                not proposicao.autor.operadores.filter(
-                    id=request.user.id
-                ).exists()
-            ):
+        if not pode_ver_proposicao(request.user, proposicao):
             logger.error("user=" + username + ". Usuário ({}) não tem permissão para acessar o texto original."
                          .format(request.user.id))
             messages.error(request, _(

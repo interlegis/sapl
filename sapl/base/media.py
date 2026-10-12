@@ -6,11 +6,10 @@ from urllib.parse import quote
 from django.conf import settings
 from django.http import FileResponse, Http404, HttpResponse
 
-from sapl.materia.models import Proposicao
+from sapl.materia.models import Proposicao, pode_ver_proposicao
 from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
                                       DocumentoAdministrativo,
                                       pode_ver_documento_adm)
-from sapl.sessao.models import SessaoPlenaria, restringe_sessoes_visiveis
 from sapl.utils import EXTENSOES_ATIVAS, tipo_ativo
 
 X_ACCEL_PREFIX = '/media-interna/'
@@ -21,19 +20,6 @@ PROTEGIDO_RE = re.compile(
     r'^sapl/[^/]+/(?:documentoadministrativo|'
     r'documentoacessorioadministrativo|proposicao)/')
 
-
-def _pode_ver_proposicao(user, proposicao):
-    if proposicao.data_recebimento:
-        return True
-    if not user.is_authenticated:
-        return False
-    if proposicao.autor and proposicao.autor.operadores.filter(
-            id=user.id).exists():
-        return True
-    return bool(proposicao.data_envio) and user.has_module_perms(
-        'protocoloadm')
-
-
 RESOLVEDORES = {
     'documentoadministrativo': (
         DocumentoAdministrativo, 'texto_integral', pode_ver_documento_adm),
@@ -41,7 +27,7 @@ RESOLVEDORES = {
         DocumentoAcessorioAdministrativo, 'arquivo',
         lambda user, obj: pode_ver_documento_adm(user, obj.documento)),
     'proposicao': (
-        Proposicao, 'texto_original', _pode_ver_proposicao),
+        Proposicao, 'texto_original', pode_ver_proposicao),
 }
 
 
@@ -62,14 +48,6 @@ def _nome_protegido(request, path):
     return arquivo.name[2:] if arquivo.name.startswith('./') else arquivo.name
 
 
-def _sessao_oculta(request, partes):
-    if request.user.is_authenticated or not partes[3].isdigit():
-        return False
-    qs = SessaoPlenaria.objects.filter(pk=partes[3])
-    return qs.exists() and not restringe_sessoes_visiveis(
-        qs, request.user).exists()
-
-
 def media(request, path):
     partes = path.split('/')
     if any(p in ('', '.', '..') for p in partes) or '\x00' in path:
@@ -78,10 +56,6 @@ def media(request, path):
     protegido = path.startswith('sapl/private/') or bool(
         PROTEGIDO_RE.match(path))
     nome = _nome_protegido(request, path) if protegido else path
-
-    if path.startswith('sapl/public/sessaoplenaria/') and len(partes) > 4 \
-            and _sessao_oculta(request, partes):
-        raise Http404
     nome_arquivo = os.path.basename(nome)
 
     content_type = (mimetypes.guess_type(nome_arquivo)[0] or

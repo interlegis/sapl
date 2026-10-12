@@ -1154,6 +1154,18 @@ class Proposicao(models.Model):
                                  update_fields=update_fields)
 
 
+def pode_ver_proposicao(user, proposicao):
+    """Texto original da proposição: nunca público. Operadores do autor veem
+    sempre; o protocolo vê depois do envio."""
+    if not user.is_authenticated:
+        return False
+    if proposicao.autor and proposicao.autor.operadores.filter(
+            id=user.id).exists():
+        return True
+    return bool(proposicao.data_envio) and user.has_module_perms(
+        'protocoloadm')
+
+
 class HistoricoProposicao(models.Model):
     STATUS_PROPOSICAO = Choices(('E', 'ENVIADA', _('Enviada')),
                                 ('R', 'RECEBIDA', _('Recebida')),

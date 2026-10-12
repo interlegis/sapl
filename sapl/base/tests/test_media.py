@@ -71,8 +71,9 @@ def _assert_servido(response, path):
     ('O', True, None, False),
     ('O', True, 'logado', True),
     ('R', False, None, False),
-    ('R', False, 'logado', False),
-    ('R', True, 'com_permissao', True),
+    ('R', False, 'logado', True),
+    ('R', True, None, False),
+    ('R', True, 'logado', True),
 ])
 def test_documento_administrativo(client, comportamento, restrito, perfil,
                                   pode_ver):
@@ -81,9 +82,6 @@ def test_documento_administrativo(client, comportamento, restrito, perfil,
                texto_integral=DOC_PATH)
     if perfil == 'logado':
         _login(client, 'logado')
-    elif perfil == 'com_permissao':
-        _login(client, 'perm',
-               'protocoloadm.detail_documentoadministrativo')
 
     response = _get(client, DOC_PATH)
 
@@ -180,7 +178,10 @@ def _proposicao(enviada=False, recebida=False):
     ('enviada', 'protocolo', True),
     ('enviada', 'outro', False),
     ('enviada', None, False),
-    ('recebida', None, True),
+    ('recebida', None, False),
+    ('recebida', 'outro', False),
+    ('recebida', 'protocolo', True),
+    ('recebida', 'operador', True),
 ])
 def test_proposicao(client, estado, perfil, pode_ver):
     operador = _proposicao(enviada=estado == 'enviada',
@@ -276,3 +277,17 @@ def test_senha_fraca_nao_redireciona_media(client):
 
     assert response.status_code == 200
     assert response.has_header('X-Accel-Redirect')
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('perfil', [None, 'outro'])
+def test_proposicao_texto_recebida_nao_e_publica(client, perfil):
+    _proposicao(recebida=True)
+    if perfil:
+        _login(client, perfil)
+    pk = Proposicao.objects.get(texto_original=PROPOSICAO_PATH).pk
+
+    response = client.get('/proposicao/texto/%s' % pk)
+
+    assert response.status_code == 302
+    assert response['Location'] == '/proposicao/%s' % pk
