@@ -863,6 +863,11 @@ class CrudDetailView(PermissionRequiredContainerCrudMixin,
                     context[context_object_name] = self.object
             context.update(kwargs)
 
+        # Mensagem de atualidade (PNTP): data de última atualização da entidade,
+        # quando o modelo possuir o campo. Consumido pelo banner em base.html.
+        context['data_atualizacao_conteudo'] = getattr(
+            self.object, 'data_ultima_atualizacao', None)
+
         return context
 
     @property

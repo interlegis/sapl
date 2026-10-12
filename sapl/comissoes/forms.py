@@ -558,3 +558,28 @@ class DocumentoAcessorioEditForm(FileFieldCheckMixin, forms.ModelForm):
         #     raise ValidationError(f'Favor anexar arquivo em {nome_arquivo}')
 
         return self.cleaned_data
+
+
+class ReuniaoFilterSet(django_filters.FilterSet):
+
+    nome = django_filters.CharFilter(
+        lookup_expr='icontains', label=_('Nome da Reunião'))
+    tema = django_filters.CharFilter(
+        lookup_expr='icontains', label=_('Tema da Reunião'))
+
+    class Meta(FilterOverridesMetaMixin):
+        model = Reuniao
+        fields = ['numero', 'nome', 'tema', 'data']
+
+    def __init__(self, *args, **kwargs):
+        super(ReuniaoFilterSet, self).__init__(*args, **kwargs)
+
+        row1 = to_row([('numero', 3), ('nome', 5), ('tema', 4)])
+        row2 = to_row([('data', 6)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Pesquisar Reunião'),
+                     row1, row2,
+                     form_actions(label=_('Pesquisar'))))

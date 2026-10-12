@@ -193,6 +193,10 @@ class Parlamentar(models.Model):
     SEXO_CHOICE = ((FEMININO, _('Feminino')),
                    (MASCULINO, _('Masculino')))
 
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True, auto_now=True,
+        verbose_name=_('Data da Última Atualização'))
+
     nivel_instrucao = models.ForeignKey(
         NivelInstrucao,
         blank=True,

@@ -157,8 +157,12 @@ def restringe_sessoes_visiveis(qs, user):
     """Restringe o queryset às sessões visíveis na consulta pública.
 
     Usuário autenticado enxerga todas. Para o público, ficam ocultas as
-    sessões cadastradas com antecedência, ou seja, as marcadas como não
-    iniciadas e sem pauta publicada.
+    sessões cadastradas com antecedência, ou seja, as de data futura
+    marcadas como não iniciadas e sem pauta publicada.
+
+    A data é o que distingue o cadastro antecipado: sessões de hoje ou de
+    datas passadas ficam sempre visíveis, mesmo com `iniciada` em Não, porque
+    há Casas que não marcam o campo nas sessões já realizadas.
 
     `iniciada` nulo conta como visível: o default do campo só surgiu na
     migração 0027, que não preencheu as linhas já existentes, então bases
@@ -170,7 +174,8 @@ def restringe_sessoes_visiveis(qs, user):
     return qs.filter(
         Q(publicar_pauta=True) |
         Q(iniciada=True) |
-        Q(iniciada__isnull=True))
+        Q(iniciada__isnull=True) |
+        Q(data_inicio__lte=timezone.localdate()))
 
 
 class SessaoPlenaria(models.Model):
@@ -594,6 +599,9 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
         verbose_name = _('Presença da Ordem do Dia')
         verbose_name_plural = _('Presenças da Ordem do Dia')
         ordering = ['parlamentar__nome_parlamentar']
+        # Presença é um sim/não: mais de uma linha para o mesmo parlamentar
+        # na mesma sessão infla a contagem dos relatórios.
+        unique_together = ('sessao_plenaria', 'parlamentar')
 
     def __str__(self):
         # FIXME ambigous
@@ -736,6 +744,9 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
         ordering = ['parlamentar__nome_parlamentar']
+        # Presença é um sim/não: mais de uma linha para o mesmo parlamentar
+        # na mesma sessão infla a contagem dos relatórios.
+        unique_together = ('sessao_plenaria', 'parlamentar')
 
 
 ORDENACAO_RESUMO = [

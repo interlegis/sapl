@@ -279,6 +279,69 @@ function DispositivoSearch (opts) {
   })
 }
 
+// Escala de leitura do texto articulado, preferência de cada navegador.
+// Aplicada via variável CSS (--cp-font-scale) para não alterar o conteúdo
+// dos dispositivos e para valer também nos que são recarregados via ajax.
+const EscalaFonte = Object.freeze({
+  CHAVE: 'compilacao_escala_fonte',
+  PADRAO: 1,
+  PASSO: 0.1,
+  MIN: 0.8,
+  MAX: 2.5
+})
+let escalaFonteAtual = null
+
+// Limita num ao intervalo [lower, upper].
+function clamp (num, lower, upper) {
+  return Math.max(lower, Math.min(num, upper))
+}
+
+function lerEscalaFonte () {
+  if (escalaFonteAtual !== null) {
+    return escalaFonteAtual
+  }
+  let valor = null
+  try {
+    valor = window.localStorage.getItem(EscalaFonte.CHAVE)
+  } catch (e) {
+    // localStorage indisponível (ex.: navegação privada bloqueada)
+    console.warn('Escala de fonte: não foi possível ler o localStorage.', e)
+    return EscalaFonte.PADRAO
+  }
+  if (valor === null) {
+    return EscalaFonte.PADRAO
+  }
+  const escala = parseFloat(valor)
+  if (!Number.isFinite(escala)) {
+    console.warn('Escala de fonte: valor inválido no localStorage, usando o padrão.', valor)
+    return EscalaFonte.PADRAO
+  }
+  return clamp(escala, EscalaFonte.MIN, EscalaFonte.MAX)
+}
+
+function aplicarEscalaFonte (escala) {
+  document.documentElement.style.setProperty('--cp-font-scale', escala)
+  if (window.tinymce) {
+    window.tinymce.get().forEach(function (editor) {
+      if (editor.getBody()) {
+        editor.getBody().style.fontSize = (escala * 100) + '%'
+      }
+    })
+  }
+}
+
+function salvarEscalaFonte (escala) {
+  escala = Math.round(clamp(escala, EscalaFonte.MIN, EscalaFonte.MAX) * 10) / 10
+  try {
+    window.localStorage.setItem(EscalaFonte.CHAVE, escala)
+  } catch (e) {
+    // localStorage indisponível: a escala vale apenas até recarregar a página
+    console.warn('Escala de fonte: não foi possível salvar no localStorage.', escala, e)
+  }
+  escalaFonteAtual = escala
+  aplicarEscalaFonte(escala)
+}
+
 function InitViewTAs () {
   setTimeout(function () {
     var href = location.href.split('#')
@@ -297,11 +360,12 @@ function InitViewTAs () {
     }
   }, 100)
 
+  aplicarEscalaFonte(lerEscalaFonte())
   $('#btn_font_menos').click(function () {
-    $('.dpt').css('font-size', '-=1')
+    salvarEscalaFonte(lerEscalaFonte() - EscalaFonte.PASSO)
   })
   $('#btn_font_mais').click(function () {
-    $('.dpt').css('font-size', '+=1')
+    salvarEscalaFonte(lerEscalaFonte() + EscalaFonte.PASSO)
   })
 
   $('.dpt.bloco_alteracao .dpt').each(function () {
@@ -327,5 +391,7 @@ export default {
   ReadCookie,
   insertWaitAjax,
   InitViewTAs,
+  lerEscalaFonte,
+  aplicarEscalaFonte,
   DispositivoSearch
 }

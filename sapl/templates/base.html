@@ -40,6 +40,13 @@
   <body>
     <div class="page fadein">
 
+      {% if not request|has_iframe %}
+        <div class="info-atualizacao hidden-print" style="background-color:#0d2b45;color:#fff;text-align:center;padding:6px 12px;font-size:14px;font-weight:600;">
+          {% trans 'Informações foram atualizadas em' %}
+          {% if data_atualizacao_conteudo %}{{ data_atualizacao_conteudo|date:"d/m/Y" }}{% else %}{% now "d/m/Y" %}{% endif %}
+        </div>
+      {% endif %}
+
       {% if not sapl_as_sapn or user.is_authenticated%}
         {% if not request|has_iframe %}
           {% block navigation %}

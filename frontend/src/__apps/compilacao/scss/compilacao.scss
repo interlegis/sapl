@@ -164,12 +164,21 @@ a:link:after, a:visited:after {
 }
 
 .cp {
+  /* --cp-font-scale: escala de leitura escolhida pelo usuário (a/A) */
+  font-size: calc(100% * var(--cp-font-scale, 1));
+
+  .dpt-form textarea.form-control {
+    font-size: calc(1rem * var(--cp-font-scale, 1));
+  }
+
   .vigencia-active {
     margin-top: 30px;
     display: block;
   }
 
   .cp-linha-vigencias {
+    /* navegação entre vigências não acompanha a escala de leitura */
+    font-size: calc(100% / var(--cp-font-scale, 1));
     display: flex;
     flex-direction: row;
     list-style: none;
