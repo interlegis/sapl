@@ -5,6 +5,7 @@ import logging
 import os
 from random import choice
 import shutil
+import tempfile
 from string import ascii_letters, digits
 import time
 import zipfile
@@ -52,11 +53,12 @@ from sapl.materia.forms import (AnexadaForm, AutoriaForm, AutoriaMultiCreateForm
 from sapl.norma.models import LegislacaoCitada
 from sapl.parlamentares.models import Legislatura
 from sapl.protocoloadm.models import Protocolo
-from sapl.settings import MAX_DOC_UPLOAD_SIZE, MEDIA_ROOT, RATE_LIMITER_RATE
+from sapl.settings import MEDIA_ROOT, RATE_LIMITER_RATE
 from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_url,
                         get_client_ip, get_mime_type_from_file_extension, lista_anexados,
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, get_tempfile_dir,
+                        restringe_tipos_de_arquivo_txt, validar_arquivo,
                         google_recaptcha_configured, MultiFormatOutputMixin, ratelimit_ip)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
@@ -2330,17 +2332,15 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             return self.get(request, self.kwargs)
 
-        if request.FILES['arquivo'].size > MAX_DOC_UPLOAD_SIZE:
-            msg = _("O arquivo Anexo de Texto Integral deve ser menor que {0:.1f} MB, \
-                o tamanho atual desse arquivo é {1:.1f} MB"
-                    .format((MAX_DOC_UPLOAD_SIZE / 1024) / 1024, (request.FILES['arquivo'].size / 1024) / 1024))
-            messages.add_message(request, messages.ERROR, msg)
+        arquivo = request.FILES['arquivo']
+        try:
+            validar_arquivo(arquivo, 'Arquivo')
+            restringe_tipos_de_arquivo_txt(arquivo)
+        except ValidationError as e:
+            for m in e.messages:
+                messages.add_message(request, messages.ERROR, m)
             return self.get(request, self.kwargs)
 
-        tmp_name = os.path.join(MEDIA_ROOT, request.FILES['arquivo'].name)
-        with open(tmp_name, 'wb') as destination:
-            for chunk in request.FILES['arquivo'].chunks():
-                destination.write(chunk)
         try:
             doc_data = tz.localize(datetime.strptime(
                 request.POST['data'], "%d/%m/%Y"))
@@ -2350,44 +2350,47 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
             messages.add_message(request, messages.ERROR, msg)
             self.logger.error("User={}. {}. Data inserida: {}".format(
                 username, str(msg), request.POST['data']))
-            os.remove(tmp_name)
             return self.get(request, self.kwargs)
 
-        for materia_id in marcadas:
-            doc = DocumentoAcessorio()
-            doc.materia_id = materia_id
-            doc.tipo = tipo
-            doc.nome = request.POST['nome']
-            doc.data = doc_data
-            doc.autor = request.POST['autor']
-            doc.ementa = request.POST['ementa']
-            doc.arquivo.name = tmp_name
-            try:
-                doc.clean_fields()
-            except ValidationError as e:
-                for m in ['%s: %s' % (DocumentoAcessorio()._meta.get_field(k).verbose_name, '</br>'.join(v))
-                          for k, v in e.message_dict.items()]:
-                    # Insere as mensagens de erro no formato:
-                    # 'verbose_name do nome do campo': 'mensagem de erro'
-                    messages.add_message(request, messages.ERROR, m)
-                    self.logger.error("User={}. {}. Nome do arquivo: {}.".format(
-                        username, str(msg), request.FILES['arquivo'].name))
-                os.remove(tmp_name)
-                return self.get(request, self.kwargs)
-            doc.save()
-            diretorio = os.path.join(MEDIA_ROOT,
-                                     'sapl/public/documentoacessorio',
-                                     str(doc_data.year),
-                                     str(doc.id))
-            if not os.path.exists(diretorio):
-                os.makedirs(diretorio)
-            file_path = os.path.join(diretorio,
-                                     request.FILES['arquivo'].name)
-            shutil.copy2(tmp_name, file_path)
-            doc.arquivo.name = file_path.split(
-                MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome
-            doc.save()
-        os.remove(tmp_name)
+        # Fora de MEDIA_ROOT, para não ficar acessível em /media/
+        with tempfile.NamedTemporaryFile(dir=get_tempfile_dir(),
+                                         delete=False) as tmp:
+            for chunk in arquivo.chunks():
+                tmp.write(chunk)
+        try:
+            for materia_id in marcadas:
+                doc = DocumentoAcessorio()
+                doc.materia_id = materia_id
+                doc.tipo = tipo
+                doc.nome = request.POST['nome']
+                doc.data = doc_data
+                doc.autor = request.POST['autor']
+                doc.ementa = request.POST['ementa']
+                try:
+                    doc.clean_fields(exclude=['arquivo'])
+                except ValidationError as e:
+                    for m in ['%s: %s' % (DocumentoAcessorio()._meta.get_field(k).verbose_name, '</br>'.join(v))
+                              for k, v in e.message_dict.items()]:
+                        # Insere as mensagens de erro no formato:
+                        # 'verbose_name do nome do campo': 'mensagem de erro'
+                        messages.add_message(request, messages.ERROR, m)
+                        self.logger.error("User={}. {}. Nome do arquivo: {}.".format(
+                            username, str(m), arquivo.name))
+                    return self.get(request, self.kwargs)
+                doc.save()
+                diretorio = os.path.join(MEDIA_ROOT,
+                                         'sapl/public/documentoacessorio',
+                                         str(doc_data.year),
+                                         str(doc.id))
+                if not os.path.exists(diretorio):
+                    os.makedirs(diretorio)
+                file_path = os.path.join(diretorio, arquivo.name)
+                shutil.copy2(tmp.name, file_path)
+                doc.arquivo.name = file_path.split(
+                    MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome
+                doc.save()
+        finally:
+            os.remove(tmp.name)
 
         msg = _('Documento(s) criado(s).')
         messages.add_message(request, messages.SUCCESS, msg)
