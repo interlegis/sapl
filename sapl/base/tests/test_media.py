@@ -38,9 +38,9 @@ def _config(comportamento):
     baker.make(AppConfig, documentos_administrativos=comportamento)
 
 
-def _login(client, username, perm=None):
+def _login(client, username, *perms):
     user = baker.make(get_user_model(), username=username)
-    if perm:
+    for perm in perms:
         app_label, codename = perm.split('.')
         perm_obj = Permission.objects.filter(
             content_type__app_label=app_label, codename=codename).first()
@@ -162,45 +162,60 @@ def test_nome_nao_ascii_codificado(client):
         'of%C3%ADcio_n%C2%BA1.pdf')
 
 
-def _proposicao(enviada=False, recebida=False):
+ESTADOS_PROPOSICAO = ('rascunho', 'enviada', 'devolvida', 'incorporada')
+PERMS_DOCADM = ['protocoloadm.add_documentoadministrativo',
+                'protocoloadm.change_documentoadministrativo',
+                'protocoloadm.detail_documentoadministrativo']
+
+
+def _proposicao(estado):
     autor = baker.make(Autor)
     operador = baker.make(get_user_model(), username='operador')
     autor.operadores.add(operador)
     agora = timezone.now()
+    # mesmos campos gravados pelo envio, devolução e incorporação
     baker.make(Proposicao, autor=autor, texto_original=PROPOSICAO_PATH,
-               data_envio=agora if enviada or recebida else None,
-               data_recebimento=agora if recebida else None)
+               data_envio=agora if estado in ('enviada', 'incorporada')
+               else None,
+               data_recebimento=agora if estado == 'incorporada' else None,
+               data_devolucao=agora if estado == 'devolvida' else None)
     return operador
 
 
-@pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('estado,perfil,pode_ver', [
-    ('rascunho', 'operador', True),
-    ('rascunho', 'outro', False),
-    ('rascunho', 'protocolo', False),
-    ('rascunho', None, False),
-    ('enviada', 'protocolo', True),
-    ('enviada', 'outro', False),
-    ('enviada', None, False),
-    ('recebida', None, False),
-    ('recebida', 'outro', False),
-    ('recebida', 'protocolo', True),
-    ('recebida', 'operador', True),
-])
-def test_proposicao(client, estado, perfil, pode_ver):
-    operador = _proposicao(enviada=estado == 'enviada',
-                           recebida=estado == 'recebida')
+def _login_proposicao(client, perfil, operador):
     if perfil == 'operador':
         client.force_login(operador)
+    elif perfil == 'docadm':
+        user = _login(client, 'docadm', *PERMS_DOCADM)
+        assert user.has_module_perms('protocoloadm')
     elif perfil == 'outro':
         _login(client, 'outro')
-    elif perfil == 'protocolo':
-        _login(client, 'protocolo',
-               'protocoloadm.detail_documentoadministrativo')
+    elif perfil:
+        _login(client, perfil, 'materia.detail_proposicao_' + perfil)
+
+
+def _pode_ver_proposicao(estado, perfil):
+    return perfil == 'operador' or perfil == estado != 'rascunho'
+
+
+GRADE_PROPOSICAO = [
+    (estado, perfil, _pode_ver_proposicao(estado, perfil))
+    for estado in ESTADOS_PROPOSICAO
+    for perfil in (None, 'operador', 'outro', 'docadm', 'enviada',
+                   'devolvida', 'incorporada')]
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('estado,perfil,pode_ver', GRADE_PROPOSICAO)
+def test_proposicao(client, estado, perfil, pode_ver):
+    _login_proposicao(client, perfil, _proposicao(estado))
 
     response = _get(client, PROPOSICAO_PATH)
 
-    assert response.status_code == (200 if pode_ver else 404)
+    if pode_ver:
+        _assert_servido(response, PROPOSICAO_PATH)
+    else:
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db(transaction=False)
@@ -284,14 +299,21 @@ def test_senha_fraca_nao_redireciona_media(client):
 
 
 @pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('perfil', [None, 'outro'])
-def test_proposicao_texto_recebida_nao_e_publica(client, perfil):
-    _proposicao(recebida=True)
-    if perfil:
-        _login(client, perfil)
+@pytest.mark.parametrize('estado,perfil,pode_ver', GRADE_PROPOSICAO)
+def test_proposicao_texto(client, settings, tmp_path, estado, perfil,
+                          pode_ver):
+    settings.MEDIA_ROOT = str(tmp_path)
+    arquivo = tmp_path / PROPOSICAO_PATH
+    arquivo.parent.mkdir(parents=True)
+    arquivo.write_bytes(b'%PDF-1.4 proposicao')
+    _login_proposicao(client, perfil, _proposicao(estado))
     pk = Proposicao.objects.get(texto_original=PROPOSICAO_PATH).pk
 
     response = client.get('/proposicao/texto/%s' % pk)
 
-    assert response.status_code == 302
-    assert response['Location'] == '/proposicao/%s' % pk
+    if pode_ver:
+        assert response.status_code == 200
+        assert response.content == b'%PDF-1.4 proposicao'
+    else:
+        assert response.status_code == 302
+        assert response['Location'] == '/proposicao/%s' % pk

@@ -1156,14 +1156,21 @@ class Proposicao(models.Model):
 
 def pode_ver_proposicao(user, proposicao):
     """Texto original da proposição: nunca público. Operadores do autor veem
-    sempre; o protocolo vê depois do envio."""
+    sempre; demais usuários seguem as permissões por estado da página de
+    detalhe (ProposicaoCrud.DetailView.dispatch)."""
     if not user.is_authenticated:
         return False
     if proposicao.autor and proposicao.autor.operadores.filter(
             id=user.id).exists():
         return True
-    return bool(proposicao.data_envio) and user.has_module_perms(
-        'protocoloadm')
+    # devolução limpa data_envio: checar antes de tratar como rascunho
+    if proposicao.data_devolucao:
+        return user.has_perm('materia.detail_proposicao_devolvida')
+    if not proposicao.data_envio:
+        return False
+    if not proposicao.data_recebimento:
+        return user.has_perm('materia.detail_proposicao_enviada')
+    return user.has_perm('materia.detail_proposicao_incorporada')
 
 
 class HistoricoProposicao(models.Model):
