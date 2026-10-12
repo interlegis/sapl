@@ -10,6 +10,7 @@ from sapl.materia.models import Proposicao
 from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
                                       DocumentoAdministrativo,
                                       pode_ver_documento_adm)
+from sapl.sessao.models import SessaoPlenaria, restringe_sessoes_visiveis
 from sapl.utils import EXTENSOES_ATIVAS
 
 X_ACCEL_PREFIX = '/media-interna/'
@@ -61,6 +62,14 @@ def _nome_protegido(request, path):
     return arquivo.name[2:] if arquivo.name.startswith('./') else arquivo.name
 
 
+def _sessao_oculta(request, partes):
+    if request.user.is_authenticated or not partes[3].isdigit():
+        return False
+    qs = SessaoPlenaria.objects.filter(pk=partes[3])
+    return qs.exists() and not restringe_sessoes_visiveis(
+        qs, request.user).exists()
+
+
 def media(request, path):
     partes = path.split('/')
     if any(p in ('', '.', '..') for p in partes) or '\x00' in path:
@@ -68,6 +77,10 @@ def media(request, path):
 
     protegido = bool(PROTEGIDO_RE.match(path))
     nome = _nome_protegido(request, path) if protegido else path
+
+    if path.startswith('sapl/public/sessaoplenaria/') and len(partes) > 4 \
+            and _sessao_oculta(request, partes):
+        raise Http404
     nome_arquivo = os.path.basename(nome)
 
     if os.path.splitext(nome_arquivo)[1].lower() in EXTENSOES_ATIVAS:

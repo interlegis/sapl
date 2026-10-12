@@ -20,6 +20,14 @@ PROPOSICAO_PATH = 'sapl/private/proposicao/2026/1/proposicao.pdf'
 
 
 @pytest.fixture(autouse=True)
+def limpa_cache_appconfig():
+    # o cache em arquivo sobrevive ao rollback do teste
+    cache.clear()
+    yield
+    cache.clear()
+
+
+@pytest.fixture(autouse=True)
 def sem_debug(settings):
     settings.DEBUG = False
 

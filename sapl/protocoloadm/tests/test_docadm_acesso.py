@@ -11,6 +11,14 @@ from sapl.base.models import AppConfig
 from sapl.protocoloadm.models import DocumentoAdministrativo
 
 
+@pytest.fixture(autouse=True)
+def limpa_cache_appconfig():
+    # o cache em arquivo sobrevive ao rollback do teste
+    cache.clear()
+    yield
+    cache.clear()
+
+
 @pytest.fixture
 def media_tmp(settings, tmp_path):
     settings.MEDIA_ROOT = str(tmp_path)
