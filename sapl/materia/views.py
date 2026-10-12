@@ -2380,7 +2380,14 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
                                          str(doc.id))
                 if not os.path.exists(diretorio):
                     os.makedirs(diretorio)
-                file_path = os.path.join(diretorio, arquivo.name)
+                safe_filename = os.path.basename(arquivo.name)
+                file_path = os.path.join(diretorio, safe_filename)
+                real_diretorio = os.path.realpath(diretorio)
+                real_file_path = os.path.realpath(file_path)
+                if os.path.commonpath([real_diretorio, real_file_path]) != real_diretorio:
+                    msg = _('Nome de arquivo inválido.')
+                    messages.add_message(request, messages.ERROR, msg)
+                    return self.get(request, self.kwargs)
                 shutil.copy2(tmp.name, file_path)
                 doc.arquivo.name = file_path.split(
                     MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome
