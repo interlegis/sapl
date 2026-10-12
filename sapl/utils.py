@@ -601,6 +601,12 @@ class FilterOverridesMetaMixin:
     }
 
 
+# Extensões que o navegador pode executar como página na origem do SAPL
+EXTENSOES_ATIVAS = {
+    '.html', '.htm', '.xhtml', '.shtml', '.svg', '.svgz', '.xml', '.xsl',
+    '.js', '.mht', '.mhtml',
+}
+
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',
     'application/x-vnd.oasis.opendocument.text',
