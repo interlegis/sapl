@@ -133,6 +133,7 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
 
 
 def validar_arquivo(arquivo, nome_campo):
+    rejeita_conteudo_ativo(arquivo)
     if len(arquivo.name) > 200:
         raise ValidationError(
             "Certifique-se de que o nome do arquivo no "
@@ -607,6 +608,26 @@ EXTENSOES_ATIVAS = {
     '.js', '.mht', '.mhtml',
 }
 
+MIMES_ATIVOS = {
+    'text/html', 'application/xhtml+xml', 'image/svg+xml', 'text/xml',
+    'application/xml', 'application/javascript', 'text/javascript',
+}
+
+
+def rejeita_conteudo_ativo(arquivo):
+    """Recusa uploads que o navegador executaria como página, pela extensão
+    ou pelo conteúdo. Arquivos já gravados não são checados, para não impedir
+    a edição de registros antigos."""
+    if not isinstance(arquivo, UploadedFile):
+        return
+    if os.path.splitext(arquivo.name)[1].lower() in EXTENSOES_ATIVAS:
+        raise ValidationError(_('Tipo de arquivo não permitido.'))
+    arquivo.seek(0)
+    mime = magic.from_buffer(arquivo.read(2048), mime=True)
+    arquivo.seek(0)
+    if mime in MIMES_ATIVOS:
+        raise ValidationError(_('Tipo de arquivo não permitido.'))
+
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',
     'application/x-vnd.oasis.opendocument.text',
@@ -654,6 +675,7 @@ TIPOS_IMG_PERMITIDOS = (
 
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
     def restringe_tipos_de_arquivo(value):
+        rejeita_conteudo_ativo(value)
 
         filename = value.name if type(value) in (
             InMemoryUploadedFile, TemporaryUploadedFile
