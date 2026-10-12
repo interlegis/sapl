@@ -16,7 +16,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, \
+    SuspiciousFileOperation, ValidationError
 from django.db import transaction
 from django.db.models import Max, Q
 from django.http import HttpResponse, JsonResponse
@@ -2348,6 +2349,12 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
                 username, str(msg), request.POST['data']))
             return self.get(request, self.kwargs)
 
+        nome_arquivo = os.path.basename(arquivo.name)
+        if nome_arquivo in ('', '.', '..'):
+            messages.add_message(request, messages.ERROR,
+                                 _('Nome de arquivo inválido.'))
+            return self.get(request, self.kwargs)
+
         # Fora de MEDIA_ROOT, para não ficar acessível em /media/
         with tempfile.NamedTemporaryFile(dir=get_tempfile_dir(),
                                          delete=False) as tmp:
@@ -2380,14 +2387,11 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
                                          str(doc.id))
                 if not os.path.exists(diretorio):
                     os.makedirs(diretorio)
-                safe_filename = os.path.basename(arquivo.name)
-                file_path = os.path.join(diretorio, safe_filename)
-                real_diretorio = os.path.realpath(diretorio)
-                real_file_path = os.path.realpath(file_path)
-                if os.path.commonpath([real_diretorio, real_file_path]) != real_diretorio:
-                    msg = _('Nome de arquivo inválido.')
-                    messages.add_message(request, messages.ERROR, msg)
-                    return self.get(request, self.kwargs)
+                diretorio = os.path.normpath(diretorio)
+                file_path = os.path.normpath(
+                    os.path.join(diretorio, nome_arquivo))
+                if not file_path.startswith(diretorio + os.sep):
+                    raise SuspiciousFileOperation(nome_arquivo)
                 shutil.copy2(tmp.name, file_path)
                 doc.arquivo.name = file_path.split(
                     MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome

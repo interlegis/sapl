@@ -73,6 +73,14 @@ def _nome_protegido(request, path):
     return arquivo.name[2:] if arquivo.name.startswith('./') else arquivo.name
 
 
+def _caminho_em_media(nome):
+    raiz = os.path.realpath(settings.MEDIA_ROOT)
+    caminho = os.path.realpath(os.path.join(raiz, nome))
+    if not caminho.startswith(raiz + os.sep):
+        raise Http404
+    return caminho
+
+
 def media(request, path):
     partes = path.split('/')
     if any(p in ('', '.', '..') for p in partes) or '\x00' in path:
@@ -93,16 +101,12 @@ def media(request, path):
             tipo_ativo(content_type):
         content_type, disposicao = 'application/octet-stream', 'attachment'
 
+    caminho = _caminho_em_media(nome)
     if settings.DEBUG:
         try:
-            media_root = os.path.realpath(settings.MEDIA_ROOT)
-            caminho = os.path.realpath(os.path.join(media_root, nome))
-            if os.path.commonpath([media_root, caminho]) != media_root:
-                raise Http404
-            response = FileResponse(
-                open(caminho, 'rb'),
-                content_type=content_type)
-        except (FileNotFoundError, IsADirectoryError, ValueError):
+            response = FileResponse(open(caminho, 'rb'),
+                                    content_type=content_type)
+        except (FileNotFoundError, IsADirectoryError):
             raise Http404
     else:
         response = HttpResponse(content_type=content_type)

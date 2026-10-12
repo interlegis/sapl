@@ -277,6 +277,34 @@ def test_debug_serve_arquivo(rf, settings, tmp_path):
 
 
 @pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('debug', [False, True])
+def test_link_simbolico_para_fora_de_media(rf, settings, tmp_path, debug):
+    settings.DEBUG = debug
+    media_root = tmp_path / 'media'
+    fora = tmp_path / 'fora'
+    (media_root / 'sapl/public').mkdir(parents=True)
+    fora.mkdir()
+    (fora / 'segredo.txt').write_bytes(b'segredo')
+    (media_root / 'sapl/public/link').symlink_to(fora)
+    settings.MEDIA_ROOT = str(media_root)
+    request = rf.get('/media/sapl/public/link/segredo.txt')
+    request.user = AnonymousUser()
+
+    with pytest.raises(Http404):
+        media(request, 'sapl/public/link/segredo.txt')
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('path', ['/etc/passwd', 'sapl/public//etc/passwd'])
+def test_caminho_absoluto(rf, path):
+    request = rf.get('/media/' + path)
+    request.user = AnonymousUser()
+
+    with pytest.raises(Http404):
+        media(request, path)
+
+
+@pytest.mark.django_db(transaction=False)
 def test_modelo_protegido_fora_de_private_e_public(client):
     _config('O')
     path = 'sapl/outra/documentoadministrativo/2026/1/texto.pdf'
