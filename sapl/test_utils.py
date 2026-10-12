@@ -2,7 +2,8 @@ from django.core.exceptions import ValidationError
 import pytest
 
 from .utils import (listify, rejeita_conteudo_ativo,
-                    restringe_tipos_de_arquivo_txt, validar_arquivo)
+                    restringe_tipos_de_arquivo_txt, tipo_ativo,
+                    validar_arquivo)
 
 
 def test_listify():
@@ -40,6 +41,8 @@ ATIVOS = [
     ('x.html', b'<html><script>alert(1)</script></html>'),
     ('x.svg', b'<svg xmlns="http://www.w3.org/2000/svg"></svg>'),
     ('x.XHTML', b'%PDF-1.4'),
+    ('x.xht', b'%PDF-1.4\n<html><script>alert(1)</script></html>'),
+    ('x.rdf', b'%PDF-1.4'),
     ('x.pdf', b'<!DOCTYPE html><html><script>alert(1)</script></html>'),
 ]
 
@@ -83,3 +86,16 @@ def test_validar_arquivo_ignora_arquivo_ja_gravado():
     antigo = FieldFile(None, campo,
                        'sapl/private/documentoadministrativo/x.html')
     rejeita_conteudo_ativo(antigo)
+
+
+@pytest.mark.parametrize('mime,ativo', [
+    ('text/html', True), ('application/xhtml+xml', True),
+    ('application/rdf+xml', True), ('text/xml', True),
+    ('application/javascript', True), ('image/svg+xml', True),
+    ('application/pdf', False), ('image/png', False), ('text/csv', False),
+    ('application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+     False),
+    (None, False),
+])
+def test_tipo_ativo(mime, ativo):
+    assert tipo_ativo(mime) is ativo

@@ -212,7 +212,8 @@ def test_arquivo_publico_passa_por_x_accel(client):
 
 
 @pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('nome', ['x.svg', 'x.html', 'x.XML', 'x.js'])
+@pytest.mark.parametrize('nome', ['x.svg', 'x.html', 'x.XML', 'x.js',
+                                  'x.xht', 'x.rdf', 'x.xslt'])
 def test_arquivo_publico_ativo_e_baixado(client, nome):
     response = _get(client, 'sapl/public/normajuridica/2026/1/' + nome)
 
@@ -253,3 +254,12 @@ def test_debug_serve_arquivo(rf, settings, tmp_path):
     for path in (DOC_PATH, 'sapl/public/normajuridica/1/nao.pdf'):
         with pytest.raises(Http404):
             chama(path)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_modelo_protegido_fora_de_private_e_public(client):
+    _config('O')
+    path = 'sapl/outra/documentoadministrativo/2026/1/texto.pdf'
+    baker.make(DocumentoAdministrativo, restrito=True, texto_integral=path)
+
+    assert _get(client, path).status_code == 404

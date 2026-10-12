@@ -11,15 +11,15 @@ from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
                                       DocumentoAdministrativo,
                                       pode_ver_documento_adm)
 from sapl.sessao.models import SessaoPlenaria, restringe_sessoes_visiveis
-from sapl.utils import EXTENSOES_ATIVAS
+from sapl.utils import EXTENSOES_ATIVAS, tipo_ativo
 
 X_ACCEL_PREFIX = '/media-interna/'
 
-# Arquivos que dependem de autorização. Inclui as pastas public/ onde
-# ficaram os arquivos enviados antes da criação de private/.
+# Arquivos que dependem de autorização, em private/ ou em qualquer outra
+# pasta (public/ guarda os enviados antes da criação de private/).
 PROTEGIDO_RE = re.compile(
-    r'^sapl/(?:private|public/(?:documentoadministrativo|'
-    r'documentoacessorioadministrativo|proposicao))/')
+    r'^sapl/[^/]+/(?:documentoadministrativo|'
+    r'documentoacessorioadministrativo|proposicao)/')
 
 
 def _pode_ver_proposicao(user, proposicao):
@@ -75,7 +75,8 @@ def media(request, path):
     if any(p in ('', '.', '..') for p in partes) or '\x00' in path:
         raise Http404
 
-    protegido = bool(PROTEGIDO_RE.match(path))
+    protegido = path.startswith('sapl/private/') or bool(
+        PROTEGIDO_RE.match(path))
     nome = _nome_protegido(request, path) if protegido else path
 
     if path.startswith('sapl/public/sessaoplenaria/') and len(partes) > 4 \
@@ -83,12 +84,12 @@ def media(request, path):
         raise Http404
     nome_arquivo = os.path.basename(nome)
 
-    if os.path.splitext(nome_arquivo)[1].lower() in EXTENSOES_ATIVAS:
+    content_type = (mimetypes.guess_type(nome_arquivo)[0] or
+                    'application/octet-stream')
+    disposicao = 'inline'
+    if os.path.splitext(nome_arquivo)[1].lower() in EXTENSOES_ATIVAS or \
+            tipo_ativo(content_type):
         content_type, disposicao = 'application/octet-stream', 'attachment'
-    else:
-        content_type = (mimetypes.guess_type(nome_arquivo)[0] or
-                        'application/octet-stream')
-        disposicao = 'inline'
 
     if settings.DEBUG:
         try:

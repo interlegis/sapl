@@ -41,6 +41,7 @@ from django.utils.translation import ugettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
 import magic
+import mimetypes
 import requests
 from unipath.path import Path
 from xlsxwriter.workbook import Workbook
@@ -614,18 +615,28 @@ MIMES_ATIVOS = {
 }
 
 
+def tipo_ativo(mime):
+    """MIME que o navegador renderiza como documento capaz de rodar script."""
+    if not mime:
+        return False
+    mime = mime.lower()
+    return (mime in MIMES_ATIVOS or 'html' in mime or 'javascript' in mime
+            or mime.endswith('/xml') or mime.endswith('+xml'))
+
+
 def rejeita_conteudo_ativo(arquivo):
     """Recusa uploads que o navegador executaria como página, pela extensão
     ou pelo conteúdo. Arquivos já gravados não são checados, para não impedir
     a edição de registros antigos."""
     if not isinstance(arquivo, UploadedFile):
         return
-    if os.path.splitext(arquivo.name)[1].lower() in EXTENSOES_ATIVAS:
+    if os.path.splitext(arquivo.name)[1].lower() in EXTENSOES_ATIVAS or \
+            tipo_ativo(mimetypes.guess_type(arquivo.name)[0]):
         raise ValidationError(_('Tipo de arquivo não permitido.'))
     arquivo.seek(0)
     mime = magic.from_buffer(arquivo.read(2048), mime=True)
     arquivo.seek(0)
-    if mime in MIMES_ATIVOS:
+    if tipo_ativo(mime):
         raise ValidationError(_('Tipo de arquivo não permitido.'))
 
 TIPOS_TEXTO_PERMITIDOS = (
