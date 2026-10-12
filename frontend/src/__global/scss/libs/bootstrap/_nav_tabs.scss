@@ -1,0 +1,89 @@
+@import "~bootstrap/scss/variables";
+
+// Estilização do tab-content conectado ao nav-tabs (substitui inline style)
+.nav-tabs + .tab-content {
+  border: 1px solid $nav-tabs-border-color;
+  border-top: 0;
+  border-radius: 0 0 $border-radius $border-radius;
+}
+
+@media (max-width: 992px) {
+  .nav-tabs {
+    position: relative;
+    flex-direction: column;
+    border: 1px solid $nav-tabs-border-color;
+    border-radius: $border-radius; // Totalmente arredondado — parece um botão/select
+    background-color: $white;
+    overflow: hidden; // Recorta filhos nas bordas arredondadas
+
+    // Seta indicando dropdown
+    &::after {
+      content: "▾";
+      position: absolute;
+      right: 0.75rem;
+      top: 0.6rem;
+      font-size: 1rem;
+      color: $secondary;
+      pointer-events: none;
+      transition: transform 0.2s ease;
+    }
+
+    // Oculta todos os itens por padrão
+    .nav-item {
+      display: none;
+      width: 100%;
+
+      .nav-link {
+        border: none;
+        border-bottom: 1px solid $nav-tabs-border-color;
+        border-radius: 0;
+        width: 100%;
+        text-align: left;
+        padding-right: 2rem;
+        margin-bottom: 0;
+
+        &.active {
+          background-color: $nav-tabs-link-active-bg;
+          color: $nav-tabs-link-active-color;
+          border-color: transparent;
+        }
+
+        &:hover:not(.active) {
+          background-color: $light;
+        }
+      }
+
+      &:last-child .nav-link {
+        border-bottom: none;
+      }
+    }
+
+    // CSS nativo: exibe somente o item ativo (browsers com suporte a :has)
+    .nav-item:has(.nav-link.active) {
+      display: block;
+    }
+
+    // Estado expandido: via :focus-within (nativo) ou .nav-tabs--open (fallback JS)
+    &:focus-within,
+    &.nav-tabs--open {
+      border-radius: $border-radius $border-radius 0 0; // Arredonda apenas topo quando aberto
+      overflow: visible;
+      z-index: $zindex-dropdown;
+
+      &::after {
+        transform: rotate(180deg);
+      }
+
+      .nav-item {
+        display: block;
+      }
+    }
+  }
+
+  // Em mobile, tab-content é visualmente independente do nav-tabs (que vira um select)
+  .nav-tabs + .tab-content {
+    border-top: 1px solid $nav-tabs-border-color;
+    border-radius: $border-radius; // Rounding completo — desconectado do nav-tabs
+    margin-top: 0.5rem;
+  }
+}

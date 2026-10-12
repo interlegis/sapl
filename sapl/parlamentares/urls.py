@@ -1,11 +1,11 @@
 from django.conf.urls import include, url
 
-from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
+from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud, ComposicaoMesaCrud, MesaDiretoraCrud,
                                       coligacao_legislatura,
                                       ComposicaoColigacaoCrud, DependenteCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
                                       LegislaturaCrud, MandatoCrud,
-                                      MesaDiretoraView, NivelInstrucaoCrud,
+                                      NivelInstrucaoCrud,
                                       ParlamentarCrud, ParlamentarMateriasView, ParlamentarNormasView,
                                       ParticipacaoParlamentarCrud, PartidoCrud,
                                       ProposicaoParlamentarCrud,
@@ -13,12 +13,8 @@ from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
                                       SessaoLegislativaCrud,
                                       TipoAfastamentoCrud, TipoDependenteCrud,
                                       TipoMilitarCrud, VotanteView,
-                                      altera_field_mesa,
-                                      altera_field_mesa_public_view,
                                       frente_atualiza_lista_parlamentares,
-                                      insere_parlamentar_composicao,
                                       parlamentares_frente_selected,
-                                      remove_parlamentar_composicao,
                                       parlamentares_filiados, BlocoCrud,
                                       PesquisarParlamentarView, VincularParlamentarView,
                                       get_sessoes_legislatura, FrenteCargoCrud, FrenteParlamentarCrud,
@@ -104,22 +100,11 @@ urlpatterns = [
     url(r'^sistema/mesa-diretora/cargo-mesa/',
         include(CargoMesaCrud.get_urls())),
 
-    url(r'^mesa-diretora/$',
-        MesaDiretoraView.as_view(), name='mesa_diretora'),
-
-    url(r'^mesa-diretora/altera-field-mesa/$',
-        altera_field_mesa, name='altera_field_mesa'),
-
-    url(r'^mesa-diretora/altera-field-mesa-public-view/$',
-        altera_field_mesa_public_view, name='altera_field_mesa_public_view'),
-
-    url(r'^mesa-diretora/insere-parlamentar-composicao/$',
-        insere_parlamentar_composicao, name='insere_parlamentar_composicao'),
-
-    url(r'^mesa-diretora/remove-parlamentar-composicao/$',
-        remove_parlamentar_composicao, name='remove_parlamentar_composicao'),
+    url(r'^mesa-diretora/', include(
+        MesaDiretoraCrud.get_urls() +
+        ComposicaoMesaCrud.get_urls()
+    )),
 
     url(r'^parlamentar/get-sessoes-legislatura/$',
         get_sessoes_legislatura, name='get_sessoes_legislatura'),
-
 ]

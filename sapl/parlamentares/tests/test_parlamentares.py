@@ -56,6 +56,38 @@ def test_filiacao_submit(admin_client):
     filiacao = Filiacao.objects.first()
     assert 32 == filiacao.partido.pk
 
+#adicionar um teste curto que verifique o invariante (criar duas filiações em datas diferentes e checar parlamentar.sigla_partido_filiacao_atual).
+@pytest.mark.django_db(transaction=False)
+def test_sigla_partido_filiacao_atual(admin_client):
+    parlamentar = baker.make(Parlamentar, pk=14)
+    _ = baker.make(Partido, pk=32, sigla='ABC')
+    partido_em_ser = baker.make(Partido, pk=33, sigla='XYZ')
+
+    # Criar a primeira filiação
+    admin_client.post(reverse('sapl.parlamentares:filiacao_create',
+                              kwargs={'pk': 14}),
+                      {'partido': 32,
+                       'data': '2016-03-22',
+                       'salvar': 'salvar'},
+                      follow=True)
+
+    #alterar a filiação criada para data de desfiliação
+    filiacao = Filiacao.objects.first()
+    filiacao.data_desfiliacao = '2017-05-14'
+    filiacao.save()
+
+    # Criar a segunda filiação em uma data posterior
+    admin_client.post(reverse('sapl.parlamentares:filiacao_create',
+                              kwargs={'pk': 14}),
+                      {'partido': 33,
+                       'data': '2017-05-15',
+                       'salvar': 'salvar'},
+                      follow=True)
+
+    # Verificar se ao property sigla_partido_filiacao_atual retorna a sigla do partido da segunda filiação
+    sigla_partido_filiacao_atual = parlamentar.sigla_partido_filiacao_atual
+    assert sigla_partido_filiacao_atual == partido_em_ser.sigla
+
 
 @pytest.mark.django_db(transaction=False)
 def test_dependente_submit(admin_client):
@@ -314,7 +346,7 @@ def test_legislatura_form_numeros_invalidos():
                                  data_inicio='2002-02-01',
                                  data_fim='2005-12-31',
                                  data_eleicao='2001-11-01')
-        
+
         legislatura2 = baker.make(Legislatura, pk=3,
                                  numero=3,
                                  data_inicio='2008-02-01',
