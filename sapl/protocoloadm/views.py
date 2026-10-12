@@ -42,7 +42,7 @@ from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.forms import VinculoDocAdminMateriaForm,\
     VinculoDocAdminMateriaEmLoteFilterSet
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo,\
-    VinculoDocAdminMateria
+    VinculoDocAdminMateria, pode_ver_documento_adm
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
@@ -101,15 +101,9 @@ def recuperar_materia_protocolo(request):
 
 
 def doc_texto_integral(request, pk):
-    can_see = True
+    documento = get_object_or_404(DocumentoAdministrativo, pk=pk)
 
-    if not request.user.is_authenticated:
-        app_config = AppConfig.objects.last()
-        if app_config and app_config.documentos_administrativos == 'R':
-            can_see = False
-
-    if can_see:
-        documento = DocumentoAdministrativo.objects.get(pk=pk)
+    if pode_ver_documento_adm(request.user, documento):
         if documento.texto_integral:
             arquivo = documento.texto_integral
 
@@ -127,6 +121,8 @@ def doc_texto_integral(request, pk):
 
 def get_pdf_docacessorios(request, pk):
     documento_administrativo = get_object_or_404(DocumentoAdministrativo, pk=pk)
+    if not pode_ver_documento_adm(request.user, documento_administrativo):
+        raise Http404
     logger = logging.getLogger(__name__)
     username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
     try:
@@ -498,7 +494,7 @@ class DocumentoAdministrativoCrud(Crud):
 
         def get(self, *args, **kwargs):
             pk = self.kwargs['pk']
-            documento = DocumentoAdministrativo.objects.get(id=pk)
+            documento = get_object_or_404(DocumentoAdministrativo, pk=pk)
             if documento.restrito and self.request.user.is_anonymous:
                 return redirect('/')
             return super(Crud.DetailView, self).get(args, kwargs)
