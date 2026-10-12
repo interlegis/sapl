@@ -263,3 +263,16 @@ def test_modelo_protegido_fora_de_private_e_public(client):
     baker.make(DocumentoAdministrativo, restrito=True, texto_integral=path)
 
     assert _get(client, path).status_code == 404
+
+
+@pytest.mark.django_db(transaction=False)
+def test_senha_fraca_nao_redireciona_media(client):
+    _login(client, 'fraca')
+    session = client.session
+    session['weak_password'] = True
+    session.save()
+
+    response = _get(client, 'sapl/public/casalegislativa/logotipo.png')
+
+    assert response.status_code == 200
+    assert response.has_header('X-Accel-Redirect')
