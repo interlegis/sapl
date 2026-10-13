@@ -1,12 +1,15 @@
 
 from django.apps.registry import apps
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
     customize, wrapper_queryset_response_for_drf_action
 from sapl.api.serializers import ChoiceSerializer,\
     SessaoPlenariaECidadaniaSerializer
+from sapl.api.sessao_lote import SessaoLote
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao,\
     restringe_sessoes_visiveis
 from sapl.utils import choice_anos_com_sessaoplenaria
@@ -54,6 +57,19 @@ class _SessaoPlenariaViewSet:
     def ecidadania_list(self, request, *args, **kwargs):
         self.serializer_class = SessaoPlenariaECidadaniaSerializer
         return self.list(request, *args, **kwargs)
+
+    # As permissões são verificadas por item em SessaoLote, com as mesmas
+    # regras dos endpoints individuais de cada model.
+    @action(detail=True, methods=['post'],
+            permission_classes=[IsAuthenticated])
+    def lote(self, request, *args, **kwargs):
+        """
+        Grava em uma única requisição presenças da sessão, presenças da
+        ordem do dia, votações e atualizações de matérias da sessão.
+        Detalhes em docs/api-sessao-lote.md.
+        """
+        sessao = get_object_or_404(SessaoPlenaria, pk=kwargs['pk'])
+        return Response(SessaoLote(sessao, request).processar(request.data))
 
 
 class _RestringeSessoesVisiveisMixin:
