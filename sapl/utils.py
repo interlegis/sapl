@@ -659,8 +659,6 @@ TIPOS_TEXTO_PERMITIDOS = (
     'widetext/paragraph',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/xml',
-    'text/xml',
     # Formatos editáveis de planilha/CSV (atende à gravação de relatórios do PNTP).
     'text/csv',
     'application/csv',
