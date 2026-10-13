@@ -1,3 +1,6 @@
+from io import BytesIO
+
+from PyPDF4 import PdfFileWriter
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -8,7 +11,8 @@ from model_bakery import baker
 import pytest
 
 from sapl.base.models import AppConfig
-from sapl.protocoloadm.models import DocumentoAdministrativo
+from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
+                                      DocumentoAdministrativo)
 
 
 @pytest.fixture(autouse=True)
@@ -84,21 +88,52 @@ def test_doc_texto_integral_acesso(client, media_tmp, comportamento,
     assert response.status_code == (200 if pode_ver else 404)
 
 
+def _pdf():
+    writer = PdfFileWriter()
+    writer.addBlankPage(72, 72)
+    data = BytesIO()
+    writer.write(data)
+    return data.getvalue()
+
+
 @pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('comportamento,restrito,perfil,pode_ver', ACESSO)
-def test_pdf_docacessorios_acesso(client, media_tmp, comportamento,
-                                  restrito, perfil, pode_ver):
+def test_pdf_docacessorios_acesso(client, media_tmp, monkeypatch,
+                                  comportamento, restrito, perfil, pode_ver):
+    # create_pdf_docacessorios usa o MEDIA_ROOT importado de sapl.settings
+    monkeypatch.setattr('sapl.protocoloadm.views.MEDIA_ROOT', str(media_tmp))
     _config(comportamento)
     documento = baker.make(DocumentoAdministrativo, restrito=restrito)
+    acessorio = baker.make(DocumentoAcessorioAdministrativo,
+                           documento=documento)
+    acessorio.arquivo = SimpleUploadedFile(
+        'acessorio.pdf', _pdf(), content_type='application/pdf')
+    acessorio.save()
     client = _client(client, perfil)
 
     response = client.get(reverse('sapl.protocoloadm:merge_docacessorios',
                                   kwargs={'pk': documento.pk}))
 
     if pode_ver:
-        assert response.status_code != 404
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'application/pdf'
+        assert response.content.startswith(b'%PDF')
     else:
         assert response.status_code == 404
+
+
+@pytest.mark.django_db(transaction=False)
+def test_pdf_docacessorios_sem_acessorios_volta_para_lista(client):
+    _config('O')
+    documento = baker.make(DocumentoAdministrativo, restrito=False)
+
+    response = client.get(reverse('sapl.protocoloadm:merge_docacessorios',
+                                  kwargs={'pk': documento.pk}))
+
+    assert response.status_code == 302
+    assert response['Location'] == reverse(
+        'sapl.protocoloadm:documentoacessorioadministrativo_list',
+        kwargs={'pk': documento.pk})
 
 
 @pytest.mark.django_db(transaction=False)

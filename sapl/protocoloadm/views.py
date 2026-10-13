@@ -133,21 +133,24 @@ def get_pdf_docacessorios(request, pk):
         logger.error("user= {}.Não há arquivos cadastrados".format(username))
         msg = _('Não há arquivos cadastrados nesses documentos acessórios.')
         messages.add_message(request, messages.ERROR, msg)
-        return redirect(reverse('sapl.materia:documentoacessorio_list',
-                                kwargs={'pk': pk}))
+        return redirect(reverse(
+            'sapl.protocoloadm:documentoacessorioadministrativo_list',
+            kwargs={'pk': pk}))
     except Exception as e:
         logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
                      .format(username, str(e)))
         msg = _('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
         messages.add_message(request, messages.ERROR, msg)
-        return redirect(reverse('sapl.materia:documentoacessorio_list',
-                                kwargs={'pk': pk}))
+        return redirect(reverse(
+            'sapl.protocoloadm:documentoacessorioadministrativo_list',
+            kwargs={'pk': pk}))
 
     if not data:
         msg = _('Não há nenhum documento acessório PDF cadastrado.')
         messages.add_message(request, messages.ERROR, msg)
-        return redirect(reverse('sapl.materia:documentoacessorio_list',
-                                kwargs={'pk': pk}))
+        return redirect(reverse(
+            'sapl.protocoloadm:documentoacessorioadministrativo_list',
+            kwargs={'pk': pk}))
 
     response = HttpResponse(data, content_type='application/pdf')
     response['Content-Disposition'] = ('attachment; filename="%s"'
