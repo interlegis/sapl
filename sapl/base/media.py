@@ -115,6 +115,6 @@ def media(request, path):
     response['Content-Disposition'] = "%s; filename*=UTF-8''%s" % (
         disposicao, quote(nome_arquivo))
     response['X-Content-Type-Options'] = 'nosniff'
-    if protegido:
+    if protegido or (len(partes) > 2 and partes[2] in MODELOS_DE_SESSAO):
         response['Cache-Control'] = 'private'
     return response
