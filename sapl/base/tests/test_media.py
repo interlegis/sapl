@@ -1,3 +1,7 @@
+import os
+import re
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.models import Permission
@@ -8,7 +12,7 @@ from django.utils import timezone
 from model_bakery import baker
 import pytest
 
-from sapl.base.media import media
+from sapl.base.media import MODELOS_DE_SESSAO, RESOLVEDORES, media
 from sapl.base.models import AppConfig, Autor
 from sapl.materia.models import Proposicao
 from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
@@ -345,3 +349,17 @@ def test_proposicao_texto(client, settings, tmp_path, estado, perfil,
     else:
         assert response.status_code == 302
         assert response['Location'] == '/proposicao/%s' % pk
+
+
+def test_nginx_envia_ao_django_todos_os_caminhos_protegidos():
+    caminho = os.path.join(settings.PROJECT_DIR, 'docker', 'config',
+                           'nginx', 'sapl.conf')
+    with open(caminho) as f:
+        conf = f.read()
+    regex = re.search(r'location ~\*? \^/media/sapl/\(private/\|'
+                      r'\[\^/\]\+/\(([a-z|]+)\)/\)', conf)
+
+    assert regex, 'location de arquivos protegidos não encontrada'
+    no_nginx = set(regex.group(1).split('|'))
+    assert set(RESOLVEDORES) | set(MODELOS_DE_SESSAO) <= no_nginx
+    assert conf.index(regex.group(0)) < conf.index('location /media/ {')

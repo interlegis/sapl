@@ -17,6 +17,10 @@ from sapl.utils import EXTENSOES_ATIVAS, tipo_ativo
 
 X_ACCEL_PREFIX = '/media-interna/'
 
+# O nginx do container só envia para cá os caminhos de PROTEGIDO_RE e de
+# MODELOS_DE_SESSAO; o resto de /media/ sai direto do disco. Ao incluir um
+# modelo aqui, incluí-lo também em docker/config/nginx/sapl.conf.
+
 # Arquivos que dependem de autorização, em private/ ou em qualquer outra
 # pasta (public/ guarda os enviados antes da criação de private/).
 PROTEGIDO_RE = re.compile(
