@@ -2,8 +2,9 @@
 Gravação em lote dos dados de uma Sessão Plenária.
 
 Recebe, numa única requisição, presenças da sessão, presenças da ordem do
-dia, votações (registro + votos nominais) e atualizações de matérias da
-ordem do dia/expediente. Ver docs/api-sessao-lote.md.
+dia, votações (registro + votos nominais), registros de leitura e
+atualizações de matérias da ordem do dia/expediente.
+Ver docs/api-sessao-lote.md.
 
 Regras:
     - qualquer combinação de blocos é aceita; o que não for enviado não é
@@ -24,8 +25,9 @@ from rest_framework import serializers
 from drfautoapi.drfautoapi import ApiViewSetConstrutor
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia,
-                                PresencaOrdemDia, RegistroVotacao,
-                                SessaoPlenariaPresenca, VotoParlamentar)
+                                PresencaOrdemDia, RegistroLeitura,
+                                RegistroVotacao, SessaoPlenariaPresenca,
+                                VotoParlamentar)
 from sapl.utils import get_client_ip
 
 
@@ -49,6 +51,7 @@ BLOCOS = (
     'presencas_sessao',
     'presencas_ordem_dia',
     'votacoes',
+    'leituras',
     'ordens_dia',
     'expedientes_materia',
 )
@@ -115,9 +118,9 @@ class SessaoLote:
     def processar(self, data):
         self.validar_payload(data)
 
-        # Presenças antes das votações e votações antes das atualizações de
-        # matéria, na mesma ordem em que as integrações fariam com os
-        # endpoints individuais.
+        # Presenças antes das votações e leituras, e estas antes das
+        # atualizações de matéria, na mesma ordem em que as integrações
+        # fariam com os endpoints individuais.
         relatorio = {'sessao_plenaria': self.sessao.pk}
         processadores = (
             ('presencas_sessao', lambda i: self.presenca(
@@ -125,6 +128,7 @@ class SessaoLote:
             ('presencas_ordem_dia', lambda i: self.presenca(
                 PresencaOrdemDia, i)),
             ('votacoes', self.votacao),
+            ('leituras', self.leitura),
             ('ordens_dia', lambda i: self.materia(OrdemDia, i)),
             ('expedientes_materia', lambda i: self.materia(
                 ExpedienteMateria, i)),
@@ -213,9 +217,10 @@ class SessaoLote:
         obj = serializer.save()
         return dict(r, status=CRIADO, id=obj.pk)
 
-    def alvo_votacao(self, item):
-        """Votação é de uma matéria da ordem do dia ou do expediente,
-        nunca das duas (mesma regra de RegistroVotacao.clean)."""
+    def alvo(self, item):
+        """Votação e leitura são de uma matéria da ordem do dia ou do
+        expediente, nunca das duas (mesma regra de RegistroVotacao.clean e
+        RegistroLeitura.clean)."""
         tem_ordem = item.get('ordem') is not None
         tem_expediente = item.get('expediente') is not None
         if tem_ordem == tem_expediente:
@@ -269,7 +274,7 @@ class SessaoLote:
         "votos" (simbólica/secreta), informe numero_votos_sim,
         numero_votos_nao e numero_abstencoes.
         """
-        campo, alvo = self.alvo_votacao(item)
+        campo, alvo = self.alvo(item)
         r = {campo: alvo.pk}
 
         votos = self.votos_do_item(item) if 'votos' in item else None
@@ -355,6 +360,55 @@ class SessaoLote:
             v.save()
             alterado = True
         return alterado
+
+    def leitura(self, item):
+        """
+        {"ordem"|"expediente": <id>, "observacao": "...",
+         "lida": true|false}
+
+        Uma leitura por matéria da pauta: "lida" (padrão true) cria ou
+        atualiza o registro; false remove, como "retirar leitura" na tela.
+        """
+        campo, alvo = self.alvo(item)
+        lida = item.get('lida', True)
+        if not isinstance(lida, bool):
+            raise ItemInvalido({'lida': 'Deve ser true ou false.'})
+
+        r = {campo: alvo.pk, 'lida': lida}
+        existentes = RegistroLeitura.objects.filter(**{campo: alvo})
+
+        if not lida:
+            if not existentes.exists():
+                return dict(r, status=INALTERADO)
+            self.exigir_perms(perm(RegistroLeitura, 'delete'))
+            existentes.delete()
+            return dict(r, status=REMOVIDO)
+
+        registro = existentes.first()
+        self.exigir_perms(perm(RegistroLeitura,
+                               'change' if registro else 'add'))
+        duplicados = existentes.exclude(pk=registro.pk) if registro \
+            else existentes.none()
+        limpou = duplicados.exists()
+        if limpou:
+            self.exigir_perms(perm(RegistroLeitura, 'delete'))
+            duplicados.delete()
+
+        serializer = serializer_class_for(RegistroLeitura)(
+            registro, data={campo: alvo.pk,
+                            'materia': alvo.materia_id,
+                            'observacao': item.get('observacao', '')},
+            context={'request': self.request})
+        serializer.is_valid(raise_exception=True)
+
+        if registro and not any(
+                getattr(registro, f) != v
+                for f, v in serializer.validated_data.items()):
+            status = ATUALIZADO if limpou else INALTERADO
+            return dict(r, status=status, id=registro.pk)
+        status = ATUALIZADO if registro else CRIADO
+        registro = serializer.save(user=self.user, ip=self.ip)
+        return dict(r, status=status, id=registro.pk)
 
     def materia(self, model, item):
         """{"id": <id>, <campos do PATCH do model>}"""

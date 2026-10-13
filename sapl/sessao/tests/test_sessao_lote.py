@@ -6,7 +6,8 @@ from rest_framework.test import APIClient
 
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import (ExpedienteMateria, OrdemDia,
-                                PresencaOrdemDia, RegistroVotacao,
+                                PresencaOrdemDia, RegistroLeitura,
+                                RegistroVotacao,
                                 SessaoPlenaria, SessaoPlenariaPresenca,
                                 TipoResultadoVotacao, VotoParlamentar)
 
@@ -233,6 +234,59 @@ def test_lote_votacao_alvo_invalido(client, sessao, ordem, resultado):
     ]}).json()
     assert [i['status'] for i in r['votacoes']] == ['erro'] * 3
     assert not RegistroVotacao.objects.exists()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_lote_leitura_expediente(client, sessao):
+    expediente = baker.make(ExpedienteMateria, sessao_plenaria=sessao)
+    data = {
+        'leituras': [{'expediente': expediente.pk, 'observacao': 'Lida'}],
+        'expedientes_materia': [{'id': expediente.pk,
+                                 'resultado': 'Matéria lida',
+                                 'votacao_aberta': False}],
+    }
+
+    r = post(client, sessao, data).json()
+    assert r['leituras'][0]['status'] == 'criado'
+    assert r['expedientes_materia'][0]['status'] == 'atualizado'
+    leitura = RegistroLeitura.objects.get(expediente=expediente)
+    assert r['leituras'][0]['id'] == leitura.pk
+    assert leitura.materia_id == expediente.materia_id
+    assert leitura.ordem is None
+    assert leitura.observacao == 'Lida'
+
+    # Reenvio não duplica.
+    r = post(client, sessao, data).json()
+    assert r['leituras'][0]['status'] == 'inalterado'
+    assert r['resumo']['erro'] == 0
+    assert RegistroLeitura.objects.filter(expediente=expediente).count() == 1
+
+    data['leituras'][0]['observacao'] = 'Lida em plenário'
+    r = post(client, sessao, {'leituras': data['leituras']}).json()
+    assert r['leituras'][0]['status'] == 'atualizado'
+    leitura.refresh_from_db()
+    assert leitura.observacao == 'Lida em plenário'
+
+
+@pytest.mark.django_db(transaction=False)
+def test_lote_retira_leitura_e_remove_duplicadas(client, sessao, ordem):
+    baker.make(RegistroLeitura, ordem=ordem, materia=ordem.materia,
+               _quantity=2)
+
+    r = post(client, sessao, {'leituras': [{'ordem': ordem.pk}]}).json()
+    assert r['leituras'][0]['status'] == 'atualizado'
+    assert RegistroLeitura.objects.filter(ordem=ordem).count() == 1
+
+    r = post(client, sessao, {'leituras': [
+        {'ordem': ordem.pk, 'lida': False}]}).json()
+    assert r['leituras'][0]['status'] == 'removido'
+    assert not RegistroLeitura.objects.exists()
+
+    r = post(client, sessao, {'leituras': [
+        {'ordem': ordem.pk, 'lida': False},
+        {'ordem': baker.make(OrdemDia).pk},
+    ]}).json()
+    assert [i['status'] for i in r['leituras']] == ['inalterado', 'erro']
 
 
 @pytest.mark.django_db(transaction=False)

@@ -14,12 +14,28 @@ sistema de votação etc.) precisa registrar numa sessão plenária:
 | `presencas_sessao` | `SessaoPlenariaPresenca` | `POST`/`DELETE /api/sessao/sessaoplenariapresenca/` |
 | `presencas_ordem_dia` | `PresencaOrdemDia` | `POST`/`DELETE /api/sessao/presencaordemdia/` |
 | `votacoes` | `RegistroVotacao` + `VotoParlamentar` | `POST /api/sessao/registrovotacao/` + um `POST /api/sessao/votoparlamentar/` por voto |
+| `leituras` | `RegistroLeitura` | `POST`/`PATCH`/`DELETE /api/sessao/registroleitura/` |
 | `ordens_dia` | `OrdemDia` | `PATCH /api/sessao/ordemdia/{id}/` |
 | `expedientes_materia` | `ExpedienteMateria` | `PATCH /api/sessao/expedientemateria/{id}/` |
 
-Numa Casa com 21 parlamentares, uma sessão com 20 matérias votadas
-nominalmente gera mais de 460 requisições pelos endpoints individuais
-(420 só de votos). Com este endpoint, a mesma sessão pode ser enviada em uma.
+## Requisições por sessão
+
+Considerando uma Casa com 21 parlamentares, uma sessão com 20 matérias
+votadas nominalmente e 10 matérias lidas no expediente:
+
+| O que é gravado | Endpoints individuais | Lote |
+|---|---|---|
+| Presenças da sessão | 21 | |
+| Presenças da ordem do dia | 21 | |
+| Votações: 1 registro + 21 votos + 1 `PATCH` na ordem do dia, por matéria | 20 × 23 = 460 | |
+| Leituras: 1 registro + 1 `PATCH` no expediente, por matéria | 10 × 2 = 20 | |
+| **Total** | **522** | **1** |
+
+De modo geral, pelos endpoints individuais são `2 × P + M × (P + 2) + 2 × L`
+requisições (P parlamentares, M matérias votadas nominalmente, L matérias
+lidas). Com este endpoint, a integração pode registrar a sessão localmente e
+fazer **uma única requisição ao final da sessão, apenas para
+sincronização** com o SAPL.
 
 Os endpoints individuais continuam funcionando sem alteração.
 
@@ -43,7 +59,7 @@ Os endpoints individuais continuam funcionando sem alteração.
 - **Escopo da sessão.** Matérias da ordem do dia e do expediente precisam
   pertencer à sessão da URL.
 - **Ordem de processamento:** presenças da sessão, presenças da ordem do dia,
-  votações, matérias da ordem do dia, matérias do expediente.
+  votações, leituras, matérias da ordem do dia, matérias do expediente.
 - Máximo de 500 itens por bloco.
 
 ## Payload
@@ -74,6 +90,10 @@ Os endpoints individuais continuam funcionando sem alteração.
       "numero_votos_nao": 2,
       "numero_abstencoes": 0
     }
+  ],
+  "leituras": [
+    {"expediente": 5, "observacao": ""},
+    {"expediente": 6, "lida": false}
   ],
   "ordens_dia": [
     {"id": 10, "resultado": "Aprovado", "votacao_aberta": false}
@@ -118,6 +138,21 @@ A votação não altera a matéria da pauta. Para gravar `resultado`, fechar a
 votação etc., use os blocos `ordens_dia`/`expedientes_materia`, que são
 processados depois das votações.
 
+### Leituras
+
+Cada leitura informa **exatamente um** entre `ordem` e `expediente`; a
+matéria é obtida do item da pauta. Há no máximo uma leitura por item da
+pauta. `lida` é opcional (padrão `true`):
+
+- `true`: cria a leitura (`criado`) ou atualiza a `observacao` da existente
+  (`atualizado`/`inalterado`). Leituras duplicadas do mesmo item são
+  removidas.
+- `false`: remove a leitura, como "retirar leitura" na tela (`removido`); se
+  não existir, `inalterado`.
+
+Assim como a votação, a leitura não altera a matéria da pauta: para gravar
+`resultado: "Matéria lida"`, use `ordens_dia`/`expedientes_materia`.
+
 ### Matérias da ordem do dia e do expediente
 
 Cada item informa o `id` e os campos a alterar, com a mesma semântica de um
@@ -144,13 +179,17 @@ Confira `resumo.erro`.
     {"expediente": 4, "status": "erro",
      "erros": {"tipo_resultado_votacao": ["Este campo não pode ser nulo."]}}
   ],
+  "leituras": [
+    {"expediente": 5, "lida": true, "status": "criado", "id": 80},
+    {"expediente": 6, "lida": false, "status": "removido"}
+  ],
   "ordens_dia": [
     {"id": 10, "status": "atualizado"}
   ],
   "expedientes_materia": [
     {"id": 4, "status": "atualizado"}
   ],
-  "resumo": {"criado": 2, "atualizado": 2, "removido": 0,
+  "resumo": {"criado": 3, "atualizado": 2, "removido": 1,
              "inalterado": 2, "erro": 1}
 }
 ```
