@@ -2392,7 +2392,7 @@ class DocumentoAcessorioEmLoteView(PermissionRequiredMixin, FilterView):
                     os.path.join(diretorio, nome_arquivo))
                 if not file_path.startswith(diretorio + os.sep):
                     raise SuspiciousFileOperation(nome_arquivo)
-                shutil.copy2(tmp.name, file_path)
+                shutil.copyfile(tmp.name, file_path)
                 doc.arquivo.name = file_path.split(
                     MEDIA_ROOT + "/")[1]  # Retira MEDIA_ROOT do nome
                 doc.save()
