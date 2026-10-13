@@ -32,7 +32,8 @@ from django_filters.views import FilterView
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
-from sapl.base.models import Autor, CasaLegislativa, AppConfig
+from sapl.base.models import (Autor, CasaLegislativa, AppConfig,
+                              DOC_ADM_OSTENSIVO)
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
@@ -400,8 +401,8 @@ class AcompanhamentoDocumentoView(CreateView):
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
-        app_config = AppConfig.objects.last()
-        if app_config and app_config.documentos_administrativos == 'O':
+        # mesmo acessor de pode_ver_documento_adm, usado nos arquivos
+        if AppConfig.attr('documentos_administrativos') == DOC_ADM_OSTENSIVO:
             return True
 
         return super().has_permission()

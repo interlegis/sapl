@@ -144,3 +144,20 @@ def test_docadm_pk_inexistente(client, url_name):
     response = client.get(reverse('sapl.protocoloadm:' + url_name,
                                   kwargs={'pk': 999999}))
     assert response.status_code == 404
+
+
+@pytest.mark.django_db(transaction=False)
+def test_detalhe_e_arquivo_usam_a_mesma_configuracao(client, media_tmp):
+    # com mais de uma linha em AppConfig, página e arquivo leem a mesma
+    _config('O')
+    baker.make(AppConfig, documentos_administrativos='R')
+    documento = _documento(False)
+
+    detalhe = client.get(reverse(
+        'sapl.protocoloadm:documentoadministrativo_detail',
+        kwargs={'pk': documento.pk}))
+    texto = client.get(reverse('sapl.protocoloadm:doc_texto_integral',
+                               kwargs={'pk': documento.pk}))
+
+    assert detalhe.status_code == 302
+    assert texto.status_code == 404
