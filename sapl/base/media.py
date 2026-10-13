@@ -44,7 +44,7 @@ MODELOS_DE_SESSAO = {m._meta.model_name: m for m in (
 def _de_sessao_oculta(request, partes):
     model = MODELOS_DE_SESSAO.get(partes[2])
     if request.user.is_authenticated or not model or len(partes) < 5 or \
-            partes[1] != 'public' or not partes[3].isdigit():
+            partes[1] != 'public' or not re.fullmatch(r'[0-9]+', partes[3]):
         return False
     if model is SessaoPlenaria:
         sessoes = SessaoPlenaria.objects.filter(pk=partes[3])
