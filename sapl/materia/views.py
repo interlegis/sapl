@@ -576,8 +576,8 @@ class ProposicaoRecebida(PermissionRequiredMixin, ListView):
         return context
 
 
-class ReceberProposicao(PermissionRequiredForAppCrudMixin, FormView):
-    app_label = sapl.protocoloadm.apps.AppConfig.label
+class ReceberProposicao(PermissionRequiredMixin, FormView):
+    permission_required = ('materia.detail_proposicao_enviada', )
     template_name = "crud/form.html"
     form_class = ReceberProposicaoForm
 
@@ -660,8 +660,8 @@ class RetornarProposicao(UpdateView):
             request, *args, **kwargs)
 
 
-class ConfirmarProposicao(PermissionRequiredForAppCrudMixin, UpdateView):
-    app_label = sapl.protocoloadm.apps.AppConfig.label
+class ConfirmarProposicao(PermissionRequiredMixin, UpdateView):
+    permission_required = ('materia.detail_proposicao_enviada', )
     template_name = "materia/confirmar_proposicao.html"
     model = Proposicao
     form_class = ConfirmarProposicaoForm, DevolverProposicaoForm
