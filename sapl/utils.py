@@ -41,6 +41,7 @@ from django.utils.translation import ugettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
 import magic
+import mimetypes
 import requests
 from unipath.path import Path
 from xlsxwriter.workbook import Workbook
@@ -133,6 +134,7 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
 
 
 def validar_arquivo(arquivo, nome_campo):
+    rejeita_conteudo_ativo(arquivo)
     if len(arquivo.name) > 200:
         raise ValidationError(
             "Certifique-se de que o nome do arquivo no "
@@ -601,6 +603,45 @@ class FilterOverridesMetaMixin:
     }
 
 
+# Extensões que o navegador pode executar como página na origem do SAPL.
+# Não depender só de mimetypes: sem /etc/mime.types (imagem slim) várias
+# destas não são reconhecidas. Manter em sincronia com sapl.conf.
+EXTENSOES_ATIVAS = {
+    '.html', '.htm', '.xhtml', '.xht', '.shtml', '.svg', '.svgz', '.xml',
+    '.xsl', '.xslt', '.rdf', '.js', '.mjs', '.mht', '.mhtml', '.rss', '.atom',
+    '.mml', '.kml', '.xspf',
+}
+
+MIMES_ATIVOS = {
+    'text/html', 'application/xhtml+xml', 'image/svg+xml', 'text/xml',
+    'application/xml', 'application/javascript', 'text/javascript',
+}
+
+
+def tipo_ativo(mime):
+    """MIME que o navegador renderiza como documento capaz de rodar script."""
+    if not mime:
+        return False
+    mime = mime.lower()
+    return (mime in MIMES_ATIVOS or 'html' in mime or 'javascript' in mime
+            or mime.endswith('/xml') or mime.endswith('+xml'))
+
+
+def rejeita_conteudo_ativo(arquivo):
+    """Recusa uploads que o navegador executaria como página, pela extensão
+    ou pelo conteúdo. Arquivos já gravados não são checados, para não impedir
+    a edição de registros antigos."""
+    if not isinstance(arquivo, UploadedFile):
+        return
+    if os.path.splitext(arquivo.name)[1].lower() in EXTENSOES_ATIVAS or \
+            tipo_ativo(mimetypes.guess_type(arquivo.name)[0]):
+        raise ValidationError(_('Tipo de arquivo não permitido.'))
+    arquivo.seek(0)
+    mime = magic.from_buffer(arquivo.read(2048), mime=True)
+    arquivo.seek(0)
+    if tipo_ativo(mime):
+        raise ValidationError(_('Tipo de arquivo não permitido.'))
+
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',
     'application/x-vnd.oasis.opendocument.text',
@@ -621,8 +662,6 @@ TIPOS_TEXTO_PERMITIDOS = (
     'widetext/paragraph',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/xml',
-    'text/xml',
     # Formatos editáveis de planilha/CSV (atende à gravação de relatórios do PNTP).
     'text/csv',
     'application/csv',
@@ -657,6 +696,7 @@ TIPOS_IMG_PERMITIDOS = (
 
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
     def restringe_tipos_de_arquivo(value):
+        rejeita_conteudo_ativo(value)
 
         filename = value.name if type(value) in (
             InMemoryUploadedFile, TemporaryUploadedFile
