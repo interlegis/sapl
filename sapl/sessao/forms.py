@@ -449,10 +449,6 @@ class PresencaForm(forms.Form):
     parlamentar = forms.CharField(required=False, max_length=20)
 
 
-class ListMateriaForm(forms.Form):
-    error_message = forms.CharField(required=False, label='votacao_aberta')
-
-
 class MesaForm(forms.Form):
     parlamentar = forms.IntegerField(required=True)
     cargo = forms.IntegerField(required=True)
