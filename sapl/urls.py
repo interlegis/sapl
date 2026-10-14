@@ -19,7 +19,6 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from django.views.generic.base import RedirectView, TemplateView
-from django.views.static import serve as view_static_server
 
 import sapl.api.urls
 import sapl.audiencia.urls
@@ -36,11 +35,14 @@ import sapl.redireciona_urls.urls
 import sapl.relatorios.urls
 import sapl.sessao.urls
 
+from sapl.base.media import media
 from sapl.api.views_health import AppzVersionView, HealthzView, ReadyzView
 
 urlpatterns = []
 
 urlpatterns += [
+    url(r'^media/(?P<path>.+)$', media, name='media'),
+
     url(r'^message$', TemplateView.as_view(template_name='base.html')),
     url(r'^admin/', admin.site.urls),
 
@@ -94,12 +96,6 @@ if settings.DEBUG:
     ]
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
-
-    urlpatterns += [
-        url(r'^media/(?P<path>.*)$', view_static_server, {
-            'document_root': settings.MEDIA_ROOT,
-        }),
-    ]
 
 
 # Make the rate limiter return 429 (Too Many Requests) instead of 403 (Forbidden Access)
