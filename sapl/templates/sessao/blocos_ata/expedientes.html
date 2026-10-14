@@ -1,3 +1,4 @@
+{% load common_tags %}
 {% if expedientes %}
     <fieldset>
         <p style="text-align: justify;margin-top: 0">
@@ -5,7 +6,7 @@
             {% for e in expedientes %}
                 {% if e.conteudo %}
                     <b>{{ e.tipo }}</b>:
-                    {{ e.conteudo|striptags|safe }}
+                    {{ e.conteudo|sanitize|striptags }}
                 {% endif %}
             {% endfor %}
         </p>

@@ -8,9 +8,9 @@
 	<fieldset class="form-group">
 		<legend>{{votacao_titulo}}</legend>
 		<div>
-			Matéria: {{materia.materia|safe}}
+			Matéria: {{materia.materia}}
 			<br />
-			Ementa: {{materia.ementa|safe}}
+			Ementa: {{materia.ementa}}
 		</div>
 		<br />
 
@@ -36,7 +36,7 @@
     <div class="row">
       <div class="col-md-12">
         Observações
-        <textarea id="observacao" name="observacao" cols="10" rows="10" class="form-control">{{votacao.observacao|safe}}</textarea>
+        <textarea id="observacao" name="observacao" cols="10" rows="10" class="form-control">{{votacao.observacao}}</textarea>
       </div>
     </div>
 

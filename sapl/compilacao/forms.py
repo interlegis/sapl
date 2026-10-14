@@ -26,6 +26,7 @@ from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
 from sapl.compilacao.utils import DISPOSITIVO_SELECT_RELATED
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import SaplFormLayout, to_column, to_row
+from sapl.sanitize import RICH_TEXT_FIELDS, html_fragment_is_balanced
 from sapl.utils import YES_NO_CHOICES, FileFieldCheckMixin
 
 
@@ -49,6 +50,33 @@ error_messages = {
 ta_error_messages = {
     'required': _('Este campo é obrigatório'),
 }
+
+
+class TipoDispositivoForm(ModelForm):
+
+    class Meta:
+        model = TipoDispositivo
+        fields = ['rotulo_ordinal', 'formato_variacao0',
+                  'rotulo_separador_variacao01', 'formato_variacao1',
+                  'rotulo_separador_variacao12', 'formato_variacao2',
+                  'rotulo_separador_variacao23', 'formato_variacao3',
+                  'rotulo_separador_variacao34', 'formato_variacao4',
+                  'rotulo_separador_variacao45', 'formato_variacao5',
+                  'rotulo_prefixo_html', 'rotulo_sufixo_html',
+                  'texto_prefixo_html', 'texto_sufixo_html',
+                  'nota_automatica_prefixo_html',
+                  'nota_automatica_sufixo_html']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        for fieldname in RICH_TEXT_FIELDS['compilacao.TipoDispositivo']:
+            value = cleaned_data.get(fieldname)
+            if value and not html_fragment_is_balanced(value):
+                self.add_error(fieldname, _(
+                    'Toda tag aberta neste campo deve ser fechada nele '
+                    'mesmo; tags divididas entre prefixo e sufixo são '
+                    'descartadas ao salvar.'))
+        return cleaned_data
 
 
 class TipoTaForm(ModelForm):

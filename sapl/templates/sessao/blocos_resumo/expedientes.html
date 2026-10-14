@@ -1,3 +1,4 @@
+{% load common_tags %}
 {% if expedientes %}
 <fieldset>
   <legend>Expedientes</legend>
@@ -9,7 +10,7 @@
               <td>
                 <b>{{e.tipo}}: </b> <br /><br />
                 <div style="border:0.5px solid #BAB4B1; border-radius: 10px; background-color: rgba(225, 225, 225, .8);">
-                  <p>{{e.conteudo|safe}}</p>
+                  <p>{{e.conteudo|sanitize}}</p>
                 </div>
               </td>
             </tr>

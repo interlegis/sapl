@@ -21,17 +21,17 @@
 				{% if ordens %}
 					{% for o in ordens %}
 						<input type="hidden" id="ordens" name="ordens" value="{{o.id}}">
-						<b>Matéria:</b> {{o.materia|safe}}
+						<b>Matéria:</b> {{o.materia}}
 						<br />
-						<b>Ementa:</b> {{o.materia.ementa|safe}}
+						<b>Ementa:</b> {{o.materia.ementa}}
 						<br /> <br />
 					{% endfor %}
 				{% else %}
 					{% for e in expedientes %}
 						<input type="hidden" id="expedientes" name="expedientes" value="{{e.id}}">
-						<b>Matéria:</b> {{e.materia|safe}}
+						<b>Matéria:</b> {{e.materia}}
 						<br />
-						<b>Ementa:</b> {{e.materia.ementa|safe}}
+						<b>Ementa:</b> {{e.materia.ementa}}
 						<br /> <br />
 					{% endfor %}
 				{% endif %}

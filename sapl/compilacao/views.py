@@ -39,7 +39,8 @@ from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoRegistroRevogacaoForm,
                                    DispositivoSearchModalForm, NotaForm,
                                    PublicacaoForm, TaForm,
-                                   TextNotificacoesForm, TipoTaForm, VideForm)
+                                   TextNotificacoesForm, TipoDispositivoForm,
+                                   TipoTaForm, VideForm)
 from sapl.compilacao.models import (STATUS_TA_EDITION, STATUS_TA_PRIVATE,
                                     STATUS_TA_PUBLIC, Dispositivo, Nota,
                                     PerfilEstruturalTextoArticulado,
@@ -85,6 +86,7 @@ class TipoDispositivoCrud(CrudAux):
 
     class UpdateView(CrudAux.UpdateView):
         layout_key = 'TipoDispositivoUpdate'
+        form_class = TipoDispositivoForm
 
     class ListView(CrudAux.ListView):
         paginate_by = 100
