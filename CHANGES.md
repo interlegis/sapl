@@ -1,4 +1,18 @@
 
+3.1.165-RC4 / 2026-10-14
+========================
+
+  * Restaura imports perdidos na resolução de conflitos de #3849/#3855 (#3867)
+  * Sanitiza HTML/JavaScript nos campos TextField (stored XSS) (#3846)
+  * Fix N+1 queries in sessão/relatórios and remove unused painel views (#3849)
+  * Corrige travas e concorrência na votação nominal do painel (#3855)
+  * Restringe acesso a arquivos de mídia (#3865)
+  * Converte títulos colados em parágrafos no editor de dispositivos (#3863)
+  * Permite ajustar e persistir o tamanho da letra no editor de textos articulados (#3862)
+  * Mantém visíveis ao público as sessões de hoje e de datas passadas (#3864)
+  * Melhorias de transparência (PNTP): correções de relatórios e novas funcionalidades (#3842)
+  * Impede presenças duplicadas de parlamentar na mesma sessão (#3850)
+
 3.1.165-RC3 / 2026-09-01
 ========================
 
