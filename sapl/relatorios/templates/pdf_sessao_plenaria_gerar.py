@@ -7,6 +7,8 @@
 import os
 import time
 import logging
+from xml.sax.saxutils import escape
+
 from django.template.defaultfilters import safe
 from django.utils.html import strip_tags
 from trml2pdf import parseString
@@ -195,6 +197,33 @@ def presenca(lst_presenca_sessao, lst_ausencia_sessao):
                     str(ausencia['justificativa']) + '</td><td>' + \
                     str(ausencia['tipo']) + '</td></tr>\n'
             tmp += '</blockTable>'
+    return tmp
+
+
+def correspondencias(lst_correspondencias):
+    tmp = ''
+    if lst_correspondencias:
+        tmp += '\t\t<para style="P1">Correspondências</para>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
+        tmp += '<blockTable style="repeater" repeatRows="1" colWidths="3cm,4cm,3.5cm,6.5cm">\n'
+        tmp += '<tr><td>Tipo</td><td>Documento</td><td>Interessado</td><td>Assunto</td></tr>\n'
+        for c in lst_correspondencias:
+            tmp += '<tr>'
+            tmp += '<td><para style="P4">' + \
+                escape(str(c['tipo'])) + '</para></td>\n'
+            tmp += '<td><para style="P4">' + escape(str(c['epigrafe'])) + \
+                ' - ' + escape(str(c['data'])) + '</para></td>\n'
+            tmp += '<td><para style="P4">' + \
+                escape(str(c['interessado'] or '')) + '</para></td>\n'
+            tmp += '<td><para style="P4">' + \
+                escape(str(c['assunto'] or '')) + '</para></td>\n'
+            tmp += '</tr>\n'
+        tmp += '</blockTable>\n'
+        tmp += '\t\t<para style="P2">\n'
+        tmp += '\t\t\t<font color="white"> <br/></font>\n'
+        tmp += '\t\t</para>\n'
     return tmp
 
 
@@ -415,7 +444,7 @@ def consideracoes(lst_consideracoes):
     return tmp
 
 
-def principal(rodape_dic, imagem, inf_basicas_dic, cont_mult_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores_ordemdia, lst_oradores, lst_ocorrencias, lst_consideracoes):
+def principal(rodape_dic, imagem, inf_basicas_dic, cont_mult_dic, lst_mesa, lst_presenca_sessao, lst_ausencia_sessao, lst_correspondencias, lst_expedientes, lst_expediente_materia, lst_expediente_materia_vot_nom, lst_oradores_expediente, lst_presenca_ordem_dia, lst_votacao, lst_votacao_vot_nom, lst_oradores_ordemdia, lst_oradores, lst_ocorrencias, lst_consideracoes):
     """
     """
     arquivoPdf = str(int(time.time() * 100)) + ".pdf"
@@ -440,6 +469,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, cont_mult_dic, lst_mesa, lst_
     ordenacao = ResumoOrdenacao.objects.first()
     dict_ord_template = {
         'cont_mult': multimidia(cont_mult_dic),
+        'correspondencia': correspondencias(lst_correspondencias),
         'exp': expedientes(lst_expedientes),
         'id_basica': inf_basicas(inf_basicas_dic),
         'lista_p': presenca(lst_presenca_sessao, lst_ausencia_sessao),
@@ -473,6 +503,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, cont_mult_dic, lst_mesa, lst_
             tmp += dict_ord_template[ordenacao.decimo_terceiro]
             tmp += dict_ord_template[ordenacao.decimo_quarto]
             tmp += dict_ord_template[ordenacao.decimo_quinto]
+            tmp += dict_ord_template[ordenacao.decimo_sexto]
         except KeyError as e:
             logger.error("KeyError: " + str(e) + ". Erro ao tentar utilizar "
                               "configuração de ordenação. Utilizando ordenação padrão.")
@@ -480,6 +511,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, cont_mult_dic, lst_mesa, lst_
             tmp += multimidia(cont_mult_dic)
             tmp += mesa(lst_mesa)
             tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
+            tmp += correspondencias(lst_correspondencias)
             tmp += expedientes(lst_expedientes)
             tmp += expediente_materia(lst_expediente_materia)
             tmp += expediente_materia_vot_nom(lst_expediente_materia_vot_nom)
@@ -497,6 +529,7 @@ def principal(rodape_dic, imagem, inf_basicas_dic, cont_mult_dic, lst_mesa, lst_
         tmp += multimidia(cont_mult_dic)
         tmp += mesa(lst_mesa)
         tmp += presenca(lst_presenca_sessao, lst_ausencia_sessao)
+        tmp += correspondencias(lst_correspondencias)
         tmp += expedientes(lst_expedientes)
         tmp += expediente_materia(lst_expediente_materia)
         tmp += expediente_materia_vot_nom(lst_expediente_materia_vot_nom)

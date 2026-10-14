@@ -10,7 +10,7 @@
   &emsp;Tipo de matéria: {{ tipo }}<br />
   &emsp;Data de apresentação: {{periodo}}<br /><br /><br/>
     
-  {% if materias_resultado|length %}
+  {% if object_list|length %}
     <table class="table table-bordered table-hover">
       <thead class="thead-default">
         <tr class="active">
@@ -31,8 +31,8 @@
       </tbody>
     </table>
     </br></br>
-    {% if materias_resultado|length %}
-      {% for materia in materias_resultado %}
+    {% if object_list|length %}
+      {% for materia in object_list %}
         <strong>Matéria:</strong> {{materia.tipo.descricao}} {{materia.numero}}/{{materia.ano}}
         </br>
         <strong>Ementa:</strong>

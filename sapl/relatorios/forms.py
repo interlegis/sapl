@@ -543,9 +543,7 @@ class RelatorioMateriasTramitacaoFilterSet(django_filters.FilterSet):
     @property
     def qs(self):
         parent = super(RelatorioMateriasTramitacaoFilterSet, self).qs
-        return parent.distinct().order_by(
-            '-materia__ano', 'materia__tipo', '-materia__numero'
-        )
+        return parent.order_by('-materia__ano', 'materia__tipo', '-materia__numero')
 
     class Meta:
         model = MateriaEmTramitacao
