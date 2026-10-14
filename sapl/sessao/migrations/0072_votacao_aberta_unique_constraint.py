@@ -2,6 +2,21 @@
 
 from django.db import migrations, models
 
+# Mesmo caso da 0071: com o nome antigo 0071_votacao_aberta_unique_constraint
+# esta migration já foi aplicada em alguns bancos de produção, que têm os
+# índices sem registrar a migration com o nome atual.
+INDICE_UNICO_SQL = """
+    CREATE UNIQUE INDEX IF NOT EXISTS "{nome}"
+    ON "{tabela}" ("votacao_aberta")
+    WHERE "votacao_aberta" = true;
+"""
+
+
+def indice_unico(nome, tabela):
+    return migrations.RunSQL(
+        INDICE_UNICO_SQL.format(nome=nome, tabela=tabela),
+        'DROP INDEX IF EXISTS "{}";'.format(nome))
+
 
 def fecha_materias_abertas_duplicadas(apps, schema_editor):
     """
@@ -34,12 +49,22 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             fecha_materias_abertas_duplicadas, migrations.RunPython.noop),
-        migrations.AddConstraint(
-            model_name='expedientemateria',
-            constraint=models.UniqueConstraint(condition=models.Q(votacao_aberta=True), fields=('votacao_aberta',), name='sessao_expedientemateria_unique_votacao_aberta'),
-        ),
-        migrations.AddConstraint(
-            model_name='ordemdia',
-            constraint=models.UniqueConstraint(condition=models.Q(votacao_aberta=True), fields=('votacao_aberta',), name='sessao_ordemdia_unique_votacao_aberta'),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                indice_unico('sessao_expedientemateria_unique_votacao_aberta',
+                             'sessao_expedientemateria'),
+                indice_unico('sessao_ordemdia_unique_votacao_aberta',
+                             'sessao_ordemdia'),
+            ],
+            state_operations=[
+                migrations.AddConstraint(
+                    model_name='expedientemateria',
+                    constraint=models.UniqueConstraint(condition=models.Q(votacao_aberta=True), fields=('votacao_aberta',), name='sessao_expedientemateria_unique_votacao_aberta'),
+                ),
+                migrations.AddConstraint(
+                    model_name='ordemdia',
+                    constraint=models.UniqueConstraint(condition=models.Q(votacao_aberta=True), fields=('votacao_aberta',), name='sessao_ordemdia_unique_votacao_aberta'),
+                ),
+            ],
         ),
     ]

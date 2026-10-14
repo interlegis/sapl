@@ -668,6 +668,30 @@ def test_migracao_0072_fecha_duplicatas_antes_da_constraint():
 
 
 @pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('anterior, migracao', [
+    ('0070_presenca_unica_por_sessao',
+     '0071_votoparlamentar_unique_constraint'),
+    ('0071_votoparlamentar_unique_constraint',
+     '0072_votacao_aberta_unique_constraint'),
+])
+def test_migracao_tolera_indices_ja_existentes(anterior, migracao):
+    """
+    Bancos que aplicaram estas migrations com a numeração antiga
+    (0070_votoparlamentar_unique_constraint e
+    0071_votacao_aberta_unique_constraint) já têm os índices, mas não as
+    registram com o nome atual. Reaplicá-las não pode falhar com
+    DuplicateTable — o banco de teste já tem os índices, como eles.
+    """
+    from django.db import connection
+    from django.db.migrations.loader import MigrationLoader
+
+    loader = MigrationLoader(connection)
+    estado = loader.project_state(('sessao', anterior))
+    with connection.schema_editor() as schema_editor:
+        loader.get_migration('sessao', migracao).apply(estado, schema_editor)
+
+
+@pytest.mark.django_db(transaction=False)
 def test_api_nao_permite_abrir_votacao_via_patch(admin_client):
     """
     Regressão do bypass encontrado na auditoria: a API auto-gerada

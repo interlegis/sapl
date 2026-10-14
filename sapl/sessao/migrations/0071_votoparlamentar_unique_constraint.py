@@ -3,6 +3,23 @@
 from django.db import migrations, models
 from django.db.models import Count
 
+# Antes de ser renumerada no #3855, esta migration se chamava
+# 0070_votoparlamentar_unique_constraint e chegou a ser aplicada em alguns
+# bancos de produção. Eles já têm os índices, mas não registram a migration
+# com o nome atual: o IF NOT EXISTS evita o DuplicateTable neles.
+# Nos demais, o SQL é o mesmo que o AddConstraint geraria.
+INDICE_UNICO_SQL = """
+    CREATE UNIQUE INDEX IF NOT EXISTS "{nome}"
+    ON "sessao_votoparlamentar" ("parlamentar_id", "{coluna}")
+    WHERE "{coluna}" IS NOT NULL;
+"""
+
+
+def indice_unico(nome, coluna):
+    return migrations.RunSQL(
+        INDICE_UNICO_SQL.format(nome=nome, coluna=coluna),
+        'DROP INDEX IF EXISTS "{}";'.format(nome))
+
 
 def remove_votos_duplicados(apps, schema_editor):
     """Preserva o voto canônico antes de criar os índices únicos."""
@@ -43,12 +60,24 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             remove_votos_duplicados, migrations.RunPython.noop),
-        migrations.AddConstraint(
-            model_name='votoparlamentar',
-            constraint=models.UniqueConstraint(condition=models.Q(ordem__isnull=False), fields=('parlamentar', 'ordem'), name='sessao_votoparlamentar_unique_parlamentar_ordem'),
-        ),
-        migrations.AddConstraint(
-            model_name='votoparlamentar',
-            constraint=models.UniqueConstraint(condition=models.Q(expediente__isnull=False), fields=('parlamentar', 'expediente'), name='sessao_votoparlamentar_unique_parlamentar_expediente'),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                indice_unico(
+                    'sessao_votoparlamentar_unique_parlamentar_ordem',
+                    'ordem_id'),
+                indice_unico(
+                    'sessao_votoparlamentar_unique_parlamentar_expediente',
+                    'expediente_id'),
+            ],
+            state_operations=[
+                migrations.AddConstraint(
+                    model_name='votoparlamentar',
+                    constraint=models.UniqueConstraint(condition=models.Q(ordem__isnull=False), fields=('parlamentar', 'ordem'), name='sessao_votoparlamentar_unique_parlamentar_ordem'),
+                ),
+                migrations.AddConstraint(
+                    model_name='votoparlamentar',
+                    constraint=models.UniqueConstraint(condition=models.Q(expediente__isnull=False), fields=('parlamentar', 'expediente'), name='sessao_votoparlamentar_unique_parlamentar_expediente'),
+                ),
+            ],
         ),
     ]
