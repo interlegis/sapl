@@ -13,7 +13,7 @@
     </div>
     <br /><br /><br /><br />
     <b>PARÂMETROS DE PESQUISA:<br /></b>
-    &emsp;Autor: {{ autor }}<br />
+    &emsp;Autor: {{ autor|default_if_none:"Todos" }}<br />
     &emsp;Tipo de matéria: {{ tipo }}<br />
     &emsp;Data de apresentação: {{ periodo }}<br /><br /><br/>
     
@@ -43,7 +43,7 @@
           <tr class="active">
             <th width="10%">Matéria</th>
             <th>Ementa</th>
-            <th width="20%">Coautor(es)</th>
+            <th width="20%">{% if autor %}Coautor(es){% else %}Autor(es){% endif %}</th>
           </tr>
         </thead>
         {% for materia in object_list %}

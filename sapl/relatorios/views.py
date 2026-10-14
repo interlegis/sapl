@@ -1882,7 +1882,8 @@ class RelatorioMixin:
         is_relatorio = request.GET.get('relatorio')
         context = self.get_context_data(filter=self.filterset)
 
-        if is_relatorio:
+        # Com o form inválido, volta à tela com os erros em vez de um PDF vazio
+        if is_relatorio and self.filterset.form.is_valid():
             return self.relatorio(request, context)
         else:
             return self.render_to_response(context)
@@ -2710,6 +2711,8 @@ class RelatorioMateriasPorAutorView(RelatorioMixin, FilterView):
 
         qs = context['object_list']
         context['qtdes'] = num_materias_por_tipo(qs)
+        context['object_list'] = qs.select_related('tipo').prefetch_related(
+            'autoria_set__autor__autor_related')
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
@@ -2955,6 +2958,9 @@ class RelatorioNormasPorAutorView(RelatorioMixin, FilterView):
             if qtde > 0:
                 qtdes[tipo] = qtde
         context['qtdes'] = qtdes
+        context['object_list'] = context['object_list'] \
+            .select_related('tipo') \
+            .prefetch_related('autorianorma_set__autor__autor_related')
 
         qr = self.request.GET.copy()
         context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
