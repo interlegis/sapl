@@ -667,28 +667,90 @@ def test_migracao_0072_fecha_duplicatas_antes_da_constraint():
     assert encerrada.registro_aberto is False
 
 
-@pytest.mark.django_db(transaction=False)
-@pytest.mark.parametrize('anterior, migracao', [
+MIGRACOES_COM_INDICES_UNICOS = [
     ('0070_presenca_unica_por_sessao',
-     '0071_votoparlamentar_unique_constraint'),
+     '0071_votoparlamentar_unique_constraint',
+     ('sessao_votoparlamentar_unique_parlamentar_ordem',
+      'sessao_votoparlamentar_unique_parlamentar_expediente')),
     ('0071_votoparlamentar_unique_constraint',
-     '0072_votacao_aberta_unique_constraint'),
-])
-def test_migracao_tolera_indices_ja_existentes(anterior, migracao):
+     '0072_votacao_aberta_unique_constraint',
+     ('sessao_expedientemateria_unique_votacao_aberta',
+      'sessao_ordemdia_unique_votacao_aberta')),
+]
+
+
+@pytest.fixture(scope='module')
+def migration_loader():
+    from django.db.migrations.loader import MigrationLoader
+
+    # Sem conexão, só lê o grafo de migrations do disco, uma vez por módulo.
+    return MigrationLoader(None)
+
+
+def _definicao_indice(nome):
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            'SELECT indexdef FROM pg_indexes WHERE indexname = %s', [nome])
+        linha = cursor.fetchone()
+    return linha[0] if linha else None
+
+
+def _aplica_migracao(loader, anterior, migracao):
+    from django.db import connection
+
+    estado = loader.project_state(('sessao', anterior))
+    with connection.schema_editor() as schema_editor:
+        loader.get_migration('sessao', migracao).apply(estado, schema_editor)
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('indices_existentes', [True, False],
+                         ids=['indices_existentes', 'indices_ausentes'])
+@pytest.mark.parametrize('anterior, migracao, indices',
+                         MIGRACOES_COM_INDICES_UNICOS, ids=['0071', '0072'])
+def test_migracao_cria_ou_aproveita_indices_unicos(
+        migration_loader, anterior, migracao, indices, indices_existentes):
     """
     Bancos que aplicaram estas migrations com a numeração antiga
     (0070_votoparlamentar_unique_constraint e
     0071_votacao_aberta_unique_constraint) já têm os índices, mas não as
-    registram com o nome atual. Reaplicá-las não pode falhar com
-    DuplicateTable — o banco de teste já tem os índices, como eles.
+    registram com o nome atual. Reaplicá-las deve aproveitar os índices em vez
+    de falhar com DuplicateTable; num banco sem eles, devem criá-los iguais.
     """
     from django.db import connection
-    from django.db.migrations.loader import MigrationLoader
 
-    loader = MigrationLoader(connection)
-    estado = loader.project_state(('sessao', anterior))
-    with connection.schema_editor() as schema_editor:
-        loader.get_migration('sessao', migracao).apply(estado, schema_editor)
+    definicoes = {nome: _definicao_indice(nome) for nome in indices}
+    for definicao in definicoes.values():
+        assert definicao.startswith('CREATE UNIQUE INDEX')
+        assert ' WHERE ' in definicao
+
+    if not indices_existentes:
+        with connection.cursor() as cursor:
+            for nome in indices:
+                cursor.execute('DROP INDEX {}'.format(nome))
+
+    _aplica_migracao(migration_loader, anterior, migracao)
+
+    assert {nome: _definicao_indice(nome) for nome in indices} == definicoes
+
+
+@pytest.mark.django_db(transaction=False)
+def test_migracao_falha_se_indice_existente_nao_for_unico(migration_loader):
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute('DROP INDEX sessao_ordemdia_unique_votacao_aberta')
+        cursor.execute('CREATE INDEX sessao_ordemdia_unique_votacao_aberta '
+                       'ON sessao_ordemdia (votacao_aberta)')
+
+    with pytest.raises(
+            ValueError,
+            match='"sessao_ordemdia_unique_votacao_aberta" já existe'):
+        _aplica_migracao(migration_loader,
+                         '0071_votoparlamentar_unique_constraint',
+                         '0072_votacao_aberta_unique_constraint')
 
 
 @pytest.mark.django_db(transaction=False)
