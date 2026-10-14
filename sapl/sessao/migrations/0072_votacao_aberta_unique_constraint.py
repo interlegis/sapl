@@ -2,6 +2,8 @@
 
 from django.db import migrations, models
 
+from sapl.sessao.migrations._operacoes import AddConstraintSeAusente
+
 
 def fecha_materias_abertas_duplicadas(apps, schema_editor):
     """
@@ -34,11 +36,11 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             fecha_materias_abertas_duplicadas, migrations.RunPython.noop),
-        migrations.AddConstraint(
+        AddConstraintSeAusente(
             model_name='expedientemateria',
             constraint=models.UniqueConstraint(condition=models.Q(votacao_aberta=True), fields=('votacao_aberta',), name='sessao_expedientemateria_unique_votacao_aberta'),
         ),
-        migrations.AddConstraint(
+        AddConstraintSeAusente(
             model_name='ordemdia',
             constraint=models.UniqueConstraint(condition=models.Q(votacao_aberta=True), fields=('votacao_aberta',), name='sessao_ordemdia_unique_votacao_aberta'),
         ),
