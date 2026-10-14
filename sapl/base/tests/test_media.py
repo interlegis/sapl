@@ -17,6 +17,7 @@ from sapl.base.models import AppConfig, Autor
 from sapl.materia.models import Proposicao
 from sapl.protocoloadm.models import (DocumentoAcessorioAdministrativo,
                                       DocumentoAdministrativo)
+from sapl.utils import EXTENSOES_ATIVAS
 
 DOC_PATH = 'sapl/private/documentoadministrativo/2026/1/texto.pdf'
 ACESSORIO_PATH = 'sapl/public/documentoacessorioadministrativo/2026/1/a.pdf'
@@ -237,7 +238,7 @@ def test_arquivo_publico_passa_por_x_accel(client):
 
 @pytest.mark.django_db(transaction=False)
 @pytest.mark.parametrize('nome', ['x.svg', 'x.html', 'x.XML', 'x.js',
-                                  'x.xht', 'x.rdf', 'x.xslt'])
+                                  'x.xht', 'x.rdf', 'x.xslt', 'x.kml'])
 def test_arquivo_publico_ativo_e_baixado(client, nome):
     response = _get(client, 'sapl/public/normajuridica/2026/1/' + nome)
 
@@ -363,3 +364,21 @@ def test_nginx_envia_ao_django_todos_os_caminhos_protegidos():
     no_nginx = set(regex.group(1).split('|'))
     assert set(RESOLVEDORES) | set(MODELOS_DE_SESSAO) <= no_nginx
     assert conf.index(regex.group(0)) < conf.index('location /media/ {')
+
+
+def test_nginx_forca_download_das_extensoes_ativas():
+    caminho = os.path.join(settings.PROJECT_DIR, 'docker', 'config',
+                           'nginx', 'sapl.conf')
+    with open(caminho) as f:
+        conf = f.read()
+    regex = re.search(r'location ~\*? \^/media/\.\+\\\.\(([a-z?|]+)\)\$',
+                      conf)
+
+    assert regex, 'location de extensões ativas não encontrada'
+    no_nginx = set()
+    for ext in regex.group(1).split('|'):
+        if ext.endswith('?'):
+            no_nginx |= {ext[:-2], ext[:-1]}
+        else:
+            no_nginx.add(ext)
+    assert {'.' + e for e in no_nginx} == EXTENSOES_ATIVAS

@@ -603,10 +603,13 @@ class FilterOverridesMetaMixin:
     }
 
 
-# Extensões que o navegador pode executar como página na origem do SAPL
+# Extensões que o navegador pode executar como página na origem do SAPL.
+# Não depender só de mimetypes: sem /etc/mime.types (imagem slim) várias
+# destas não são reconhecidas. Manter em sincronia com sapl.conf.
 EXTENSOES_ATIVAS = {
-    '.html', '.htm', '.xhtml', '.shtml', '.svg', '.svgz', '.xml', '.xsl',
-    '.js', '.mht', '.mhtml',
+    '.html', '.htm', '.xhtml', '.xht', '.shtml', '.svg', '.svgz', '.xml',
+    '.xsl', '.xslt', '.rdf', '.js', '.mjs', '.mht', '.mhtml', '.rss', '.atom',
+    '.mml', '.kml', '.xspf',
 }
 
 MIMES_ATIVOS = {

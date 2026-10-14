@@ -43,6 +43,7 @@ ATIVOS = [
     ('x.XHTML', b'%PDF-1.4'),
     ('x.xht', b'%PDF-1.4\n<html><script>alert(1)</script></html>'),
     ('x.rdf', b'%PDF-1.4'),
+    ('x.kml', b'<kml><script>alert(1)</script></kml>'),
     ('x.pdf', b'<!DOCTYPE html><html><script>alert(1)</script></html>'),
 ]
 
