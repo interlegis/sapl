@@ -19,4 +19,6 @@ urlpatterns = [
 
     url(r'^voto-individual/$', votante_view,
         name='voto_individual'),
+    url(r'^voto-individual/status$', votante_status,
+        name='voto_individual_status'),
 ]
