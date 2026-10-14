@@ -23,6 +23,12 @@ class SaplSerializerMixin(DrfAutoApiSerializerMixin):
         fields = '__all__'
 
     def get_metadata(self, obj) -> dict:
+        # Quem serializa muitos registros pode carregar o metadata de todos
+        # numa consulta só e passá-lo no contexto (ver api/sessao_painel.py).
+        precarregado = self.context.get('metadata')
+        chave = (obj._meta.label, obj.pk)
+        if precarregado is not None and chave in precarregado:
+            return precarregado[chave]
         try:
             metadata = Metadata.objects.get(
                 content_type=ContentType.objects.get_for_model(
