@@ -36,6 +36,11 @@ window.initTextRichEditor = function (elements, readonly = false, paste_as_text 
     language: 'pt_BR',
     branding: false,
     forced_root_block: 'p',
+    // Por padrão o TinyMCE grava links para o próprio SAPL relativos à página
+    // de edição (ex.: "../../materia/1"), que quebram quando o conteúdo é
+    // exibido em outra página (pauta, PDF, API). Mantém o caminho a partir da
+    // raiz ("/materia/1"); reabrir e salvar corrige os links já gravados.
+    relative_urls: false,
     paste_as_text,
     plugins: 'table lists advlist link code',
     toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | code | removeformat ',
