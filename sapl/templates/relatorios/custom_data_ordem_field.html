@@ -1,0 +1,7 @@
+<div class="row">
+{% for widget in widget.subwidgets %}
+    <div class="col-sm-6">
+      {% include widget.template_name %}
+    </div>
+{% endfor %}
+</div>
