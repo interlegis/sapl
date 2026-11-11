@@ -149,17 +149,36 @@ class ApiFilterSetMixin(FilterSet):
         except:
             return queryset
 
-    def filter_o(self, queryset, name, value):
-        fields = list(map(str.strip, value.split(',')))
-
+    def get_ordering_fields(self):
+        """
+        Campos aceitos em `o`: os campos concretos do próprio model (pelo
+        nome ou pela coluna, como tipo_id), exceto os ocultos.
+        """
         hidden = self.get_hidden_fields()
-        if any(f.lstrip('-') in hidden for f in fields):
+        fields = {'pk'}
+        for f in self._meta.model._meta.concrete_fields:
+            if f.name not in hidden:
+                fields |= {f.name, f.attname}
+        return fields
+
+    def filter_o(self, queryset, name, value):
+        """
+        Ordena pelos campos informados, separados por vírgula, com "-" para
+        ordem decrescente. O parâmetro é ignorado se algum campo não estiver
+        em get_ordering_fields: caminhos para outros models (a__b) e campos
+        ocultos permitiriam deduzir valores que não aparecem na resposta, e
+        "?" ordena aleatoriamente, o que é caro.
+        """
+        fields = [f.strip() for f in value.split(',') if f.strip()]
+        if not fields:
             return queryset
 
-        try:
-            return queryset.order_by(*fields)
-        except:
-            return queryset
+        allowed = self.get_ordering_fields()
+        for f in fields:
+            if (f[1:] if f.startswith('-') else f) not in allowed:
+                return queryset
+
+        return queryset.order_by(*fields)
 
     @classmethod
     def get_fields(cls):
