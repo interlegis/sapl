@@ -8,12 +8,16 @@ from sapl.compilacao.models import (STATUS_TA_EDITION,
                                     STATUS_TA_IMMUTABLE_PUBLIC,
                                     STATUS_TA_IMMUTABLE_RESTRICT,
                                     STATUS_TA_PRIVATE, STATUS_TA_PUBLIC,
-                                    Dispositivo, TextoArticulado)
+                                    Dispositivo, Nota, Publicacao,
+                                    TextoArticulado, Vide)
 from sapl.materia.models import (Proposicao, TipoMateriaLegislativa,
                                  TipoProposicao)
 
 URL_TA = '/api/compilacao/textoarticulado/'
 URL_DISPOSITIVO = '/api/compilacao/dispositivo/'
+URL_NOTA = '/api/compilacao/nota/'
+URL_VIDE = '/api/compilacao/vide/'
+URL_PUBLICACAO = '/api/compilacao/publicacao/'
 
 PUBLICO, IMUTAVEL_PUBLICO = STATUS_TA_PUBLIC, STATUS_TA_IMMUTABLE_PUBLIC
 RESTRITO, EDICAO, PRIVADO = (STATUS_TA_IMMUTABLE_RESTRICT, STATUS_TA_EDITION,
@@ -223,3 +227,215 @@ def test_texto_de_proposicao_enviada_e_restrito(
     protocolo = api(usuario('protocolo', PERM_VER_RESTRITO))
     assert protocolo.get(f'{URL_TA}{ta.pk}/').status_code == 200
     assert len(resultados(protocolo.get(URL_DISPOSITIVO, {'ta': ta.pk}))) == 1
+
+
+# Notas, vides e publicações: as mesmas regras da tela do texto (TextView)
+
+NPRIV, NINST, NPUBL = Nota.NPRIV, Nota.NINST, Nota.NPUBL
+
+
+def _todos(client, url, **params):
+    """Ids de uma listagem pequena, sem depender da página padrão."""
+    response = client.get(url, dict(params, page_size=100))
+    assert response.status_code == 200
+    return ids(response)
+
+
+@pytest.fixture
+def autor_das_notas(usuario):
+    return usuario('autor_das_notas')
+
+
+@pytest.fixture
+def cliente(api, usuario, dono, autor_das_notas):
+    """Cliente da API para cada perfil usado nos cenários abaixo."""
+    def _cliente(nome):
+        if nome is None:
+            return api()
+        if nome == 'dono':
+            return api(dono)
+        if nome == 'autor_das_notas':
+            return api(autor_das_notas)
+        if nome == 'admin':
+            return api(usuario('admin', is_superuser=True, is_staff=True))
+        perms = {'leitor_restrito': (PERM_VER_RESTRITO,),
+                 'editor': (PERM_EDICAO_DINAMICA,)}.get(nome, ())
+        return api(usuario(nome, *perms))
+    return _cliente
+
+
+@pytest.fixture
+def notas(textos, autor_das_notas):
+    """
+    Uma nota de cada publicidade no dispositivo de cada texto, todas do
+    mesmo autor.
+    """
+    criadas = {}
+    for status, ta in textos.items():
+        dispositivo = ta.dispositivos_set.get()
+        for publicidade in (NPRIV, NINST, NPUBL):
+            criadas[status, publicidade] = baker.make(
+                Nota, dispositivo=dispositivo, owner=autor_das_notas,
+                publicidade=publicidade,
+                texto=f'nota {publicidade} do texto {status}')
+    return criadas
+
+
+CENARIOS_NOTAS = [
+    # (usuário, textos visíveis, publicidades visíveis), como em
+    # compilacao/text_list_bloco.html
+    (None, (PUBLICO, IMUTAVEL_PUBLICO), (NPUBL,)),
+    ('sem_permissao', (PUBLICO, IMUTAVEL_PUBLICO), (NPUBL, NINST)),
+    ('autor_das_notas', (PUBLICO, IMUTAVEL_PUBLICO), (NPUBL, NINST, NPRIV)),
+    ('dono', TODOS_OS_STATUS, (NPUBL, NINST)),
+    ('leitor_restrito', (PUBLICO, IMUTAVEL_PUBLICO, RESTRITO),
+     (NPUBL, NINST)),
+    ('admin', (PUBLICO, IMUTAVEL_PUBLICO, RESTRITO, EDICAO),
+     (NPUBL, NINST, NPRIV)),
+]
+
+
+def _ids_notas(notas, textos_visiveis, publicidades):
+    return {nota.pk for (status, publicidade), nota in notas.items()
+            if status in textos_visiveis and publicidade in publicidades}
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('nome, textos_visiveis, publicidades', CENARIOS_NOTAS)
+def test_lista_de_notas_respeita_publicidade_e_texto(
+        cliente, notas, nome, textos_visiveis, publicidades):
+    assert _todos(cliente(nome), URL_NOTA) == _ids_notas(
+        notas, textos_visiveis, publicidades)
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('nome, textos_visiveis, publicidades', CENARIOS_NOTAS)
+def test_detalhe_de_nota_respeita_publicidade_e_texto(
+        cliente, notas, nome, textos_visiveis, publicidades):
+    client = cliente(nome)
+    visiveis = _ids_notas(notas, textos_visiveis, publicidades)
+
+    for (status, publicidade), nota in notas.items():
+        response = client.get(f'{URL_NOTA}{nota.pk}/')
+        assert response.status_code == (
+            200 if nota.pk in visiveis else 404), (status, publicidade)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_anonimo_nao_le_nota_privada_nem_texto_privado_pelas_notas(
+        api, autor_das_notas):
+    """
+    Antes, /api/compilacao/nota/?expand=dispositivo mostrava a um anônimo
+    as notas privadas e, por meio de uma nota pública, o texto de um
+    dispositivo de um texto articulado privado.
+    """
+    publico = baker.make(TextoArticulado, privacidade=PUBLICO)
+    privado = baker.make(TextoArticulado, privacidade=PRIVADO)
+    publicado = _dispositivo(publico, 1000, texto='Art. 1º Texto publicado.')
+    minuta = _dispositivo(privado, 1000, texto='Art. 1º Minuta sigilosa.')
+    nota_publica = baker.make(
+        Nota, dispositivo=publicado, owner=autor_das_notas,
+        publicidade=NPUBL, texto='Nota pública')
+    baker.make(Nota, dispositivo=publicado, owner=autor_das_notas,
+               publicidade=NPRIV, texto='Anotação pessoal')
+    baker.make(Nota, dispositivo=minuta, owner=autor_das_notas,
+               publicidade=NPUBL, texto='Nota pública sobre a minuta')
+
+    response = api().get(URL_NOTA, {'expand': 'dispositivo'})
+
+    assert response.status_code == 200
+    assert [(n['id'], n['dispositivo']['texto'])
+            for n in resultados(response)] == [
+        (nota_publica.pk, 'Art. 1º Texto publicado.')]
+    conteudo = response.content.decode()
+    assert 'Anotação pessoal' not in conteudo
+    assert 'Minuta sigilosa' not in conteudo
+
+
+CENARIOS_TA = [(nome, visiveis) for nome, _, visiveis in CENARIOS] + [
+    ('admin', (PUBLICO, IMUTAVEL_PUBLICO, RESTRITO, EDICAO)),
+]
+
+
+@pytest.fixture
+def vides(textos):
+    """
+    Vides entre dispositivos de textos com privacidades diferentes, nos dois
+    sentidos, indexados por (privacidade do dispositivo_base, privacidade do
+    dispositivo_ref).
+    """
+    dispositivos = {status: ta.dispositivos_set.get()
+                    for status, ta in textos.items()}
+    outro_privado = _dispositivo(textos[PRIVADO], 2000)
+    pares = {
+        (PUBLICO, PRIVADO): (dispositivos[PUBLICO], dispositivos[PRIVADO]),
+        (PRIVADO, IMUTAVEL_PUBLICO): (dispositivos[PRIVADO],
+                                      dispositivos[IMUTAVEL_PUBLICO]),
+        (RESTRITO, PRIVADO): (dispositivos[RESTRITO], dispositivos[PRIVADO]),
+        (PRIVADO, EDICAO): (dispositivos[PRIVADO], dispositivos[EDICAO]),
+        (PRIVADO, PRIVADO): (dispositivos[PRIVADO], outro_privado),
+    }
+    return {par: baker.make(Vide, dispositivo_base=base, dispositivo_ref=ref,
+                            texto=f'vide {par}')
+            for par, (base, ref) in pares.items()}
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('nome, textos_visiveis', CENARIOS_TA)
+def test_vide_e_visivel_se_um_dos_dispositivos_for(
+        cliente, vides, nome, textos_visiveis):
+    """
+    Na tela, o vide aparece no texto do dispositivo_base (cita) e no do
+    dispositivo_ref (citado).
+    """
+    client = cliente(nome)
+    visiveis = {vide.pk for (base, ref), vide in vides.items()
+                if base in textos_visiveis or ref in textos_visiveis}
+
+    assert _todos(client, URL_VIDE) == visiveis
+    for par, vide in vides.items():
+        response = client.get(f'{URL_VIDE}{vide.pk}/')
+        assert response.status_code == (
+            200 if vide.pk in visiveis else 404), par
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('nome, textos_visiveis', CENARIOS_TA)
+def test_publicacao_segue_a_privacidade_do_texto(
+        cliente, textos, nome, textos_visiveis):
+    publicacoes = {status: baker.make(Publicacao, ta=ta)
+                   for status, ta in textos.items()}
+    client = cliente(nome)
+
+    assert _todos(client, URL_PUBLICACAO) == {
+        publicacoes[status].pk for status in textos_visiveis}
+    for status, publicacao in publicacoes.items():
+        response = client.get(f'{URL_PUBLICACAO}{publicacao.pk}/')
+        assert response.status_code == (
+            200 if status in textos_visiveis else 404), status
+
+
+@pytest.mark.django_db(transaction=False)
+def test_nota_e_vide_seguem_o_dispositivo_no_texto_que_o_publicou(
+        api, autor_das_notas):
+    """
+    Como em /api/compilacao/dispositivo/, um dispositivo de texto privado é
+    visível no texto público que o publicou se tiver visibilidade=True.
+    """
+    publico = baker.make(TextoArticulado, privacidade=PUBLICO)
+    privado = baker.make(TextoArticulado, privacidade=PRIVADO)
+    alterado = _dispositivo(privado, 1000, ta_publicado=publico,
+                            visibilidade=True)
+    oculto = _dispositivo(privado, 2000, ta_publicado=publico,
+                          visibilidade=False)
+    outro_oculto = _dispositivo(privado, 3000)
+
+    nota = baker.make(Nota, dispositivo=alterado, owner=autor_das_notas,
+                      publicidade=NPUBL)
+    baker.make(Nota, dispositivo=oculto, owner=autor_das_notas,
+               publicidade=NPUBL)
+    vide = baker.make(Vide, dispositivo_base=oculto, dispositivo_ref=alterado)
+    baker.make(Vide, dispositivo_base=oculto, dispositivo_ref=outro_oculto)
+
+    assert _todos(api(), URL_NOTA) == {nota.pk}
+    assert _todos(api(), URL_VIDE) == {vide.pk}
