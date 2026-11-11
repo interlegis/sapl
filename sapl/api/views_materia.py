@@ -157,7 +157,8 @@ class _MateriaLegislativaViewSet:
             '-data_tramitacao', '-id').first()
 
         serializer_class = ApiViewSetConstrutor.get_viewset_for_model(
-            Tramitacao).serializer_class(ultima_tramitacao)
+            Tramitacao).serializer_class(
+                ultima_tramitacao, context=self.get_serializer_context())
 
         return Response(serializer_class.data)
 

@@ -186,6 +186,23 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
+
+    # Limita as requisições anônimas à API por cliente. Usuários
+    # autenticados (sessão ou token) não são limitados. Para desativar,
+    # use API_THROTTLE_ANON vazio.
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.AnonRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": config('API_THROTTLE_ANON', default='300/min') or None,
+    },
+    # O cliente é identificado pelo X-Forwarded-For. Com o número de proxies
+    # reversos à frente do SAPL (o nginx da imagem conta como um), usa-se o
+    # endereço acrescentado pelo proxy mais externo, que o cliente não
+    # consegue forjar. Sem valor, vale o padrão do DRF (o cabeçalho inteiro).
+    "NUM_PROXIES": config(
+        'API_NUM_PROXIES', default='',
+        cast=lambda v: int(v) if str(v).strip() else None),
 }
 
 DRFAUTOAPI = {

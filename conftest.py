@@ -1,5 +1,16 @@
 import pytest
 from django_webtest import DjangoTestApp, WebTestMixin
+from rest_framework.throttling import AnonRateThrottle
+
+
+@pytest.fixture(autouse=True)
+def sem_limite_de_requisicoes_da_api(monkeypatch):
+    """
+    Nos testes, todas as requisições anônimas vêm do mesmo endereço e o
+    histórico do limite fica no cache entre um teste e outro. Os testes do
+    limite (sapl/api/tests/test_api_abuso.py) definem a própria taxa.
+    """
+    monkeypatch.setattr(AnonRateThrottle, 'THROTTLE_RATES', {'anon': None})
 
 
 class OurTestApp(DjangoTestApp):
