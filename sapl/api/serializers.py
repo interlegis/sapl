@@ -46,16 +46,29 @@ class SaplSerializerMixin(DrfAutoApiSerializerMixin):
         return hidden
 
     def get_metadata(self, obj) -> dict:
-        try:
-            metadata = Metadata.objects.get(
-                content_type=ContentType.objects.get_for_model(
-                    obj._meta.model),
-                object_id=obj.id
-            ).metadata
-        except:
-            metadata = {}
-        finally:
-            return metadata
+        """
+        Numa listagem, busca de uma vez os metadados de todos os objetos da
+        lista, em vez de uma query por objeto. O resultado fica no contexto
+        do serializer raiz, compartilhado por toda a resposta.
+        """
+        content_type = ContentType.objects.get_for_model(obj._meta.model)
+        cache = self.context.setdefault('_sapl_metadata', {}).setdefault(
+            content_type.id, {})
+
+        if obj.pk not in cache:
+            pks = {obj.pk}
+            if isinstance(self.parent, serializers.ListSerializer) and \
+                    self.parent.instance is not None:
+                pks |= {o.pk for o in self.parent.instance
+                        if o.pk not in cache}
+
+            encontrados = dict(Metadata.objects.filter(
+                content_type=content_type, object_id__in=pks
+            ).values_list('object_id', 'metadata'))
+            for pk in pks:
+                cache[pk] = encontrados.get(pk, {})
+
+        return cache[obj.pk]
 
     def get_link_detail_backend(self, obj) -> str:
         try:
