@@ -1,6 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.core.cache import cache
 from rest_framework.test import APIClient
 
 
@@ -14,6 +15,23 @@ def resultados(response):
 
 def ids(response):
     return {obj['id'] for obj in resultados(response)}
+
+
+@pytest.fixture(autouse=True)
+def cache_isolado(settings):
+    """
+    AppConfig.attr guarda as configurações no cache. Um cache em memória,
+    limpo a cada teste, evita que um teste leia o valor gravado por outro.
+    """
+    settings.CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'sapl-api-tests',
+        }
+    }
+    cache.clear()
+    yield
+    cache.clear()
 
 
 @pytest.fixture

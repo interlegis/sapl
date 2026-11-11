@@ -34,6 +34,21 @@ from rest_framework.urlpatterns import format_suffix_patterns
 logger = logging.getLogger(__name__)
 
 
+def hidden_fields_for_model(model, request):
+    """
+    Campos de `model` ocultos para `request`, segundo o get_hidden_fields
+    do serializer da viewset do model.
+    """
+    try:
+        serializer_class = ApiViewSetConstrutor.get_viewset_for_model(
+            model).serializer_class
+    except KeyError:
+        return set()
+
+    hook = getattr(serializer_class, 'get_hidden_fields', None)
+    return set(hook(request)) if hook else set()
+
+
 class SplitStringCharFilter(django_filters.CharFilter):
     _re = re.compile(r'("[^"]+"| +|[^"]+)')
 
@@ -114,6 +129,19 @@ class ApiFilterSetMixin(FilterSet):
             },
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # campos ocultos na resposta também não podem ser filtrados: o
+        # filtro revelaria o valor por tentativa e erro
+        hidden = self.get_hidden_fields()
+        for name, f in list(self.filters.items()):
+            if f.field_name in hidden:
+                del self.filters[name]
+
+    def get_hidden_fields(self):
+        return hidden_fields_for_model(self._meta.model, self.request)
+
     def filter_id__in(self, queryset, name, value):
         try:
             ids = [int(v.strip()) for v in value.split(',')]
@@ -122,9 +150,14 @@ class ApiFilterSetMixin(FilterSet):
             return queryset
 
     def filter_o(self, queryset, name, value):
+        fields = list(map(str.strip, value.split(',')))
+
+        hidden = self.get_hidden_fields()
+        if any(f.lstrip('-') in hidden for f in fields):
+            return queryset
+
         try:
-            return queryset.order_by(
-                *map(str.strip, value.split(',')))
+            return queryset.order_by(*fields)
         except:
             return queryset
 
@@ -230,6 +263,22 @@ class ApiViewSetConstrutor():
 
     class ApiViewSet(ModelViewSet):
         filter_backends = (DjangoFilterBackend,)
+
+        @classmethod
+        def has_expand_permission(cls, request):
+            """
+            Indica se o model desta viewset pode ser expandido (?expand=) a
+            partir de outro model nesta requisição. Por padrão, só quando as
+            permissões da viewset permitiriam listar o model pelo próprio
+            endpoint. Pode ser redefinido com @customize.
+            """
+            if request is None:
+                return False
+
+            view = cls(request=request, args=(), kwargs={},
+                       format_kwarg=None, action='list')
+            return all(permission.has_permission(request, view)
+                       for permission in view.get_permissions())
 
     class LastModifiedDecorator(object):
         def __init__(self):
@@ -494,6 +543,10 @@ class DrfAutoApiSerializerMixin(rest_serializers.ModelSerializer):
 
         Atenção:
         - A expansão não é aplicada para o model User do Django
+        - A expansão só é aplicada a models que o usuário poderia listar pelo
+            próprio endpoint (ver ApiViewSet.has_expand_permission)
+        - Campos devolvidos por get_hidden_fields são removidos em qualquer
+            nível, inclusive quando o model é expandido a partir de outro
         - A expansão não é aplicada para campos customizados que utilizam SerializerMethodField
         - Uma exceção é lançada e registrada no log caso ocorra algum erro na expansão de algum campo,
             inclusive devido a recursão infinita
@@ -512,6 +565,16 @@ class DrfAutoApiSerializerMixin(rest_serializers.ModelSerializer):
     def get___str__(self, obj) -> str:
         return str(obj)
 
+    @classmethod
+    def get_hidden_fields(cls, request):
+        """
+        Campos do model que não devem ser expostos nesta requisição. Eles
+        saem da resposta, também quando o model é expandido a partir de
+        outro, e não podem ser usados em filtros nem na ordenação (`o`).
+        `request` pode ser None, quando o serializer é usado sem contexto.
+        """
+        return set()
+
     @cached_property
     def user_model(self):
         return get_user_model()
@@ -527,6 +590,10 @@ class DrfAutoApiSerializerMixin(rest_serializers.ModelSerializer):
 
     def get_fields(self):
         fields = super().get_fields()
+
+        request = self.context.get('request', None)
+        for field_name in self.get_hidden_fields(request):
+            fields.pop(field_name, None)
 
         if not hasattr(self.root, 'drf_expand_fields'):
             self.root.drf_expand_fields = self.get_control_fields('expand')
@@ -617,7 +684,11 @@ class DrfAutoApiSerializerMixin(rest_serializers.ModelSerializer):
 
             if model:
                 try:
-                    serializer_class = ApiViewSetConstrutor.get_viewset_for_model(model).serializer_class
+                    viewset = ApiViewSetConstrutor.get_viewset_for_model(model)
+                    if not viewset.has_expand_permission(request):
+                        continue
+
+                    serializer_class = viewset.serializer_class
                     if hasattr(field, 'many') and field.many or isinstance(field, ManyRelatedField):
                         serializer_class = serializer_class(
                             many=True,

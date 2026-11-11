@@ -98,6 +98,28 @@ class ParlamentarSerializerPublic(SaplSerializerMixin):
                    "telefone_residencia", "titulo_eleitor", "fax_residencia"]
 
 
+class ParlamentarSerializer(SaplSerializerMixin):
+    """
+    Os dados pessoais (campos excluídos em ParlamentarSerializerPublic) só
+    aparecem para quem pode cadastrar parlamentares. Como a regra está no
+    serializer usado pela viewset, ela vale também quando o parlamentar é
+    expandido a partir de outro model (?expand=parlamentar), e esses campos
+    não podem ser usados em filtros nem na ordenação.
+    """
+
+    class Meta:
+        model = Parlamentar
+        fields = '__all__'
+
+    @classmethod
+    def get_hidden_fields(cls, request):
+        hidden = super().get_hidden_fields(request)
+        user = getattr(request, 'user', None)
+        if not (user and user.has_perm('parlamentares.add_parlamentar')):
+            hidden |= set(ParlamentarSerializerPublic.Meta.exclude)
+        return hidden
+
+
 class ParlamentarSerializerVerbose(SaplSerializerMixin):
     titular = serializers.SerializerMethodField('check_titular')
     partido = serializers.SerializerMethodField('check_partido')
