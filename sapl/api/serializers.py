@@ -22,6 +22,29 @@ class SaplSerializerMixin(DrfAutoApiSerializerMixin):
     class Meta(DrfAutoApiSerializerMixin.Meta):
         fields = '__all__'
 
+    @classmethod
+    def get_hidden_fields(cls, request):
+        """
+        Nos models com registro de auditoria (campo `ip`), `ip` e `user`
+        identificam quem fez a operação e de onde. Só aparecem para quem
+        pode alterar o model.
+        """
+        hidden = super().get_hidden_fields(request)
+
+        model = getattr(cls.Meta, 'model', None)
+        if model is None:
+            return hidden
+
+        campos = {f.name for f in model._meta.concrete_fields}
+        if 'ip' not in campos:
+            return hidden
+
+        user = getattr(request, 'user', None)
+        perm = f'{model._meta.app_label}.change_{model._meta.model_name}'
+        if not (user and user.has_perm(perm)):
+            hidden |= {'ip', 'user'} & campos
+        return hidden
+
     def get_metadata(self, obj) -> dict:
         try:
             metadata = Metadata.objects.get(
