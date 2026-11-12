@@ -17,6 +17,18 @@ def ids(response):
     return {obj['id'] for obj in resultados(response)}
 
 
+def status_ou_erro(client, url, params):
+    """
+    Status da resposta ou, se a requisição levantar um erro, a classe dele.
+    Permite comparar duas requisições sem fixar como a API responde a um
+    filtro inválido.
+    """
+    try:
+        return client.get(url, params).status_code
+    except Exception as e:
+        return type(e)
+
+
 @pytest.fixture(autouse=True)
 def cache_isolado(settings):
     """
