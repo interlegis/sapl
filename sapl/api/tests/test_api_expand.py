@@ -4,12 +4,15 @@ import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from model_bakery import baker
+from rest_framework.relations import ManyRelatedField
 
-from drfautoapi.drfautoapi import ExpandVisibility
-from sapl.api.tests.conftest import ids, resultados
+from drfautoapi.drfautoapi import ApiManyRelatedField, ExpandVisibility
+from sapl.api.tests.conftest import ids, resultados, status_ou_erro
 from sapl.base.models import DOC_ADM_OSTENSIVO, AppConfig
 from sapl.compilacao.models import (STATUS_TA_PRIVATE, STATUS_TA_PUBLIC,
-                                    Dispositivo, Nota, TextoArticulado, Vide)
+                                    Dispositivo, Nota,
+                                    PerfilEstruturalTextoArticulado,
+                                    TextoArticulado, TipoTextoArticulado, Vide)
 from sapl.parlamentares.models import Filiacao, Mandato, Parlamentar
 from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
                                      Protocolo)
@@ -327,30 +330,118 @@ def documentos_anexados(db):
     return principal, ostensivo, restrito
 
 
+URL_DOCUMENTO = '/api/protocoloadm/documentoadministrativo/'
+
+
+def _principal(response, principal):
+    assert response.status_code == 200
+    obj = resultados(response)
+    if isinstance(obj, list):
+        obj = next(o for o in obj if o['id'] == principal.pk)
+    return obj
+
+
 @pytest.mark.django_db(transaction=False)
-def test_expand_many_to_many_mantem_so_o_id_dos_objetos_ocultos(
+def test_many_to_many_somente_leitura_omite_os_objetos_ocultos(
         api, usuario, documentos_anexados):
+    """
+    anexados tem model intermediário (Anexado), então é somente leitura: o
+    documento restrito some da lista, com ou sem o expand.
+    """
     principal, ostensivo, restrito = documentos_anexados
-    url = '/api/protocoloadm/documentoadministrativo/'
-    params = {'expand': 'anexados'}
+    url = URL_DOCUMENTO
 
     assert ids(api().get(url)) == {principal.pk, ostensivo.pk}
 
+    for response in (api().get(f'{url}{principal.pk}/'), api().get(url)):
+        assert _principal(response, principal)['anexados'] == [ostensivo.pk]
+
+    params = {'expand': 'anexados'}
     for response in (api().get(f'{url}{principal.pk}/', params),
                      api().get(url, params)):
-        assert response.status_code == 200
-        obj = resultados(response)
-        if isinstance(obj, list):
-            obj = next(o for o in obj if o['id'] == principal.pk)
-        assert [a for a in obj['anexados'] if isinstance(a, int)] == [
-            restrito.pk]
-        assert [a['assunto'] for a in obj['anexados']
-                if isinstance(a, dict)] == ['Ofício ostensivo']
+        anexados = _principal(response, principal)['anexados']
+        assert [a['assunto'] for a in anexados] == ['Ofício ostensivo']
         assert 'Ofício restrito' not in response.content.decode()
 
-    response = api(usuario('consulta')).get(f'{url}{principal.pk}/', params)
+    consulta = api(usuario('consulta'))
+    response = consulta.get(f'{url}{principal.pk}/')
+    assert sorted(response.json()['anexados']) == sorted(
+        [ostensivo.pk, restrito.pk])
+    response = consulta.get(f'{url}{principal.pk}/', params)
     assert {a['assunto'] for a in response.json()['anexados']} == {
         'Ofício ostensivo', 'Ofício restrito'}
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('filtro', ['anexados', 'anexados__in'])
+def test_filtro_por_many_to_many_somente_leitura_trata_oculto_como_inexistente(
+        api, usuario, documentos_anexados, filtro):
+    """Senão, o filtro revelaria a anexação que a resposta omite."""
+    principal, ostensivo, restrito = documentos_anexados
+    inexistente = DocumentoAdministrativo.objects.order_by('-pk')[0].pk + 1
+
+    assert ids(api().get(URL_DOCUMENTO, {filtro: ostensivo.pk})) == {
+        principal.pk}
+
+    oculto = status_ou_erro(api(), URL_DOCUMENTO, {filtro: restrito.pk})
+    assert oculto != 200
+    assert oculto == status_ou_erro(api(), URL_DOCUMENTO,
+                                    {filtro: inexistente})
+
+    response = api(usuario('consulta')).get(URL_DOCUMENTO,
+                                            {filtro: restrito.pk})
+    assert ids(response) == {principal.pk}
+
+
+@pytest.mark.django_db(transaction=False)
+def test_many_to_many_editavel_mantem_todos_os_ids(api):
+    """
+    Num ManyToMany editável, o cliente devolve a lista no PUT/PATCH, e omitir
+    um id apagaria a relação com o objeto oculto. Os perfis estruturais não
+    são públicos, mas continuam listados e filtráveis no tipo de texto.
+    """
+    perfil = baker.make(PerfilEstruturalTextoArticulado)
+    tipo = baker.make(TipoTextoArticulado)
+    tipo.perfis.add(perfil)
+    url = '/api/compilacao/tipotextoarticulado/'
+
+    response = api().get('/api/compilacao/perfilestruturaltextoarticulado/')
+    assert response.status_code in (401, 403)
+
+    assert api().get(f'{url}{tipo.pk}/').json()['perfis'] == [perfil.pk]
+    assert ids(api().get(url, {'perfis': perfil.pk})) == {tipo.pk}
+
+
+@pytest.mark.django_db(transaction=False)
+def test_custo_da_visibilidade_dos_ids_de_many_to_many(
+        api, usuario, monkeypatch):
+    """
+    Omitir os ids ocultos custa uma query por campo, qualquer que seja o
+    tamanho da página, e nenhuma quando o usuário pode ver todos os objetos
+    do model relacionado.
+    """
+    baker.make(AppConfig, documentos_administrativos=DOC_ADM_OSTENSIVO)
+    url = URL_DOCUMENTO
+    consulta = usuario('consulta')
+
+    def custo_da_visibilidade(n, client):
+        while Anexado.objects.count() < n:
+            baker.make(Anexado,
+                       documento_principal=baker.make(
+                           DocumentoAdministrativo, restrito=False),
+                       documento_anexado=baker.make(
+                           DocumentoAdministrativo, restrito=True))
+        client.get(url)  # aquece os caches de AppConfig e ContentType
+        com_visibilidade = _num_queries(client, url, {})
+        with monkeypatch.context() as m:
+            m.setattr(ApiManyRelatedField, 'to_representation',
+                      ManyRelatedField.to_representation)
+            sem_visibilidade = _num_queries(client, url, {})
+        return com_visibilidade - sem_visibilidade
+
+    assert custo_da_visibilidade(2, api()) == 1
+    assert custo_da_visibilidade(6, api()) == 1
+    assert custo_da_visibilidade(6, api(consulta)) == 0
 
 
 @pytest.mark.django_db(transaction=False)

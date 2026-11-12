@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from functools import cached_property
+from functools import cached_property, partial
 import django_filters
 import importlib
 import inspect
@@ -27,7 +27,8 @@ from django_filters.filterset import FilterSet
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.utils import resolve_field, get_all_model_fields
 from rest_framework import serializers as rest_serializers
-from rest_framework.relations import ManyRelatedField, PKOnlyObject
+from rest_framework.relations import MANY_RELATION_KWARGS, \
+    ManyRelatedField, PKOnlyObject
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 from rest_framework.viewsets import ModelViewSet
@@ -50,6 +51,30 @@ def hidden_fields_for_model(model, request):
 
     hook = getattr(serializer_class, 'get_hidden_fields', None)
     return set(hook(request)) if hook else set()
+
+
+def has_viewset(model):
+    """Indica se a API tem uma viewset para `model`."""
+    try:
+        ApiViewSetConstrutor.get_viewset_for_model(model)
+    except KeyError:
+        return False
+    return True
+
+
+def visible_queryset(model, request):
+    """
+    Objetos de `model` que o usuário pode ver a partir de outro model nesta
+    requisição: num campo expandido (?expand=) e, nos ManyToMany somente
+    leitura, na lista de ids e no filtro pelo campo. Nenhum, se as
+    permissões da viewset do model não permitirem listá-lo
+    (has_expand_permission); senão, os do get_expand_queryset da viewset.
+    Levanta KeyError se a API não tiver viewset para o model.
+    """
+    viewset = ApiViewSetConstrutor.get_viewset_for_model(model)
+    if not viewset.has_expand_permission(request):
+        return model._base_manager.none()
+    return viewset.get_expand_queryset(request)
 
 
 class SplitStringCharFilter(django_filters.CharFilter):
@@ -141,6 +166,28 @@ class ApiFilterSetMixin(FilterSet):
         for name, f in list(self.filters.items()):
             if f.field_name in hidden:
                 del self.filters[name]
+
+        # num ManyToMany com model intermediário, somente leitura na API, a
+        # resposta omite os objetos que o usuário não pode ver (ver
+        # ApiManyRelatedField). No filtro pelo campo, eles são tratados como
+        # inexistentes: senão, o filtro revelaria a relação por tentativa e
+        # erro. Só os filtros usados na requisição são restringidos, para não
+        # avaliar à toa as permissões do model relacionado
+        for name, f in self.filters.items():
+            if not isinstance(f, django_filters.ModelMultipleChoiceFilter):
+                continue
+            key = f'{self.form_prefix}-{name}' if self.form_prefix else name
+            if key not in self.data:
+                continue
+            try:
+                model_field = self._meta.model._meta.get_field(f.field_name)
+            except FieldDoesNotExist:
+                continue
+            if model_field.many_to_many and \
+                    not model_field.remote_field.through._meta.auto_created \
+                    and has_viewset(model_field.related_model):
+                f.queryset = partial(visible_queryset,
+                                     model_field.related_model)
 
     def get_hidden_fields(self):
         return hidden_fields_for_model(self._meta.model, self.request)
@@ -566,14 +613,18 @@ def serializer_path(field):
 
 class ExpandVisibility:
     """
-    Quais objetos expandidos (?expand=) o usuário pode ver numa resposta.
+    Quais objetos relacionados o usuário pode ver numa resposta: os dos
+    campos expandidos (?expand=) e os dos ManyToMany somente leitura (ver
+    ApiManyRelatedField).
 
-    Um objeto só é serializado no campo expandido se estiver no
-    get_expand_queryset da viewset do model dele. Para não fazer uma query
-    por objeto, cada caminho de expansão (como dispositivo.ta) é verificado
-    de uma vez: a partir dos objetos do serializer raiz (a página da
-    listagem ou o objeto do detalhe), uma única query busca, entre os
-    objetos alcançados pelo caminho, os que o usuário pode ver.
+    Um objeto só é serializado no campo expandido, ou listado no ManyToMany,
+    se estiver em visible_queryset: as permissões da viewset do model dele
+    precisam permitir listá-lo, e o objeto precisa estar no
+    get_expand_queryset dela. Para não fazer uma query por objeto, cada
+    caminho (como dispositivo.ta) é verificado de uma vez: a partir dos
+    objetos do serializer raiz (a página da listagem ou o objeto do
+    detalhe), uma única query busca, entre os objetos alcançados pelo
+    caminho, os que o usuário pode ver.
 
     O estado fica no contexto do serializer raiz, compartilhado por todos os
     serializers da resposta.
@@ -584,6 +635,7 @@ class ExpandVisibility:
     def __init__(self, request):
         self.request = request
         self.querysets = {}
+        self.unfiltered = {}
         self.visible_by_path = {}
         self.visible_by_object = {}
 
@@ -597,9 +649,7 @@ class ExpandVisibility:
     def queryset(self, model):
         if model not in self.querysets:
             try:
-                viewset = ApiViewSetConstrutor.get_viewset_for_model(model)
-                queryset = viewset.get_expand_queryset(
-                    self.request).order_by()
+                queryset = visible_queryset(model, self.request).order_by()
             except Exception as e:
                 logger.error(f'Erro ao obter os objetos de {model} que '
                              f'podem ser expandidos: {e}')
@@ -607,7 +657,24 @@ class ExpandVisibility:
             self.querysets[model] = queryset
         return self.querysets[model]
 
+    def all_visible(self, model):
+        """
+        Indica se o usuário pode ver todos os objetos de `model`, ou seja, se
+        o queryset dos visíveis não tem nenhum filtro, como num model público
+        ou para quem pode ver tudo. Nesse caso, a verificação dispensa
+        queries.
+        """
+        if model not in self.unfiltered:
+            query = self.queryset(model).query
+            self.unfiltered[model] = not (
+                query.where or query.combinator or query.distinct_fields or
+                query.extra_tables or not query.can_filter())
+        return self.unfiltered[model]
+
     def is_visible(self, field, model, pk):
+        if self.all_visible(model):
+            return True
+
         path = serializer_path(field)
         if path not in self.visible_by_path:
             self.visible_by_path[path] = self.visible_in_path(
@@ -716,19 +783,68 @@ class ExpandedSerializerMixin:
 class ExpandedListSerializer(rest_serializers.ListSerializer):
     """
     Campo expandido (?expand=) com vários objetos, como um ManyToMany. Os
-    objetos que o usuário não pode ver (ver ExpandVisibility) ficam só com o
-    id, como sem o expand.
+    objetos que o usuário não pode ver (ver ExpandVisibility) ficam como no
+    campo sem o expand (ver ApiManyRelatedField): são omitidos se o campo
+    original for somente leitura (omit_hidden) e ficam só com o id se ele
+    for editável.
     """
+
+    def __init__(self, *args, omit_hidden=False, **kwargs):
+        self.omit_hidden = omit_hidden
+        super().__init__(*args, **kwargs)
 
     def to_representation(self, data):
         visibility = ExpandVisibility.for_field(self)
         model = self.child.Meta.model
         iterable = data.all() if isinstance(data, Manager) else data
+        representation = []
+        for item in iterable:
+            if visibility.is_visible(self, model, item.pk):
+                representation.append(self.child.to_representation(item))
+            elif not self.omit_hidden:
+                representation.append(item.pk)
+        return representation
+
+
+class ApiManyRelatedField(ManyRelatedField):
+    """
+    ManyToMany sem expand. Se o campo for somente leitura, como os
+    ManyToMany com model intermediário (through), os objetos que o usuário
+    não pode ver (ver ExpandVisibility) são omitidos da lista. Num campo
+    editável, todos os ids continuam na lista: o cliente a devolve no
+    PUT/PATCH, e omitir um id apagaria a relação com o objeto oculto.
+
+    Models sem viewset na API, como o User, não têm regra de visibilidade, e
+    os ids deles continuam todos na lista.
+    """
+
+    def to_representation(self, iterable):
+        model = getattr(iterable, 'model', None)
+        if not self.read_only or model is None or not has_viewset(model) or \
+                self.context.get('request', None) is None:
+            return super().to_representation(iterable)
+
+        visibility = ExpandVisibility.for_field(self)
         return [
-            self.child.to_representation(item)
-            if visibility.is_visible(self, model, item.pk) else item.pk
+            self.child_relation.to_representation(item)
             for item in iterable
+            if visibility.is_visible(self, model, item.pk)
         ]
+
+
+class ApiPrimaryKeyRelatedField(rest_serializers.PrimaryKeyRelatedField):
+    """
+    PrimaryKeyRelatedField que, com many=True, cria um ApiManyRelatedField.
+    """
+
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        # como RelatedField.many_init, trocando só a classe do campo
+        list_kwargs = {'child_relation': cls(*args, **kwargs)}
+        for key in kwargs:
+            if key in MANY_RELATION_KWARGS:
+                list_kwargs[key] = kwargs[key]
+        return ApiManyRelatedField(**list_kwargs)
 
 
 _expanded_serializer_classes = {}
@@ -788,6 +904,10 @@ class DrfAutoApiSerializerMixin(rest_serializers.ModelSerializer):
             ApiViewSet.get_expand_queryset). Os demais ficam só com o id, como
             sem o expand. A verificação é feita de uma vez para cada campo
             expandido da resposta (ver ExpandVisibility)
+        - Num ManyToMany somente leitura, como os que têm model intermediário,
+            os objetos que o usuário não veria pelo endpoint do model deles
+            são omitidos, com ou sem o expand (ver ApiManyRelatedField), e o
+            filtro pelo campo os trata como inexistentes
         - Campos devolvidos por get_hidden_fields são removidos em qualquer
             nível, inclusive quando o model é expandido a partir de outro
         - A expansão não é aplicada para campos customizados que utilizam SerializerMethodField
@@ -801,6 +921,8 @@ class DrfAutoApiSerializerMixin(rest_serializers.ModelSerializer):
     """
 
     __str__ = rest_serializers.SerializerMethodField()
+
+    serializer_related_field = ApiPrimaryKeyRelatedField
 
     class Meta:
         fields = '__all__'
@@ -935,7 +1057,8 @@ class DrfAutoApiSerializerMixin(rest_serializers.ModelSerializer):
                     kwargs = {'read_only': True, 'context': self.context}
                     if hasattr(field, 'many') and field.many or isinstance(field, ManyRelatedField):
                         fields[field_name] = ExpandedListSerializer(
-                            child=serializer_class(**kwargs), **kwargs)
+                            child=serializer_class(**kwargs),
+                            omit_hidden=field.read_only, **kwargs)
                     else:
                         fields[field_name] = expanded_serializer_class(
                             serializer_class)(**kwargs)
