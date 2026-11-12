@@ -1,9 +1,11 @@
 import logging
 
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.core.exceptions import PermissionDenied
+from django.http import Http404, HttpResponse, JsonResponse
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -90,9 +92,19 @@ class LastModifiedDecorator:
         view = kwargs.get('view', None)
 
         if view:
-            queryset = view.get_queryset()
-            for backend in list(view.filter_backends):
-                queryset = backend().filter_queryset(request, queryset, view)
+            try:
+                queryset = view.get_queryset()
+                for backend in list(view.filter_backends):
+                    queryset = backend().filter_queryset(
+                        request, queryset, view)
+            except (APIException, Http404, PermissionDenied):
+                # Este método roda antes do dispatch do DRF, e uma exceção
+                # levantada aqui escapa do tratamento de exceções dele e
+                # vira 500. Ex.: filtro com valor inválido (?tipo=abc), que o
+                # DjangoFilterBackend rejeita com ValidationError. Sem
+                # Last-Modified, a requisição segue, e o DRF responde com o
+                # erro correspondente (400, 403 ou 404).
+                return None
         else:
             queryset = self.model.objects.all()
 
