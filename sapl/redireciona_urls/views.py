@@ -31,7 +31,7 @@ pesquisar_atas = (app_atas + ':atas')
 presenca_sessao = (app_presenca_sessao + ':presenca_sessao')
 parlamentar_list = (app_parlamentares + ':parlamentar_list')
 parlamentar_detail = (app_parlamentares + ':parlamentar_detail')
-parlamentar_mesa_diretora = (app_parlamentares + ':mesa_diretora')
+parlamentar_mesa_diretora = (app_parlamentares + ':mesadiretora_list')
 
 comissao_list = (app_comissoes + ':comissao_list')
 comissao_detail = (app_comissoes + ':comissao_detail')

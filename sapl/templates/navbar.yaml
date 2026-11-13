@@ -6,7 +6,7 @@
 - title: {% trans 'Institucional' %}
   children:
     - title: {% trans 'Mesa Diretora' %}
-      url: sapl.parlamentares:mesa_diretora
+      url: sapl.parlamentares:mesadiretora_list
     - title: {% trans 'Bancadas Parlamentares' %}
       url: sapl.sessao:bancada_list
     - title: {% trans 'Blocos Parlamentares' %}
