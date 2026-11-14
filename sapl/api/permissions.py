@@ -1,4 +1,5 @@
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.exceptions import NotFound
+from rest_framework.permissions import BasePermission, DjangoModelPermissions
 from sapl.rules.map_rules import rules_patterns_public
 
 
@@ -51,3 +52,15 @@ class SaplModelPermissions(DjangoModelPermissions):
             (request.user.is_authenticated or not self.authenticated_users_only) and
             request.user.has_perms(perms)
         )
+
+
+class PodeEnviarPautaAoPainelExterno(BasePermission):
+    """Desligada a integração, a rota não existe; ligada, só opera a sessão
+    quem a altera."""
+
+    def has_permission(self, request, view):
+        from sapl.sessao.painel_externo import integracao_ativa
+
+        if not integracao_ativa():
+            raise NotFound()
+        return request.user.has_perm('sessao.change_sessaoplenaria')

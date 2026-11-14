@@ -50,6 +50,10 @@ AppConfig:
   - cronometro_ordem cronometro_consideracoes
   - mostrar_brasao_painel mostrar_voto
 
+  {% trans 'Painel de Votação Externo' %}:
+  - painel_externo_ativo
+  - painel_externo_url:8 painel_externo_api_key:4
+
   {% trans 'Estatísticas de acesso' %}:
   - estatisticas_acesso_normas
   - google_analytics_id_metrica

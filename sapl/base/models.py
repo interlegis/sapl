@@ -246,6 +246,22 @@ class AppConfig(models.Model):
             'Exibir voto do Parlamentar antes de encerrar a votação?'),
         choices=YES_NO_CHOICES, default=False)
 
+    # MÓDULO PAINEL DE VOTAÇÃO EXTERNO
+    # Desligado, a tela da sessão não mostra o envio e o endpoint responde
+    # 404. O formato da pauta enviada está em docs/painel-externo.md.
+    painel_externo_ativo = models.BooleanField(
+        verbose_name=_('Enviar a pauta da sessão a painel de votação externo?'),
+        choices=YES_NO_CHOICES, default=False)
+    painel_externo_url = models.URLField(
+        verbose_name=_('URL do painel de votação externo'),
+        max_length=256, blank=True, default='',
+        help_text=_('Endereço completo do endpoint do painel que recebe a '
+                    'pauta, por exemplo '
+                    'https://painel.exemplo.leg.br/api/pauta.'))
+    painel_externo_api_key = models.CharField(
+        verbose_name=_('Chave de acesso ao painel externo (API key)'),
+        max_length=256, blank=True, default='')
+
     # MÓDULO ESTATÍSTICAS DE ACESSO
     estatisticas_acesso_normas = models.CharField(
         max_length=1,
