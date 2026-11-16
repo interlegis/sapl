@@ -9,3 +9,5 @@ class AppConfig(django.apps.AppConfig):
 
     def ready(self):
         from sapl.base import receivers
+        from sapl.base.atualizacao import connect
+        connect()

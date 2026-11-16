@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
+from sapl.base.atualizacao import bulk_create_public
 from sapl.base.models import Autor, TipoAutor, AppConfig
 from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       SaplFormLayout, to_row)
@@ -795,7 +796,7 @@ class TramitacaoAdmForm(ModelForm):
                                             ultima_edicao=tramitacao.ultima_edicao
                                             ))
             # TODO: BULK UPDATE não envia Signal para Tramitacao
-            TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
+            bulk_create_public(TramitacaoAdministrativo.objects, lista_tramitacao)
 
         return tramitacao
 
@@ -1697,7 +1698,7 @@ class TramitacaoEmLoteAdmForm(ModelForm):
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
                 # TODO: BULK UPDATE não envia Signal para Tramitacao
-                TramitacaoAdministrativo.objects.bulk_create(lista_tramitacao)
+                bulk_create_public(TramitacaoAdministrativo.objects, lista_tramitacao)
 
         return tramitacao
 

@@ -28,6 +28,7 @@ rules_group_geral = {
         (base.Autor, __base__, __perms_publicas__),
         (base.OperadorAutor, __base__, set()),
         (base.AuditLog, __base__, set()),
+        (base.AtualizacaoConteudoPublico, __base__, set()),
         (base.Metadata, __base__, set()),
 
         (protocoloadm.StatusTramitacaoAdministrativo, __base__, set()),

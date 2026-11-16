@@ -18,7 +18,8 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from sapl.base.email_utils import do_envia_email_tramitacao
-from sapl.base.models import AuditLog, TipoAutor, Autor, Metadata
+from sapl.base.models import (AuditLog, TipoAutor, Autor, Metadata,
+                              AtualizacaoConteudoPublico)
 from sapl.decorators import receiver_multi_senders
 from sapl.materia.models import Tramitacao
 from sapl.parlamentares.models import Parlamentar
@@ -106,7 +107,7 @@ def audit_log_function(sender, **kwargs):
         return
 
     instance = kwargs.get('instance')
-    if instance._meta.model == AuditLog:
+    if instance._meta.model in (AuditLog, AtualizacaoConteudoPublico):
         return
 
     logger = logging.getLogger(__name__)

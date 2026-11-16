@@ -14,6 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django_filters.views import FilterView
 
+from sapl.base.atualizacao import bulk_create_public
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.comissoes.apps import AppConfig
 from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
@@ -399,7 +400,7 @@ class AdicionaPautaView(PermissionRequiredMixin, FilterView):
                  pauta.reuniao = reuniao
                  pauta.materia = materia
                  pautas.append(pauta)
-        PautaReuniao.objects.bulk_create(pautas)
+        bulk_create_public(PautaReuniao.objects, pautas)
         
         msg = _('Matéria(s) adicionada(s) com sucesso!')
         messages.add_message(request, messages.SUCCESS, msg)

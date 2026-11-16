@@ -1,3 +1,9 @@
+Não lançado
+===========
+
+  * Corrige o indicador global de atualização do conteúdo público: utiliza
+    alterações persistidas, respeita a visibilidade dos registros e deixa de
+    exibir a data do acesso como data de atualização (#3872).
 
 3.1.165-RC4 / 2026-10-14
 ========================

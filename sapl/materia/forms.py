@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 import django_filters
 
+from sapl.base.atualizacao import bulk_create_public, bulk_update_public
 from sapl.base.models import AppConfig as BaseAppConfig, Autor, TipoAutor
 from sapl.comissoes.models import Comissao, Composicao, Participacao
 from sapl.compilacao.models import (STATUS_TA_IMMUTABLE_PUBLIC,
@@ -591,9 +592,9 @@ class TramitacaoForm(ModelForm):
                         ultima_edicao=tramitacao.ultima_edicao
                     ))
             # TODO: BULK UPDATE não envia Signal para Tramitacao
-            Tramitacao.objects.bulk_create(lista_tramitacao)
+            bulk_create_public(Tramitacao.objects, lista_tramitacao)
             # Atualiza status 'em_tramitacao'
-            MateriaLegislativa.objects.bulk_update(
+            bulk_update_public(MateriaLegislativa.objects,
                 materias_anexadas, ['em_tramitacao'])
         return tramitacao
 
@@ -1855,7 +1856,7 @@ class TramitacaoEmLoteForm(ModelForm):
                                                 ultima_edicao=tramitacao.ultima_edicao
                                                 ))
                 # TODO: BULK UPDATE não envia Signal para Tramitacao
-                Tramitacao.objects.bulk_create(lista_tramitacao)
+                bulk_create_public(Tramitacao.objects, lista_tramitacao)
 
         return tramitacao
 

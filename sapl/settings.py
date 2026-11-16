@@ -230,6 +230,7 @@ TEMPLATES = [
                 'sapl.context_processors.mail_service_configured',
                 'sapl.context_processors.google_recaptcha_configured',
                 'sapl.context_processors.enable_sapn',
+                'sapl.context_processors.public_content_update',
             ],
             'debug': DEBUG
         },
