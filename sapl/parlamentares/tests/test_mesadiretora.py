@@ -960,3 +960,106 @@ def test_migration_registra_mesas_sem_problemas_nao_imprime(caplog, capsys):
         migration.registrar_mesas_inconsistentes(apps, None)
     assert caplog.text == ''
     assert capsys.readouterr().out == ''
+
+
+# =====================================================================
+# Upgrade a partir do modelo antigo (MesaDiretora ligada à sessão)
+# =====================================================================
+
+ANTES_DA_MESA = [('parlamentares', '0046_parlamentar_data_ultima_atualizacao')]
+MIGRATION_0047 = [('parlamentares', '0047_mesadiretora_legislatura')]
+
+
+def _migrar(alvo):
+    """Migra o app para o estado `alvo` e devolve os models históricos."""
+    from django.db import connection
+    from django.db.migrations.executor import MigrationExecutor
+    executor = MigrationExecutor(connection)
+    executor.migrate(alvo)
+    return MigrationExecutor(connection).loader.project_state(alvo).apps
+
+
+def _folhas_parlamentares():
+    from django.db import connection
+    from django.db.migrations.loader import MigrationLoader
+    return [n for n in MigrationLoader(connection).graph.leaf_nodes()
+            if n[0] == 'parlamentares']
+
+
+@pytest.fixture
+def estado_antigo():
+    """Volta parlamentares para antes da refatoração da Mesa Diretora e,
+    ao final, reaplica todas as migrations.
+
+    Os testes que o usam precisam de django_db(transaction=True,
+    serialized_rollback=True): a migração faz DDL, e sem o
+    serialized_rollback o flush do teardown dispara os post_migrate do SAPL,
+    que falham ao recriar permissões (vale para qualquer teste transacional).
+    """
+    ultima = _folhas_parlamentares()
+    try:
+        yield _migrar(ANTES_DA_MESA)
+    finally:
+        _migrar(ultima)
+
+
+def _sessao_antiga(apps):
+    legislatura = baker.make(apps.get_model('parlamentares', 'Legislatura'),
+                             data_inicio=date(2025, 1, 1),
+                             data_fim=date(2028, 12, 31))
+    return baker.make(apps.get_model('parlamentares', 'SessaoLegislativa'),
+                      legislatura=legislatura,
+                      data_inicio=date(2025, 12, 23),
+                      data_fim=date(2026, 12, 21))
+
+
+@pytest.mark.django_db(transaction=True, serialized_rollback=True)
+def test_migration_0047_preserva_datas_proprias_da_mesa(estado_antigo):
+    Mesa = estado_antigo.get_model('parlamentares', 'MesaDiretora')
+    sessao = _sessao_antiga(estado_antigo)
+    semestre1 = Mesa.objects.create(sessao_legislativa=sessao,
+                                    data_inicio=date(2026, 1, 1),
+                                    data_fim=date(2026, 6, 30))
+    semestre2 = Mesa.objects.create(sessao_legislativa=sessao,
+                                    data_inicio=date(2026, 7, 1),
+                                    data_fim=date(2026, 12, 21))
+    sem_datas = Mesa.objects.create(sessao_legislativa=sessao)
+
+    apps = _migrar(MIGRATION_0047)
+    Mesa = apps.get_model('parlamentares', 'MesaDiretora')
+
+    def periodo(mesa):
+        m = Mesa.objects.get(pk=mesa.pk)
+        return m.data_inicio, m.data_fim, m.legislatura_id
+
+    leg = sessao.legislatura_id
+    assert periodo(semestre1) == (date(2026, 1, 1), date(2026, 6, 30), leg)
+    assert periodo(semestre2) == (date(2026, 7, 1), date(2026, 12, 21), leg)
+    assert periodo(sem_datas) == (date(2025, 12, 23), date(2026, 12, 21), leg)
+
+
+@pytest.mark.django_db(transaction=True, serialized_rollback=True)
+def test_migration_0047_remove_composicao_sem_mesa(estado_antigo, capsys):
+    Mesa = estado_antigo.get_model('parlamentares', 'MesaDiretora')
+    Composicao = estado_antigo.get_model('parlamentares', 'ComposicaoMesa')
+    mesa = Mesa.objects.create(sessao_legislativa=_sessao_antiga(
+        estado_antigo))
+    parlamentar = baker.make(
+        estado_antigo.get_model('parlamentares', 'Parlamentar'),
+        nome_parlamentar='Fulano Órfão')
+    cargo = baker.make(estado_antigo.get_model('parlamentares', 'CargoMesa'),
+                       descricao='Presidente')
+    com_mesa = Composicao.objects.create(mesa_diretora=mesa, cargo=cargo,
+                                         parlamentar=parlamentar)
+    orfa = Composicao.objects.create(mesa_diretora=None, cargo=cargo,
+                                     parlamentar=parlamentar)
+
+    apps = _migrar(MIGRATION_0047)
+    Composicao = apps.get_model('parlamentares', 'ComposicaoMesa')
+
+    assert list(Composicao.objects.values_list('id', flat=True)) == \
+        [com_mesa.pk]
+    saida = capsys.readouterr().out
+    assert 'ComposicaoMesa id={} (Fulano Órfão - Presidente)'.format(
+        orfa.pk) in saida
+    assert '1 ocupação(ões) de cargo na Mesa sem mesa diretora' in saida
