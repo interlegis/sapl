@@ -62,13 +62,17 @@
       }
     }
 
-    // CSS nativo: exibe somente o item ativo (browsers com suporte a :has)
-    .nav-item:has(.nav-link.active) {
+    // Lista fechada: exibe só o item da aba ativa. O JS da tela marca
+    // .nav-item--ativo nos navegadores sem suporte a :has().
+    .nav-item:has(.nav-link.active),
+    .nav-item.nav-item--ativo {
       display: block;
     }
 
-    // Estado expandido: via :focus-within (nativo) ou .nav-tabs--open (fallback JS)
-    &:focus-within,
+    // Lista aberta: a classe é controlada pelo JS da tela. Não usa
+    // :focus-within, que mantinha a lista aberta depois da escolha (o botão
+    // continua com foco) e não abre no Safari do iOS (tocar num <button>
+    // não lhe dá foco).
     &.nav-tabs--open {
       border-radius: $border-radius $border-radius 0 0; // Arredonda apenas topo quando aberto
       overflow: visible;

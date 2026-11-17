@@ -78,71 +78,68 @@
 {% block extra_js %}
 <script>
 (function () {
-  // Suporte nativo a :has() — o CSS cuida de tudo, JS não é necessário
-  if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('selector(:has(*))')) return;
-
+  // Abre e fecha a lista de abas em telas pequenas (.nav-tabs--dropdown).
+  // O controle fica no JS em todos os navegadores; ver _nav_tabs.scss.
   var mq = window.matchMedia('(max-width: 991px)');
+  var temHas = typeof CSS !== 'undefined' && CSS.supports &&
+    CSS.supports('selector(:has(*))');
 
-  function collapse(tabs) {
-    tabs.classList.remove('nav-tabs--open');
+  // Sem :has(), o CSS não sabe qual item contém a aba ativa.
+  function marcarAtivo(tabs) {
+    if (temHas) return;
     [].forEach.call(tabs.querySelectorAll('.nav-item'), function (item) {
-      item.style.display = item.querySelector('.nav-link.active') ? 'block' : 'none';
+      item.classList.toggle('nav-item--ativo',
+                            !!item.querySelector('.nav-link.active'));
     });
   }
 
-  function expand(tabs) {
-    [].forEach.call(tabs.querySelectorAll('.nav-item'), function (item) {
-      item.style.display = 'block';
-    });
-    tabs.classList.add('nav-tabs--open');
+  function fechar(tabs) {
+    tabs.classList.remove('nav-tabs--open');
+    marcarAtivo(tabs);
   }
 
   function init() {
-    [].forEach.call(document.querySelectorAll('.nav-tabs--dropdown'), function (tabs) {
+    var listas = document.querySelectorAll('.nav-tabs--dropdown');
+
+    [].forEach.call(listas, function (tabs) {
       if (tabs._dropdownBound) return;
       tabs._dropdownBound = true;
+      marcarAtivo(tabs);
 
-      // Expande ao clicar no container (apenas quando fechado)
-      tabs.addEventListener('click', function () {
-        if (!mq.matches || tabs.classList.contains('nav-tabs--open')) return;
-        expand(tabs);
-        setTimeout(function () {
-          document.addEventListener('click', function onOutside(ev) {
-            if (!tabs.contains(ev.target)) {
-              collapse(tabs);
-              document.removeEventListener('click', onOutside);
-            }
-          });
-        }, 0);
+      tabs.addEventListener('click', function (ev) {
+        if (!mq.matches) return;
+        if (!tabs.classList.contains('nav-tabs--open')) {
+          tabs.classList.add('nav-tabs--open');
+          return;
+        }
+        // Lista aberta: escolher uma aba fecha a lista depois que o
+        // Bootstrap (handler delegado no document) marcar a nova aba ativa.
+        if (ev.target.closest('.nav-link')) {
+          setTimeout(function () { fechar(tabs); }, 0);
+        }
       });
 
-      // Colapsa ao selecionar uma aba (apenas quando aberto)
-      [].forEach.call(tabs.querySelectorAll('.nav-link'), function (link) {
-        link.addEventListener('click', function () {
-          if (!tabs.classList.contains('nav-tabs--open')) return;
-          // Aguarda Bootstrap atualizar a classe .active
-          setTimeout(function () { collapse(tabs); }, 50);
-        });
+      document.addEventListener('click', function (ev) {
+        if (tabs.classList.contains('nav-tabs--open') &&
+            !tabs.contains(ev.target)) {
+          fechar(tabs);
+        }
+      });
+
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape' && tabs.classList.contains('nav-tabs--open')) {
+          fechar(tabs);
+        }
       });
     });
 
-    // Estado inicial e ao redimensionar
-    function applyState(matches) {
-      [].forEach.call(document.querySelectorAll('.nav-tabs--dropdown'), function (tabs) {
-        tabs.classList.remove('nav-tabs--open');
-        [].forEach.call(tabs.querySelectorAll('.nav-item'), function (item) {
-          item.style.display = '';
-        });
-        if (matches) collapse(tabs);
-      });
+    function aoMudarLargura() {
+      [].forEach.call(listas, fechar);
     }
-
-    applyState(mq.matches);
-
     if (mq.addEventListener) {
-      mq.addEventListener('change', function (e) { applyState(e.matches); });
+      mq.addEventListener('change', aoMudarLargura);
     } else {
-      mq.addListener(function (e) { applyState(e.matches); });
+      mq.addListener(aoMudarLargura);
     }
   }
 
