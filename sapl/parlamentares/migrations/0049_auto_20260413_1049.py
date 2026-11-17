@@ -20,7 +20,7 @@ def preencher_titulo_mesa_diretora(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parlamentares', '0047_auto_20260412_2256'),
+        ('parlamentares', '0048_auto_20260412_2256'),
     ]
 
     operations = [

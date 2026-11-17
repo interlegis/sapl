@@ -21,7 +21,7 @@ def add_legislatura_to_mesa_diretora(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parlamentares', '0045_auto_20251201_1531'),
+        ('parlamentares', '0046_parlamentar_data_ultima_atualizacao'),
     ]
 
     operations = [
