@@ -531,11 +531,21 @@ class MesaDiretora(models.Model):
                     raise ValidationError(
                         _('As datas da mesa diretora devem estar dentro do período da legislatura.'))
 
+                # Intervalo fechado (dias em comum), menos o encosto: o fim
+                # de uma mesa no mesmo dia em que a outra começa, como na
+                # cassação ou renúncia seguida de eleição na mesma sessão.
+                # Vale também para mesa de um dia; só não há encosto entre
+                # períodos idênticos.
+                encosto = (
+                    models.Q(data_fim=self.data_inicio) |
+                    models.Q(data_inicio=self.data_fim)
+                ) & ~models.Q(data_inicio=self.data_inicio,
+                              data_fim=self.data_fim)
                 if MesaDiretora.objects.filter(
                     legislatura=self.legislatura,
-                    data_inicio__lt=self.data_fim,
-                    data_fim__gt=self.data_inicio
-                ).exclude(pk=self.pk).exists():
+                    data_inicio__lte=self.data_fim,
+                    data_fim__gte=self.data_inicio
+                ).exclude(pk=self.pk).exclude(encosto).exists():
                     raise ValidationError(
                         _('As datas da mesa diretora se sobrepõem com outra mesa diretora existente.'))
 

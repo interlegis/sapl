@@ -677,3 +677,55 @@ def test_api_composicaomesa_parlamentar_sem_mandato(api_client, mesa_api):
     assert response.status_code == 400
     assert 'não tem mandato' in \
         ' '.join(response.json()['non_field_errors'])
+
+
+# =====================================================================
+# Bordas da regra de sobreposição (mesa de um dia e encosto)
+# =====================================================================
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('existente, nova, aceita', [
+    # duas mesas longas que só encostam (r3715887423)
+    ((date(2021, 1, 1), date(2022, 1, 10)),
+     (date(2022, 1, 10), date(2022, 12, 31)), True),
+    ((date(2022, 1, 10), date(2022, 12, 31)),
+     (date(2021, 1, 1), date(2022, 1, 10)), True),
+    # mesas longas sobrepostas
+    ((date(2021, 1, 1), date(2022, 1, 10)),
+     (date(2022, 1, 5), date(2022, 12, 31)), False),
+    # mesas longas idênticas
+    ((date(2021, 1, 1), date(2022, 1, 10)),
+     (date(2021, 1, 1), date(2022, 1, 10)), False),
+    # duas mesas de um dia idênticas
+    ((date(2022, 3, 10), date(2022, 3, 10)),
+     (date(2022, 3, 10), date(2022, 3, 10)), False),
+    # mesa de um dia no último dia de uma mesa longa, nas duas ordens
+    ((date(2022, 1, 1), date(2022, 3, 10)),
+     (date(2022, 3, 10), date(2022, 3, 10)), True),
+    ((date(2022, 3, 10), date(2022, 3, 10)),
+     (date(2022, 1, 1), date(2022, 3, 10)), True),
+    # mesa de um dia seguida de mesa longa no mesmo dia, nas duas ordens
+    ((date(2022, 3, 10), date(2022, 3, 10)),
+     (date(2022, 3, 10), date(2022, 12, 31)), True),
+    ((date(2022, 3, 10), date(2022, 12, 31)),
+     (date(2022, 3, 10), date(2022, 3, 10)), True),
+    # mesa de um dia no meio de uma mesa longa, nas duas ordens
+    ((date(2022, 1, 1), date(2022, 12, 31)),
+     (date(2022, 3, 10), date(2022, 3, 10)), False),
+    ((date(2022, 3, 10), date(2022, 3, 10)),
+     (date(2022, 1, 1), date(2022, 12, 31)), False),
+])
+def test_mesadiretora_bordas_de_sobreposicao(existente, nova, aceita):
+    legislatura = baker.make(
+        'parlamentares.Legislatura',
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2024, 12, 31))
+    baker.make('parlamentares.MesaDiretora', legislatura=legislatura,
+               data_inicio=existente[0], data_fim=existente[1])
+    mesa = MesaDiretora(titulo='Nova', legislatura=legislatura,
+                        data_inicio=nova[0], data_fim=nova[1])
+    if aceita:
+        mesa.clean()
+    else:
+        with pytest.raises(ValidationError, match='se sobrepõem'):
+            mesa.clean()
