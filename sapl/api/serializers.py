@@ -1,3 +1,4 @@
+import copy
 import logging
 
 from django.conf import settings
@@ -11,7 +12,8 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
 from sapl.base.models import Autor, CasaLegislativa, Metadata
-from sapl.parlamentares.models import Parlamentar, Mandato, Legislatura
+from sapl.parlamentares.models import (ComposicaoMesa, Legislatura, Mandato,
+                                      MesaDiretora, Parlamentar)
 from sapl.sessao.models import ExpedienteMateria, OrdemDia, SessaoPlenaria
 
 
@@ -339,3 +341,37 @@ class ExpedienteMateriaSerializer(SaplSerializerMixin):
         model = ExpedienteMateria
         fields = '__all__'
         read_only_fields = ('votacao_aberta', 'registro_aberto')
+
+
+class ModelCleanMixin:
+    """
+    O ModelSerializer do DRF não chama Model.clean(). Este mixin aplica as
+    regras de negócio do model também nas escritas pela API; a
+    ValidationError do Django vira resposta 400 no run_validation do DRF.
+
+    Fica fora do SaplSerializerMixin de propósito: aplicado a todos os
+    models, passaria a rodar clean() que nunca foram validados pela API.
+    O nome não termina em "Serializer" para o drfautoapi não tomá-lo como
+    serializer de um model.
+    """
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        instance = copy.copy(self.instance) if self.instance \
+            else self.Meta.model()
+        for campo, valor in attrs.items():
+            setattr(instance, campo, valor)
+        instance.clean()
+        return attrs
+
+
+class MesaDiretoraSerializer(ModelCleanMixin, SaplSerializerMixin):
+    class Meta:
+        model = MesaDiretora
+        fields = '__all__'
+
+
+class ComposicaoMesaSerializer(ModelCleanMixin, SaplSerializerMixin):
+    class Meta:
+        model = ComposicaoMesa
+        fields = '__all__'

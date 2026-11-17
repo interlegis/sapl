@@ -470,3 +470,149 @@ def test_mesadiretora_filter_set_(client):
 
     for id_mesa in ids_mesas:
         assert id_mesa in response.content.decode('utf-8')
+
+
+# =====================================================================
+# Testes da API — as regras do clean() valem também nas escritas
+# =====================================================================
+
+URL_API_MESA = '/api/parlamentares/mesadiretora/'
+URL_API_COMPOSICAO = '/api/parlamentares/composicaomesa/'
+
+
+@pytest.fixture
+def api_client(db):
+    from django.contrib.auth import get_user_model
+    from rest_framework.test import APIClient
+    user = get_user_model().objects.create_superuser(
+        username='admin_api_mesa', password='secret123', email='mesa@x.com')
+    client = APIClient()
+    client.force_authenticate(user=user)
+    return client
+
+
+@pytest.fixture
+def legislatura_api(db):
+    return baker.make(
+        'parlamentares.Legislatura',
+        numero=1,
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2024, 12, 31),
+        data_eleicao=date(2020, 11, 15))
+
+
+@pytest.fixture
+def mesa_api(legislatura_api):
+    return baker.make(
+        'parlamentares.MesaDiretora',
+        titulo='Mesa Diretora 2021/2022',
+        legislatura=legislatura_api,
+        data_inicio=date(2021, 1, 1),
+        data_fim=date(2022, 12, 31))
+
+
+def _post_mesa(client, legislatura, inicio, fim, titulo='Mesa via API'):
+    return client.post(URL_API_MESA, {
+        'titulo': titulo,
+        'data_inicio': inicio,
+        'data_fim': fim,
+        'legislatura': legislatura.pk,
+    }, format='json')
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_mesadiretora_valida(api_client, legislatura_api, mesa_api):
+    response = _post_mesa(api_client, legislatura_api,
+                          '2023-01-01', '2024-12-31')
+    assert response.status_code == 201, response.content
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('inicio, fim, mensagem', [
+    ('2022-06-01', '2023-06-30', 'se sobrepõem'),
+    ('2024-06-01', '2023-01-01', 'data de início deve ser anterior'),
+    ('2025-01-01', '2025-12-31', 'dentro do período da legislatura'),
+])
+def test_api_mesadiretora_invalida(api_client, legislatura_api, mesa_api,
+                                   inicio, fim, mensagem):
+    response = _post_mesa(api_client, legislatura_api, inicio, fim)
+    assert response.status_code == 400
+    assert mensagem in ' '.join(response.json()['non_field_errors'])
+    assert MesaDiretora.objects.count() == 1
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_mesadiretora_patch_so_descricao(api_client, mesa_api):
+    response = api_client.patch(f'{URL_API_MESA}{mesa_api.pk}/',
+                                {'descricao': 'Nova descrição'},
+                                format='json')
+    assert response.status_code == 200, response.content
+    mesa_api.refresh_from_db()
+    assert mesa_api.descricao == 'Nova descrição'
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_mesadiretora_patch_com_sobreposicao(api_client, legislatura_api,
+                                                 mesa_api):
+    outra = baker.make(
+        'parlamentares.MesaDiretora',
+        legislatura=legislatura_api,
+        data_inicio=date(2023, 1, 1),
+        data_fim=date(2024, 12, 31))
+    response = api_client.patch(f'{URL_API_MESA}{mesa_api.pk}/',
+                                {'data_fim': '2023-06-30'}, format='json')
+    assert response.status_code == 400
+    mesa_api.refresh_from_db()
+    assert mesa_api.data_fim == date(2022, 12, 31)
+    assert outra.data_inicio == date(2023, 1, 1)
+
+
+def _parlamentar_com_mandato(legislatura):
+    parlamentar = baker.make('parlamentares.Parlamentar')
+    baker.make('parlamentares.Mandato', parlamentar=parlamentar,
+               legislatura=legislatura)
+    return parlamentar
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_composicaomesa_valida(api_client, mesa_api):
+    cargo = baker.make('parlamentares.CargoMesa', unico=True)
+    parlamentar = _parlamentar_com_mandato(mesa_api.legislatura)
+    response = api_client.post(URL_API_COMPOSICAO, {
+        'mesa_diretora': mesa_api.pk,
+        'parlamentar': parlamentar.pk,
+        'cargo': cargo.pk,
+    }, format='json')
+    assert response.status_code == 201, response.content
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_composicaomesa_cargo_unico_ocupado(api_client, mesa_api):
+    cargo = baker.make('parlamentares.CargoMesa', unico=True)
+    baker.make('parlamentares.ComposicaoMesa', mesa_diretora=mesa_api,
+               cargo=cargo,
+               parlamentar=_parlamentar_com_mandato(mesa_api.legislatura))
+    response = api_client.post(URL_API_COMPOSICAO, {
+        'mesa_diretora': mesa_api.pk,
+        'parlamentar': _parlamentar_com_mandato(mesa_api.legislatura).pk,
+        'cargo': cargo.pk,
+    }, format='json')
+    assert response.status_code == 400
+    assert 'Cargo único já ocupado' in \
+        ' '.join(response.json()['non_field_errors'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_composicaomesa_parlamentar_repetido(api_client, mesa_api):
+    parlamentar = _parlamentar_com_mandato(mesa_api.legislatura)
+    baker.make('parlamentares.ComposicaoMesa', mesa_diretora=mesa_api,
+               parlamentar=parlamentar,
+               cargo=baker.make('parlamentares.CargoMesa', unico=True))
+    response = api_client.post(URL_API_COMPOSICAO, {
+        'mesa_diretora': mesa_api.pk,
+        'parlamentar': parlamentar.pk,
+        'cargo': baker.make('parlamentares.CargoMesa', unico=True).pk,
+    }, format='json')
+    assert response.status_code == 400
+    assert 'Parlamentar já ocupa um cargo' in \
+        ' '.join(response.json()['non_field_errors'])
