@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-from datetime import date
 
 def add_legislatura_to_mesa_diretora(apps, schema_editor):
     schema_editor.execute("""
@@ -30,5 +29,6 @@ class Migration(migrations.Migration):
             name='legislatura',
             field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.PROTECT, to='parlamentares.Legislatura', verbose_name='Legislatura'),
         ),
-        migrations.RunPython(add_legislatura_to_mesa_diretora),
+        migrations.RunPython(add_legislatura_to_mesa_diretora,
+                             reverse_code=migrations.RunPython.noop),
     ]

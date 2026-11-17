@@ -41,5 +41,6 @@ class Migration(migrations.Migration):
             name='mesa_diretora',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='composicaomesa_set', to='parlamentares.MesaDiretora'),
         ),
-        migrations.RunPython(preencher_titulo_mesa_diretora),
+        migrations.RunPython(preencher_titulo_mesa_diretora,
+                             reverse_code=migrations.RunPython.noop),
     ]
