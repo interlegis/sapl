@@ -6,8 +6,8 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.db.models import F, Q
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import F
 from django.db.models.aggregates import Count
 from django.http import Http404, JsonResponse
 from django.http.response import HttpResponseRedirect
@@ -1104,51 +1104,6 @@ class ComposicaoMesaCrud(MasterDetailCrud):
             initial = super().get_initial()
             initial['mesa_diretora'] = MesaDiretora.objects.get(pk=self.kwargs['pk'])
             return initial
-
-def partido_parlamentar_sessao_legislativa(sessao, parlamentar):
-    """
-        Função para descobrir o partido do parlamentar durante
-        o período de uma dada Sessão Legislativa
-    """
-
-    # As condições para mostrar a filiação são:
-    # A data de filiacao deve ser menor que a data de fim
-    # da sessao legislativa e data de desfiliação deve nula, ou maior,
-    # ou igual a data de fim da sessao
-    logger = logging.getLogger(__name__)
-    try:
-        logger.debug("Tentando obter filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
-                     "ou (data<={} e data_desfiliacao=Null))."
-                     .format(sessao.data_fim, sessao.data_fim, sessao.data_fim))
-
-        logger.info("Tentando obter filiação correspondente.")
-        filiacao = parlamentar.filiacao_set.get(Q(
-            data__lte=sessao.data_fim,
-            data_desfiliacao__gte=sessao.data_fim) | Q(
-            data__lte=sessao.data_fim,
-            data_desfiliacao__isnull=True))
-
-    # Caso não exista filiação com essas condições
-    except ObjectDoesNotExist:
-        logger.error("Filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
-                     "ou (data<={} e data_desfiliacao=Null não encontrada. Retornando vazio."
-                     .format(sessao.data_fim, sessao.data_fim, sessao.data_fim))
-        return ''
-
-    # Caso exista mais de uma filiação nesse intervalo
-    # Entretanto, NÃO DEVE OCORRER
-    except MultipleObjectsReturned:
-        logger.error("O Parlamentar com (data<={} e data_desfiliacao>={}) "
-                     "ou (data<={} e data_desfiliacao=Null possui duas filiações conflitantes."
-                     .format(sessao.data_fim, sessao.data_fim, sessao.data_fim))
-        return 'O Parlamentar possui duas filiações conflitantes'
-
-    # Caso encontre UMA filiação nessas condições
-    else:
-        logger.info("Filiação do parlamentar com (data<={} e data_desfiliacao>={}) "
-                    "ou (data<={} e data_desfiliacao=Null encontrada com sucesso."
-                    .format(sessao.data_fim, sessao.data_fim, sessao.data_fim))
-        return filiacao.partido.sigla
 
 
 class VincularParlamentarView(PermissionRequiredMixin, FormView):
