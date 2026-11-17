@@ -1078,3 +1078,10 @@ def test_migration_0048_reversao_com_mesas_da_erro_claro():
     baker.make(MesaDiretora)
     with pytest.raises(IrreversibleError, match='Restaure o backup'):
         migration.impede_reversao_com_mesas(apps, None)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_create_mesa_inexistente_retorna_404(admin_client):
+    response = admin_client.get(reverse(
+        'sapl.parlamentares:composicaomesa_create', kwargs={'pk': 999999}))
+    assert response.status_code == 404

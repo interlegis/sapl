@@ -11,7 +11,7 @@ from django.db.models import F
 from django.db.models.aggregates import Count
 from django.http import Http404, JsonResponse
 from django.http.response import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -1102,7 +1102,8 @@ class ComposicaoMesaCrud(MasterDetailCrud):
 
         def get_initial(self):
             initial = super().get_initial()
-            initial['mesa_diretora'] = MesaDiretora.objects.get(pk=self.kwargs['pk'])
+            initial['mesa_diretora'] = get_object_or_404(
+                MesaDiretora, pk=self.kwargs['pk'])
             return initial
 
 
