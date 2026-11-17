@@ -1029,7 +1029,16 @@ class MesaDiretoraCrud(Crud):
         def get_filterset_kwargs(self, filterset_class):
             fk = super().get_filterset_kwargs(filterset_class)
             # legislatura vazia (?legislatura=) conta como ausente
-            if self.request.GET.get('legislatura'):
+            legislatura = self.request.GET.get('legislatura')
+            if legislatura:
+                # inválida ou inexistente: 404, como acontece com ?mesa=
+                try:
+                    existe = Legislatura.objects.filter(
+                        pk=int(legislatura)).exists()
+                except ValueError:
+                    existe = False
+                if not existe:
+                    raise Http404(_('Legislatura não encontrada.'))
                 return fk
 
             mesa = self.request.GET.get('mesa')

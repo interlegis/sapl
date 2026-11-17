@@ -1085,3 +1085,26 @@ def test_composicaomesa_create_mesa_inexistente_retorna_404(admin_client):
     response = admin_client.get(reverse(
         'sapl.parlamentares:composicaomesa_create', kwargs={'pk': 999999}))
     assert response.status_code == 404
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('legislatura', ['abc', '²', '999999'])
+def test_mesadiretora_list_legislatura_invalida_retorna_404(
+        client, mesas_duas_legislaturas, legislatura):
+    response = client.get(reverse('sapl.parlamentares:mesadiretora_list'),
+                          {'legislatura': legislatura})
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_list_legislatura_sem_mesas_avisa(client):
+    """Ex.: início de uma legislatura nova, antes de a mesa ser cadastrada."""
+    nova = baker.make('parlamentares.Legislatura',
+                      data_inicio=date(2025, 1, 1),
+                      data_fim=date(2028, 12, 31))
+    response = client.get(reverse('sapl.parlamentares:mesadiretora_list'),
+                          {'legislatura': nova.pk})
+    html = response.content.decode()
+    assert response.status_code == 200
+    assert 'Nenhuma Mesa Diretora cadastrada para esta legislatura.' in html
+    assert 'class="nav nav-tabs nav-tabs--dropdown"' not in html
