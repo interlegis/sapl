@@ -51,7 +51,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-      curl jq bash tzdata fontconfig tini libmagic1 \
+      curl jq bash tzdata fontconfig tini libmagic1 media-types \
       libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
       libharfbuzz0b libfreetype6 libjpeg62-turbo zlib1g fonts-dejavu-core; \
     if [ "$WITH_GRAPHVIZ" = "1" ]; then apt-get install -y --no-install-recommends graphviz; fi; \

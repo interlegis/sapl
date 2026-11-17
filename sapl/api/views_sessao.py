@@ -7,7 +7,8 @@ from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
     customize, wrapper_queryset_response_for_drf_action
 from sapl.api.serializers import ChoiceSerializer,\
     SessaoPlenariaECidadaniaSerializer
-from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao
+from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao,\
+    restringe_sessoes_visiveis
 from sapl.utils import choice_anos_com_sessaoplenaria
 
 
@@ -21,6 +22,13 @@ ApiViewSetConstrutor.build_class(
 @customize(SessaoPlenaria)
 class _SessaoPlenariaViewSet:
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # actions com wrapper_queryset_response_for_drf_action trocam o model
+        if qs.model is SessaoPlenaria:
+            qs = restringe_sessoes_visiveis(qs, self.request.user)
+        return qs
+
     @action(detail=False)
     def years(self, request, *args, **kwargs):
         years = choice_anos_com_sessaoplenaria()
@@ -30,6 +38,7 @@ class _SessaoPlenariaViewSet:
 
     @action(detail=True)
     def expedientes(self, request, *args, **kwargs):
+        self.get_object()
         return self.get_expedientes()
 
     @wrapper_queryset_response_for_drf_action(model=ExpedienteSessao)
@@ -45,3 +54,20 @@ class _SessaoPlenariaViewSet:
     def ecidadania_list(self, request, *args, **kwargs):
         self.serializer_class = SessaoPlenariaECidadaniaSerializer
         return self.list(request, *args, **kwargs)
+
+
+class _RestringeSessoesVisiveisMixin:
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_authenticated:
+            return qs
+        return qs.filter(sessao_plenaria__in=restringe_sessoes_visiveis(
+            SessaoPlenaria.objects.all(), self.request.user))
+
+
+for _model in apps.get_app_config('sessao').get_models():
+    if _model is not SessaoPlenaria and any(
+            f.name == 'sessao_plenaria' for f in _model._meta.fields):
+        customize(_model)(type('_%sViewSet' % _model.__name__,
+                               (_RestringeSessoesVisiveisMixin,), {}))

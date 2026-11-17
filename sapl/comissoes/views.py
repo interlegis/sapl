@@ -22,7 +22,7 @@ from sapl.comissoes.forms import (ComissaoForm, ComposicaoForm,
                                   ParticipacaoCreateForm, 
                                   ParticipacaoEditForm,
                                   PautaReuniaoFilterSet, PautaReuniaoForm,
-                                  PeriodoForm, ReuniaoForm)
+                                  PeriodoForm, ReuniaoFilterSet, ReuniaoForm)
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, RP_DETAIL,
                             RP_LIST)
@@ -216,7 +216,7 @@ class ReuniaoCrud(MasterDetailCrud):
     public = [RP_LIST, RP_DETAIL, ]
 
     class BaseMixin(MasterDetailCrud.BaseMixin):
-        list_field_names = ['data', 'nome', 'tema', 'upload_ata']
+        list_field_names = ['data', 'nome', 'tema', 'upload_pauta', 'upload_ata']
 
     class DetailView(MasterDetailCrud.DetailView):
         template_name = "comissoes/reuniao_detail.html"
@@ -248,6 +248,11 @@ class ReuniaoCrud(MasterDetailCrud):
         logger = logging.getLogger(__name__)
         paginate_by = 10
 
+        def get_queryset(self):
+            qs = super().get_queryset()
+            self.filterset = ReuniaoFilterSet(self.request.GET, queryset=qs)
+            return self.filterset.qs
+
         def take_reuniao_pk(self):
 
             username = self.request.user.username
@@ -276,6 +281,8 @@ class ReuniaoCrud(MasterDetailCrud):
             context['documentoacessorio_set'] = DocumentoAcessorio.objects.filter(
                 reuniao__pk=context['reuniao_pk']
             ).order_by('id')
+
+            context['form'] = self.filterset.form
             return context
 
     class UpdateView(MasterDetailCrud.UpdateView):

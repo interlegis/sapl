@@ -6,7 +6,8 @@ from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
-from sapl.base.models import Autor, AppConfig as SaplAppConfig
+from sapl.base.models import Autor, AppConfig as SaplAppConfig, \
+    DOC_ADM_OSTENSIVO
 from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao,\
     MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
@@ -158,6 +159,9 @@ class DocumentoAdministrativo(models.Model):
     tipo = models.ForeignKey(
         TipoDocumentoAdministrativo, on_delete=models.PROTECT,
         verbose_name=_('Tipo Documento'))
+    data_ultima_atualizacao = models.DateTimeField(
+        blank=True, null=True, auto_now=True,
+        verbose_name=_('Data da Última Atualização'))
     numero = models.PositiveIntegerField(verbose_name=_('Número'))
 
     complemento = models.CharField(max_length=10, blank=True,
@@ -339,6 +343,13 @@ class DocumentoAdministrativo(models.Model):
                                  force_update=force_update,
                                  using=using,
                                  update_fields=update_fields)
+
+
+def pode_ver_documento_adm(user, documento):
+    """Mesmas regras da página de detalhe do documento (CRUD)."""
+    if SaplAppConfig.attr('documentos_administrativos') == DOC_ADM_OSTENSIVO:
+        return not (documento.restrito and user.is_anonymous)
+    return user.has_perm('protocoloadm.detail_documentoadministrativo')
 
 
 class DocumentoAcessorioAdministrativo(models.Model):

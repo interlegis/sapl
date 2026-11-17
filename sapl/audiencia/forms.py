@@ -10,9 +10,9 @@ from django.utils.translation import ugettext_lazy as _
 from crispy_forms.layout import Button, Column, Fieldset, HTML, Layout
 
 from sapl.audiencia.models import AudienciaPublica, TipoAudienciaPublica, AnexoAudienciaPublica
+from sapl.base.models import Autor
 from sapl.crispy_layout_mixin import form_actions, SaplFormHelper, SaplFormLayout, to_row
 from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
-from sapl.parlamentares.models import Parlamentar
 from sapl.utils import timezone, FileFieldCheckMixin, validar_arquivo
 
 
@@ -44,10 +44,10 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
         widget=forms.HiddenInput(),
         queryset=MateriaLegislativa.objects.all())
 
-    parlamentar_autor = forms.ModelChoiceField(
-        label=_("Parlamentar Autor"),
+    autor = forms.ModelChoiceField(
+        label=_("Autor"),
         required=False,
-        queryset=Parlamentar.objects.all())
+        queryset=Autor.objects.all().order_by('nome'))
 
     requerimento = forms.ModelChoiceField(
         label=_("Requerimento"),
@@ -58,7 +58,7 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
         model = AudienciaPublica
         fields = ['tipo', 'numero', 'ano', 'nome',
                   'tema', 'data', 'hora_inicio', 'hora_fim',
-                  'observacao', 'audiencia_cancelada', 'parlamentar_autor', 'requerimento', 'url_audio',
+                  'observacao', 'audiencia_cancelada', 'autor', 'requerimento', 'url_audio',
                   'url_video', 'upload_pauta', 'upload_ata',
                   'upload_anexo', 'tipo_materia', 'numero_materia',
                   'ano_materia', 'materia']
@@ -85,7 +85,7 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
         materia = cleaned_data['numero_materia']
         ano_materia = cleaned_data['ano_materia']
         tipo_materia = cleaned_data['tipo_materia']
-        parlamentar_autor = cleaned_data["parlamentar_autor"]
+        autor = cleaned_data["autor"]
         requerimento = cleaned_data["requerimento"]
 
         if cleaned_data["ano"] != cleaned_data["data"].year:
@@ -157,12 +157,12 @@ class AudienciaForm(FileFieldCheckMixin, forms.ModelForm):
                 raise ValidationError(msg)
 
         # requerimento é optativo
-        if parlamentar_autor and requerimento:
-            if parlamentar_autor.autor.first() not in requerimento.autores.all():
-                raise ValidationError("Parlamentar Autor selecionado não faz"
+        if autor and requerimento:
+            if autor not in requerimento.autores.all():
+                raise ValidationError("Autor selecionado não faz"
                                       " parte da autoria do Requerimento "
                                       "selecionado.")
-        elif parlamentar_autor:
+        elif autor:
             raise ValidationError("Para informar um autor deve-se informar um requerimento.")
         elif requerimento:
             raise ValidationError("Para informar um requerimento deve-se informar um autor.")

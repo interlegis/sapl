@@ -17,8 +17,14 @@
               <a href="{% url 'sapl.compilacao:ta_text_edit' object.pk %}?{% if object.editing_locked %}unlock{%else%}lock{% endif %}" class="btn {% if object.editing_locked %}btn-outline-danger{%else%}btn-outline-primary{% endif %}">{% if object.editing_locked %}{% trans 'Desbloquear Edição' %}{%else%}{% trans 'Publicar Texto' %}{% endif %}</a>
         {% endif %}
       </div>
-      <div class="actions btn-group dropleft" role="group">
-        {% include 'compilacao/textoarticulado_menu_config.html' %}
+      <div class="d-flex">
+        <div class="actions btn-group mr-2" role="group">
+          <a class="btn btn-outline-primary" id="btn_font_menos" title="{% trans 'Diminuir tamanho da letra' %}">a</a>
+          <a class="btn btn-outline-primary" id="btn_font_mais" title="{% trans 'Aumentar tamanho da letra' %}">A</a>
+        </div>
+        <div class="actions btn-group dropleft" role="group">
+          {% include 'compilacao/textoarticulado_menu_config.html' %}
+        </div>
       </div>
     </div>
     {% if object.dispositivos_set.count == 1 %}

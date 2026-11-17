@@ -1,4 +1,42 @@
 
+3.1.165-RC4 / 2026-10-14
+========================
+
+  * Restaura imports perdidos na resolução de conflitos de #3849/#3855 (#3867)
+  * Sanitiza HTML/JavaScript nos campos TextField (stored XSS) (#3846)
+  * Fix N+1 queries in sessão/relatórios and remove unused painel views (#3849)
+  * Corrige travas e concorrência na votação nominal do painel (#3855)
+  * Restringe acesso a arquivos de mídia (#3865)
+  * Converte títulos colados em parágrafos no editor de dispositivos (#3863)
+  * Permite ajustar e persistir o tamanho da letra no editor de textos articulados (#3862)
+  * Mantém visíveis ao público as sessões de hoje e de datas passadas (#3864)
+  * Melhorias de transparência (PNTP): correções de relatórios e novas funcionalidades (#3842)
+  * Impede presenças duplicadas de parlamentar na mesma sessão (#3850)
+
+3.1.165-RC3 / 2026-09-01
+========================
+
+  * Corrige SQL injection em DispositivoSearchFragmentFormView (#3856)
+  * Remove limite de caracteres do campo Informação Geral da Casa (#3848)
+  * Oculta sessões plenárias não iniciadas da consulta pública (#3845)
+  * hot-fix: Adiciona MIME Media Types opcionais para CSV.
+  * hot-fix: Remove alerta errado
+  * Corrige ordem dos expedientes no PDF do Resumo da Sessão (#3844)
+  * hot-fix: imprime somente contéudo da ocorrência
+  * Fix duplicate normas/matérias in author reports and prevent unfiltered queries
+  * Fix ValueError in audiencia form and AttributeError on HEAD requests
+  * Fix panel clock source and prevent overlapping polling
+  * hot-fix: recover epoch from server always
+  * Corrige polling excessivo e bloqueia não-votantes em /voto-individual/ (#3831)
+  * Hot-fix: corrige cópia de request.data
+  * Release: 3.1.165-RC2
+  * #3821 centralizar geração próximo número para create de matérias legislativas (#3822)
+
+3.1.166-RC0 / 2026-09-01
+========================
+
+
+
 3.1.165-RC2 / 2026-03-26
 ========================
 

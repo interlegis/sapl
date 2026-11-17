@@ -54,7 +54,7 @@
 							<b>{{e.tipo}}: </b> <br><br>
 							<div style="border:0.5px solid #BAB4B1; border-radius: 10px;
 								background-color: rgba(225, 225, 225, .8);">
-								<p>{{e.conteudo|safe}}</p>
+								<p>{{e.conteudo|sanitize}}</p>
 							</div>
 						</td>
 					</tr>
@@ -82,7 +82,7 @@
 								{{m.ementa|dont_break_out}}
 								{% if m.observacao %}<br><br>Obs.: {{m.observacao}} {% endif %}
 							</td>
-							<td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
+							<td style="width:20%;">{{m.situacao|linebreaksbr}}</td>
 					</tr>
 				{% endfor %}
 			</table>
@@ -108,7 +108,7 @@
 							{{m.ementa|dont_break_out}}
 							{% if m.observacao %}<br><br>Obs.: {{m.observacao}} {% endif %}
 						</td>
-						<td style="width:20%;">{{m.situacao|linebreaksbr|safe}}</td>
+						<td style="width:20%;">{{m.situacao|linebreaksbr}}</td>
 					</tr>
     			{% endfor %}
   			</table>

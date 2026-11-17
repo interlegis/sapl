@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -14,7 +15,8 @@ class CheckWeakPasswordMiddleware:
         if request.user.is_authenticated and \
                 request.session.get('weak_password', False) and \
                 request.path != reverse('sapl.base:alterar_senha') and \
-                request.path != reverse('sapl.base:logout'):
+                request.path != reverse('sapl.base:logout') and \
+                not request.path.startswith(settings.MEDIA_URL):
             logging.warning(f"Usuário {request.user.username} possui senha fraca.")
             return redirect('sapl.base:alterar_senha')
 

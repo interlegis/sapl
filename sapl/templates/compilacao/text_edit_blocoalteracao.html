@@ -5,7 +5,7 @@
     <div class="dpt" id="dpt{{ch.id}}" pk="{{ch.id}}" >
       <div class="{{ ch.tipo_dispositivo.class_css }}" id="id{{ch.id}}" nivel="{{ch.nivel}}" style="margin: 0px;">
         <div class="de-compilacao" id="id{{ch.id}}" pk="{{ch.pk}}" ordem="{{ch.ordem}}" name="{{ch.pk}}" title="{{ch.pk}} - {{ch.ordem}}">
-          {{ ch.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text_edit' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>{{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|safe }}
+          {{ ch.tipo_dispositivo.rotulo_prefixo_html|safe }}<a name="{{ch.pk}}" href="{% url 'sapl.compilacao:ta_text_edit' ch.ta.pk %}#{{ch.pk}}">{{ ch.rotulo }}</a>{{ ch.tipo_dispositivo.rotulo_sufixo_html|safe }}{{ ch.tipo_dispositivo.texto_prefixo_html|safe }}{{ ch.texto|sanitize }}
         </div>
       </div>
     </div>

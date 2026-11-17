@@ -1,5 +1,7 @@
 import sys
 
+from django.utils.translation import ugettext_lazy as _
+
 DISPOSITIVO_SELECT_RELATED = (
     'tipo_dispositivo',
     'ta_publicado',
@@ -66,3 +68,14 @@ def get_integrations_view_names():
                         if 'IntegracaoTaView' in str(base):
                             result.append(v)
     return result
+
+
+def valid_int(value):
+    if value:
+        try:
+            int(value)
+        except (TypeError, ValueError):
+            raise ValueError(
+                _('Valor "%(value)s" não é um número inteiro válido.') % {
+                    'value': value})
+    return value

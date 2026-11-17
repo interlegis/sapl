@@ -32,7 +32,8 @@ from django_filters.views import FilterView
 
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
-from sapl.base.models import Autor, CasaLegislativa, AppConfig
+from sapl.base.models import (Autor, CasaLegislativa, AppConfig,
+                              DOC_ADM_OSTENSIVO)
 from sapl.comissoes.models import Comissao
 from sapl.crud.base import (Crud, CrudAux, MasterDetailCrud, make_pagination,
                             RP_LIST, RP_DETAIL)
@@ -42,7 +43,7 @@ from sapl.parlamentares.models import Legislatura, Parlamentar
 from sapl.protocoloadm.forms import VinculoDocAdminMateriaForm,\
     VinculoDocAdminMateriaEmLoteFilterSet
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo,\
-    VinculoDocAdminMateria
+    VinculoDocAdminMateria, pode_ver_documento_adm
 from sapl.relatorios.views import relatorio_doc_administrativos
 from sapl.utils import (create_barcode, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
@@ -101,15 +102,9 @@ def recuperar_materia_protocolo(request):
 
 
 def doc_texto_integral(request, pk):
-    can_see = True
+    documento = get_object_or_404(DocumentoAdministrativo, pk=pk)
 
-    if not request.user.is_authenticated:
-        app_config = AppConfig.objects.last()
-        if app_config and app_config.documentos_administrativos == 'R':
-            can_see = False
-
-    if can_see:
-        documento = DocumentoAdministrativo.objects.get(pk=pk)
+    if pode_ver_documento_adm(request.user, documento):
         if documento.texto_integral:
             arquivo = documento.texto_integral
 
@@ -127,6 +122,8 @@ def doc_texto_integral(request, pk):
 
 def get_pdf_docacessorios(request, pk):
     documento_administrativo = get_object_or_404(DocumentoAdministrativo, pk=pk)
+    if not pode_ver_documento_adm(request.user, documento_administrativo):
+        raise Http404
     logger = logging.getLogger(__name__)
     username = 'Usuário anônimo' if request.user.is_anonymous else request.user.username
     try:
@@ -137,21 +134,24 @@ def get_pdf_docacessorios(request, pk):
         logger.error("user= {}.Não há arquivos cadastrados".format(username))
         msg = _('Não há arquivos cadastrados nesses documentos acessórios.')
         messages.add_message(request, messages.ERROR, msg)
-        return redirect(reverse('sapl.materia:documentoacessorio_list',
-                                kwargs={'pk': pk}))
+        return redirect(reverse(
+            'sapl.protocoloadm:documentoacessorioadministrativo_list',
+            kwargs={'pk': pk}))
     except Exception as e:
         logger.error("user= {}.Um erro inesperado ocorreu na criação do pdf de documentos acessorios: {}"
                      .format(username, str(e)))
         msg = _('Um erro inesperado ocorreu. Entre em contato com o suporte do SAPL.')
         messages.add_message(request, messages.ERROR, msg)
-        return redirect(reverse('sapl.materia:documentoacessorio_list',
-                                kwargs={'pk': pk}))
+        return redirect(reverse(
+            'sapl.protocoloadm:documentoacessorioadministrativo_list',
+            kwargs={'pk': pk}))
 
     if not data:
         msg = _('Não há nenhum documento acessório PDF cadastrado.')
         messages.add_message(request, messages.ERROR, msg)
-        return redirect(reverse('sapl.materia:documentoacessorio_list',
-                                kwargs={'pk': pk}))
+        return redirect(reverse(
+            'sapl.protocoloadm:documentoacessorioadministrativo_list',
+            kwargs={'pk': pk}))
 
     response = HttpResponse(data, content_type='application/pdf')
     response['Content-Disposition'] = ('attachment; filename="%s"'
@@ -401,8 +401,8 @@ class AcompanhamentoDocumentoView(CreateView):
 class DocumentoAdministrativoMixin:
 
     def has_permission(self):
-        app_config = AppConfig.objects.last()
-        if app_config and app_config.documentos_administrativos == 'O':
+        # mesmo acessor de pode_ver_documento_adm, usado nos arquivos
+        if AppConfig.attr('documentos_administrativos') == DOC_ADM_OSTENSIVO:
             return True
 
         return super().has_permission()
@@ -498,7 +498,7 @@ class DocumentoAdministrativoCrud(Crud):
 
         def get(self, *args, **kwargs):
             pk = self.kwargs['pk']
-            documento = DocumentoAdministrativo.objects.get(id=pk)
+            documento = get_object_or_404(DocumentoAdministrativo, pk=pk)
             if documento.restrito and self.request.user.is_anonymous:
                 return redirect('/')
             return super(Crud.DetailView, self).get(args, kwargs)

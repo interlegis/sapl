@@ -41,6 +41,7 @@ from django.utils.translation import ugettext_lazy as _
 import django_filters
 from easy_thumbnails import source_generators
 import magic
+import mimetypes
 import requests
 from unipath.path import Path
 from xlsxwriter.workbook import Workbook
@@ -133,6 +134,7 @@ def num_materias_por_tipo(qs, attr_tipo='tipo'):
 
 
 def validar_arquivo(arquivo, nome_campo):
+    rejeita_conteudo_ativo(arquivo)
     if len(arquivo.name) > 200:
         raise ValidationError(
             "Certifique-se de que o nome do arquivo no "
@@ -607,6 +609,45 @@ class FilterOverridesMetaMixin:
     }
 
 
+# Extensões que o navegador pode executar como página na origem do SAPL.
+# Não depender só de mimetypes: sem /etc/mime.types (imagem slim) várias
+# destas não são reconhecidas. Manter em sincronia com sapl.conf.
+EXTENSOES_ATIVAS = {
+    '.html', '.htm', '.xhtml', '.xht', '.shtml', '.svg', '.svgz', '.xml',
+    '.xsl', '.xslt', '.rdf', '.js', '.mjs', '.mht', '.mhtml', '.rss', '.atom',
+    '.mml', '.kml', '.xspf',
+}
+
+MIMES_ATIVOS = {
+    'text/html', 'application/xhtml+xml', 'image/svg+xml', 'text/xml',
+    'application/xml', 'application/javascript', 'text/javascript',
+}
+
+
+def tipo_ativo(mime):
+    """MIME que o navegador renderiza como documento capaz de rodar script."""
+    if not mime:
+        return False
+    mime = mime.lower()
+    return (mime in MIMES_ATIVOS or 'html' in mime or 'javascript' in mime
+            or mime.endswith('/xml') or mime.endswith('+xml'))
+
+
+def rejeita_conteudo_ativo(arquivo):
+    """Recusa uploads que o navegador executaria como página, pela extensão
+    ou pelo conteúdo. Arquivos já gravados não são checados, para não impedir
+    a edição de registros antigos."""
+    if not isinstance(arquivo, UploadedFile):
+        return
+    if os.path.splitext(arquivo.name)[1].lower() in EXTENSOES_ATIVAS or \
+            tipo_ativo(mimetypes.guess_type(arquivo.name)[0]):
+        raise ValidationError(_('Tipo de arquivo não permitido.'))
+    arquivo.seek(0)
+    mime = magic.from_buffer(arquivo.read(2048), mime=True)
+    arquivo.seek(0)
+    if tipo_ativo(mime):
+        raise ValidationError(_('Tipo de arquivo não permitido.'))
+
 TIPOS_TEXTO_PERMITIDOS = (
     'application/vnd.oasis.opendocument.text',
     'application/x-vnd.oasis.opendocument.text',
@@ -627,8 +668,15 @@ TIPOS_TEXTO_PERMITIDOS = (
     'widetext/paragraph',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/xml',
-    'text/xml',
+    # Formatos editáveis de planilha/CSV (atende à gravação de relatórios do PNTP).
+    'text/csv',
+    'application/csv',
+    'text/comma-separated-values',
+    'application/vnd.ms-excel',  # .xls
+    'application/x-ole-storage',  # .xls (detecção OLE2 legada do libmagic)
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  # .xlsx
+    'application/vnd.oasis.opendocument.spreadsheet',  # .ods / calc
+    'application/x-vnd.oasis.opendocument.spreadsheet',
 )
 
 TIPOS_IMG_PERMITIDOS = (
@@ -654,6 +702,7 @@ TIPOS_IMG_PERMITIDOS = (
 
 def fabrica_validador_de_tipos_de_arquivo(lista, nome):
     def restringe_tipos_de_arquivo(value):
+        rejeita_conteudo_ativo(value)
 
         filename = value.name if type(value) in (
             InMemoryUploadedFile, TemporaryUploadedFile
@@ -941,21 +990,57 @@ def qs_override_django_filter(self):
 def filiacao_data(parlamentar, data_inicio, data_fim=None):
     from sapl.parlamentares.models import Filiacao
 
-    filiacoes_parlamentar = Filiacao.objects.filter(
-        parlamentar=parlamentar)
+    filiacoes = _filiacoes_prefetchadas(parlamentar, data_inicio, data_fim)
 
-    filiacoes = filiacoes_parlamentar.filter(Q(
-        data__lte=data_inicio,
-        data_desfiliacao__isnull=True) | Q(
-        data__lte=data_inicio,
-        data_desfiliacao__gte=data_inicio))
+    if filiacoes is None:
+        filiacoes_parlamentar = Filiacao.objects.filter(
+            parlamentar=parlamentar)
 
-    if data_fim:
-        filiacoes = filiacoes | filiacoes_parlamentar.filter(
-            data__gte=data_inicio,
-            data__lte=data_fim)
+        filiacoes = filiacoes_parlamentar.filter(Q(
+            data__lte=data_inicio,
+            data_desfiliacao__isnull=True) | Q(
+            data__lte=data_inicio,
+            data_desfiliacao__gte=data_inicio))
+
+        if data_fim:
+            filiacoes = filiacoes | filiacoes_parlamentar.filter(
+                data__gte=data_inicio,
+                data__lte=data_fim)
 
     return ' | '.join([f.partido.sigla for f in filiacoes])
+
+
+def _filiacoes_prefetchadas(parlamentar, data_inicio, data_fim=None):
+    """Aplica em memória o mesmo predicado de `filiacao_data`, quando
+    `filiacao_set` já veio prefetchado.
+
+    O resumo/ata da sessão chama `filiacao_data_filter` duas vezes por
+    parlamentar exibido; sem isso cada chamada custa 1+N queries. Retorna
+    `None` quando não há prefetch, para que o chamador use o caminho SQL.
+
+    O queryset do prefetch deve replicar `Filiacao.Meta.ordering` para que a
+    sequência de siglas saia idêntica à da consulta ao banco.
+    """
+    if not data_inicio:
+        return None
+
+    cache = getattr(parlamentar, '_prefetched_objects_cache', None)
+    if not cache:
+        return None
+
+    cache_name = parlamentar.filiacao_set.field.remote_field.get_cache_name()
+    if cache_name not in cache:
+        return None
+
+    def selecionada(f):
+        if f.data <= data_inicio and (f.data_desfiliacao is None
+                                      or f.data_desfiliacao >= data_inicio):
+            return True
+        if data_fim:
+            return data_inicio <= f.data <= data_fim
+        return False
+
+    return [f for f in cache[cache_name] if selecionada(f)]
 
 
 def parlamentares_ativos(data_inicio, data_fim=None):
