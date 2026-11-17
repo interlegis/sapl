@@ -1070,6 +1070,16 @@ class MesaDiretoraCrud(Crud):
             context = super().get_context_data(**kwargs)
             context['subnav_template_name'] = ''
             context['title'] = ' '
+
+            # Aba aberta na tela pública: a de ?mesa=, se ela estiver na
+            # legislatura listada; senão, a primeira.
+            ids = [m.id for m in context['object_list']]
+            try:
+                mesa = int(self.request.GET.get('mesa', ''))
+            except ValueError:
+                mesa = None
+            context['mesa_ativa'] = mesa if mesa in ids else (
+                ids[0] if ids else None)
             return context
 
         def get(self, request, *args, **kwargs):

@@ -1108,3 +1108,44 @@ def test_mesadiretora_list_legislatura_sem_mesas_avisa(client):
     assert response.status_code == 200
     assert 'Nenhuma Mesa Diretora cadastrada para esta legislatura.' in html
     assert 'class="nav nav-tabs nav-tabs--dropdown"' not in html
+
+
+def _abas_ativas(html):
+    import re
+    abas = re.findall(r'class="nav-link active" id="tab-mesa-(\d+)-tab"', html)
+    paineis = re.findall(r'tab-pane fade show active" id="tab-mesa-(\d+)"',
+                         html)
+    return abas, paineis
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_list_aba_ativa(client):
+    leg_a = baker.make('parlamentares.Legislatura',
+                       data_inicio=date(2017, 1, 1),
+                       data_fim=date(2020, 12, 31))
+    leg_b = baker.make('parlamentares.Legislatura',
+                       data_inicio=date(2021, 1, 1),
+                       data_fim=date(2024, 12, 31))
+    outra = baker.make('parlamentares.MesaDiretora', legislatura=leg_a,
+                       data_inicio=date(2017, 1, 1),
+                       data_fim=date(2018, 12, 31))
+    antiga = baker.make('parlamentares.MesaDiretora', legislatura=leg_b,
+                        data_inicio=date(2021, 1, 1),
+                        data_fim=date(2022, 12, 31))
+    recente = baker.make('parlamentares.MesaDiretora', legislatura=leg_b,
+                         data_inicio=date(2023, 1, 1),
+                         data_fim=date(2024, 12, 31))
+    url = reverse('sapl.parlamentares:mesadiretora_list')
+
+    def ativas(params):
+        return _abas_ativas(client.get(url, params).content.decode())
+
+    # sem ?mesa=: a primeira (mais recente)
+    assert ativas({'legislatura': leg_b.pk}) == ([str(recente.pk)],
+                                                 [str(recente.pk)])
+    # ?mesa= da própria legislatura
+    assert ativas({'mesa': antiga.pk}) == ([str(antiga.pk)],
+                                           [str(antiga.pk)])
+    # ?mesa= de outra legislatura: antes nenhuma aba ficava ativa
+    assert ativas({'legislatura': leg_b.pk, 'mesa': outra.pk}) == (
+        [str(recente.pk)], [str(recente.pk)])

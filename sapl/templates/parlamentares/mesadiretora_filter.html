@@ -21,7 +21,7 @@
 
         <ul class="nav nav-tabs nav-tabs--dropdown" role="tablist">
           {% for md in object_list %}
-            {% if request.GET.mesa == md.id|stringformat:"s" or not request.GET.mesa and forloop.first %}
+            {% if md.id == mesa_ativa %}
               <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-mesa-{{ md.id }}-tab" data-toggle="tab" data-target="#tab-mesa-{{ md.id }}" type="button" role="tab" aria-controls="tab-mesa-{{ md.id }}" aria-selected="true">{{ md }}</button>
               </li>
@@ -34,7 +34,7 @@
         </ul>
         <div class="tab-content">
           {% for md in object_list %}
-            {% if request.GET.mesa == md.id|stringformat:"s" or not request.GET.mesa and forloop.first %}
+            {% if md.id == mesa_ativa %}
               <div class="lista-parlamentares tab-pane fade show active" id="tab-mesa-{{ md.id }}" role="tabpanel" aria-labelledby="tab-mesa-{{ md.id }}-tab">
             {% else %}
               <div class="lista-parlamentares tab-pane fade" id="tab-mesa-{{ md.id }}" role="tabpanel" aria-labelledby="tab-mesa-{{ md.id }}-tab">
