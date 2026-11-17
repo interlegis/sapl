@@ -16,7 +16,7 @@
     <div class="row">
       <div class="col-12">
 
-        <ul class="nav nav-tabs" role="tablist">
+        <ul class="nav nav-tabs nav-tabs--dropdown" role="tablist">
           {% for md in object_list %}
             {% if request.GET.mesa == md.id|stringformat:"s" or not request.GET.mesa and forloop.first %}
               <li class="nav-item" role="presentation">
@@ -81,7 +81,7 @@
   // Suporte nativo a :has() — o CSS cuida de tudo, JS não é necessário
   if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('selector(:has(*))')) return;
 
-  var mq = window.matchMedia('(max-width: 767px)');
+  var mq = window.matchMedia('(max-width: 991px)');
 
   function collapse(tabs) {
     tabs.classList.remove('nav-tabs--open');
@@ -98,7 +98,7 @@
   }
 
   function init() {
-    [].forEach.call(document.querySelectorAll('.nav-tabs'), function (tabs) {
+    [].forEach.call(document.querySelectorAll('.nav-tabs--dropdown'), function (tabs) {
       if (tabs._dropdownBound) return;
       tabs._dropdownBound = true;
 
@@ -128,7 +128,7 @@
 
     // Estado inicial e ao redimensionar
     function applyState(matches) {
-      [].forEach.call(document.querySelectorAll('.nav-tabs'), function (tabs) {
+      [].forEach.call(document.querySelectorAll('.nav-tabs--dropdown'), function (tabs) {
         tabs.classList.remove('nav-tabs--open');
         [].forEach.call(tabs.querySelectorAll('.nav-item'), function (item) {
           item.style.display = '';

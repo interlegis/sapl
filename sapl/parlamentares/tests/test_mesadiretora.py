@@ -850,3 +850,13 @@ def test_mesadiretora_list_select_legislatura_sem_opcao_em_branco(
                        re.S).group(0)
     assert 'value=""' not in select
     assert select.count('<option') == 2
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_list_publica_usa_abas_em_dropdown(
+        client, mesas_duas_legislaturas):
+    """O estilo de dropdown é opt-in pela classe .nav-tabs--dropdown, para
+    não afetar outras telas com .nav-tabs (ex.: subnav da compilação)."""
+    html = client.get(
+        reverse('sapl.parlamentares:mesadiretora_list')).content.decode()
+    assert 'class="nav nav-tabs nav-tabs--dropdown"' in html
