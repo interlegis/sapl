@@ -884,6 +884,10 @@ def test_migration_titulo_nao_repete_o_ano():
     bienio = baker.make(MesaDiretora, legislatura=leg, titulo='',
                         data_inicio=date(2023, 2, 1),
                         data_fim=date(2024, 12, 31))
+    editado = baker.make(MesaDiretora, legislatura=leg,
+                         titulo='Mesa da Transição',
+                         data_inicio=date(2024, 12, 31),
+                         data_fim=date(2024, 12, 31))
 
     with connection.schema_editor() as editor:
         migration.preencher_titulo_mesa_diretora(None, editor)
@@ -893,6 +897,9 @@ def test_migration_titulo_nao_repete_o_ano():
     assert um_ano.titulo == 'Mesa Diretora 2021'
     assert vira_o_ano.titulo == 'Mesa Diretora 2022/2023'
     assert bienio.titulo == 'Mesa Diretora Biênio 2023/2024'
+    # reaplicar a migration não sobrescreve título já preenchido
+    editado.refresh_from_db()
+    assert editado.titulo == 'Mesa da Transição'
 
 
 @pytest.mark.django_db(transaction=False)

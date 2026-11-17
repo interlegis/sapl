@@ -17,6 +17,7 @@ def preencher_titulo_mesa_diretora(apps, schema_editor):
                  ELSE ''
             END
         WHERE data_inicio IS NOT NULL AND data_fim IS NOT NULL
+          AND titulo = ''
     """)
 
 
