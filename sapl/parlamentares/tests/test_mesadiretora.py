@@ -1149,3 +1149,33 @@ def test_mesadiretora_list_aba_ativa(client):
     # ?mesa= de outra legislatura: antes nenhuma aba ficava ativa
     assert ativas({'legislatura': leg_b.pk, 'mesa': outra.pk}) == (
         [str(recente.pk)], [str(recente.pk)])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_list_queries_nao_crescem_com_as_mesas(client):
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    def legislatura_com(n_mesas, ano):
+        leg = baker.make('parlamentares.Legislatura',
+                         data_inicio=date(ano, 1, 1),
+                         data_fim=date(ano + 3, 12, 31))
+        for i in range(n_mesas):
+            mesa = baker.make('parlamentares.MesaDiretora', legislatura=leg,
+                              titulo='Mesa {}'.format(i),
+                              data_inicio=date(ano + i, 1, 1),
+                              data_fim=date(ano + i, 12, 31))
+            baker.make('parlamentares.ComposicaoMesa', mesa_diretora=mesa,
+                       _quantity=2)
+        return leg
+
+    url = reverse('sapl.parlamentares:mesadiretora_list')
+    pequena, grande = legislatura_com(1, 2013), legislatura_com(4, 2017)
+
+    def queries(leg):
+        client.get(url, {'legislatura': leg.pk})  # aquece caches
+        with CaptureQueriesContext(connection) as ctx:
+            client.get(url, {'legislatura': leg.pk})
+        return len(ctx.captured_queries)
+
+    assert queries(pequena) == queries(grande)

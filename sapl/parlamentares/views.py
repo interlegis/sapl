@@ -1061,7 +1061,11 @@ class MesaDiretoraCrud(Crud):
             return fk
 
         def get_queryset(self):
-            return super().get_queryset().prefetch_related(
+            # select_related: o Crud.ListView monta as linhas da tabela (com a
+            # coluna legislatura) mesmo quando a tela pública não as exibe.
+            return super().get_queryset().select_related(
+                'legislatura'
+            ).prefetch_related(
                 'composicaomesa_set__parlamentar__filiacao_set__partido',
                 'composicaomesa_set__cargo'
                 )
