@@ -893,3 +893,14 @@ def test_migration_titulo_nao_repete_o_ano():
     assert um_ano.titulo == 'Mesa Diretora 2021'
     assert vira_o_ano.titulo == 'Mesa Diretora 2022/2023'
     assert bienio.titulo == 'Mesa Diretora Biênio 2023/2024'
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_list_publica_sem_id_repetido(client):
+    mesa = baker.make('parlamentares.MesaDiretora')
+    for _i in range(2):
+        baker.make('parlamentares.ComposicaoMesa', mesa_diretora=mesa)
+    html = client.get(reverse('sapl.parlamentares:mesadiretora_list'),
+                      {'mesa': mesa.pk}).content.decode()
+    assert 'id="d-flex"' not in html
+    assert html.count('class="d-flex align-items-center"') == 2

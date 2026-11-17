@@ -52,7 +52,7 @@
                     {% for composicao in md.composicaomesa_set.all %}
                       <tr>
                         <td>
-                          <div id="d-flex">
+                          <div class="d-flex align-items-center">
                             {% if composicao.parlamentar.fotografia %}
                               <img class="img-fluid img-thumbnail" src="{% cropped_thumbnail composicao.parlamentar "cropping"%}">
                             {% endif %}
