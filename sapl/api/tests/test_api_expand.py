@@ -8,16 +8,19 @@ from rest_framework.relations import ManyRelatedField
 
 from drfautoapi.drfautoapi import ApiManyRelatedField, ExpandVisibility
 from sapl.api.tests.conftest import ids, resultados, status_ou_erro
-from sapl.base.models import DOC_ADM_OSTENSIVO, AppConfig
+from sapl.base.models import (DOC_ADM_OSTENSIVO, DOC_ADM_RESTRITIVO,
+                              AppConfig, Autor)
 from sapl.compilacao.models import (STATUS_TA_PRIVATE, STATUS_TA_PUBLIC,
                                     Dispositivo, Nota,
                                     PerfilEstruturalTextoArticulado,
                                     TextoArticulado, TipoTextoArticulado, Vide)
+from sapl.materia.models import Autoria, MateriaLegislativa
+from sapl.norma.models import AutoriaNorma, NormaJuridica
 from sapl.parlamentares.models import Filiacao, Mandato, Parlamentar
 from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
-                                     Protocolo)
-from sapl.sessao.models import (SessaoPlenaria, SessaoPlenariaPresenca,
-                                VotoParlamentar)
+                                     Protocolo, VinculoDocAdminMateria)
+from sapl.sessao.models import (Correspondencia, SessaoPlenaria,
+                                SessaoPlenariaPresenca, VotoParlamentar)
 
 # campos de ParlamentarSerializerPublic.Meta.exclude
 DADOS_PESSOAIS = {
@@ -465,6 +468,110 @@ def test_custo_da_visibilidade_dos_ids_de_many_to_many(
     assert custo_da_visibilidade(2, api()) == 1
     assert custo_da_visibilidade(6, api()) == 1
     assert custo_da_visibilidade(6, api(consulta)) == 0
+
+
+def _forma(valores):
+    """('obj', id) para um objeto expandido e ('id', id) para um id."""
+    return sorted(('obj', v['id']) if isinstance(v, dict) else ('id', v)
+                  for v in valores)
+
+
+def _escrita_e_leitura(client, url, dados, campo, expand=None):
+    """O campo na resposta de um PATCH e na de um GET do mesmo usuário."""
+    if expand:
+        url = f'{url}?expand={expand}'
+    escrita = client.patch(url, dados, format='json')
+    assert escrita.status_code == 200
+    leitura = client.get(url)
+    assert leitura.status_code == 200
+    return _forma(escrita.json()[campo]), _forma(leitura.json()[campo])
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('expand', [None, 'autores'])
+def test_resposta_de_escrita_mantem_os_autores_da_materia(
+        api, usuario, expand):
+    """
+    Os ManyToMany somente leitura seguem as permissões de listagem do model
+    relacionado, qualquer que seja o método da requisição. Quem altera a
+    matéria, mas não o autor, recebe na resposta do PATCH os mesmos autores
+    que recebe num GET.
+    """
+    materia = baker.make(MateriaLegislativa)
+    autor = baker.make(Autor)
+    baker.make(Autoria, materia=materia, autor=autor)
+    operador = usuario('materias', 'materia.change_materialegislativa')
+
+    escrita, leitura = _escrita_e_leitura(
+        api(operador), f'/api/materia/materialegislativa/{materia.pk}/',
+        {'ementa': 'Nova ementa'}, 'autores', expand)
+
+    assert leitura == [('obj' if expand else 'id', autor.pk)]
+    assert escrita == leitura
+
+
+@pytest.mark.django_db(transaction=False)
+def test_resposta_de_escrita_mantem_os_autores_da_norma(api, usuario):
+    norma = baker.make(NormaJuridica)
+    autor = baker.make(Autor)
+    baker.make(AutoriaNorma, norma=norma, autor=autor)
+    operador = usuario('normas', 'norma.change_normajuridica')
+
+    escrita, leitura = _escrita_e_leitura(
+        api(operador), f'/api/norma/normajuridica/{norma.pk}/',
+        {'ementa': 'Nova ementa'}, 'autores')
+
+    assert leitura == [('id', autor.pk)]
+    assert escrita == leitura
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('comportamento',
+                         [DOC_ADM_OSTENSIVO, DOC_ADM_RESTRITIVO])
+def test_resposta_de_escrita_mantem_as_correspondencias_da_sessao(
+        api, usuario, comportamento):
+    """
+    No modo ostensivo, quem altera a sessão vê os documentos das
+    correspondências. No restritivo, sem list_documentoadministrativo, não
+    vê nenhum. Nos dois, a resposta do PATCH é igual à do GET.
+    """
+    baker.make(AppConfig, documentos_administrativos=comportamento)
+    sessao = baker.make(SessaoPlenaria,
+                        data_inicio=datetime.date(2026, 1, 5), iniciada=True)
+    documentos = [baker.make(DocumentoAdministrativo, restrito=restrito)
+                  for restrito in (False, True)]
+    for numero_ordem, documento in enumerate(documentos, 1):
+        baker.make(Correspondencia, sessao_plenaria=sessao,
+                   documento=documento, numero_ordem=numero_ordem)
+    operador = usuario('sessoes', 'sessao.change_sessaoplenaria')
+
+    escrita, leitura = _escrita_e_leitura(
+        api(operador), f'/api/sessao/sessaoplenaria/{sessao.pk}/',
+        {'tema_solene': 'Tema'}, 'correspondencias')
+
+    if comportamento == DOC_ADM_OSTENSIVO:
+        assert leitura == sorted(('id', d.pk) for d in documentos)
+    else:
+        assert leitura == []
+    assert escrita == leitura
+
+
+@pytest.mark.django_db(transaction=False)
+def test_resposta_de_escrita_mantem_as_materias_vinculadas_ao_documento(
+        api, usuario):
+    baker.make(AppConfig, documentos_administrativos=DOC_ADM_OSTENSIVO)
+    documento = baker.make(DocumentoAdministrativo, restrito=False)
+    materia = baker.make(MateriaLegislativa)
+    baker.make(VinculoDocAdminMateria, documento=documento, materia=materia)
+    operador = usuario('documentos',
+                       'protocoloadm.change_documentoadministrativo')
+
+    escrita, leitura = _escrita_e_leitura(
+        api(operador), f'{URL_DOCUMENTO}{documento.pk}/',
+        {'assunto': 'Novo assunto'}, 'materiasvinculadas')
+
+    assert leitura == [('id', materia.pk)]
+    assert escrita == leitura
 
 
 @pytest.mark.django_db(transaction=False)
