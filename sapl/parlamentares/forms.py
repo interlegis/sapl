@@ -755,9 +755,12 @@ class BlocoMembroForm(ModelForm):
 
 class MesaDiretoraFilterSet(django_filters.FilterSet):
 
+    # empty_label=None: o select envia o form ao mudar, e a opção em
+    # branco listaria as mesas de todas as legislaturas.
     legislatura = django_filters.ModelChoiceFilter(
         label='',
         queryset=Legislatura.objects.all(),
+        empty_label=None,
         widget=SelectSubmitChangeWidget)
 
     class Meta:

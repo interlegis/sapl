@@ -838,3 +838,15 @@ def test_mesadiretora_list_parametro_vazio_usa_legislatura_atual(
     qs = response.context['filter'].qs
     assert qs.count() == 1
     assert qs.first().legislatura == mesas_duas_legislaturas
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_list_select_legislatura_sem_opcao_em_branco(
+        client, mesas_duas_legislaturas):
+    import re
+    html = client.get(
+        reverse('sapl.parlamentares:mesadiretora_list')).content.decode()
+    select = re.search(r'<select name="legislatura".*?</select>', html,
+                       re.S).group(0)
+    assert 'value=""' not in select
+    assert select.count('<option') == 2
