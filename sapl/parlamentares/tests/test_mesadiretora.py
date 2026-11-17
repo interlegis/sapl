@@ -860,3 +860,36 @@ def test_mesadiretora_list_publica_usa_abas_em_dropdown(
     html = client.get(
         reverse('sapl.parlamentares:mesadiretora_list')).content.decode()
     assert 'class="nav nav-tabs nav-tabs--dropdown"' in html
+
+
+# =====================================================================
+# Migrations de dados da Mesa Diretora
+# =====================================================================
+
+@pytest.mark.django_db(transaction=False)
+def test_migration_titulo_nao_repete_o_ano():
+    import importlib
+    from django.db import connection
+    migration = importlib.import_module(
+        'sapl.parlamentares.migrations.0049_auto_20260413_1049')
+    leg = baker.make('parlamentares.Legislatura',
+                     data_inicio=date(2021, 1, 1),
+                     data_fim=date(2024, 12, 31))
+    um_ano = baker.make(MesaDiretora, legislatura=leg, titulo='',
+                        data_inicio=date(2021, 1, 1),
+                        data_fim=date(2021, 12, 31))
+    vira_o_ano = baker.make(MesaDiretora, legislatura=leg, titulo='',
+                            data_inicio=date(2022, 1, 31),
+                            data_fim=date(2023, 1, 30))
+    bienio = baker.make(MesaDiretora, legislatura=leg, titulo='',
+                        data_inicio=date(2023, 2, 1),
+                        data_fim=date(2024, 12, 31))
+
+    with connection.schema_editor() as editor:
+        migration.preencher_titulo_mesa_diretora(None, editor)
+
+    for mesa in (um_ano, vira_o_ano, bienio):
+        mesa.refresh_from_db()
+    assert um_ano.titulo == 'Mesa Diretora 2021'
+    assert vira_o_ano.titulo == 'Mesa Diretora 2022/2023'
+    assert bienio.titulo == 'Mesa Diretora Biênio 2023/2024'

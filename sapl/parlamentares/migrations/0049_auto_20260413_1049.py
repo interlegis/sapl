@@ -11,8 +11,11 @@ def preencher_titulo_mesa_diretora(apps, schema_editor):
                  THEN ' Biênio'
                  ELSE ''
             END || ' ' ||
-            EXTRACT(YEAR FROM data_inicio)::integer::text || '/' ||
-            EXTRACT(YEAR FROM data_fim)::integer::text
+            EXTRACT(YEAR FROM data_inicio)::integer::text ||
+            CASE WHEN EXTRACT(YEAR FROM data_fim) <> EXTRACT(YEAR FROM data_inicio)
+                 THEN '/' || EXTRACT(YEAR FROM data_fim)::integer::text
+                 ELSE ''
+            END
         WHERE data_inicio IS NOT NULL AND data_fim IS NOT NULL
     """)
 
