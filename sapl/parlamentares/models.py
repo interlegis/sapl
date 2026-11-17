@@ -575,6 +575,15 @@ class ComposicaoMesa(models.Model):
                     raise ValidationError(
                         _('Cargo único já ocupado por outro parlamentar.'))
 
+        if self.parlamentar_id and self.mesa_diretora_id:
+            if not Mandato.objects.filter(
+                parlamentar_id=self.parlamentar_id,
+                legislatura_id=self.mesa_diretora.legislatura_id
+            ).exists():
+                raise ValidationError(
+                    _('O parlamentar não tem mandato na legislatura desta '
+                      'mesa diretora.'))
+
 
 class Frente(models.Model):
     '''

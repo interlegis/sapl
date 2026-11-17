@@ -153,10 +153,29 @@ def test_composicaomesa_model_clean_valido():
     cargo = baker.make('parlamentares.CargoMesa')
     mesa_diretora = baker.make('parlamentares.MesaDiretora')
 
+    baker.make('parlamentares.Mandato', parlamentar=parlamentar,
+               legislatura=mesa_diretora.legislatura)
+
     composicao = ComposicaoMesa(
         parlamentar=parlamentar, cargo=cargo, mesa_diretora=mesa_diretora
     )
     composicao.clean()  # não deve lançar exceção
+
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_model_clean_sem_mandato_na_legislatura():
+    parlamentar = baker.make('parlamentares.Parlamentar')
+    cargo = baker.make('parlamentares.CargoMesa')
+    mesa_diretora = baker.make('parlamentares.MesaDiretora')
+    # mandato em outra legislatura não vale
+    baker.make('parlamentares.Mandato', parlamentar=parlamentar)
+
+    composicao = ComposicaoMesa(
+        parlamentar=parlamentar, cargo=cargo, mesa_diretora=mesa_diretora
+    )
+    with pytest.raises(ValidationError,
+                       match='O parlamentar não tem mandato na legislatura'):
+        composicao.clean()
 
 
 # =====================================================================
@@ -645,3 +664,16 @@ def test_composicaomesa_parlamentar_com_dois_mandatos_na_legislatura(
     assert response.status_code == 302
     assert ComposicaoMesa.objects.filter(
         parlamentar=parlamentar, mesa_diretora=mesa_diretora).count() == 1
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_composicaomesa_parlamentar_sem_mandato(api_client, mesa_api):
+    parlamentar = baker.make('parlamentares.Parlamentar')
+    response = api_client.post(URL_API_COMPOSICAO, {
+        'mesa_diretora': mesa_api.pk,
+        'parlamentar': parlamentar.pk,
+        'cargo': baker.make('parlamentares.CargoMesa').pk,
+    }, format='json')
+    assert response.status_code == 400
+    assert 'não tem mandato' in \
+        ' '.join(response.json()['non_field_errors'])
