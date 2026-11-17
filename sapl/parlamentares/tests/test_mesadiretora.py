@@ -904,3 +904,59 @@ def test_mesadiretora_list_publica_sem_id_repetido(client):
                       {'mesa': mesa.pk}).content.decode()
     assert 'id="d-flex"' not in html
     assert html.count('class="d-flex align-items-center"') == 2
+
+
+@pytest.mark.django_db(transaction=False)
+def test_migration_registra_mesas_inconsistentes(caplog, capsys):
+    import importlib
+    from django.apps import apps
+    migration = importlib.import_module(
+        'sapl.parlamentares.migrations.0053_registra_mesas_inconsistentes')
+    leg = baker.make('parlamentares.Legislatura', numero=6,
+                     data_inicio=date(1977, 1, 31),
+                     data_fim=date(1983, 1, 30))
+    fora = baker.make(MesaDiretora, legislatura=leg, titulo='Mesa 1977',
+                      data_inicio=date(1977, 1, 1),
+                      data_fim=date(1977, 12, 31))
+    dup1, dup2 = [baker.make(MesaDiretora, legislatura=leg,
+                             data_inicio=date(1979, 1, 1),
+                             data_fim=date(1979, 12, 31)) for _i in range(2)]
+    ok1 = baker.make(MesaDiretora, legislatura=leg,
+                     data_inicio=date(1980, 1, 1),
+                     data_fim=date(1980, 12, 31))
+    ok2 = baker.make(MesaDiretora, legislatura=leg,  # encosta na ok1
+                     data_inicio=date(1980, 12, 31),
+                     data_fim=date(1981, 12, 31))
+
+    with caplog.at_level('WARNING'):
+        migration.registrar_mesas_inconsistentes(apps, None)
+
+    log = caplog.text
+    assert 'Mesa Diretora id={} (Mesa 1977, 01/01/1977 a 31/12/1977): ' \
+        'fora do período da legislatura 6 (31/01/1977 a 30/01/1983)'.format(
+            fora.id) in log
+    assert 'Mesa Diretora id={} ('.format(dup1.id) in log
+    assert 'sobrepõe-se à(s) mesa(s) id={}'.format(dup2.id) in log
+    for mesa in (ok1, ok2):
+        assert 'Mesa Diretora id={} ('.format(mesa.id) not in log
+    assert '3 problema(s) em mesas diretoras' in capsys.readouterr().out
+    # não altera dados
+    fora.refresh_from_db()
+    assert fora.data_inicio == date(1977, 1, 1)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_migration_registra_mesas_sem_problemas_nao_imprime(caplog, capsys):
+    import importlib
+    from django.apps import apps
+    migration = importlib.import_module(
+        'sapl.parlamentares.migrations.0053_registra_mesas_inconsistentes')
+    baker.make(MesaDiretora,
+               legislatura=baker.make('parlamentares.Legislatura',
+                                      data_inicio=date(2021, 1, 1),
+                                      data_fim=date(2024, 12, 31)),
+               data_inicio=date(2021, 1, 1), data_fim=date(2022, 12, 31))
+    with caplog.at_level('WARNING'):
+        migration.registrar_mesas_inconsistentes(apps, None)
+    assert caplog.text == ''
+    assert capsys.readouterr().out == ''
