@@ -616,3 +616,32 @@ def test_api_composicaomesa_parlamentar_repetido(api_client, mesa_api):
     assert response.status_code == 400
     assert 'Parlamentar já ocupa um cargo' in \
         ' '.join(response.json()['non_field_errors'])
+
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_parlamentar_com_dois_mandatos_na_legislatura(
+        admin_client):
+    """Suplente com mais de um mandato na legislatura aparece uma vez só
+    no select e pode ser salvo (antes: opção repetida e 500)."""
+    parlamentar = baker.make('parlamentares.Parlamentar')
+    cargo = baker.make('parlamentares.CargoMesa')
+    mesa_diretora = baker.make('parlamentares.MesaDiretora')
+    baker.make('parlamentares.Mandato', parlamentar=parlamentar,
+               legislatura=mesa_diretora.legislatura, titular=True)
+    baker.make('parlamentares.Mandato', parlamentar=parlamentar,
+               legislatura=mesa_diretora.legislatura, titular=False)
+
+    form = ComposicaoMesaForm(
+        data={'parlamentar': parlamentar.id, 'cargo': cargo.id},
+        initial={'mesa_diretora': mesa_diretora})
+    assert form.fields['parlamentar'].queryset.filter(
+        pk=parlamentar.pk).count() == 1
+    assert form.is_valid(), form.errors
+
+    response = admin_client.post(
+        reverse('sapl.parlamentares:composicaomesa_create',
+                kwargs={'pk': mesa_diretora.id}),
+        data={'parlamentar': parlamentar.id, 'cargo': cargo.id})
+    assert response.status_code == 302
+    assert ComposicaoMesa.objects.filter(
+        parlamentar=parlamentar, mesa_diretora=mesa_diretora).count() == 1

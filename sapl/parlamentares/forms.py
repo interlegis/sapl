@@ -798,7 +798,11 @@ class ComposicaoMesaForm(ModelForm):
         mesa = self.initial.get('mesa_diretora')
         if mesa is not None:
             self.instance.mesa_diretora = mesa
+            # distinct(): um parlamentar pode ter mais de um mandato na
+            # legislatura (ex.: suplente), e o join o repetiria no select
+            # e no get() do ModelChoiceField (MultipleObjectsReturned).
             self.fields['parlamentar'].queryset = (
                 self.fields['parlamentar'].queryset
                 .filter(mandato__legislatura=mesa.legislatura)
+                .distinct()
             )
