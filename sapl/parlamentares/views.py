@@ -1030,15 +1030,27 @@ class MesaDiretoraCrud(Crud):
 
         def get_filterset_kwargs(self, filterset_class):
             fk = super().get_filterset_kwargs(filterset_class)
-            if 'legislatura' not in self.request.GET and 'mesa' not in self.request.GET:
+            # legislatura vazia (?legislatura=) conta como ausente
+            if self.request.GET.get('legislatura'):
+                return fk
+
+            mesa = self.request.GET.get('mesa')
+            if not mesa:
                 fk['data'] = {'legislatura': self.get_id_legislatura_atual()}
-            elif 'legislatura' not in self.request.GET and 'mesa' in self.request.GET:
-                legislatura_da_mesa = Legislatura.objects.filter(
-                    mesadiretora_set__id=self.request.GET['mesa']
-                ).values_list('id', flat=True).first()
-                if not legislatura_da_mesa:
-                    raise Http404("MesaDiretora {} não encontrada.".format(self.request.GET['mesa']))
-                fk['data'] = {'legislatura': legislatura_da_mesa}
+                return fk
+
+            # int() e não isdigit(): '²'.isdigit() é True, mas int('²')
+            # levanta ValueError, que viraria 500 na consulta.
+            try:
+                mesa_id = int(mesa)
+            except ValueError:
+                raise Http404(_('Mesa Diretora não encontrada.'))
+            legislatura_da_mesa = MesaDiretora.objects.filter(
+                pk=mesa_id
+            ).values_list('legislatura_id', flat=True).first()
+            if not legislatura_da_mesa:
+                raise Http404(_('Mesa Diretora não encontrada.'))
+            fk['data'] = {'legislatura': legislatura_da_mesa}
             return fk
 
         def get_queryset(self):

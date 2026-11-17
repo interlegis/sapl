@@ -797,3 +797,44 @@ def test_mesadiretora_ordem_legislatura_mais_recente_primeiro():
                           data_fim=date(2024, 12, 31))
 
     assert list(MesaDiretora.objects.all()) == [m_nova_2, m_nova_1, m_antiga]
+
+
+# =====================================================================
+# Parâmetros inválidos ou vazios na tela pública
+# =====================================================================
+
+@pytest.fixture
+def mesas_duas_legislaturas(db):
+    antiga = baker.make('parlamentares.Legislatura', numero=1,
+                        data_inicio=date(2017, 1, 1),
+                        data_fim=date(2020, 12, 31))
+    atual = baker.make('parlamentares.Legislatura', numero=2,
+                       data_inicio=date(2021, 1, 1),
+                       data_fim=date(2024, 12, 31))
+    baker.make('parlamentares.MesaDiretora', legislatura=antiga,
+               data_inicio=date(2017, 1, 1), data_fim=date(2018, 12, 31))
+    baker.make('parlamentares.MesaDiretora', legislatura=atual,
+               data_inicio=date(2021, 1, 1), data_fim=date(2022, 12, 31))
+    return atual
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('mesa', ['abc', '²', '-1', '9' * 30])
+def test_mesadiretora_list_mesa_invalida_retorna_404(
+        client, mesas_duas_legislaturas, mesa):
+    response = client.get(reverse('sapl.parlamentares:mesadiretora_list'),
+                          {'mesa': mesa})
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('params', [{'mesa': ''}, {'legislatura': ''},
+                                    {'legislatura': '', 'mesa': ''}])
+def test_mesadiretora_list_parametro_vazio_usa_legislatura_atual(
+        client, mesas_duas_legislaturas, params):
+    response = client.get(reverse('sapl.parlamentares:mesadiretora_list'),
+                          params)
+    assert response.status_code == 200
+    qs = response.context['filter'].qs
+    assert qs.count() == 1
+    assert qs.first().legislatura == mesas_duas_legislaturas
