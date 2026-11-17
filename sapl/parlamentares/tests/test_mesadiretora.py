@@ -1179,3 +1179,23 @@ def test_mesadiretora_list_queries_nao_crescem_com_as_mesas(client):
         return len(ctx.captured_queries)
 
     assert queries(pequena) == queries(grande)
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('titulo', [None, ''])
+def test_api_mesadiretora_exige_titulo(api_client, legislatura_api, titulo):
+    dados = {'data_inicio': '2023-01-01', 'data_fim': '2024-12-31',
+             'legislatura': legislatura_api.pk}
+    if titulo is not None:
+        dados['titulo'] = titulo
+    response = api_client.post(URL_API_MESA, dados, format='json')
+    assert response.status_code == 400
+    assert 'titulo' in response.json()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_mesadiretora_patch_sem_titulo_continua_valido(api_client,
+                                                           mesa_api):
+    response = api_client.patch(f'{URL_API_MESA}{mesa_api.pk}/',
+                                {'descricao': 'x'}, format='json')
+    assert response.status_code == 200

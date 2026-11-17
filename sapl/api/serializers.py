@@ -369,6 +369,9 @@ class MesaDiretoraSerializer(ModelCleanMixin, SaplSerializerMixin):
     class Meta:
         model = MesaDiretora
         fields = '__all__'
+        # titulo tem default '' no model, e o DRF o tornaria opcional; o
+        # formulário exige o título, e a API passa a exigir também.
+        extra_kwargs = {'titulo': {'required': True, 'allow_blank': False}}
 
 
 class ComposicaoMesaSerializer(ModelCleanMixin, SaplSerializerMixin):
