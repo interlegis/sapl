@@ -737,20 +737,44 @@ def test_migracao_cria_ou_aproveita_indices_unicos(
 
 
 @pytest.mark.django_db(transaction=False)
-def test_migracao_falha_se_indice_existente_nao_for_unico(migration_loader):
+@pytest.mark.parametrize('anterior, migracao, nome, definicao', [
+    ('0071_votoparlamentar_unique_constraint',
+     '0072_votacao_aberta_unique_constraint',
+     'sessao_ordemdia_unique_votacao_aberta',
+     'CREATE INDEX {} ON sessao_ordemdia (votacao_aberta) '
+     'WHERE votacao_aberta = true'),
+    ('0071_votoparlamentar_unique_constraint',
+     '0072_votacao_aberta_unique_constraint',
+     'sessao_ordemdia_unique_votacao_aberta',
+     'CREATE UNIQUE INDEX {} ON sessao_ordemdia (votacao_aberta) '
+     'WHERE votacao_aberta = false'),
+    ('0070_presenca_unica_por_sessao',
+     '0071_votoparlamentar_unique_constraint',
+     'sessao_votoparlamentar_unique_parlamentar_ordem',
+     'CREATE UNIQUE INDEX {} ON sessao_votoparlamentar '
+     '(parlamentar_id, ordem_id)'),
+    ('0070_presenca_unica_por_sessao',
+     '0071_votoparlamentar_unique_constraint',
+     'sessao_votoparlamentar_unique_parlamentar_ordem',
+     'CREATE UNIQUE INDEX {} ON sessao_votoparlamentar (parlamentar_id) '
+     'WHERE ordem_id IS NOT NULL'),
+], ids=['nao_unico', 'predicado_divergente', 'sem_predicado',
+        'colunas_divergentes'])
+def test_migracao_falha_se_indice_existente_for_diferente(
+        migration_loader, anterior, migracao, nome, definicao):
+    """
+    Um índice com o nome da constraint que não a aplica (não único, com outro
+    predicado ou sobre outras colunas) não pode ser aproveitado: a migration
+    falha em vez de registrar a constraint.
+    """
     from django.db import connection
 
     with connection.cursor() as cursor:
-        cursor.execute('DROP INDEX sessao_ordemdia_unique_votacao_aberta')
-        cursor.execute('CREATE INDEX sessao_ordemdia_unique_votacao_aberta '
-                       'ON sessao_ordemdia (votacao_aberta)')
+        cursor.execute('DROP INDEX {}'.format(nome))
+        cursor.execute(definicao.format(nome))
 
-    with pytest.raises(
-            ValueError,
-            match='"sessao_ordemdia_unique_votacao_aberta" já existe'):
-        _aplica_migracao(migration_loader,
-                         '0071_votoparlamentar_unique_constraint',
-                         '0072_votacao_aberta_unique_constraint')
+    with pytest.raises(ValueError, match='"{}" já existe'.format(nome)):
+        _aplica_migracao(migration_loader, anterior, migracao)
 
 
 @pytest.mark.django_db(transaction=False)

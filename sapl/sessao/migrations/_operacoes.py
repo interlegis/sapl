@@ -4,8 +4,9 @@ from django.db import migrations
 class AddConstraintSeAusente(migrations.AddConstraint):
     """
     AddConstraint que aproveita um índice já existente com o mesmo nome, desde
-    que ele seja único, válido e sobre as mesmas colunas. Se não for, falha em
-    vez de registrar no estado do Django uma constraint que o banco não aplica.
+    que ele seja único, válido, sobre as mesmas colunas e com o mesmo predicado
+    (WHERE). Se não for, falha em vez de registrar no estado do Django uma
+    constraint que o banco não aplica.
 
     Antes de serem renumeradas no #3855, as migrations 0071 e 0072 se chamavam
     0070_votoparlamentar_unique_constraint e
@@ -24,9 +25,9 @@ class AddConstraintSeAusente(migrations.AddConstraint):
                 cursor, model._meta.db_table).get(nome)
             if existente is not None:
                 cursor.execute(
-                    'SELECT indisvalid FROM pg_index '
-                    'WHERE indexrelid = %s::regclass', [nome])
-                existente['valid'] = cursor.fetchone()[0]
+                    'SELECT indisvalid, pg_get_expr(indpred, indrelid) '
+                    'FROM pg_index WHERE indexrelid = %s::regclass', [nome])
+                existente['valid'], existente['predicado'] = cursor.fetchone()
 
         if existente is None:
             super().database_forwards(
@@ -35,9 +36,20 @@ class AddConstraintSeAusente(migrations.AddConstraint):
 
         colunas = [model._meta.get_field(campo).column
                    for campo in self.constraint.fields]
+        # O Postgres devolve o predicado sem aspas e entre parênteses:
+        # '"votacao_aberta" = true' vira '(votacao_aberta = true)'. Um
+        # predicado equivalente, mas escrito de outro jeito, é rejeitado, o
+        # que é o lado seguro.
+        condicao = self.constraint._get_condition_sql(model, schema_editor)
+        predicado = None
+        if condicao:
+            predicado = '({})'.format(condicao.replace('"', ''))
         if not (existente['unique'] and existente['valid'] and
-                existente['columns'] == colunas):
+                existente['columns'] == colunas and
+                existente['predicado'] == predicado):
+            esperado = '({}){}'.format(
+                ', '.join(colunas), ' WHERE ' + predicado if predicado else '')
             raise ValueError(
                 'O índice "{}" já existe, mas não é o índice único e válido '
-                'sobre ({}) esperado pela constraint. Remova-o e rode o '
-                'migrate de novo.'.format(nome, ', '.join(colunas)))
+                'sobre {} esperado pela constraint. Remova-o e rode o '
+                'migrate de novo.'.format(nome, esperado))
