@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from functools import cached_property
+import copy
 import django_filters
 import importlib
 import inspect
@@ -25,6 +26,7 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 from django_filters.utils import resolve_field, get_all_model_fields
 from rest_framework import serializers as rest_serializers
 from rest_framework.relations import ManyRelatedField
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 from rest_framework.viewsets import ModelViewSet
@@ -47,6 +49,29 @@ def hidden_fields_for_model(model, request):
 
     hook = getattr(serializer_class, 'get_hidden_fields', None)
     return set(hook(request)) if hook else set()
+
+
+def listing_request(request):
+    """
+    Cópia de `request` com o método GET, para avaliar permissões como numa
+    listagem, qualquer que seja o método da requisição de origem. A cópia
+    mantém o usuário e a autenticação já resolvidos em `request`.
+    """
+    if request is None or request.method == 'GET':
+        return request
+
+    if not isinstance(request, Request):
+        listing = copy.copy(request)
+        listing.method = 'GET'
+        return listing
+
+    django_request = copy.copy(request._request)
+    django_request.method = 'GET'
+
+    listing = Request(django_request)
+    listing.user = request.user
+    listing.auth = request.auth
+    return listing
 
 
 class SplitStringCharFilter(django_filters.CharFilter):
@@ -289,11 +314,15 @@ class ApiViewSetConstrutor():
             Indica se o model desta viewset pode ser expandido (?expand=) a
             partir de outro model nesta requisição. Por padrão, só quando as
             permissões da viewset permitiriam listar o model pelo próprio
-            endpoint. Pode ser redefinido com @customize.
+            endpoint. As permissões são avaliadas como numa listagem (GET),
+            qualquer que seja o método da requisição: numa resposta de
+            escrita, o expand mostra o mesmo que um GET mostraria. Pode ser
+            redefinido com @customize.
             """
             if request is None:
                 return False
 
+            request = listing_request(request)
             view = cls(request=request, args=(), kwargs={},
                        format_kwarg=None, action='list')
             return all(permission.has_permission(request, view)

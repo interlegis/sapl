@@ -187,6 +187,29 @@ def test_expand_nao_alcanca_model_que_o_usuario_nao_pode_listar(
 
 
 @pytest.mark.django_db(transaction=False)
+def test_expand_na_resposta_de_escrita_segue_as_permissoes_de_listagem(
+        api, usuario, parlamentar):
+    """
+    O expand avalia as permissões do model expandido como numa listagem,
+    qualquer que seja o método da requisição. Quem altera o mandato, mas não
+    o parlamentar, vê o parlamentar expandido na resposta do PATCH, como num
+    GET, e continua sem os dados pessoais.
+    """
+    mandato = baker.make(Mandato, parlamentar=parlamentar)
+    operador = usuario('mandatos', 'parlamentares.change_mandato')
+
+    response = api(operador).patch(
+        f'/api/parlamentares/mandato/{mandato.pk}/?expand=parlamentar',
+        {'observacao': 'Atualizado'}, format='json')
+
+    assert response.status_code == 200
+    expandido = response.json()['parlamentar']
+    assert isinstance(expandido, dict)
+    assert expandido['nome_parlamentar'] == 'Fulano'
+    assert not DADOS_PESSOAIS & set(expandido)
+
+
+@pytest.mark.django_db(transaction=False)
 def test_proposicoes_do_parlamentar_usam_o_serializer_de_proposicao(
         api, parlamentar):
     from django.contrib.contenttypes.models import ContentType
