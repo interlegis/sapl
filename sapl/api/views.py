@@ -1,8 +1,11 @@
 import logging
+from calendar import timegm
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponse, JsonResponse
+from django.utils.cache import get_conditional_response
+from django.utils.http import http_date
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import APIException
@@ -11,7 +14,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor
-from django.views.decorators.http import condition as django_condition
 
 from sapl.base.models import AuditLog
 
@@ -26,129 +28,137 @@ def recria_token(request, pk):
 
     return Response({"message": "Token recriado com sucesso!", "token": token.key})
 
-class LastModifiedDecorator:
-    """ - Decorator para adicionar suporte a Last-Modified em ViewSets
-        - Baseado em django.views.decorators.http.condition
+class _RespostaCondicional(Exception):
+    """Interrompe a requisição com a resposta condicional (304 ou 412)."""
 
-        - Por padrão utiliza o AuditLog para determinar a data do last_modified
-        - Pode ser sobrescrito na customização do ViewSet caso necessário
-        - Existe um exemplo de sobrescrita em sapl/api/views_materia.py
+    def __init__(self, response):
+        super().__init__()
+        self.response = response
 
-        - Devolve Last-Modified baseado no timestamp do último AuditLog
-        - Se for uma listagem, considera o último AuditLog de todos os objetos
-          retornados na listagem levando em consideração resultado de FilterSet.
+
+class LastModifiedMixin:
+    """ - Suporte a Last-Modified e a requisições condicionais
+          (If-Modified-Since, If-Unmodified-Since) em ViewSets
+        - A data vem do campo data_ultima_atualizacao ou ultima_edicao do
+          model: no detalhe, a do objeto; na listagem, a mais recente entre
+          os objetos retornados, levando em consideração o FilterSet
         - Retorna 304 Not Modified se o recurso não foi modificado
+
+        - A checagem roda dentro do fluxo do DRF, depois de autenticação,
+          permissões e throttling (initial), e usa o mesmo queryset da view
+          (get_object no detalhe, filter_queryset na listagem). Assim, a
+          data, o 304 e o 412 só existem para o que o usuário pode ver, e o
+          Last-Modified só vai nas respostas de sucesso
+        - Pode ser sobrescrito na customização do ViewSet caso necessário,
+          redefinindo last_modified_func
+        - Existe um exemplo de sobrescrita em sapl/api/views_materia.py
     """
-    def __call__(self, cls):
 
-        original_dispatch = cls.dispatch
-        self.model = cls.queryset.model
+    campos_last_modified = ('data_ultima_atualizacao', 'ultima_edicao')
 
-        def wrapped_dispatch(view, request, *args, **kwargs):
-            drf_request = request
-            wsgi_request = view.initialize_request(request, *args, **kwargs)
+    def initial(self, request, *args, **kwargs):
+        self._last_modified = None
 
-            last_modified_func = self.last_modified_func if not hasattr(view, 'last_modified_func') else view.last_modified_func
+        # autenticação, permissões e throttling
+        super().initial(request, *args, **kwargs)
 
-            def patched_viewset_method(*_args, **_kwargs):
-                return original_dispatch(view, drf_request, *args, **kwargs)
+        last_modified = None
+        # Num método de escrita, só If-Unmodified-Since depende da data
+        if (request.method in ('GET', 'HEAD') or
+                'HTTP_IF_UNMODIFIED_SINCE' in request.META):
+            try:
+                data = self.last_modified_func(request, *args, **kwargs)
+            except (APIException, Http404, PermissionDenied):
+                # Filtro ou pk inválido, objeto oculto ou inexistente: a
+                # view levanta o mesmo erro, e o DRF responde 400 ou 404.
+                # As condições só valem para uma resposta de sucesso.
+                return
+            if data:
+                last_modified = timegm(data.utctimetuple())
 
-            django_decorator = django_condition(last_modified_func=last_modified_func)
-            decorated_viewset_method = django_decorator(patched_viewset_method)
-            return decorated_viewset_method(wsgi_request, *args, view=view, **kwargs)
+        self._last_modified = last_modified
+        response = get_conditional_response(
+            request, last_modified=last_modified)
+        if response is not None:
+            raise _RespostaCondicional(response)
 
-        cls.dispatch = wrapped_dispatch
-        return cls
+    def handle_exception(self, exc):
+        if isinstance(exc, _RespostaCondicional):
+            return exc.response
+        return super().handle_exception(exc)
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(
+            request, response, *args, **kwargs)
+
+        last_modified = getattr(self, '_last_modified', None)
+        sucesso = (200 <= response.status_code < 300 or
+                   response.status_code == 304)
+        if (last_modified and sucesso and
+                request.method in ('GET', 'HEAD') and
+                not response.has_header('Last-Modified')):
+            response['Last-Modified'] = http_date(last_modified)
+        return response
+
+    def _eh_detalhe(self):
+        return (self.lookup_url_kwarg or self.lookup_field) in self.kwargs
 
     def last_modified_func(self, request, *args, **kwargs):
 
-        default_fields_for_timestamp = (
-            'data_ultima_atualizacao',
-            'ultima_edicao'
-        )
+        # tenta encontrar um dos campos para usar como last_modified
+        field_name = next(
+            (f.name for f in self.queryset.model._meta.get_fields()
+             if f.name in self.campos_last_modified),
+            None)
 
-        # tenta encontrar um dos campos acima para usar como last_modified
-        fields = tuple(
-            filter(
-                lambda f: f in default_fields_for_timestamp,
-                map(
-                    lambda f: f.name, self.model._meta.get_fields()
-                )
-            )
-        )
-        field_name = fields[0] if fields else None
-
-        # Retornando None. que indica para o decorator retornar 200 OK sem Last-Modified
+        # Retornando None. que indica 200 OK sem Last-Modified
         # Na prática, desativando o AuditLog como last_modified
         # Porém, mantendo a estrutura para possível uso futuro
         if not field_name:
             # sem campo definido para last_modified, usa AuditLog
-            return None # self.last_modified_func__auditlog(request, *args, **kwargs)
+            return None  # self.last_modified_func__auditlog(request, *args, **kwargs)
 
-        pk = kwargs.get('pk', None)
-        if pk:
-            return self.model.objects.filter(pk=pk).values_list(field_name, flat=True)[:1].first()
+        if self._eh_detalhe():
+            return getattr(self.get_object(), field_name)
 
-        view = kwargs.get('view', None)
-
-        if view:
-            try:
-                queryset = view.get_queryset()
-                for backend in list(view.filter_backends):
-                    queryset = backend().filter_queryset(
-                        request, queryset, view)
-            except (APIException, Http404, PermissionDenied):
-                # Este método roda antes do dispatch do DRF, e uma exceção
-                # levantada aqui escapa do tratamento de exceções dele e
-                # vira 500. Ex.: filtro com valor inválido (?tipo=abc), que o
-                # DjangoFilterBackend rejeita com ValidationError. Sem
-                # Last-Modified, a requisição segue, e o DRF responde com o
-                # erro correspondente (400, 403 ou 404).
-                return None
-        else:
-            queryset = self.model.objects.all()
-
-        timestamp = queryset.order_by(f'-{field_name}').values_list(field_name, flat=True)[:1].first()
-        return timestamp
+        queryset = self.filter_queryset(self.get_queryset())
+        return queryset.order_by(f'-{field_name}').values_list(
+            field_name, flat=True)[:1].first()
 
     def last_modified_func__auditlog(self, request, *args, **kwargs):
-        """ - Método padrão para obter o last_modified baseado no AuditLog
-            - Pode ser sobrescrito na customização do ViewSet caso necessário
-            - Existe um exemplo de sobrescrita em sapl/api/views_materia.py
+        """ - Método alternativo para obter o last_modified baseado no
+              AuditLog: o último registro do objeto, no detalhe, ou dos
+              objetos retornados na listagem, levando em consideração o
+              FilterSet
         """
+        if self._eh_detalhe():
+            object_ids = [self.get_object().pk]
+        else:
+            object_ids = self.filter_queryset(
+                self.get_queryset()).values_list('pk', flat=True)
+
         try:
-            if 'pk' in kwargs:
-                obj_id = kwargs['pk']
-                last_log = AuditLog.objects.filter(
-                    model_name=self.model._meta.model_name,
-                    object_id=obj_id
-                ).order_by('-timestamp').values_list('timestamp', flat=True)[:1].first()
-            else:
-                view = kwargs.get('view', None)
-                if view:
-                    for backend in list(view.filter_backends):
-                        queryset = backend().filter_queryset(request, view.queryset, view)
-
-                    if queryset.exists():
-                        last_log = AuditLog.objects.filter(
-                            model_name=self.model._meta.model_name,
-                            object_id__in=queryset.values_list('pk', flat=True)
-                        ).order_by('-timestamp').values_list('timestamp', flat=True)[:1].first()
-                    else:
-                        last_log = None
-                else:
-                    last_log = AuditLog.objects.filter(
-                        model_name=self.model._meta.model_name,
-                        object_id__in=self.model.objects.values_list('pk', flat=True)
-                    ).order_by('-timestamp').values_list('timestamp', flat=True)[:1].first()
-
-            if last_log:
-                return last_log
-
+            return AuditLog.objects.filter(
+                model_name=self.queryset.model._meta.model_name,
+                object_id__in=object_ids
+            ).order_by('-timestamp').values_list(
+                'timestamp', flat=True)[:1].first()
         except Exception as e:
             logger.error(f"Erro ao obter last_modified: {e}")
 
         return None
+
+
+class LastModifiedDecorator:
+    """ - Decorator que o ApiViewSetConstrutor aplica às ViewSets que
+          constrói: acrescenta o LastModifiedMixin
+    """
+    def __call__(self, cls):
+        return type(cls.__name__, (LastModifiedMixin, cls), {
+            '__module__': cls.__module__,
+            '__qualname__': cls.__qualname__,
+            '__doc__': cls.__doc__,
+        })
 
 SaplApiViewSetConstrutor = ApiViewSetConstrutor
 SaplApiViewSetConstrutor.last_modified_class(LastModifiedDecorator)
