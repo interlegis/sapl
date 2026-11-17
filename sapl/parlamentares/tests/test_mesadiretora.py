@@ -1063,3 +1063,18 @@ def test_migration_0047_remove_composicao_sem_mesa(estado_antigo, capsys):
     assert 'ComposicaoMesa id={} (Fulano Órfão - Presidente)'.format(
         orfa.pk) in saida
     assert '1 ocupação(ões) de cargo na Mesa sem mesa diretora' in saida
+
+
+@pytest.mark.django_db(transaction=False)
+def test_migration_0048_reversao_com_mesas_da_erro_claro():
+    import importlib
+    from django.apps import apps
+    from django.db.migrations.exceptions import IrreversibleError
+    migration = importlib.import_module(
+        'sapl.parlamentares.migrations.0048_auto_20260412_2256')
+
+    migration.impede_reversao_com_mesas(apps, None)  # base sem mesas: ok
+
+    baker.make(MesaDiretora)
+    with pytest.raises(IrreversibleError, match='Restaure o backup'):
+        migration.impede_reversao_com_mesas(apps, None)
