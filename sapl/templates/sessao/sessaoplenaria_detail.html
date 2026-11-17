@@ -1,0 +1,62 @@
+{% extends "crud/detail.html" %}
+{% load i18n %}
+
+{% block extra_actions %}
+  {% if painel_externo_ativo and perms.sessao.change_sessaoplenaria %}
+    <div class="actions btn-group btn-group-sm ml-2" role="group">
+      <button type="button" id="enviar-pauta-painel" class="btn btn-outline-primary"
+              data-url="/api/sessao/sessaoplenaria/{{ object.pk }}/materias/enviar/">
+        {% trans "Enviar pauta ao painel" %}
+      </button>
+    </div>
+    <span id="enviar-pauta-painel-retorno" class="ml-2 small text-muted"></span>
+
+    <script>
+      (function () {
+        const botao = document.getElementById('enviar-pauta-painel');
+        const retorno = document.getElementById('enviar-pauta-painel-retorno');
+
+        function mostra(texto, erro) {
+          retorno.textContent = texto;
+          retorno.classList.toggle('text-danger', erro);
+          retorno.classList.toggle('text-muted', !erro);
+        }
+
+        function explica(resp, dados) {
+          const detalhe = dados.mensagem ? ' ' + dados.mensagem : '';
+          if (resp.ok) {
+            return ['{% trans "Pauta enviada ao painel." %}' + detalhe, false];
+          }
+          if (resp.status === 403) {
+            return ['{% trans "Sem permissão para enviar a pauta." %}', true];
+          }
+          if (dados.status_remoto) {
+            return ['{% trans "O painel recusou a pauta" %} (HTTP ' + dados.status_remoto + ').' + detalhe, true];
+          }
+          return [dados.mensagem || '{% trans "Não foi possível enviar a pauta." %}', true];
+        }
+
+        botao.addEventListener('click', function () {
+          botao.disabled = true;
+          mostra('{% trans "Enviando..." %}', false);
+          fetch(botao.dataset.url, {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            credentials: 'same-origin'
+          })
+            .then(function (resp) {
+              return resp.json()
+                .catch(function () { return {}; })
+                .then(function (dados) { mostra.apply(null, explica(resp, dados)); });
+            })
+            .catch(function () {
+              mostra('{% trans "Erro de rede ao enviar a pauta." %}', true);
+            })
+            .finally(function () {
+              botao.disabled = false;
+            });
+        });
+      })();
+    </script>
+  {% endif %}
+{% endblock extra_actions %}

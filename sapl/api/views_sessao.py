@@ -5,8 +5,10 @@ from rest_framework.response import Response
 
 from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
     customize, wrapper_queryset_response_for_drf_action
+from sapl.api.permissions import PodeEnviarPautaAoPainelExterno
 from sapl.api.serializers import ChoiceSerializer,\
     SessaoPlenariaECidadaniaSerializer
+from sapl.sessao import painel_externo
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao,\
     restringe_sessoes_visiveis
 from sapl.utils import choice_anos_com_sessaoplenaria
@@ -54,6 +56,14 @@ class _SessaoPlenariaViewSet:
     def ecidadania_list(self, request, *args, **kwargs):
         self.serializer_class = SessaoPlenariaECidadaniaSerializer
         return self.list(request, *args, **kwargs)
+
+    @action(detail=True, methods=['post'], url_path='materias/enviar',
+            permission_classes=[PodeEnviarPautaAoPainelExterno])
+    def materias_enviar(self, request, *args, **kwargs):
+        # URL e chave vêm só de AppConfig: o corpo da requisição é ignorado
+        resultado = painel_externo.enviar_pauta(self.get_object(), request)
+        return Response(resultado._asdict(),
+                        status=200 if resultado.ok else 502)
 
 
 class _RestringeSessoesVisiveisMixin:

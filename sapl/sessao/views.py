@@ -44,6 +44,7 @@ from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.protocoloadm.models import TipoDocumentoAdministrativo, \
     DocumentoAdministrativo
+from sapl.sessao import painel_externo
 from sapl.sessao.apps import AppConfig
 from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedienteLeituraForm, \
     CorrespondenciaForm, CorrespondenciaEmLoteFilterSet
@@ -1412,6 +1413,7 @@ class SessaoCrud(Crud):
             return context
 
     class DetailView(Crud.DetailView):
+        template_name = 'sessao/sessaoplenaria_detail.html'
 
         def get(self, request, *args, **kwargs):
             if not restringe_sessoes_visiveis(
@@ -1435,6 +1437,7 @@ class SessaoCrud(Crud):
             if tipo_sessao.nome == "Solene":
                 context.update(
                     {'subnav_template_name': 'sessao/subnav-solene.yaml'})
+            context['painel_externo_ativo'] = painel_externo.integracao_ativa()
             return context
 
 

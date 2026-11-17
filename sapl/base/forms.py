@@ -988,6 +988,15 @@ class ConfiguracoesAppForm(ModelForm):
         max_length=256,
         required=False)
 
+    painel_externo_api_key = forms.CharField(
+        label=AppConfig._meta.get_field(
+            'painel_externo_api_key').verbose_name,
+        max_length=256,
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        help_text=_('Enviada no header X-API-KEY. A chave salva não é '
+                    'exibida; deixe em branco para mantê-la.'))
+
     class Meta:
         model = AppConfig
         fields = ['documentos_administrativos',
@@ -1019,6 +1028,9 @@ class ConfiguracoesAppForm(ModelForm):
                   'google_recaptcha_secret_key',
                   'google_analytics_id_metrica',
                   'identificacao_de_documentos',
+                  'painel_externo_ativo',
+                  'painel_externo_url',
+                  'painel_externo_api_key',
                   ]
 
     def __init__(self, *args, **kwargs):
@@ -1028,8 +1040,21 @@ class ConfiguracoesAppForm(ModelForm):
         self.fields['cronometro_ordem'].widget.attrs['class'] = 'cronometro'
         self.fields['cronometro_consideracoes'].widget.attrs['class'] = 'cronometro'
 
+    def clean_painel_externo_api_key(self):
+        # o campo nunca volta preenchido; em branco é manter a chave salva
+        api_key = self.cleaned_data.get('painel_externo_api_key', '').strip()
+        return api_key or self.instance.painel_externo_api_key
+
     def clean(self):
         cleaned_data = super().clean()
+
+        if cleaned_data.get('painel_externo_ativo'):
+            if not cleaned_data.get('painel_externo_url'):
+                self.add_error('painel_externo_url', _(
+                    'Informe a URL do painel para ativar o envio da pauta.'))
+            if not cleaned_data.get('painel_externo_api_key'):
+                self.add_error('painel_externo_api_key', _(
+                    'Informe a chave de acesso para ativar o envio da pauta.'))
 
         if not self.is_valid():
             return cleaned_data
