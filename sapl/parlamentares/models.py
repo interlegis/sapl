@@ -511,7 +511,9 @@ class MesaDiretora(models.Model):
     class Meta:
         verbose_name = _('Mesa Diretora')
         verbose_name_plural = _('Mesas Diretoras')
-        ordering = ('-legislatura', '-data_inicio')
+        # '-legislatura' inverteria o Meta.ordering de Legislatura
+        # ('-data_inicio') e poria a legislatura mais antiga primeiro.
+        ordering = ('-legislatura__data_inicio', '-data_inicio')
 
     def __str__(self):
         return self.titulo or _('%(legislatura)s - %(data_inicio)s a %(data_fim)s') % {
@@ -560,7 +562,9 @@ class ComposicaoMesa(models.Model):
     class Meta:
         verbose_name = _('Ocupação de cargo na Mesa')
         verbose_name_plural = _('Ocupações de cargo na Mesa')
-        ordering = ('cargo', 'parlamentar')
+        # Sem id_ordenacao preenchido, 'cargo' cairia na ordem alfabética
+        # da descrição (Presidente, Secretário, Vice-Presidente).
+        ordering = ('cargo__id_ordenacao', 'cargo_id', 'parlamentar')
 
     def __str__(self):
         return _('%(parlamentar)s - %(cargo)s') % {

@@ -729,3 +729,71 @@ def test_mesadiretora_bordas_de_sobreposicao(existente, nova, aceita):
     else:
         with pytest.raises(ValidationError, match='se sobrepõem'):
             mesa.clean()
+
+
+# =====================================================================
+# Ordenação padrão de mesas e composições
+# =====================================================================
+
+def _cargos_padrao(**ordenacao):
+    """Cria Presidente, Vice e Secretário nessa ordem de id."""
+    return [baker.make('parlamentares.CargoMesa', descricao=d, unico=True,
+                       id_ordenacao=ordenacao.get(chave))
+            for chave, d in (('presidente', 'Presidente'),
+                             ('vice', 'Vice-Presidente'),
+                             ('secretario', 'Secretário'))]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_ordem_sem_id_ordenacao_segue_id_do_cargo(client):
+    presidente, vice, secretario = _cargos_padrao()
+    mesa = baker.make('parlamentares.MesaDiretora')
+    for cargo, nome in ((secretario, 'Carla Secretária'),
+                        (vice, 'Bruno Vice'),
+                        (presidente, 'Ana Presidente')):
+        baker.make('parlamentares.ComposicaoMesa', mesa_diretora=mesa,
+                   cargo=cargo, parlamentar=baker.make(
+                       'parlamentares.Parlamentar', nome_parlamentar=nome))
+
+    assert [c.cargo for c in mesa.composicaomesa_set.all()] == \
+        [presidente, vice, secretario]
+
+    html = client.get(reverse('sapl.parlamentares:mesadiretora_list'),
+                      {'mesa': mesa.pk}).content.decode('utf-8')
+    posicoes = [html.index(n) for n in
+                ('Ana Presidente', 'Bruno Vice', 'Carla Secretária')]
+    assert posicoes == sorted(posicoes)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_composicaomesa_ordem_respeita_id_ordenacao():
+    presidente, vice, secretario = _cargos_padrao(
+        presidente=2, vice=3, secretario=1)
+    mesa = baker.make('parlamentares.MesaDiretora')
+    for cargo in (presidente, vice, secretario):
+        baker.make('parlamentares.ComposicaoMesa', mesa_diretora=mesa,
+                   cargo=cargo)
+
+    assert [c.cargo for c in mesa.composicaomesa_set.all()] == \
+        [secretario, presidente, vice]
+
+
+@pytest.mark.django_db(transaction=False)
+def test_mesadiretora_ordem_legislatura_mais_recente_primeiro():
+    antiga = baker.make('parlamentares.Legislatura', numero=1,
+                        data_inicio=date(2017, 1, 1),
+                        data_fim=date(2020, 12, 31))
+    nova = baker.make('parlamentares.Legislatura', numero=2,
+                      data_inicio=date(2021, 1, 1),
+                      data_fim=date(2024, 12, 31))
+    m_antiga = baker.make('parlamentares.MesaDiretora', legislatura=antiga,
+                          data_inicio=date(2017, 1, 1),
+                          data_fim=date(2018, 12, 31))
+    m_nova_1 = baker.make('parlamentares.MesaDiretora', legislatura=nova,
+                          data_inicio=date(2021, 1, 1),
+                          data_fim=date(2022, 12, 31))
+    m_nova_2 = baker.make('parlamentares.MesaDiretora', legislatura=nova,
+                          data_inicio=date(2023, 1, 1),
+                          data_fim=date(2024, 12, 31))
+
+    assert list(MesaDiretora.objects.all()) == [m_nova_2, m_nova_1, m_antiga]
