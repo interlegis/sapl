@@ -13,7 +13,7 @@
     </div>
     <br /><br /><br /><br />
     <b>PARÂMETROS DE PESQUISA:<br /></b>
-    &emsp;Autor: {{ autor }}<br />
+    &emsp;Autor: {{ autor|default_if_none:"Todos" }}<br />
     &emsp;Tipo de Norma: {{ tipo }}<br />
     &emsp;Data: {{periodo}}<br /><br /><br/>
     {% if object_list %}
@@ -55,7 +55,7 @@
                     <td>{{norma.ementa}}<br>{{norma.observacao}}</td>
                     <td>
                           {% for autoria in norma.autorianorma_set.all %}
-                            {% if autoria.autor != autor %}
+                            {% if autor and autoria.autor != autor or not autor and not autoria.primeiro_autor %}
                               {{ autoria.autor }}<br />
                             {% endif %}
                           {% endfor %}

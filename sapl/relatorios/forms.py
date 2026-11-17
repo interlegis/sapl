@@ -625,19 +625,52 @@ class RelatorioMateriasPorAnoAutorTipoFilterSet(django_filters.FilterSet):
         )
 
 
+class AutorOuPeriodoForm(forms.Form):
+    """
+    Relatórios por autor aceitam pesquisa sem autor, desde que informado um
+    período fechado, para não listar todo o acervo da Casa de uma só vez.
+    """
+    campo_autor = None
+    campo_periodo = None
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if cleaned_data.get(self.campo_autor) or \
+                self.campo_periodo in self.errors:
+            return cleaned_data
+
+        periodo = cleaned_data.get(self.campo_periodo)
+        if not periodo or periodo.start is None or periodo.stop is None:
+            raise forms.ValidationError(
+                _('Selecione um autor ou informe o período '
+                  '(data inicial e final).'))
+
+        return cleaned_data
+
+
+class RelatorioMateriasPorAutorForm(AutorOuPeriodoForm):
+    campo_autor = 'autoria__autor'
+    campo_periodo = 'data_apresentacao'
+
+
 class RelatorioMateriasPorAutorFilterSet(django_filters.FilterSet):
     autoria__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
     @property
     def qs(self):
         parent = super().qs
-        if not self.data.get('autoria__autor'):
+        if not self.is_valid():
             return parent.none()
-        return parent.distinct().order_by('-ano', '-numero', 'tipo', 'autoria__autor', '-autoria__primeiro_autor')
+        if self.form.cleaned_data.get('autoria__autor'):
+            return parent.distinct().order_by('-ano', '-numero', 'tipo', 'autoria__autor', '-autoria__primeiro_autor')
+        # Sem autor, o período exigido pelo form limita a consulta.
+        return parent.order_by('-ano', '-numero', 'tipo')
 
     class Meta(FilterOverridesMetaMixin):
         model = MateriaLegislativa
         fields = ['tipo', 'data_apresentacao']
+        form = RelatorioMateriasPorAutorForm
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -738,20 +771,30 @@ class RelatorioHistoricoTramitacaoAdmFilterSet(django_filters.FilterSet):
         )
 
 
+class RelatorioNormasPorAutorForm(AutorOuPeriodoForm):
+    campo_autor = 'autorianorma__autor'
+    campo_periodo = 'data'
+
+
 class RelatorioNormasPorAutorFilterSet(django_filters.FilterSet):
     autorianorma__autor = django_filters.CharFilter(widget=forms.HiddenInput())
 
     @property
     def qs(self):
         parent = super().qs
-        if not self.data.get('autorianorma__autor'):
+        if not self.is_valid():
             return parent.none()
-        return parent.distinct() \
-            .order_by('autorianorma__autor', '-autorianorma__primeiro_autor', 'tipo', '-ano', '-numero')
+        if self.form.cleaned_data.get('autorianorma__autor'):
+            return parent.distinct() \
+                .order_by('autorianorma__autor', '-autorianorma__primeiro_autor', 'tipo', '-ano', '-numero')
+        # Sem autor, agrupa as normas do período pelo primeiro autor.
+        return parent.filter(autorianorma__primeiro_autor=True) \
+            .order_by('autorianorma__autor', 'tipo', '-ano', '-numero')
 
     class Meta(FilterOverridesMetaMixin):
         model = NormaJuridica
         fields = ['tipo', 'data']
+        form = RelatorioNormasPorAutorForm
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
