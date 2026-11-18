@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import GenericViewSet
 
 from sapl.api.serializers import SessaoPlenariaECidadaniaSerializer
-from sapl.sessao.models import SessaoPlenaria
+from sapl.sessao.models import SessaoPlenaria, restringe_sessoes_visiveis
 
 
 class SessaoPlenariaViewSet(ListModelMixin,
@@ -25,3 +25,7 @@ class SessaoPlenariaViewSet(ListModelMixin,
     queryset = SessaoPlenaria.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('data_inicio', 'data_fim', 'interativa')
+
+    def get_queryset(self):
+        return restringe_sessoes_visiveis(
+            super().get_queryset(), self.request.user)

@@ -6,6 +6,7 @@ from django.utils import timezone
 from model_bakery import baker
 import pytest
 
+from sapl.base.models import CasaLegislativa
 from sapl.sessao.models import Orador, SessaoPlenaria
 
 
@@ -28,12 +29,17 @@ def sessoes():
     return previa, iniciada
 
 
-def _listados(client, endpoint, campo, sessoes):
-    """Sessões de `sessoes` referenciadas na listagem completa do endpoint."""
+@pytest.fixture
+def casa():
+    # o serializer do endpoint legado lê nome, sigla e endereço da Casa
+    return baker.make(CasaLegislativa)
+
+
+def _listados(client, url, campo, sessoes):
+    """Sessões de `sessoes` referenciadas na listagem completa de `url`."""
     valores, page = set(), 1
     while page:
-        response = client.get('/api/sessao/%s/?page_size=100&page=%s' % (
-            endpoint, page))
+        response = client.get('%s?page_size=100&page=%s' % (url, page))
         assert response.status_code == 200
         dados = response.json()
         valores |= {r[campo] for r in dados['results']}
@@ -45,8 +51,8 @@ def _listados(client, endpoint, campo, sessoes):
 def test_api_oculta_sessao_previa_do_anonimo(client, sessoes):
     previa, iniciada = sessoes
 
-    assert _listados(client, 'sessaoplenaria', 'id', sessoes) == {
-        iniciada.pk}
+    assert _listados(client, '/api/sessao/sessaoplenaria/', 'id',
+                     sessoes) == {iniciada.pk}
 
     assert client.get('/api/sessao/sessaoplenaria/%s/' % previa.pk
                       ).status_code == 404
@@ -57,8 +63,8 @@ def test_api_oculta_sessao_previa_do_anonimo(client, sessoes):
     assert client.get('/api/sessao/sessaoplenaria/%s/expedientes/'
                       % iniciada.pk).status_code == 200
 
-    assert _listados(client, 'orador', 'sessao_plenaria', sessoes) == {
-        iniciada.pk}
+    assert _listados(client, '/api/sessao/orador/', 'sessao_plenaria',
+                     sessoes) == {iniciada.pk}
 
 
 @pytest.mark.django_db(transaction=False)
@@ -66,12 +72,37 @@ def test_api_mostra_sessao_previa_ao_usuario_autenticado(client, sessoes):
     previa, iniciada = sessoes
     client.force_login(baker.make(get_user_model()))
 
-    assert _listados(client, 'sessaoplenaria', 'id', sessoes) == {
-        previa.pk, iniciada.pk}
+    assert _listados(client, '/api/sessao/sessaoplenaria/', 'id',
+                     sessoes) == {previa.pk, iniciada.pk}
     assert client.get('/api/sessao/sessaoplenaria/%s/' % previa.pk
                       ).status_code == 200
-    assert _listados(client, 'orador', 'sessao_plenaria', sessoes) == {
-        previa.pk, iniciada.pk}
+    assert _listados(client, '/api/sessao/orador/', 'sessao_plenaria',
+                     sessoes) == {previa.pk, iniciada.pk}
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_legada_oculta_sessao_previa_do_anonimo(client, sessoes, casa):
+    # endpoint legado do e-cidadania, que traz a pauta em txtObjeto
+    previa, iniciada = sessoes
+
+    assert _listados(client, '/api/sessao-plenaria/', 'codReuniao',
+                     sessoes) == {iniciada.pk}
+    assert client.get('/api/sessao-plenaria/%s/' % previa.pk
+                      ).status_code == 404
+    assert client.get('/api/sessao-plenaria/%s/' % iniciada.pk
+                      ).status_code == 200
+
+
+@pytest.mark.django_db(transaction=False)
+def test_api_legada_mostra_sessao_previa_ao_usuario_autenticado(
+        client, sessoes, casa):
+    previa, iniciada = sessoes
+    client.force_login(baker.make(get_user_model()))
+
+    assert _listados(client, '/api/sessao-plenaria/', 'codReuniao',
+                     sessoes) == {previa.pk, iniciada.pk}
+    assert client.get('/api/sessao-plenaria/%s/' % previa.pk
+                      ).status_code == 200
 
 
 @pytest.mark.django_db(transaction=False)

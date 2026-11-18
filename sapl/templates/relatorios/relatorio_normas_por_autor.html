@@ -8,7 +8,7 @@
   <h2>Norma por Autor</h2>
 
    <b>PARÂMETROS DE PESQUISA:<br /></b>
-    &emsp;Autor: {{ autor }}<br />
+    &emsp;Autor: {{ autor|default_if_none:"Todos" }}<br />
     &emsp;Tipo de Norma: {{ tipo }}<br />
     &emsp;Data: {{periodo}}<br /><br /><br/>
     {% if object_list %}
