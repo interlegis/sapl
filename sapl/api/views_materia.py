@@ -168,20 +168,18 @@ class _MateriaLegislativaViewSet:
         return self.list(request, *args, **kwargs)
 
 """
-        O próprio decorator LastModifiedDecorator já implementa o método last_modified_func que atende o caso
+        O próprio LastModifiedMixin (sapl/api/views.py) já implementa o método last_modified_func que atende o caso
         específico de MateriaLegislativa, baseado no campo data_ultima_atualizacao.
         Portanto, não há necessidade de reimplementar este método aqui. Mas segue o código comentado
         para referência futura caso necessário e como exemplo de implementação customizada que sobrescreve
-        o comportamento padrão do decorator.
+        o comportamento padrão do mixin. Use get_object e filter_queryset(get_queryset()), como a própria
+        view, para que a data respeite o que o usuário pode ver.
 
     def last_modified_func(self, request, *args, **kwargs):
-        pk = kwargs.get('pk', None)
-        if pk:
-            return MateriaLegislativa.objects.filter(pk=pk).values_list('data_ultima_atualizacao', flat=True)[:1].first()
+        if 'pk' in self.kwargs:
+            return self.get_object().data_ultima_atualizacao
 
-        queryset = self.get_queryset()
-        for backend in list(self.filter_backends):
-            queryset = backend().filter_queryset(request, self.queryset, self)
+        queryset = self.filter_queryset(self.get_queryset())
 
         timestamp = queryset.order_by('-data_ultima_atualizacao').values_list('data_ultima_atualizacao', flat=True)[:1].first()
         return timestamp
