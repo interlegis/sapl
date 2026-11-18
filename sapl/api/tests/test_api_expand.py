@@ -1,14 +1,26 @@
 import datetime
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from model_bakery import baker
+from rest_framework.relations import ManyRelatedField
 
-from sapl.api.tests.conftest import ids, resultados
-from sapl.base.models import DOC_ADM_OSTENSIVO, AppConfig
+from drfautoapi.drfautoapi import ApiManyRelatedField, ExpandVisibility
+from sapl.api.tests.conftest import ids, resultados, status_ou_erro
+from sapl.base.models import (DOC_ADM_OSTENSIVO, DOC_ADM_RESTRITIVO,
+                              AppConfig, Autor)
+from sapl.compilacao.models import (STATUS_TA_PRIVATE, STATUS_TA_PUBLIC,
+                                    Dispositivo, Nota,
+                                    PerfilEstruturalTextoArticulado,
+                                    TextoArticulado, TipoTextoArticulado, Vide)
+from sapl.materia.models import Autoria, MateriaLegislativa
+from sapl.norma.models import AutoriaNorma, NormaJuridica
 from sapl.parlamentares.models import Filiacao, Mandato, Parlamentar
-from sapl.protocoloadm.models import DocumentoAdministrativo, Protocolo
-from sapl.sessao.models import (SessaoPlenaria, SessaoPlenariaPresenca,
-                                VotoParlamentar)
+from sapl.protocoloadm.models import (Anexado, DocumentoAdministrativo,
+                                     Protocolo, VinculoDocAdminMateria)
+from sapl.sessao.models import (Correspondencia, SessaoPlenaria,
+                                SessaoPlenariaPresenca, VotoParlamentar)
 
 # campos de ParlamentarSerializerPublic.Meta.exclude
 DADOS_PESSOAIS = {
@@ -233,3 +245,395 @@ def test_proposicoes_do_parlamentar_usam_o_serializer_de_proposicao(
     assert response.status_code == 200
     assert [(p['id'], p['descricao']) for p in resultados(response)] == [
         (proposicao.pk, 'Indicação recebida')]
+
+
+# Visibilidade de cada objeto expandido
+
+def _num_queries(client, url, params):
+    with CaptureQueriesContext(connection) as queries:
+        response = client.get(url, params)
+    assert response.status_code == 200
+    return len(queries)
+
+
+def _texto_publico_e_privado():
+    return (baker.make(TextoArticulado, privacidade=STATUS_TA_PUBLIC,
+                       ementa='Lei publicada'),
+            baker.make(TextoArticulado, privacidade=STATUS_TA_PRIVATE,
+                       ementa='Minuta sigilosa'))
+
+
+def _dispositivo_alterado(publico, privado, ordem=1000):
+    """
+    Dispositivo de um texto privado publicado num texto público: aparece
+    no bloco de alteração do texto público (visibilidade=True), mas o texto
+    a que pertence continua privado.
+    """
+    return baker.make(Dispositivo, ta=privado, ta_publicado=publico,
+                      visibilidade=True, ordem=ordem,
+                      texto=f'Art. {ordem} alterado.')
+
+
+@pytest.mark.django_db(transaction=False)
+def test_expand_mantem_so_o_id_do_objeto_que_o_usuario_nao_pode_ver(
+        api, usuario):
+    publico, privado = _texto_publico_e_privado()
+    dono = usuario('dono')
+    privado.owners.add(dono)
+    dispositivo = _dispositivo_alterado(publico, privado)
+    url = '/api/compilacao/dispositivo/'
+    params = {'expand': 'ta;ta_publicado'}
+
+    for response in (api().get(url, params),
+                     api().get(f'{url}{dispositivo.pk}/', params)):
+        assert response.status_code == 200
+        obj = resultados(response)
+        obj = obj[0] if isinstance(obj, list) else obj
+        assert obj['id'] == dispositivo.pk
+        assert obj['ta'] == privado.pk
+        assert obj['ta_publicado']['ementa'] == 'Lei publicada'
+        assert 'Minuta sigilosa' not in response.content.decode()
+
+    # quem pode ver o texto privado continua recebendo o objeto expandido
+    obj = resultados(api(dono).get(url, params))[0]
+    assert obj['ta']['ementa'] == 'Minuta sigilosa'
+
+
+@pytest.mark.django_db(transaction=False)
+def test_expand_aninhado_mantem_so_o_id_do_objeto_oculto(api, usuario):
+    publico, privado = _texto_publico_e_privado()
+    dispositivo = _dispositivo_alterado(publico, privado)
+    baker.make(Nota, dispositivo=dispositivo, owner=usuario('autor'),
+               publicidade=Nota.NPUBL)
+
+    response = api().get('/api/compilacao/nota/',
+                         {'expand': 'dispositivo.ta,ta_publicado'})
+
+    assert response.status_code == 200
+    expandido = resultados(response)[0]['dispositivo']
+    assert expandido['texto'] == 'Art. 1000 alterado.'
+    assert expandido['ta'] == privado.pk
+    assert expandido['ta_publicado']['ementa'] == 'Lei publicada'
+    assert 'Minuta sigilosa' not in response.content.decode()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_expand_dos_dispositivos_de_um_vide(api):
+    publico, privado = _texto_publico_e_privado()
+    citado = baker.make(Dispositivo, ta=publico, ordem=1000,
+                        texto='Art. 1º Texto publicado.')
+    minuta = baker.make(Dispositivo, ta=privado, ordem=1000,
+                        texto='Art. 1º Texto da minuta.')
+    baker.make(Vide, dispositivo_base=minuta, dispositivo_ref=citado)
+
+    response = api().get('/api/compilacao/vide/',
+                         {'expand': 'dispositivo_base;dispositivo_ref'})
+
+    assert response.status_code == 200
+    vide = resultados(response)[0]
+    assert vide['dispositivo_base'] == minuta.pk
+    assert vide['dispositivo_ref']['texto'] == 'Art. 1º Texto publicado.'
+    assert 'Texto da minuta' not in response.content.decode()
+
+
+@pytest.fixture
+def documentos_anexados(db):
+    """
+    Com documentos administrativos ostensivos, qualquer pessoa lista os
+    documentos, menos os restritos, que só usuários autenticados veem. O
+    documento principal, público, tem um anexado ostensivo e um restrito.
+    """
+    baker.make(AppConfig, documentos_administrativos=DOC_ADM_OSTENSIVO)
+    principal = baker.make(DocumentoAdministrativo, restrito=False,
+                           assunto='Processo principal')
+    ostensivo = baker.make(DocumentoAdministrativo, restrito=False,
+                           assunto='Ofício ostensivo')
+    restrito = baker.make(DocumentoAdministrativo, restrito=True,
+                          assunto='Ofício restrito')
+    for anexado in (ostensivo, restrito):
+        baker.make(Anexado, documento_principal=principal,
+                   documento_anexado=anexado)
+    return principal, ostensivo, restrito
+
+
+URL_DOCUMENTO = '/api/protocoloadm/documentoadministrativo/'
+
+
+def _principal(response, principal):
+    assert response.status_code == 200
+    obj = resultados(response)
+    if isinstance(obj, list):
+        obj = next(o for o in obj if o['id'] == principal.pk)
+    return obj
+
+
+@pytest.mark.django_db(transaction=False)
+def test_many_to_many_somente_leitura_omite_os_objetos_ocultos(
+        api, usuario, documentos_anexados):
+    """
+    anexados tem model intermediário (Anexado), então é somente leitura: o
+    documento restrito some da lista, com ou sem o expand.
+    """
+    principal, ostensivo, restrito = documentos_anexados
+    url = URL_DOCUMENTO
+
+    assert ids(api().get(url)) == {principal.pk, ostensivo.pk}
+
+    for response in (api().get(f'{url}{principal.pk}/'), api().get(url)):
+        assert _principal(response, principal)['anexados'] == [ostensivo.pk]
+
+    params = {'expand': 'anexados'}
+    for response in (api().get(f'{url}{principal.pk}/', params),
+                     api().get(url, params)):
+        anexados = _principal(response, principal)['anexados']
+        assert [a['assunto'] for a in anexados] == ['Ofício ostensivo']
+        assert 'Ofício restrito' not in response.content.decode()
+
+    consulta = api(usuario('consulta'))
+    response = consulta.get(f'{url}{principal.pk}/')
+    assert sorted(response.json()['anexados']) == sorted(
+        [ostensivo.pk, restrito.pk])
+    response = consulta.get(f'{url}{principal.pk}/', params)
+    assert {a['assunto'] for a in response.json()['anexados']} == {
+        'Ofício ostensivo', 'Ofício restrito'}
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('filtro', ['anexados', 'anexados__in'])
+def test_filtro_por_many_to_many_somente_leitura_trata_oculto_como_inexistente(
+        api, usuario, documentos_anexados, filtro):
+    """Senão, o filtro revelaria a anexação que a resposta omite."""
+    principal, ostensivo, restrito = documentos_anexados
+    inexistente = DocumentoAdministrativo.objects.order_by('-pk')[0].pk + 1
+
+    assert ids(api().get(URL_DOCUMENTO, {filtro: ostensivo.pk})) == {
+        principal.pk}
+
+    oculto = status_ou_erro(api(), URL_DOCUMENTO, {filtro: restrito.pk})
+    assert oculto != 200
+    assert oculto == status_ou_erro(api(), URL_DOCUMENTO,
+                                    {filtro: inexistente})
+
+    response = api(usuario('consulta')).get(URL_DOCUMENTO,
+                                            {filtro: restrito.pk})
+    assert ids(response) == {principal.pk}
+
+
+@pytest.mark.django_db(transaction=False)
+def test_many_to_many_editavel_mantem_todos_os_ids(api):
+    """
+    Num ManyToMany editável, o cliente devolve a lista no PUT/PATCH, e omitir
+    um id apagaria a relação com o objeto oculto. Os perfis estruturais não
+    são públicos, mas continuam listados e filtráveis no tipo de texto.
+    """
+    perfil = baker.make(PerfilEstruturalTextoArticulado)
+    tipo = baker.make(TipoTextoArticulado)
+    tipo.perfis.add(perfil)
+    url = '/api/compilacao/tipotextoarticulado/'
+
+    response = api().get('/api/compilacao/perfilestruturaltextoarticulado/')
+    assert response.status_code in (401, 403)
+
+    assert api().get(f'{url}{tipo.pk}/').json()['perfis'] == [perfil.pk]
+    assert ids(api().get(url, {'perfis': perfil.pk})) == {tipo.pk}
+
+
+@pytest.mark.django_db(transaction=False)
+def test_custo_da_visibilidade_dos_ids_de_many_to_many(
+        api, usuario, monkeypatch):
+    """
+    Omitir os ids ocultos custa uma query por campo, qualquer que seja o
+    tamanho da página, e nenhuma quando o usuário pode ver todos os objetos
+    do model relacionado.
+    """
+    baker.make(AppConfig, documentos_administrativos=DOC_ADM_OSTENSIVO)
+    url = URL_DOCUMENTO
+    consulta = usuario('consulta')
+
+    def custo_da_visibilidade(n, client):
+        while Anexado.objects.count() < n:
+            baker.make(Anexado,
+                       documento_principal=baker.make(
+                           DocumentoAdministrativo, restrito=False),
+                       documento_anexado=baker.make(
+                           DocumentoAdministrativo, restrito=True))
+        client.get(url)  # aquece os caches de AppConfig e ContentType
+        com_visibilidade = _num_queries(client, url, {})
+        with monkeypatch.context() as m:
+            m.setattr(ApiManyRelatedField, 'to_representation',
+                      ManyRelatedField.to_representation)
+            sem_visibilidade = _num_queries(client, url, {})
+        return com_visibilidade - sem_visibilidade
+
+    assert custo_da_visibilidade(2, api()) == 1
+    assert custo_da_visibilidade(6, api()) == 1
+    assert custo_da_visibilidade(6, api(consulta)) == 0
+
+
+def _forma(valores):
+    """('obj', id) para um objeto expandido e ('id', id) para um id."""
+    return sorted(('obj', v['id']) if isinstance(v, dict) else ('id', v)
+                  for v in valores)
+
+
+def _escrita_e_leitura(client, url, dados, campo, expand=None):
+    """O campo na resposta de um PATCH e na de um GET do mesmo usuário."""
+    if expand:
+        url = f'{url}?expand={expand}'
+    escrita = client.patch(url, dados, format='json')
+    assert escrita.status_code == 200
+    leitura = client.get(url)
+    assert leitura.status_code == 200
+    return _forma(escrita.json()[campo]), _forma(leitura.json()[campo])
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('expand', [None, 'autores'])
+def test_resposta_de_escrita_mantem_os_autores_da_materia(
+        api, usuario, expand):
+    """
+    Os ManyToMany somente leitura seguem as permissões de listagem do model
+    relacionado, qualquer que seja o método da requisição. Quem altera a
+    matéria, mas não o autor, recebe na resposta do PATCH os mesmos autores
+    que recebe num GET.
+    """
+    materia = baker.make(MateriaLegislativa)
+    autor = baker.make(Autor)
+    baker.make(Autoria, materia=materia, autor=autor)
+    operador = usuario('materias', 'materia.change_materialegislativa')
+
+    escrita, leitura = _escrita_e_leitura(
+        api(operador), f'/api/materia/materialegislativa/{materia.pk}/',
+        {'ementa': 'Nova ementa'}, 'autores', expand)
+
+    assert leitura == [('obj' if expand else 'id', autor.pk)]
+    assert escrita == leitura
+
+
+@pytest.mark.django_db(transaction=False)
+def test_resposta_de_escrita_mantem_os_autores_da_norma(api, usuario):
+    norma = baker.make(NormaJuridica)
+    autor = baker.make(Autor)
+    baker.make(AutoriaNorma, norma=norma, autor=autor)
+    operador = usuario('normas', 'norma.change_normajuridica')
+
+    escrita, leitura = _escrita_e_leitura(
+        api(operador), f'/api/norma/normajuridica/{norma.pk}/',
+        {'ementa': 'Nova ementa'}, 'autores')
+
+    assert leitura == [('id', autor.pk)]
+    assert escrita == leitura
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('comportamento',
+                         [DOC_ADM_OSTENSIVO, DOC_ADM_RESTRITIVO])
+def test_resposta_de_escrita_mantem_as_correspondencias_da_sessao(
+        api, usuario, comportamento):
+    """
+    No modo ostensivo, quem altera a sessão vê os documentos das
+    correspondências. No restritivo, sem list_documentoadministrativo, não
+    vê nenhum. Nos dois, a resposta do PATCH é igual à do GET.
+    """
+    baker.make(AppConfig, documentos_administrativos=comportamento)
+    sessao = baker.make(SessaoPlenaria,
+                        data_inicio=datetime.date(2026, 1, 5), iniciada=True)
+    documentos = [baker.make(DocumentoAdministrativo, restrito=restrito)
+                  for restrito in (False, True)]
+    for numero_ordem, documento in enumerate(documentos, 1):
+        baker.make(Correspondencia, sessao_plenaria=sessao,
+                   documento=documento, numero_ordem=numero_ordem)
+    operador = usuario('sessoes', 'sessao.change_sessaoplenaria')
+
+    escrita, leitura = _escrita_e_leitura(
+        api(operador), f'/api/sessao/sessaoplenaria/{sessao.pk}/',
+        {'tema_solene': 'Tema'}, 'correspondencias')
+
+    if comportamento == DOC_ADM_OSTENSIVO:
+        assert leitura == sorted(('id', d.pk) for d in documentos)
+    else:
+        assert leitura == []
+    assert escrita == leitura
+
+
+@pytest.mark.django_db(transaction=False)
+def test_resposta_de_escrita_mantem_as_materias_vinculadas_ao_documento(
+        api, usuario):
+    baker.make(AppConfig, documentos_administrativos=DOC_ADM_OSTENSIVO)
+    documento = baker.make(DocumentoAdministrativo, restrito=False)
+    materia = baker.make(MateriaLegislativa)
+    baker.make(VinculoDocAdminMateria, documento=documento, materia=materia)
+    operador = usuario('documentos',
+                       'protocoloadm.change_documentoadministrativo')
+
+    escrita, leitura = _escrita_e_leitura(
+        api(operador), f'{URL_DOCUMENTO}{documento.pk}/',
+        {'assunto': 'Novo assunto'}, 'materiasvinculadas')
+
+    assert leitura == [('id', materia.pk)]
+    assert escrita == leitura
+
+
+@pytest.mark.django_db(transaction=False)
+def test_visibilidade_dos_objetos_expandidos_e_verificada_em_lote(api):
+    """
+    O custo do expand de objetos ocultos não cresce com o tamanho da
+    página: a visibilidade é verificada de uma vez para toda a listagem, e
+    um objeto oculto não é buscado.
+    """
+    publico, privado = _texto_publico_e_privado()
+    url = '/api/compilacao/dispositivo/'
+
+    def custo_do_expand(n):
+        while privado.dispositivos_set.count() < n:
+            _dispositivo_alterado(
+                publico, privado,
+                ordem=1000 * (privado.dispositivos_set.count() + 1))
+        params = {'ta_publicado': publico.pk}
+        return (_num_queries(api(), url, dict(params, expand='ta')) -
+                _num_queries(api(), url, params))
+
+    assert custo_do_expand(2) == custo_do_expand(6)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_visibilidade_do_expand_aninhado_e_verificada_em_lote(api, usuario):
+    publico, privado = _texto_publico_e_privado()
+    autor = usuario('autor')
+    url = '/api/compilacao/nota/'
+
+    def custo_do_expand_aninhado(n):
+        while Nota.objects.count() < n:
+            dispositivo = _dispositivo_alterado(
+                publico, privado, ordem=1000 * (Nota.objects.count() + 1))
+            baker.make(Nota, dispositivo=dispositivo, owner=autor,
+                       publicidade=Nota.NPUBL)
+        return (_num_queries(api(), url, {'expand': 'dispositivo.ta'}) -
+                _num_queries(api(), url, {'expand': 'dispositivo'}))
+
+    assert custo_do_expand_aninhado(2) == custo_do_expand_aninhado(6)
+
+
+@pytest.mark.django_db(transaction=False)
+def test_expand_verifica_objeto_a_objeto_se_nao_houver_como_fazer_em_lote(
+        api, monkeypatch):
+    """
+    Se o caminho não puder ser verificado de uma vez (por exemplo, se passar
+    por um campo que não é do model), cada objeto é verificado uma vez, e o
+    oculto continua só com o id.
+    """
+    monkeypatch.setattr(ExpandVisibility, 'visible_in_path',
+                        lambda self, root, path, model: None)
+    publico, privado = _texto_publico_e_privado()
+    dispositivos = [_dispositivo_alterado(publico, privado, ordem)
+                    for ordem in (1000, 2000)]
+
+    response = api().get('/api/compilacao/dispositivo/',
+                         {'expand': 'ta;ta_publicado', 'o': 'ordem'})
+
+    assert response.status_code == 200
+    objetos = resultados(response)
+    assert [o['id'] for o in objetos] == [d.pk for d in dispositivos]
+    assert [o['ta'] for o in objetos] == [privado.pk, privado.pk]
+    assert [o['ta_publicado']['id'] for o in objetos] == [
+        publico.pk, publico.pk]
