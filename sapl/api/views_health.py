@@ -24,6 +24,7 @@ def _format_plain(ok: bool) -> HttpResponse:
 class HealthzView(APIView):
     authentication_classes = []
     permission_classes = []
+    throttle_classes = []
 
     logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class HealthzView(APIView):
 class ReadyzView(APIView):
     authentication_classes = []
     permission_classes = []
+    throttle_classes = []
 
     logger = logging.getLogger(__name__)
 
@@ -84,6 +86,7 @@ class ReadyzView(APIView):
 class AppzVersionView(APIView):
     authentication_classes = []
     permission_classes = []
+    throttle_classes = []
 
     logger = logging.getLogger(__name__)
 

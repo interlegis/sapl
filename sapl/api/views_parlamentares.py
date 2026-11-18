@@ -9,8 +9,7 @@ from drfautoapi.drfautoapi import customize, ApiViewSetConstrutor, \
     wrapper_queryset_response_for_drf_action
 
 from sapl.api.permissions import SaplModelPermissions
-from sapl.api.serializers import ParlamentarSerializerVerbose, \
-    ParlamentarSerializerPublic
+from sapl.api.serializers import ParlamentarSerializerVerbose
 from sapl.materia.models import Proposicao
 from sapl.parlamentares.models import Mandato, Legislatura
 from sapl.parlamentares.models import Parlamentar
@@ -36,10 +35,8 @@ class _ParlamentarViewSet:
 
     permission_classes = (ParlamentarPermission,)
 
-    def get_serializer(self, *args, **kwargs):
-        if not self.request.user.has_perm('parlamentares.add_parlamentar'):
-            self.serializer_class = ParlamentarSerializerPublic
-        return super().get_serializer(*args, **kwargs)
+    # Os dados pessoais são ocultados por
+    # sapl.api.serializers.ParlamentarSerializer.get_hidden_fields
 
     @action(detail=True)
     def proposicoes(self, request, *args, **kwargs):
