@@ -22,17 +22,53 @@ class SaplSerializerMixin(DrfAutoApiSerializerMixin):
     class Meta(DrfAutoApiSerializerMixin.Meta):
         fields = '__all__'
 
+    @classmethod
+    def get_hidden_fields(cls, request):
+        """
+        Nos models com registro de auditoria (campo `ip`), `ip` e `user`
+        identificam quem fez a operação e de onde. Só aparecem para quem
+        pode alterar o model.
+        """
+        hidden = super().get_hidden_fields(request)
+
+        model = getattr(cls.Meta, 'model', None)
+        if model is None:
+            return hidden
+
+        campos = {f.name for f in model._meta.concrete_fields}
+        if 'ip' not in campos:
+            return hidden
+
+        user = getattr(request, 'user', None)
+        perm = f'{model._meta.app_label}.change_{model._meta.model_name}'
+        if not (user and user.has_perm(perm)):
+            hidden |= {'ip', 'user'} & campos
+        return hidden
+
     def get_metadata(self, obj) -> dict:
-        try:
-            metadata = Metadata.objects.get(
-                content_type=ContentType.objects.get_for_model(
-                    obj._meta.model),
-                object_id=obj.id
-            ).metadata
-        except:
-            metadata = {}
-        finally:
-            return metadata
+        """
+        Numa listagem, busca de uma vez os metadados de todos os objetos da
+        lista, em vez de uma query por objeto. O resultado fica no contexto
+        do serializer raiz, compartilhado por toda a resposta.
+        """
+        content_type = ContentType.objects.get_for_model(obj._meta.model)
+        cache = self.context.setdefault('_sapl_metadata', {}).setdefault(
+            content_type.id, {})
+
+        if obj.pk not in cache:
+            pks = {obj.pk}
+            if isinstance(self.parent, serializers.ListSerializer) and \
+                    self.parent.instance is not None:
+                pks |= {o.pk for o in self.parent.instance
+                        if o.pk not in cache}
+
+            encontrados = dict(Metadata.objects.filter(
+                content_type=content_type, object_id__in=pks
+            ).values_list('object_id', 'metadata'))
+            for pk in pks:
+                cache[pk] = encontrados.get(pk, {})
+
+        return cache[obj.pk]
 
     def get_link_detail_backend(self, obj) -> str:
         try:
@@ -96,6 +132,28 @@ class ParlamentarSerializerPublic(SaplSerializerMixin):
                    "endereco_residencia", "municipio_residencia",
                    "uf_residencia", "cep_residencia", "situacao_militar",
                    "telefone_residencia", "titulo_eleitor", "fax_residencia"]
+
+
+class ParlamentarSerializer(SaplSerializerMixin):
+    """
+    Os dados pessoais (campos excluídos em ParlamentarSerializerPublic) só
+    aparecem para quem pode cadastrar parlamentares. Como a regra está no
+    serializer usado pela viewset, ela vale também quando o parlamentar é
+    expandido a partir de outro model (?expand=parlamentar), e esses campos
+    não podem ser usados em filtros nem na ordenação.
+    """
+
+    class Meta:
+        model = Parlamentar
+        fields = '__all__'
+
+    @classmethod
+    def get_hidden_fields(cls, request):
+        hidden = super().get_hidden_fields(request)
+        user = getattr(request, 'user', None)
+        if not (user and user.has_perm('parlamentares.add_parlamentar')):
+            hidden |= set(ParlamentarSerializerPublic.Meta.exclude)
+        return hidden
 
 
 class ParlamentarSerializerVerbose(SaplSerializerMixin):

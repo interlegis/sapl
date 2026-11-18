@@ -7,8 +7,9 @@ from drfautoapi.drfautoapi import ApiViewSetConstrutor, \
     customize, wrapper_queryset_response_for_drf_action
 from sapl.api.serializers import ChoiceSerializer,\
     SessaoPlenariaECidadaniaSerializer
+from sapl.base.models import AppConfig, DOC_ADM_OSTENSIVO
 from sapl.sessao.models import SessaoPlenaria, ExpedienteSessao,\
-    restringe_sessoes_visiveis
+    Correspondencia, restringe_sessoes_visiveis
 from sapl.utils import choice_anos_com_sessaoplenaria
 
 
@@ -71,3 +72,23 @@ for _model in apps.get_app_config('sessao').get_models():
             f.name == 'sessao_plenaria' for f in _model._meta.fields):
         customize(_model)(type('_%sViewSet' % _model.__name__,
                                (_RestringeSessoesVisiveisMixin,), {}))
+
+
+@customize(Correspondencia)
+class _CorrespondenciaViewSet:
+
+    def get_queryset(self):
+        """
+        O super() já restringe às sessões visíveis (laço acima). Sem login,
+        valem também as regras de CorrespondenciaCrud e do resumo da sessão:
+        no modo restritivo de documentos administrativos, nenhuma
+        correspondência; no ostensivo, só as de documento não restrito.
+        """
+        qs = super().get_queryset()
+        if self.request.user.is_authenticated:
+            return qs
+
+        comportamento = AppConfig.attr('documentos_administrativos')
+        if comportamento != DOC_ADM_OSTENSIVO:
+            return qs.none()
+        return qs.filter(documento__restrito=False)
