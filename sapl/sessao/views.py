@@ -32,6 +32,8 @@ import pytz
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 
+from sapl.base.atualizacao import (bulk_create_public, bulk_update_public,
+                                   update_public)
 from sapl.base.models import AppConfig as AppsAppConfig
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
@@ -108,7 +110,8 @@ def reordena_materias(request, pk, tipo, ordenacao):
     for numero, materia in enumerate(materias, 1):
         materia.numero_ordem = numero
         update_list.append(materia)
-    TIPOS_MATERIAS[tipo].objects.bulk_update(update_list, ['numero_ordem'])
+    bulk_update_public(TIPOS_MATERIAS[tipo].objects, update_list,
+                       ['numero_ordem'])
 
     return HttpResponseRedirect(reverse(TIPOS_URLS_SUCESSO[tipo], kwargs={'pk': pk}))
 
@@ -767,7 +770,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
                         votacao_aberta=False, registro_aberto=False
                     )
                 )
-            ExpedienteMateria.objects.bulk_create(lista_expediente)
+            bulk_create_public(ExpedienteMateria.objects, lista_expediente)
 
         elif self.ordem:
             lista_ordemdia = []
@@ -787,7 +790,7 @@ class TransferenciaMateriasSessaoAbstract(PermissionRequiredMixin, ListView):
                         votacao_aberta=False, registro_aberto=False
                     )
                 )
-            OrdemDia.objects.bulk_create(lista_ordemdia)
+            bulk_create_public(OrdemDia.objects, lista_ordemdia)
 
         msg = _('Matéria(s) copiada(s) com sucesso.')
         messages.add_message(request, messages.SUCCESS, msg)
@@ -1500,12 +1503,12 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
                 sessao_plenaria_id=self.object.id).delete()
 
             # Criar apenas quem ainda não tem presença registrada. O
-            # ignore_conflicts descarta a inserção duplicada quando o
-            # formulário é submetido duas vezes em paralelo, em vez de
-            # gravar uma segunda linha para o mesmo parlamentar.
+            # O helper trata conflitos pela chave única, sem contar uma
+            # submissão repetida como atualização de conteúdo público.
             username = request.user.username
             novos = marcados - presentes_banco
-            SessaoPlenariaPresenca.objects.bulk_create(
+            bulk_create_public(
+                SessaoPlenariaPresenca.objects,
                 [SessaoPlenariaPresenca(sessao_plenaria=self.object,
                                         parlamentar_id=p) for p in novos],
                 ignore_conflicts=True)
@@ -1623,7 +1626,8 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
             # comentário equivalente em PresencaView.post.
             username = request.user.username
             novos = marcados - presentes_banco
-            PresencaOrdemDia.objects.bulk_create(
+            bulk_create_public(
+                PresencaOrdemDia.objects,
                 [PresencaOrdemDia(sessao_plenaria=self.object,
                                   parlamentar_id=p) for p in novos],
                 ignore_conflicts=True)
@@ -4690,8 +4694,8 @@ class LeituraEmBloco(PermissionRequiredForAppCrudMixin, ListView):
                                           ip=get_client_ip(self.request))
                 leituras.append(obj)
 
-            RegistroLeitura.objects.bulk_create(leituras)
-            models.update(resultado='Matéria Lida')
+            bulk_create_public(RegistroLeitura.objects, leituras)
+            update_public(models, resultado='Matéria Lida')
 
         else:
             messages.add_message(self.request, messages.ERROR, _(

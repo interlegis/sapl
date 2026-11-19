@@ -345,9 +345,11 @@ class DocumentoAdministrativo(models.Model):
                                  update_fields=update_fields)
 
 
-def pode_ver_documento_adm(user, documento):
+def pode_ver_documento_adm(user, documento, modo=None):
     """Mesmas regras da página de detalhe do documento (CRUD)."""
-    if SaplAppConfig.attr('documentos_administrativos') == DOC_ADM_OSTENSIVO:
+    if modo is None:
+        modo = SaplAppConfig.attr('documentos_administrativos')
+    if modo == DOC_ADM_OSTENSIVO:
         return not (documento.restrito and user.is_anonymous)
     return user.has_perm('protocoloadm.detail_documentoadministrativo')
 

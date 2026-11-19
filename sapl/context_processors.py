@@ -7,6 +7,11 @@ from sapl.utils import google_recaptcha_configured as \
 from sapl.utils import mail_service_configured as mail_service_configured_utils
 
 
+def public_content_update(request):
+    from sapl.base.atualizacao import last_public_update
+    return {'data_atualizacao_publica': last_public_update()}
+
+
 def parliament_info(request):
     from sapl.base.views import get_casalegislativa
     casa = get_casalegislativa()

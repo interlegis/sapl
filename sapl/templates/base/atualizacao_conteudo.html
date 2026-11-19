@@ -1,0 +1,7 @@
+{% load i18n tz %}
+{% if data_atualizacao_publica %}
+  {% trans 'Última atualização do conteúdo público do SAPL:' %}
+  <time datetime="{{ data_atualizacao_publica|date:'c' }}">{{ data_atualizacao_publica|localtime|date:"d/m/Y" }}</time>
+{% else %}
+  {% trans 'Data de atualização do conteúdo público indisponível' %}
+{% endif %}

@@ -37,6 +37,7 @@ import weasyprint
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 
+from sapl.base.atualizacao import bulk_update_public
 import sapl
 from sapl.base.email_utils import do_envia_email_confirmacao
 from sapl.base.models import Autor, CasaLegislativa, AppConfig as BaseAppConfig
@@ -1497,8 +1498,8 @@ class TramitacaoCrud(MasterDetailCrud):
                             else:
                                 materia.em_tramitacao = True
                     # Atualiza status 'em_tramitacao'
-                    MateriaLegislativa.objects.\
-                        bulk_update(materias_anexadas, ['em_tramitacao'])
+                    bulk_update_public(MateriaLegislativa.objects,
+                                       materias_anexadas, ['em_tramitacao'])
                 Tramitacao.objects.filter(id__in=tramitacoes_deletar).delete()
 
                 return HttpResponseRedirect(url)

@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 ApiViewSetConstrutor.build_class(
     [
         apps.get_app_config('contenttypes'),
-        apps.get_app_config('base')
+        *[model for model in apps.get_app_config('base').get_models()
+          if model._meta.model_name != 'atualizacaoconteudopublico']
     ]
 )
 

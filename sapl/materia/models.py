@@ -13,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 
+from sapl.base.atualizacao import update_public
 from sapl.base.models import SEQUENCIA_NUMERACAO_PROTOCOLO, Autor, AppConfig as BaseAppConfig
 from sapl.comissoes.models import Comissao, Reuniao
 from sapl.parlamentares.models import Legislatura
@@ -95,19 +96,12 @@ class TipoMateriaManager(models.Manager):
     def reposicione(self, pk, idx):
         tipos = self.reordene(exclude_pk=pk)
 
-        self.get_queryset(
-        ).filter(
-            sequencia_regimental__gte=idx
-        ).update(
-            sequencia_regimental=models.F('sequencia_regimental') + 1
-        )
+        update_public(
+            self.get_queryset().filter(sequencia_regimental__gte=idx),
+            sequencia_regimental=models.F('sequencia_regimental') + 1)
 
-        self.get_queryset(
-        ).filter(
-            pk=pk
-        ).update(
-            sequencia_regimental=idx
-        )
+        update_public(self.get_queryset().filter(pk=pk),
+                      sequencia_regimental=idx)
 
 
 class TipoMateriaLegislativa(models.Model):

@@ -17,6 +17,7 @@ from image_cropping.widgets import CropWidget, ImageCropWidget
 from model_utils.choices import Choices
 
 from sapl import utils
+from sapl.base.atualizacao import update_public
 from sapl.compilacao.models import (NOTAS_PUBLICIDADE_CHOICES,
                                     PARTICIPACAO_SOCIAL_CHOICES, Dispositivo,
                                     Nota, Publicacao, TextoArticulado,
@@ -1057,9 +1058,9 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
 
             def extenderPara(dpt_pk):
 
-                Dispositivo.objects.filter(
+                update_public(Dispositivo.objects.filter(
                     dispositivo_pai_id=dpt_pk,
-                    ta_publicado__isnull=True).update(
+                    ta_publicado__isnull=True),
                     dispositivo_vigencia_id=dv_pk)
 
                 filhos = Dispositivo.objects.filter(
@@ -1074,19 +1075,19 @@ class DispositivoEdicaoVigenciaForm(ModelForm):
         while instance.auto_inserido and instance.dispositivo_pai:
             instance = instance.dispositivo_pai
 
-        inst.dispositivos_vigencias_set.filter(
-            ta_publicado__isnull=True).update(
-                inicio_vigencia=inst.inicio_vigencia,
-                inicio_eficacia=inst.inicio_eficacia,
-                fim_vigencia=inst.fim_vigencia,
-                fim_eficacia=inst.fim_eficacia)
+        update_public(inst.dispositivos_vigencias_set.filter(
+            ta_publicado__isnull=True),
+            inicio_vigencia=inst.inicio_vigencia,
+            inicio_eficacia=inst.inicio_eficacia,
+            fim_vigencia=inst.fim_vigencia,
+            fim_eficacia=inst.fim_eficacia)
 
-        inst.dispositivos_vigencias_set.filter(
-            ta_publicado__isnull=False).update(
-                inicio_vigencia=inst.inicio_eficacia,
-                inicio_eficacia=inst.inicio_eficacia,
-                fim_vigencia=inst.fim_eficacia,
-                fim_eficacia=inst.fim_eficacia)
+        update_public(inst.dispositivos_vigencias_set.filter(
+            ta_publicado__isnull=False),
+            inicio_vigencia=inst.inicio_eficacia,
+            inicio_eficacia=inst.inicio_eficacia,
+            fim_vigencia=inst.fim_eficacia,
+            fim_eficacia=inst.fim_eficacia)
 
         return inst
 

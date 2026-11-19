@@ -29,6 +29,7 @@ from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django.views.generic.list import ListView
 
+from sapl.base.atualizacao import update_public
 from sapl.compilacao.apps import AppConfig
 from sapl.compilacao.forms import (DispositivoDefinidorVigenciaForm,
                                    DispositivoEdicaoAlteracaoForm,
@@ -2240,15 +2241,15 @@ class ActionDispositivoCreateMixin(ActionsCommonsMixin):
         if dvt.auto_inserido:
             dvt = dvt.dispositivo_pai
         try:
-            Dispositivo.objects.filter(
+            update_public(Dispositivo.objects.filter(
                 ta=dvt.ta, ta_publicado__isnull=True
-            ).update(
+            ),
                 dispositivo_vigencia=dvt,
                 inicio_vigencia=dvt.inicio_vigencia,
                 inicio_eficacia=dvt.inicio_eficacia)
 
-            Dispositivo.objects.filter(ta_publicado=dvt.ta
-                                       ).update(
+            update_public(
+                Dispositivo.objects.filter(ta_publicado=dvt.ta),
                 dispositivo_vigencia=dvt,
                 inicio_vigencia=dvt.inicio_vigencia,
                 inicio_eficacia=dvt.inicio_eficacia)

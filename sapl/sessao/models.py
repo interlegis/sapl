@@ -7,6 +7,7 @@ from django.utils import timezone, formats
 from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
+from sapl.base.atualizacao import update_public
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
 from sapl.materia.models import Tramitacao
@@ -370,13 +371,13 @@ class SessaoPlenaria(models.Model):
                           using=using,
                           update_fields=update_fields)
 
-        self.ordemdia_set.exclude(
+        update_public(self.ordemdia_set.exclude(
             data_ordem=F('sessao_plenaria__data_inicio')
-        ).update(data_ordem=self.data_inicio)
+        ), data_ordem=self.data_inicio)
 
-        self.expedientemateria_set.exclude(
+        update_public(self.expedientemateria_set.exclude(
             data_ordem=F('sessao_plenaria__data_inicio')
-        ).update(data_ordem=self.data_inicio)
+        ), data_ordem=self.data_inicio)
 
 
 class AbstractOrdemDia(models.Model):

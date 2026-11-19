@@ -13,6 +13,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from image_cropping.fields import ImageCropField, ImageRatioField
 
+from sapl.base.atualizacao import update_public
 from sapl.compilacao.utils import (get_integrations_view_names, int_to_letter,
                                    int_to_roman)
 from sapl.utils import YES_NO_CHOICES, get_settings_auth_user_model,\
@@ -515,7 +516,7 @@ class TextoArticulado(TimestampedMixin):
             return
 
         ordem_max = dpts.last().ordem
-        dpts.update(ordem=F('ordem') + ordem_max)
+        update_public(dpts, ordem=F('ordem') + ordem_max)
 
         dpts = Dispositivo.objects.filter(
             ta=self).values_list('pk', flat=True).order_by('ordem')
@@ -523,7 +524,7 @@ class TextoArticulado(TimestampedMixin):
         count = 0
         for d in dpts:
             count += Dispositivo.INTERVALO_ORDEM
-            Dispositivo.objects.filter(pk=d).update(ordem=count)
+            update_public(Dispositivo.objects.filter(pk=d), ordem=count)
 
     def reordenar_dispositivos(self):
 
@@ -533,7 +534,7 @@ class TextoArticulado(TimestampedMixin):
             return
 
         ordem_max = dpts.last().ordem
-        dpts.update(ordem=F('ordem') + ordem_max)
+        update_public(dpts, ordem=F('ordem') + ordem_max)
 
         raizes = Dispositivo.objects.filter(
             ta=self,
@@ -544,7 +545,7 @@ class TextoArticulado(TimestampedMixin):
         count.append(Dispositivo.INTERVALO_ORDEM)
 
         def update(dpk):
-            Dispositivo.objects.filter(pk=dpk).update(ordem=count[0])
+            update_public(Dispositivo.objects.filter(pk=dpk), ordem=count[0])
             count[0] = count[0] + Dispositivo.INTERVALO_ORDEM
             filhos = Dispositivo.objects.filter(
                 dispositivo_pai_id=dpk).values_list(
@@ -1614,8 +1615,9 @@ class Dispositivo(BaseModel, TimestampedMixin):
                 ordem__gte=ordem,
                 ta_id=self.ta_id)
 
-            proximo_bloco.update(ordem=F('ordem') + 1)
-            proximo_bloco.update(
+            update_public(proximo_bloco, ordem=F('ordem') + 1)
+            update_public(
+                proximo_bloco,
                 ordem=F('ordem') + (
                     Dispositivo.INTERVALO_ORDEM * espaco_a_criar - 1))
         else:
@@ -1897,7 +1899,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
             return
 
         ordem_max = filhos.last().ordem_bloco_atualizador
-        filhos.update(
+        update_public(filhos,
             ordem_bloco_atualizador=F('ordem_bloco_atualizador') + ordem_max)
 
         filhos = filhos.values_list(
@@ -1906,7 +1908,7 @@ class Dispositivo(BaseModel, TimestampedMixin):
         count = 0
         for d in filhos:
             count += Dispositivo.INTERVALO_ORDEM
-            Dispositivo.objects.filter(pk=d).update(
+            update_public(Dispositivo.objects.filter(pk=d),
                 ordem_bloco_atualizador=count)
 
 

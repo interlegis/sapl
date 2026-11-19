@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 
-from sapl.base.models import AuditLog
+from sapl.base.models import AuditLog, AtualizacaoConteudoPublico
 from sapl.utils import register_all_models_in_admin
 
 register_all_models_in_admin(__name__)
@@ -36,3 +36,17 @@ class AuditLogAdmin(admin.ModelAdmin):
 # Na linha acima register_all_models_in_admin registrou AuditLog
 admin.site.unregister(AuditLog)
 admin.site.register(AuditLog, AuditLogAdmin)
+
+
+class AtualizacaoConteudoPublicoAdmin(AuditLogAdmin):
+    readonly_fields = ('chave', 'timestamp', 'origem', 'objeto_id',
+                       'disponivel_em')
+    list_display = readonly_fields
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+admin.site.unregister(AtualizacaoConteudoPublico)
+admin.site.register(AtualizacaoConteudoPublico,
+                    AtualizacaoConteudoPublicoAdmin)
