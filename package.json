@@ -12,7 +12,7 @@
     "axios": "^1.7.2",
     "bootstrap": "^4.6.2",
     "bootstrap-vue": "^2.22.0",
-    "diff": "^5.1.0",
+    "diff": "^8.0.3",
     "jquery": "^3.6.0",
     "jquery-mask-plugin": "^1.14.16",
     "jquery-ui": "^1.13.2",
