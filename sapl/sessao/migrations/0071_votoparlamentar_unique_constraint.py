@@ -3,6 +3,8 @@
 from django.db import migrations, models
 from django.db.models import Count
 
+from sapl.sessao.migrations._operacoes import AddConstraintSeAusente
+
 
 def remove_votos_duplicados(apps, schema_editor):
     """Preserva o voto canônico antes de criar os índices únicos."""
@@ -43,11 +45,11 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             remove_votos_duplicados, migrations.RunPython.noop),
-        migrations.AddConstraint(
+        AddConstraintSeAusente(
             model_name='votoparlamentar',
             constraint=models.UniqueConstraint(condition=models.Q(ordem__isnull=False), fields=('parlamentar', 'ordem'), name='sessao_votoparlamentar_unique_parlamentar_ordem'),
         ),
-        migrations.AddConstraint(
+        AddConstraintSeAusente(
             model_name='votoparlamentar',
             constraint=models.UniqueConstraint(condition=models.Q(expediente__isnull=False), fields=('parlamentar', 'expediente'), name='sessao_votoparlamentar_unique_parlamentar_expediente'),
         ),
