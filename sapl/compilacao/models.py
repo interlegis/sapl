@@ -67,13 +67,7 @@ class BaseModel(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None, clean=True):
-        # método clean não pode ser chamado no caso do save que está sendo
-        # executado é o save de revision_pre_delete_signal
-        import inspect
-        funcs = list(filter(lambda x: x == 'revision_pre_delete_signal',
-                            map(lambda x: x[3], inspect.stack())))
-
-        if clean and not funcs:
+        if clean:
             self.clean()
 
         return models.Model.save(
@@ -1610,14 +1604,36 @@ class Dispositivo(BaseModel, TimestampedMixin):
 
         if proximo_bloco:
             ordem = proximo_bloco.ordem
-            proximo_bloco = Dispositivo.objects.order_by('-ordem').filter(
+
+            if espaco_a_criar == 1:
+                # Se houver lacuna entre o próximo bloco e o dispositivo
+                # imediatamente anterior a ele, o novo dispositivo ocupa o
+                # meio dela e nenhum outro precisa ser deslocado. Deslocar o
+                # restante do texto a cada inserção regrava milhares de linhas
+                # (e todos os seus índices) em textos grandes, como na
+                # revogação de um código inteiro, dispositivo a dispositivo.
+                anterior = Dispositivo.objects.filter(
+                    ta_id=self.ta_id,
+                    ordem__lt=ordem).aggregate(Max('ordem'))['ordem__max']
+                if anterior is None:
+                    anterior = 0
+                if ordem - anterior >= 2:
+                    return anterior + (ordem - anterior) // 2
+
+            seguintes = Dispositivo.objects.filter(
                 ordem__gte=ordem,
                 ta_id=self.ta_id)
 
-            proximo_bloco.update(ordem=F('ordem') + 1)
-            proximo_bloco.update(
-                ordem=F('ordem') + (
-                    Dispositivo.INTERVALO_ORDEM * espaco_a_criar - 1))
+            # O PostgreSQL confere a unicidade de (ta, ordem) linha a linha
+            # durante o UPDATE. Para nenhuma linha cair sobre outra ainda não
+            # deslocada, os seguintes primeiro saltam para depois do maior
+            # valor atual e só então descem para a posição final.
+            deslocamento = Dispositivo.INTERVALO_ORDEM * espaco_a_criar
+            ordem_max = seguintes.aggregate(Max('ordem'))['ordem__max']
+            salto = ordem_max - ordem + deslocamento + 1
+
+            seguintes.update(ordem=F('ordem') + salto)
+            seguintes.update(ordem=F('ordem') - (salto - deslocamento))
         else:
             # inserção no fim do ta
             ordem_max = Dispositivo.objects.order_by(

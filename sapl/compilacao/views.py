@@ -1610,7 +1610,9 @@ class ActionDeleteDispositivoMixin(ActionsCommonsMixin):
                     else:
                         self.set_message(data, 'success', _(
                             'Exclusão efetuada com sucesso!'), modal=True)
-                    ta_base.reagrupar_ordem_de_dispositivos()
+                    # As lacunas deixadas na ordem não são compactadas: só a
+                    # ordem relativa importa, e elas servem de espaço para
+                    # inserções futuras (ver Dispositivo.criar_espaco).
             except Exception as e:
                 data['pk'] = self.kwargs['dispositivo_id']
                 self.set_message(data, 'danger', str(e), modal=True)
