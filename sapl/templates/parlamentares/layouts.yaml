@@ -75,7 +75,7 @@ ParlamentarCreate:
   - email
   - numero_gab_parlamentar  telefone telefone_celular
   - endereco_residencia  cep_residencia
-  - municipio_residencia
+  - municipio_residencia  uf_residencia
   - telefone_residencia
   - locais_atuacao
   - fotografia
