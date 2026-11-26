@@ -12,7 +12,8 @@ from sapl.materia.models import TipoMateriaLegislativa, UnidadeTramitacao,\
     MateriaLegislativa
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, texto_upload_path,
                         get_settings_auth_user_model,
-                        OverwriteStorage)
+                        OverwriteStorage,
+                        salva_com_arquivos)
 
 
 class TipoDocumentoAdministrativo(models.Model):
@@ -330,19 +331,10 @@ class DocumentoAdministrativo(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and self.texto_integral:
-            texto_integral = self.texto_integral
-            self.texto_integral = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-            self.texto_integral = texto_integral
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('texto_integral',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
 
 def pode_ver_documento_adm(user, documento):
@@ -394,19 +386,10 @@ class DocumentoAcessorioAdministrativo(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and self.arquivo:
-            arquivo = self.arquivo
-            self.arquivo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-            self.arquivo = arquivo
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('arquivo',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
 
 class StatusTramitacaoAdministrativo(models.Model):

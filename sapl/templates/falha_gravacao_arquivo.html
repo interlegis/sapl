@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block base_header %}
+  <div class="clearfix">
+    <h1 class="page-header">{% trans 'Não foi possível gravar o arquivo' %}</h1>
+  </div>
+{% endblock base_header %}
+
+{% block vue_content %}{% endblock %}
+
+{% block base_content %}
+  <div class="alert alert-danger" role="alert">
+    {{ mensagem }}
+  </div>
+  {% if request_id %}
+    <p>{% trans 'Código da requisição, para informar ao suporte' %}: <code>{{ request_id }}</code></p>
+  {% endif %}
+  <a href="javascript:history.back()" class="btn btn-secondary">{% trans 'Voltar' %}</a>
+{% endblock base_content %}
