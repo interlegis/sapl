@@ -1,7 +1,9 @@
 from django.core.exceptions import ValidationError
 import pytest
 
-from .utils import (listify, rejeita_conteudo_ativo,
+from django.http import QueryDict
+
+from .utils import (filter_url_sem_pagina, listify, rejeita_conteudo_ativo,
                     restringe_tipos_de_arquivo_txt, tipo_ativo,
                     validar_arquivo)
 
@@ -13,6 +15,19 @@ def test_listify():
         yield 1
         yield 2
     assert [1, 2] == gen()
+
+
+def test_filter_url_sem_pagina_remove_todas_as_paginas():
+    qr = QueryDict('page=3&page=2&ano=2026&tipo=&o=-numero')
+
+    assert filter_url_sem_pagina(qr) == '&ano=2026&tipo=&o=-numero'
+    # Não altera a querystring original
+    assert qr.getlist('page') == ['3', '2']
+
+
+def test_filter_url_sem_pagina_sem_filtros():
+    assert filter_url_sem_pagina(QueryDict('')) == ''
+    assert filter_url_sem_pagina(QueryDict('page=2')) == ''
 
 
 def _upload(nome, conteudo):

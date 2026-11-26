@@ -30,7 +30,7 @@ from sapl.compilacao.views import IntegracaoTaView
 from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud, make_pagination)
 from sapl.materia.models import Orgao
-from sapl.utils import show_results_filter_set, get_client_ip, \
+from sapl.utils import show_results_filter_set, get_client_ip, filter_url_sem_pagina, \
     sapn_is_enabled, MultiFormatOutputMixin, ratelimit_ip
 
 from .forms import (AnexoNormaJuridicaForm, NormaFilterSet, NormaJuridicaForm,
@@ -105,9 +105,7 @@ class PesquisarAssuntoNormaView(FilterView):
         url = ''
 
         if data:
-            url = '&' + str(self.request.META["QUERY_STRING"])
-            if url.startswith("&page"):
-                url = ''
+            url = filter_url_sem_pagina(self.request.GET)
 
         if 'assunto' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:

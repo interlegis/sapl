@@ -45,7 +45,7 @@ from sapl.protocoloadm.forms import VinculoDocAdminMateriaForm,\
 from sapl.protocoloadm.models import Protocolo, DocumentoAdministrativo,\
     VinculoDocAdminMateria, pode_ver_documento_adm
 from sapl.relatorios.views import relatorio_doc_administrativos
-from sapl.utils import (create_barcode, get_base_url, get_client_ip,
+from sapl.utils import (create_barcode, filter_url_sem_pagina, get_base_url, get_client_ip,
                         get_mime_type_from_file_extension, lista_anexados,
                         show_results_filter_set, mail_service_configured, from_date_to_datetime_utc,
                         google_recaptcha_configured, get_tempfile_dir, MultiFormatOutputMixin, ratelimit_ip)
@@ -587,10 +587,7 @@ class ProtocoloPesquisaView(PermissionRequiredMixin, FilterView):
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('numero') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('numero=') - 1
-                url = url[ponto_comeco:]
+            url = filter_url_sem_pagina(self.request.GET)
         else:
             url = ''
 
@@ -1117,10 +1114,7 @@ class PesquisarDocumentoAdministrativoView(DocumentoAdministrativoMixin,
         # Então a ordem da URL está diferente
         data = self.filterset.data
         if data and data.get('tipo') is not None:
-            url = "&" + str(self.request.environ['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('tipo=') - 1
-                url = url[ponto_comeco:]
+            url = filter_url_sem_pagina(self.request.GET)
         else:
             url = ''
         self.filterset.form.fields['o'].label = _('Ordenação')

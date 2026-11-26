@@ -33,7 +33,8 @@ from sapl.materia.models import Autoria, Proposicao, Relatoria
 from sapl.norma.models import AutoriaNorma, NormaJuridica
 from sapl.parlamentares.apps import AppConfig
 from sapl.rules import SAPL_GROUP_VOTANTE
-from sapl.utils import (parlamentares_ativos, show_results_filter_set, ratelimit_ip)
+from sapl.utils import (filter_url_sem_pagina, parlamentares_ativos, show_results_filter_set,
+                        ratelimit_ip)
 
 from .forms import (ColigacaoFilterSet, FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm,
@@ -232,9 +233,7 @@ class PesquisarParlamentarView(FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                url = ''
+            url = filter_url_sem_pagina(self.request.GET)
 
         if 'nome_parlamentar' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
@@ -292,9 +291,7 @@ class PesquisarColigacaoView(FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                url = ''
+            url = filter_url_sem_pagina(self.request.GET)
 
         if 'nome' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:
@@ -351,9 +348,7 @@ class PesquisarPartidoView(FilterView):
         data = self.filterset.data
         url = ''
         if data:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                url = ''
+            url = filter_url_sem_pagina(self.request.GET)
 
         if 'nome' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:

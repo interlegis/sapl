@@ -1064,6 +1064,21 @@ def parlamentares_ativos(data_inicio, data_fim=None):
     return Parlamentar.objects.filter(id__in=parlamentares_id)
 
 
+def filter_url_sem_pagina(query_dict):
+    """
+    Monta o sufixo '&campo=valor...' que o template paginacao.html coloca
+    depois de '?page=N', preservando os filtros da pesquisa.
+
+    Todas as ocorrências de 'page' são removidas. Se a página atual fosse
+    junto, o link teria 'page' duas vezes e, como o Django usa o último valor
+    repetido, a navegação ficaria presa na página atual, com a URL crescendo
+    a cada clique.
+    """
+    qr = query_dict.copy()
+    qr.pop('page', None)
+    return ('&' + qr.urlencode()) if qr else ''
+
+
 def show_results_filter_set(qr):
     query_params = set(qr.keys())
     if ((len(query_params) == 1 and 'iframe' in query_params) or

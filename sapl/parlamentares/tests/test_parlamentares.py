@@ -357,3 +357,17 @@ def test_frente_form_valido():
                             })
 
     assert form.is_valid()
+
+
+@pytest.mark.django_db(transaction=False)
+def test_pesquisar_parlamentar_paginacao_preserva_filtro(client):
+    baker.make(Parlamentar, nome_parlamentar='Fulano', _quantity=21)
+    baker.make(Parlamentar, nome_parlamentar='Beltrano')
+
+    response = client.get(reverse('sapl.parlamentares:pesquisar_parlamentar'),
+                          {'page': 2, 'nome_parlamentar': 'Fulano'})
+
+    assert response.status_code == 200
+    assert response.context['page_obj'].number == 2
+    assert response.context['paginator'].count == 21
+    assert response.context['filter_url'] == '&nome_parlamentar=Fulano'

@@ -51,7 +51,8 @@ from sapl.sessao.models import (Bancada, SessaoPlenaria)
 from sapl.settings import EMAIL_SEND_USER, RATE_LIMITER_RATE
 from sapl.utils import (gerar_hash_arquivo, intervalos_tem_intersecao, mail_service_configured,
                         SEPARADOR_HASH_PROPOSICAO, show_results_filter_set, google_recaptcha_configured,
-                        get_client_ip, sapn_is_enabled, is_weak_password, ratelimit_ip)
+                        get_client_ip, sapn_is_enabled, is_weak_password, ratelimit_ip,
+                        filter_url_sem_pagina)
 from .forms import (AlterarSenhaForm, CasaLegislativaForm, ConfiguracoesAppForm, EstatisticasAcessoNormasForm)
 from .models import AppConfig, CasaLegislativa
 
@@ -1460,9 +1461,7 @@ class PesquisarAuditLogView(PermissionRequiredMixin, FilterView):
         url = ''
 
         if data:
-            url = '&' + str(self.request.META["QUERY_STRING"])
-            if url.startswith("&page"):
-                url = ''
+            url = filter_url_sem_pagina(self.request.GET)
 
         resultados = self.object_list
         # if 'page' in self.request.META['QUERY_STRING']:
