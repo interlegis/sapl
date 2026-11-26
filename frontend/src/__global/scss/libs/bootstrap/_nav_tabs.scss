@@ -1,0 +1,97 @@
+@import "~bootstrap/scss/variables";
+
+// Abas que viram dropdown em telas pequenas. Só valem para listas com a
+// classe .nav-tabs--dropdown (hoje, a tela pública da Mesa Diretora): outras
+// telas com .nav-tabs, como o subnav da compilação, não são afetadas.
+
+// Estilização do tab-content conectado ao nav-tabs (substitui inline style)
+.nav-tabs--dropdown + .tab-content {
+  border: 1px solid $nav-tabs-border-color;
+  border-top: 0;
+  border-radius: 0 0 $border-radius $border-radius;
+}
+
+@media (max-width: 991px) {
+  .nav-tabs--dropdown {
+    position: relative;
+    flex-direction: column;
+    border: 1px solid $nav-tabs-border-color;
+    border-radius: $border-radius; // Totalmente arredondado — parece um botão/select
+    background-color: $white;
+    overflow: hidden; // Recorta filhos nas bordas arredondadas
+
+    // Seta indicando dropdown
+    &::after {
+      content: "▾";
+      position: absolute;
+      right: 0.75rem;
+      top: 0.6rem;
+      font-size: 1rem;
+      color: $secondary;
+      pointer-events: none;
+      transition: transform 0.2s ease;
+    }
+
+    // Oculta todos os itens por padrão
+    .nav-item {
+      display: none;
+      width: 100%;
+
+      .nav-link {
+        border: none;
+        border-bottom: 1px solid $nav-tabs-border-color;
+        border-radius: 0;
+        width: 100%;
+        text-align: left;
+        padding-right: 2rem;
+        margin-bottom: 0;
+
+        &.active {
+          background-color: $nav-tabs-link-active-bg;
+          color: $nav-tabs-link-active-color;
+          border-color: transparent;
+        }
+
+        &:hover:not(.active) {
+          background-color: $light;
+        }
+      }
+
+      &:last-child .nav-link {
+        border-bottom: none;
+      }
+    }
+
+    // Lista fechada: exibe só o item da aba ativa. O JS da tela marca
+    // .nav-item--ativo nos navegadores sem suporte a :has().
+    .nav-item:has(.nav-link.active),
+    .nav-item.nav-item--ativo {
+      display: block;
+    }
+
+    // Lista aberta: a classe é controlada pelo JS da tela. Não usa
+    // :focus-within, que mantinha a lista aberta depois da escolha (o botão
+    // continua com foco) e não abre no Safari do iOS (tocar num <button>
+    // não lhe dá foco).
+    &.nav-tabs--open {
+      border-radius: $border-radius $border-radius 0 0; // Arredonda apenas topo quando aberto
+      overflow: visible;
+      z-index: $zindex-dropdown;
+
+      &::after {
+        transform: rotate(180deg);
+      }
+
+      .nav-item {
+        display: block;
+      }
+    }
+  }
+
+  // Em mobile, tab-content é visualmente independente do nav-tabs (que vira um select)
+  .nav-tabs--dropdown + .tab-content {
+    border-top: 1px solid $nav-tabs-border-color;
+    border-radius: $border-radius; // Rounding completo — desconectado do nav-tabs
+    margin-top: 0.5rem;
+  }
+}

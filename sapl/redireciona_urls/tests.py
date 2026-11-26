@@ -137,7 +137,7 @@ class RedirecionaMesaDiretoraTests(TestCase):
 
     def test_redireciona_mesa_diretora(self):
         url = reverse(self.url_pattern)
-        url_e = reverse('sapl.parlamentares:mesa_diretora')
+        url_e = reverse('sapl.parlamentares:mesadiretora_list')
 
         response = self.client.get(url)
 

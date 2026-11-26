@@ -19,10 +19,10 @@ from sapl.base.models import Autor, TipoAutor
 from sapl.crispy_layout_mixin import SaplFormHelper
 from sapl.crispy_layout_mixin import form_actions, to_row
 from sapl.rules import SAPL_GROUP_VOTANTE
-from sapl.utils import FileFieldCheckMixin
+from sapl.utils import FileFieldCheckMixin, SelectSubmitChangeWidget
 
-from .models import (Coligacao, ComposicaoColigacao, Filiacao, Frente, Legislatura,
-                     Mandato, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
+from .models import (Coligacao, ComposicaoColigacao, ComposicaoMesa, Filiacao, Frente, Legislatura,
+                     Mandato, MesaDiretora, Parlamentar, Partido, Votante, Bloco, FrenteParlamentar, BlocoMembro)
 
 
 class CustomImageCropWidget(ImageCropWidget):
@@ -752,3 +752,60 @@ class BlocoMembroForm(ModelForm):
                 _("Parlamentar já é membro do bloco parlamentar."))
 
         return cd
+
+class MesaDiretoraFilterSet(django_filters.FilterSet):
+
+    # empty_label=None: o select envia o form ao mudar, e a opção em
+    # branco listaria as mesas de todas as legislaturas.
+    legislatura = django_filters.ModelChoiceFilter(
+        label='',
+        queryset=Legislatura.objects.all(),
+        empty_label=None,
+        widget=SelectSubmitChangeWidget)
+
+    class Meta:
+        model = MesaDiretora
+        fields = ['legislatura']
+
+    def __init__(self, *args, **kwargs):
+        super(MesaDiretoraFilterSet, self).__init__(*args, **kwargs)
+
+        row0 = to_row([('legislatura', 5)])
+
+        self.form.helper = SaplFormHelper()
+        self.form.helper.form_method = 'GET'
+        self.form.helper.layout = Layout(
+            Fieldset(_('Escolha da Legislatura'),
+                     row0,)
+        )
+
+
+class MesaDiretoraForm(ModelForm):
+
+    class Meta:
+        model = MesaDiretora
+        fields = '__all__'
+
+
+class ComposicaoMesaForm(ModelForm):
+
+    class Meta:
+        model = ComposicaoMesa
+        fields = (
+            'parlamentar',
+            'cargo'
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(ComposicaoMesaForm, self).__init__(*args, **kwargs)
+        mesa = self.initial.get('mesa_diretora')
+        if mesa is not None:
+            self.instance.mesa_diretora = mesa
+            # distinct(): um parlamentar pode ter mais de um mandato na
+            # legislatura (ex.: suplente), e o join o repetiria no select
+            # e no get() do ModelChoiceField (MultipleObjectsReturned).
+            self.fields['parlamentar'].queryset = (
+                self.fields['parlamentar'].queryset
+                .filter(mandato__legislatura=mesa.legislatura)
+                .distinct()
+            )
