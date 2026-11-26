@@ -2,10 +2,13 @@ import logging
 from calendar import timegm
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
-from django.http import Http404, HttpResponse, JsonResponse
-from django.utils.cache import get_conditional_response
-from django.utils.http import http_date
+from django.core.exceptions import FieldError, PermissionDenied
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Count, Max, Q, Sum
+from django.http import (Http404, HttpResponse, HttpResponseNotModified,
+                         JsonResponse)
+from django.utils.cache import get_conditional_response, patch_cache_control
+from django.utils.http import http_date, parse_etags
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import APIException
@@ -36,49 +39,72 @@ class _RespostaCondicional(Exception):
         self.response = response
 
 
+def _sem_prefixo_fraco(etag):
+    return etag[2:] if etag.startswith('W/') else etag
+
+
 class LastModifiedMixin:
-    """ - Suporte a Last-Modified e a requisições condicionais
-          (If-Modified-Since, If-Unmodified-Since) em ViewSets
-        - A data vem do campo data_ultima_atualizacao ou ultima_edicao do
-          model: no detalhe, a do objeto; na listagem, a mais recente entre
-          os objetos retornados, levando em consideração o FilterSet
-        - Retorna 304 Not Modified se o recurso não foi modificado
+    """ - Suporte a requisições condicionais nas actions padrão das ViewSets
+        - Detalhe (retrieve): Last-Modified com a data de atualização do
+          objeto; If-Modified-Since responde 304 se ele não mudou
+        - Listagem (list): ETag com a quantidade de objetos, a soma dos ids
+          e a data mais recente, levando em consideração o FilterSet, e o
+          Last-Modified com essa data. Na listagem, só o If-None-Match
+          responde 304, porque a data mais recente não muda com exclusões,
+          com objetos que saem do filtro nem com mudanças de visibilidade
+        - Escritas (update, partial_update, destroy): If-Unmodified-Since
+          responde 412 se o objeto mudou
+        - Ficam de fora as actions customizadas e o ?expand=: o conteúdo
+          vem de models relacionados, cujas alterações não mudam a data
+        - A data vem do campo data_ultima_atualizacao, que o Django
+          atualiza a cada save (auto_now). Se algum objeto da listagem
+          tiver a data nula, a listagem fica sem validadores
 
         - A checagem roda dentro do fluxo do DRF, depois de autenticação,
           permissões e throttling (initial), e usa o mesmo queryset da view
-          (get_object no detalhe, filter_queryset na listagem). Assim, a
-          data, o 304 e o 412 só existem para o que o usuário pode ver, e o
-          Last-Modified só vai nas respostas de sucesso
+          (get_object no detalhe, filter_queryset na listagem). Assim, os
+          validadores, o 304 e o 412 só existem para o que o usuário pode
+          ver, e os cabeçalhos só vão nas respostas de sucesso, com
+          Cache-Control: private, no-cache, para o navegador sempre
+          revalidar em vez de reaproveitar a resposta
         - Pode ser sobrescrito na customização do ViewSet caso necessário,
           redefinindo last_modified_func
         - Existe um exemplo de sobrescrita em sapl/api/views_materia.py
     """
 
-    campos_last_modified = ('data_ultima_atualizacao', 'ultima_edicao')
+    campo_last_modified = 'data_ultima_atualizacao'
+    actions_de_leitura = ('list', 'retrieve')
+    actions_de_escrita = ('update', 'partial_update', 'destroy')
 
     def initial(self, request, *args, **kwargs):
-        self._last_modified = None
+        self._last_modified = self._etag = None
+        self._objeto = self._agregado = None
 
         # autenticação, permissões e throttling
         super().initial(request, *args, **kwargs)
 
-        last_modified = None
-        # Num método de escrita, só If-Unmodified-Since depende da data
-        if (request.method in ('GET', 'HEAD') or
-                'HTTP_IF_UNMODIFIED_SINCE' in request.META):
-            try:
-                data = self.last_modified_func(request, *args, **kwargs)
-            except (APIException, Http404, PermissionDenied):
-                # Filtro ou pk inválido, objeto oculto ou inexistente: a
-                # view levanta o mesmo erro, e o DRF responde 400 ou 404.
-                # As condições só valem para uma resposta de sucesso.
-                return
-            if data:
-                last_modified = timegm(data.utctimetuple())
+        if not self._usa_validadores(request):
+            return
+        try:
+            data = self.last_modified_func(request, *args, **kwargs)
+            etag = self.etag_func(request, *args, **kwargs)
+        except (APIException, Http404, PermissionDenied, FieldError,
+                DjangoValidationError, TypeError, ValueError):
+            # Filtro ou pk inválido, objeto oculto ou inexistente: a view
+            # responde com o erro (400, 404 ou 500, se ela também falhar).
+            # As condições só valem para uma resposta de sucesso.
+            return
 
-        self._last_modified = last_modified
+        self._last_modified = timegm(data.utctimetuple()) if data else None
+        self._etag = etag
+
+        if self.action == 'list':
+            if etag and self._if_none_match_casa(request, etag):
+                raise _RespostaCondicional(HttpResponseNotModified())
+            return
+
         response = get_conditional_response(
-            request, last_modified=last_modified)
+            request, last_modified=self._last_modified)
         if response is not None:
             raise _RespostaCondicional(response)
 
@@ -91,39 +117,90 @@ class LastModifiedMixin:
         response = super().finalize_response(
             request, response, *args, **kwargs)
 
-        last_modified = getattr(self, '_last_modified', None)
         sucesso = (200 <= response.status_code < 300 or
                    response.status_code == 304)
-        if (last_modified and sucesso and
-                request.method in ('GET', 'HEAD') and
-                not response.has_header('Last-Modified')):
+        if not sucesso or request.method not in ('GET', 'HEAD'):
+            return response
+
+        last_modified = getattr(self, '_last_modified', None)
+        etag = getattr(self, '_etag', None)
+        if last_modified and not response.has_header('Last-Modified'):
             response['Last-Modified'] = http_date(last_modified)
+        if etag and not response.has_header('ETag'):
+            response['ETag'] = etag
+        if last_modified or etag:
+            # Sem isso, o navegador pode reaproveitar a resposta sem
+            # revalidar, por um tempo estimado a partir do Last-Modified
+            patch_cache_control(response, private=True, no_cache=True)
         return response
 
-    def _eh_detalhe(self):
-        return (self.lookup_url_kwarg or self.lookup_field) in self.kwargs
+    def get_object(self):
+        # o objeto já buscado em last_modified_func, para não buscar de novo
+        objeto, self._objeto = getattr(self, '_objeto', None), None
+        if objeto is not None:
+            return objeto
+        return super().get_object()
+
+    def _usa_validadores(self, request):
+        if self.action in self.actions_de_leitura:
+            return (request.method in ('GET', 'HEAD') and
+                    'expand' not in request.query_params)
+        if self.action in self.actions_de_escrita:
+            return 'HTTP_IF_UNMODIFIED_SINCE' in request.META
+        return False
+
+    @staticmethod
+    def _if_none_match_casa(request, etag):
+        etags = parse_etags(request.META.get('HTTP_IF_NONE_MATCH', ''))
+        if etags == ['*']:
+            return True
+        # comparação fraca (RFC 7232, seção 2.3.2)
+        alvo = _sem_prefixo_fraco(etag)
+        return any(_sem_prefixo_fraco(e) == alvo for e in etags)
+
+    def _campo(self):
+        campos = {f.name for f in self.queryset.model._meta.get_fields()}
+        if self.campo_last_modified in campos:
+            return self.campo_last_modified
+        return None
+
+    def _agregado_da_listagem(self):
+        if self._agregado is None:
+            campo = self._campo()
+            queryset = self.filter_queryset(self.get_queryset())
+            self._agregado = queryset.aggregate(
+                total=Count('pk'), soma=Sum('pk'), data=Max(campo),
+                nulos=Count('pk', filter=Q(**{f'{campo}__isnull': True})))
+        return self._agregado
 
     def last_modified_func(self, request, *args, **kwargs):
-
-        # tenta encontrar um dos campos para usar como last_modified
-        field_name = next(
-            (f.name for f in self.queryset.model._meta.get_fields()
-             if f.name in self.campos_last_modified),
-            None)
-
+        """Data do objeto, no detalhe, ou a mais recente da listagem."""
         # Retornando None. que indica 200 OK sem Last-Modified
         # Na prática, desativando o AuditLog como last_modified
         # Porém, mantendo a estrutura para possível uso futuro
-        if not field_name:
+        campo = self._campo()
+        if not campo:
             # sem campo definido para last_modified, usa AuditLog
             return None  # self.last_modified_func__auditlog(request, *args, **kwargs)
 
-        if self._eh_detalhe():
-            return getattr(self.get_object(), field_name)
+        if self.action == 'list':
+            agregado = self._agregado_da_listagem()
+            return None if agregado['nulos'] else agregado['data']
 
-        queryset = self.filter_queryset(self.get_queryset())
-        return queryset.order_by(f'-{field_name}').values_list(
-            field_name, flat=True)[:1].first()
+        self._objeto = self.get_object()
+        return getattr(self._objeto, campo)
+
+    def etag_func(self, request, *args, **kwargs):
+        """ETag da listagem; no detalhe, o Last-Modified basta."""
+        if self.action != 'list' or not self._campo():
+            return None
+        agregado = self._agregado_da_listagem()
+        if agregado['nulos']:
+            return None
+        data = agregado['data']
+        return 'W/"{}-{}-{}"'.format(
+            agregado['total'], agregado['soma'] or 0,
+            int(data.timestamp() * 1000000) if data else 0)
 
     def last_modified_func__auditlog(self, request, *args, **kwargs):
         """ - Método alternativo para obter o last_modified baseado no
@@ -131,11 +208,11 @@ class LastModifiedMixin:
               objetos retornados na listagem, levando em consideração o
               FilterSet
         """
-        if self._eh_detalhe():
-            object_ids = [self.get_object().pk]
-        else:
+        if self.action == 'list':
             object_ids = self.filter_queryset(
                 self.get_queryset()).values_list('pk', flat=True)
+        else:
+            object_ids = [self.get_object().pk]
 
         try:
             return AuditLog.objects.filter(

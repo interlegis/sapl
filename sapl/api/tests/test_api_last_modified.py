@@ -1,12 +1,13 @@
 """
-Last-Modified e requisições condicionais (If-Modified-Since e
-If-Unmodified-Since) nos models com data de atualização
-(data_ultima_atualizacao ou ultima_edicao).
+Requisições condicionais nos models com data de atualização
+(data_ultima_atualizacao).
 
-A data é calculada depois da autenticação, das permissões e do throttling do
-DRF, sobre o mesmo queryset da view. Um objeto oculto, uma requisição negada
-ou uma requisição inválida respondem como se a data não existisse: sem
-Last-Modified, sem 304 e sem 412.
+Os validadores (Last-Modified no detalhe; ETag e Last-Modified na
+listagem) só existem nas actions padrão de listagem e detalhe, e são
+calculados depois da autenticação, das permissões e do throttling do DRF,
+sobre o mesmo queryset da view. Um objeto oculto, uma requisição negada ou
+uma requisição inválida respondem como se a data não existisse: sem
+validadores, sem 304 e sem 412.
 """
 from datetime import datetime, timedelta
 from datetime import timezone as dt_timezone
@@ -23,7 +24,8 @@ from rest_framework.throttling import BaseThrottle
 
 from sapl.api.tests.conftest import ids
 from sapl.base.models import DOC_ADM_OSTENSIVO, DOC_ADM_RESTRITIVO, AppConfig
-from sapl.materia.models import MateriaLegislativa, TipoMateriaLegislativa
+from sapl.materia.models import (MateriaLegislativa, TipoMateriaLegislativa,
+                                 Tramitacao)
 from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.sessao.models import SessaoPlenaria
 
@@ -31,6 +33,7 @@ from sapl.sessao.models import SessaoPlenaria
 pytestmark = pytest.mark.django_db
 
 URL_MATERIA = '/api/materia/materialegislativa/'
+URL_TRAMITACAO = '/api/materia/tramitacao/'
 URL_DOCUMENTO = '/api/protocoloadm/documentoadministrativo/'
 URL_SESSAO = '/api/sessao/sessaoplenaria/'
 PK_INEXISTENTE = 999999
@@ -45,6 +48,7 @@ CONDICIONAIS = [
     pytest.param({}, id='sem-condicional'),
     pytest.param({'HTTP_IF_MODIFIED_SINCE': HTTP_FUTURO},
                  id='if-modified-since'),
+    pytest.param({'HTTP_IF_NONE_MATCH': '*'}, id='if-none-match'),
     pytest.param({'HTTP_IF_UNMODIFIED_SINCE': HTTP_FUTURO},
                  id='if-unmodified-since'),
 ]
@@ -64,6 +68,11 @@ def sessao_nao_iniciada(dias):
         SessaoPlenaria,
         data_inicio=timezone.localdate() + timedelta(days=dias),
         iniciada=False, publicar_pauta=False)
+
+
+def sem_validadores(response):
+    return not (response.has_header('Last-Modified') or
+                response.has_header('ETag'))
 
 
 @pytest.fixture(params=['anonimo', 'autenticado'])
@@ -86,32 +95,85 @@ def test_filtro_invalido_responde_400(cliente, url, params):
 
     assert response.status_code == 400
     assert set(response.json()) == set(params)
-    assert not response.has_header('Last-Modified')
+    assert sem_validadores(response)
 
 
 def test_pk_invalido_responde_404(cliente):
     response = cliente.get(f'{URL_MATERIA}abc/')
 
     assert response.status_code == 404
-    assert not response.has_header('Last-Modified')
+    assert sem_validadores(response)
 
 
-def test_last_modified_da_listagem_considera_os_filtros(api):
+def test_validadores_da_listagem_consideram_os_filtros(api):
     tipo, outro_tipo = baker.make(TipoMateriaLegislativa, _quantity=2)
     atualizado_em(baker.make(MateriaLegislativa, tipo=tipo), ANTES)
     atualizado_em(baker.make(MateriaLegislativa, tipo=outro_tipo), DEPOIS)
 
-    response = api().get(URL_MATERIA, {'tipo': tipo.pk})
-    assert response.status_code == 200
-    assert response['Last-Modified'] == HTTP_ANTES
+    filtrada = api().get(URL_MATERIA, {'tipo': tipo.pk})
+    assert filtrada.status_code == 200
+    assert filtrada['Last-Modified'] == HTTP_ANTES
 
-    response = api().get(URL_MATERIA)
-    assert response.status_code == 200
-    assert response['Last-Modified'] == HTTP_DEPOIS
+    todas = api().get(URL_MATERIA)
+    assert todas['Last-Modified'] == HTTP_DEPOIS
+    assert todas['ETag'] != filtrada['ETag']
 
     response = api().get(URL_MATERIA, {'tipo': tipo.pk},
-                         HTTP_IF_MODIFIED_SINCE=HTTP_ANTES)
+                         HTTP_IF_NONE_MATCH=filtrada['ETag'])
     assert response.status_code == 304
+    assert response['ETag'] == filtrada['ETag']
+
+    # Na listagem, a data sozinha não responde 304
+    response = api().get(URL_MATERIA, {'tipo': tipo.pk},
+                         HTTP_IF_MODIFIED_SINCE=HTTP_ANTES)
+    assert response.status_code == 200
+
+
+def test_listagem_muda_quando_um_objeto_sai(api):
+    antiga, recente = baker.make(MateriaLegislativa, _quantity=2)
+    atualizado_em(antiga, ANTES)
+    atualizado_em(recente, DEPOIS)
+    antes = api().get(URL_MATERIA)
+
+    antiga.delete()
+
+    response = api().get(URL_MATERIA,
+                         HTTP_IF_MODIFIED_SINCE=antes['Last-Modified'])
+    assert response.status_code == 200
+    response = api().get(URL_MATERIA, HTTP_IF_NONE_MATCH=antes['ETag'])
+    assert response.status_code == 200
+    assert response['Last-Modified'] == antes['Last-Modified']
+
+
+def test_listagem_muda_quando_um_objeto_fica_visivel(api):
+    """A sessão não iniciada aparece no dia dela, sem mudar a data."""
+    visivel = sessao_nao_iniciada(dias=-30)
+    oculta = sessao_nao_iniciada(dias=30)
+    atualizado_em(visivel, DEPOIS)
+    atualizado_em(oculta, ANTES)
+    antes = api().get(URL_SESSAO)
+    assert ids(antes) == {visivel.pk}
+
+    # Chega o dia da sessão; o update() não muda a data de atualização
+    SessaoPlenaria.objects.filter(pk=oculta.pk).update(
+        data_inicio=timezone.localdate())
+
+    response = api().get(URL_SESSAO,
+                         HTTP_IF_MODIFIED_SINCE=antes['Last-Modified'])
+    assert response.status_code == 200
+    assert ids(response) == {visivel.pk, oculta.pk}
+    response = api().get(URL_SESSAO, HTTP_IF_NONE_MATCH=antes['ETag'])
+    assert response.status_code == 200
+
+
+def test_listagem_com_data_nula_fica_sem_validadores(api):
+    atualizado_em(baker.make(MateriaLegislativa), DEPOIS)
+    atualizado_em(baker.make(MateriaLegislativa), None)
+
+    response = api().get(URL_MATERIA)
+
+    assert response.status_code == 200
+    assert sem_validadores(response)
 
 
 def test_last_modified_do_detalhe(api, usuario):
@@ -130,6 +192,81 @@ def test_last_modified_do_detalhe(api, usuario):
 
     response = servidor.get(url, HTTP_IF_UNMODIFIED_SINCE=HTTP_ANTES)
     assert response.status_code == 412
+
+
+def test_detalhe_busca_o_objeto_uma_vez(api):
+    materia = baker.make(MateriaLegislativa)
+    pelo_id = f'"{MateriaLegislativa._meta.db_table}"."id" = {materia.pk}'
+
+    with CaptureQueriesContext(connection) as consultas:
+        response = api().get(f'{URL_MATERIA}{materia.pk}/')
+
+    assert response.status_code == 200
+    assert response.has_header('Last-Modified')
+    assert len([q for q in consultas.captured_queries
+                if pelo_id in q['sql']]) == 1
+
+
+def test_respostas_com_validadores_pedem_revalidacao(api):
+    materia = baker.make(MateriaLegislativa)
+
+    for url in (URL_MATERIA, f'{URL_MATERIA}{materia.pk}/'):
+        response = api().get(url)
+
+        assert response.status_code == 200, url
+        diretivas = {d.strip() for d in response['Cache-Control'].split(',')}
+        assert {'private', 'no-cache'} <= diretivas, url
+
+
+@pytest.fixture
+def urls_com_conteudo_de_outros_models(db):
+    materia = baker.make(MateriaLegislativa)
+    sessao = sessao_nao_iniciada(dias=-30)
+    return [
+        f'{URL_MATERIA}{materia.pk}/ultima_tramitacao/',
+        f'{URL_SESSAO}{sessao.pk}/expedientes/',
+        f'{URL_MATERIA}{materia.pk}/?expand=tipo',
+        f'{URL_MATERIA}?expand=tipo',
+    ]
+
+
+def test_actions_customizadas_e_expand_ficam_sem_validadores(
+        api, urls_com_conteudo_de_outros_models):
+    for url in urls_com_conteudo_de_outros_models:
+        response = api().get(url)
+        assert response.status_code == 200, url
+        assert sem_validadores(response), url
+
+        response = api().get(url, HTTP_IF_MODIFIED_SINCE=HTTP_FUTURO)
+        assert response.status_code == 200, url
+
+
+def test_ultima_edicao_nao_serve_de_data(api, usuario):
+    """
+    Tramitação, proposição e tramitação administrativa só têm ultima_edicao,
+    que não é atualizada a cada save.
+    """
+    tramitacao = baker.make(Tramitacao, ultima_edicao=DEPOIS)
+    admin = api(usuario('admin', is_superuser=True))
+
+    for url in (URL_TRAMITACAO, f'{URL_TRAMITACAO}{tramitacao.pk}/'):
+        response = admin.get(url)
+
+        assert response.status_code == 200, url
+        assert sem_validadores(response), url
+
+
+def test_erro_ao_calcular_a_data_nao_vira_500(api, monkeypatch):
+    def falha(self, request, *args, **kwargs):
+        raise ValueError('valor que o ORM só rejeita ao executar a query')
+
+    viewset = resolve(URL_MATERIA).func.cls
+    monkeypatch.setattr(viewset, 'last_modified_func', falha)
+
+    response = api().get(URL_MATERIA)
+
+    assert response.status_code == 200
+    assert sem_validadores(response)
 
 
 @pytest.fixture(params=['documento-restrito', 'sessao-nao-iniciada'])
@@ -155,7 +292,7 @@ def test_detalhe_de_objeto_oculto_responde_como_inexistente(
         response = api().get(url, **condicional)
 
         assert response.status_code == 404, url
-        assert not response.has_header('Last-Modified'), url
+        assert sem_validadores(response), url
 
 
 @pytest.mark.parametrize('condicional', CONDICIONAIS)
@@ -169,7 +306,7 @@ def test_listagem_negada_nao_depende_dos_filtros(api, condicional):
             URL_DOCUMENTO, {'assunto__icontains': termo}, **condicional)
 
         assert response.status_code == 401, termo
-        assert not response.has_header('Last-Modified'), termo
+        assert sem_validadores(response), termo
 
 
 def test_escrita_negada_ignora_if_unmodified_since(api):
@@ -192,7 +329,7 @@ class NegaTudo(BaseThrottle):
 
 
 @pytest.mark.parametrize('condicional', CONDICIONAIS)
-def test_throttling_vem_antes_do_last_modified(api, monkeypatch, condicional):
+def test_throttling_vem_antes_dos_validadores(api, monkeypatch, condicional):
     baker.make(MateriaLegislativa)
     viewset = resolve(URL_MATERIA).func.cls
     monkeypatch.setattr(viewset, 'throttle_classes', [NegaTudo])
@@ -202,20 +339,20 @@ def test_throttling_vem_antes_do_last_modified(api, monkeypatch, condicional):
         response = api().get(URL_MATERIA, **condicional)
 
     assert response.status_code == 429
-    assert not response.has_header('Last-Modified')
+    assert sem_validadores(response)
     assert not [q['sql'] for q in consultas.captured_queries
                 if tabela in q['sql']]
 
 
-def test_last_modified_de_quem_usa_token_considera_o_que_ele_ve(usuario):
+def test_validadores_de_quem_usa_token_consideram_o_que_ele_ve(usuario):
     visivel = sessao_nao_iniciada(dias=-30)
     oculta = sessao_nao_iniciada(dias=30)
     atualizado_em(visivel, ANTES)
     atualizado_em(oculta, DEPOIS)
 
-    response = APIClient().get(URL_SESSAO)
-    assert ids(response) == {visivel.pk}
-    assert response['Last-Modified'] == HTTP_ANTES
+    anonimo = APIClient().get(URL_SESSAO)
+    assert ids(anonimo) == {visivel.pk}
+    assert anonimo['Last-Modified'] == HTTP_ANTES
 
     # sapl.api.signals cria o token de todo usuário novo
     token = Token.objects.get(user=usuario('integracao'))
@@ -226,6 +363,6 @@ def test_last_modified_de_quem_usa_token_considera_o_que_ele_ve(usuario):
     assert ids(response) == {visivel.pk, oculta.pk}
     assert response['Last-Modified'] == HTTP_DEPOIS
 
-    # A sessão que o anônimo não vê mudou depois de ANTES
-    response = com_token.get(URL_SESSAO, HTTP_IF_MODIFIED_SINCE=HTTP_ANTES)
+    # Quem usa token também vê a sessão que o anônimo não vê
+    response = com_token.get(URL_SESSAO, HTTP_IF_NONE_MATCH=anonimo['ETag'])
     assert response.status_code == 200
