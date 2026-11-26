@@ -25,11 +25,10 @@ from django.contrib.contenttypes.fields import (GenericForeignKey, GenericRel,
                                                 GenericRelation)
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile, \
     TemporaryUploadedFile
 from django.core.mail import get_connection
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.fields.related import ForeignKey
 from django.forms import BaseForm
@@ -48,6 +47,7 @@ from xlsxwriter.workbook import Workbook
 
 from sapl.crispy_layout_mixin import (form_actions, SaplFormHelper,
                                       SaplFormLayout, to_row)
+from sapl.armazenamento import ArmazenamentoArquivos
 from sapl.settings import MAX_DOC_UPLOAD_SIZE
 
 # (26/10/2018): O separador foi mudador de '/' para 'K'
@@ -908,7 +908,8 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
     o object sem o arquivo e, logo em seguida, salvá-lo novamente com o arquivo
     Ou seja, nas inclusões que já acomparem um arquivo, haverá dois saves,
     um para armazenar toda a informação e recuperar o pk, e outro logo em
-    seguida para armazenar o arquivo.
+    seguida para armazenar o arquivo. Os dois saves são feitos por
+    salva_com_arquivos.
     """
 
     filename = re.sub(r'\s', '_', normalize(filename.strip()).lower())
@@ -940,6 +941,47 @@ def texto_upload_path(instance, filename, subpath='', pk_first=False):
            }
 
     return path
+
+
+def salva_com_arquivos(instance, campos_arquivo, force_insert=False,
+                       force_update=False, using=None, update_fields=None):
+    """
+    Implementa o save dos models cujo caminho de arquivo leva a pk (ver
+    texto_upload_path). Na inclusão com arquivo, grava primeiro sem os
+    arquivos de campos_arquivo, para obter a pk, e depois com eles.
+
+    As duas gravações ficam na mesma transação: se a do arquivo falhar (disco
+    cheio, por exemplo), não fica no banco um registro sem o arquivo. A
+    segunda gravação é sempre uma atualização, porque repetir o force_insert
+    que o QuerySet.create() (usado pela API) passa inseriria a mesma pk duas
+    vezes.
+    """
+    arquivos = {campo: getattr(instance, campo) for campo in campos_arquivo}
+
+    if instance.pk or not any(arquivos.values()):
+        return models.Model.save(instance, force_insert=force_insert,
+                                 force_update=force_update,
+                                 using=using,
+                                 update_fields=update_fields)
+
+    try:
+        with transaction.atomic(using=using):
+            for campo in arquivos:
+                setattr(instance, campo, None)
+            models.Model.save(instance, force_insert=force_insert,
+                              force_update=force_update,
+                              using=using,
+                              update_fields=update_fields)
+            for campo, arquivo in arquivos.items():
+                setattr(instance, campo, arquivo)
+            return models.Model.save(instance, using=using)
+    except Exception:
+        # a inclusão foi desfeita: a instância volta a ser nova
+        instance.pk = None
+        instance._state.adding = True
+        for campo, arquivo in arquivos.items():
+            setattr(instance, campo, arquivo)
+        raise
 
 
 def qs_override_django_filter(self):
@@ -1264,7 +1306,7 @@ def from_date_to_datetime_utc(data):
     return dt_utc
 
 
-class OverwriteStorage(FileSystemStorage):
+class OverwriteStorage(ArmazenamentoArquivos):
     """
     Solução derivada do gist: https://gist.github.com/fabiomontefuscolo/1584462
 

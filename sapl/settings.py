@@ -152,6 +152,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'waffle.middleware.WaffleMiddleware',
     'sapl.middleware.check_password.CheckWeakPasswordMiddleware',
+    'sapl.middleware.falha_gravacao.FalhaGravacaoArquivoMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 if DEBUG:
@@ -415,6 +416,9 @@ MEDIA_ROOT = PROJECT_DIR.child("media")
 MEDIA_URL = '/media/'
 
 FILE_UPLOAD_PERMISSIONS = 0o644
+# Remove o arquivo parcial e identifica as falhas de gravação (disco cheio,
+# sem permissão), tratadas pelo FalhaGravacaoArquivoMiddleware.
+DEFAULT_FILE_STORAGE = 'sapl.armazenamento.ArmazenamentoArquivos'
 
 DAB_FIELD_RENDERER = \
     'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'

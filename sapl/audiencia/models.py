@@ -7,7 +7,8 @@ from sapl.parlamentares.models import CargoMesa
 
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericRelation,
                         restringe_tipos_de_arquivo_txt, texto_upload_path,
-                        OverwriteStorage)
+                        OverwriteStorage,
+                        salva_com_arquivos)
 
 
 def get_audiencia_media_path(instance, subpath, filename):
@@ -154,27 +155,10 @@ class AudienciaPublica(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and (self.upload_pauta or self.upload_ata or
-                            self.upload_anexo):
-            upload_pauta = self.upload_pauta
-            upload_ata = self.upload_ata
-            upload_anexo = self.upload_anexo
-            self.upload_pauta = None
-            self.upload_ata = None
-            self.upload_anexo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-
-            self.upload_pauta = upload_pauta
-            self.upload_ata = upload_ata
-            self.upload_anexo = upload_anexo
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(
+            self, ('upload_pauta', 'upload_ata', 'upload_anexo'),
+            force_insert=force_insert, force_update=force_update,
+            using=using, update_fields=update_fields)
 
 
 class AnexoAudienciaPublica(models.Model):
@@ -208,16 +192,7 @@ class AnexoAudienciaPublica(models.Model):
         return result
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        if not self.pk and self.arquivo:
-            arquivo = self.arquivo
-            self.arquivo = None
-            models.Model.save(
-                self,
-                force_insert=force_insert,
-                force_update=force_update,
-                using=using,
-                update_fields=update_fields)
-            self.arquivo = arquivo
-
-        return models.Model.save(self, force_insert=force_insert, force_update=force_update, using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('arquivo',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)

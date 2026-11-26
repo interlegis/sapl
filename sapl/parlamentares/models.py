@@ -10,7 +10,8 @@ from sapl.decorators import vigencia_atual
 from sapl.utils import (LISTA_DE_UFS, YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
                         intervalos_tem_intersecao,
-                        restringe_tipos_de_arquivo_img, texto_upload_path)
+                        restringe_tipos_de_arquivo_img, texto_upload_path,
+                        salva_com_arquivos)
 
 
 class Legislatura(models.Model):
@@ -323,19 +324,10 @@ class Parlamentar(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and self.fotografia:
-            fotografia = self.fotografia
-            self.fotografia = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-            self.fotografia = fotografia
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('fotografia',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
 
 class TipoDependente(models.Model):

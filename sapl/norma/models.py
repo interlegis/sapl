@@ -12,7 +12,8 @@ from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES,
                         restringe_tipos_de_arquivo_txt,
                         texto_upload_path,
                         get_settings_auth_user_model,
-                        OverwriteStorage)
+                        OverwriteStorage,
+                        salva_com_arquivos)
 
 
 class AssuntoNorma(models.Model):
@@ -292,19 +293,10 @@ class NormaJuridica(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and self.texto_integral:
-            texto_integral = self.texto_integral
-            self.texto_integral = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-            self.texto_integral = texto_integral
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('texto_integral',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
 
 def get_ano_atual():
@@ -510,19 +502,10 @@ class AnexoNormaJuridica(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and self.anexo_arquivo:
-            anexo_arquivo = self.anexo_arquivo
-            self.anexo_arquivo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-            self.anexo_arquivo = anexo_arquivo
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('anexo_arquivo',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
     def delete(self, using=None, keep_parents=False):
         anexo_arquivo = self.anexo_arquivo

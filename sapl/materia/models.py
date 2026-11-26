@@ -22,7 +22,8 @@ from sapl.parlamentares.models import Parlamentar
 from sapl.utils import (RANGE_ANOS, YES_NO_CHOICES, SaplGenericForeignKey,
                         SaplGenericRelation, restringe_tipos_de_arquivo_txt,
                         texto_upload_path, get_settings_auth_user_model,
-                        OverwriteStorage)
+                        OverwriteStorage,
+                        salva_com_arquivos)
 
 # from sapl.protocoloadm.models import Protocolo
 EM_TRAMITACAO = [(1, 'Sim'),
@@ -372,19 +373,10 @@ class MateriaLegislativa(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and self.texto_original:
-            texto_original = self.texto_original
-            self.texto_original = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-            self.texto_original = texto_original
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('texto_original',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
     @staticmethod
     def get_proximo_numero(tipo, ano=None, numero_candidato=None):
@@ -693,19 +685,10 @@ class DocumentoAcessorio(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and self.arquivo:
-            arquivo = self.arquivo
-            self.arquivo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-            self.arquivo = arquivo
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('arquivo',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
 
 class MateriaAssunto(models.Model):
@@ -1139,19 +1122,10 @@ class Proposicao(models.Model):
         elif self.data_devolucao is not None and not self.usuario_devolucao:
             self.usuario_devolucao = self.user
 
-        if not self.pk and self.texto_original:
-            texto_original = self.texto_original
-            self.texto_original = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-            self.texto_original = texto_original
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('texto_original',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
 
 def pode_ver_proposicao(user, proposicao):

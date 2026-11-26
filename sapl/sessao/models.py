@@ -16,7 +16,8 @@ from sapl.protocoloadm.models import DocumentoAdministrativo
 from sapl.utils import (YES_NO_CHOICES, SaplGenericRelation,
                         get_settings_auth_user_model,
                         restringe_tipos_de_arquivo_txt, texto_upload_path,
-                        OverwriteStorage)
+                        OverwriteStorage,
+                        salva_com_arquivos)
 
 
 class CargoBancada(models.Model):
@@ -348,27 +349,10 @@ class SessaoPlenaria(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and (self.upload_pauta or self.upload_ata or
-                            self.upload_anexo):
-            upload_pauta = self.upload_pauta
-            upload_ata = self.upload_ata
-            upload_anexo = self.upload_anexo
-            self.upload_pauta = None
-            self.upload_ata = None
-            self.upload_anexo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-
-            self.upload_pauta = upload_pauta
-            self.upload_ata = upload_ata
-            self.upload_anexo = upload_anexo
-
-        models.Model.save(self, force_insert=force_insert,
-                          force_update=force_update,
-                          using=using,
-                          update_fields=update_fields)
+        salva_com_arquivos(
+            self, ('upload_pauta', 'upload_ata', 'upload_anexo'),
+            force_insert=force_insert, force_update=force_update,
+            using=using, update_fields=update_fields)
 
         self.ordemdia_set.exclude(
             data_ordem=F('sessao_plenaria__data_inicio')
@@ -958,20 +942,10 @@ class JustificativaAusencia(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
-        if not self.pk and self.upload_anexo:
-            upload_anexo = self.upload_anexo
-            self.upload_anexo = None
-            models.Model.save(self, force_insert=force_insert,
-                              force_update=force_update,
-                              using=using,
-                              update_fields=update_fields)
-
-            self.upload_anexo = upload_anexo
-
-        return models.Model.save(self, force_insert=force_insert,
-                                 force_update=force_update,
-                                 using=using,
-                                 update_fields=update_fields)
+        return salva_com_arquivos(self, ('upload_anexo',),
+                                  force_insert=force_insert,
+                                  force_update=force_update,
+                                  using=using, update_fields=update_fields)
 
 
 class RetiradaPauta(models.Model):
