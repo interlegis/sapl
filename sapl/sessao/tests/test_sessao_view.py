@@ -392,3 +392,32 @@ def test_adicionar_varias_materias_paginacao_nao_repete_page(admin_client,
     response = admin_client.get(url + '?page=1&ano=2026&tipo=')
     assert response.context['page_obj'].number == 1
     assert response.context['paginator'].count == 51
+
+
+@pytest.mark.django_db(transaction=False)
+@pytest.mark.parametrize('url_name', [
+    'sapl.sessao:adicionar_varias_materias_expediente',
+    'sapl.sessao:adicionar_varias_materias_ordem_dia',
+])
+def test_adicionar_varias_materias_so_com_page_mostra_resultados(admin_client,
+                                                                  url_name):
+    from sapl.materia.models import MateriaLegislativa
+
+    sessao = baker.make(SessaoPlenaria)
+    baker.make(MateriaLegislativa, ano=2026, _quantity=51)
+    url = reverse(url_name, kwargs={'pk': sessao.pk})
+
+    # Sem nenhum parâmetro, mostra só o formulário de pesquisa
+    response = admin_client.get(url)
+    assert not response.context['show_results']
+    assert 'type="checkbox" name="materia_id"' not in response.content.decode()
+
+    # Uma URL só com ?page=N (favorito, URL editada) mostra os resultados
+    response = admin_client.get(url + '?page=2')
+    assert response.status_code == 200
+    assert response.context['show_results']
+    assert response.context['page_obj'].number == 2
+    assert response.context['filter_url'] == ''
+    conteudo = response.content.decode()
+    assert 'type="checkbox" name="materia_id"' in conteudo
+    assert 'href="?page=1"' in conteudo

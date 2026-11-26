@@ -4357,7 +4357,9 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 
         form = AdicionarVariasMateriasForm
         context['form'] = form
-        context['filter_url'] = filter_url_sem_pagina(self.request.GET)
+        # O pai já define filter_url sem 'page'. Aqui show_results considera
+        # o GET inteiro: uma URL só com ?page=N também mostra os resultados.
+        context['show_results'] = show_results_filter_set(self.request.GET)
         context['pk_sessao'] = self.kwargs['pk']
 
         context["tipo_materia_sessao"] = self.tipo_materia_sessao
