@@ -60,7 +60,8 @@ from sapl.utils import (autor_label, autor_modal, gerar_hash_arquivo, get_base_u
                         mail_service_configured, montar_row_autor, SEPARADOR_HASH_PROPOSICAO,
                         show_results_filter_set, get_tempfile_dir,
                         restringe_tipos_de_arquivo_txt, validar_arquivo,
-                        google_recaptcha_configured, MultiFormatOutputMixin, ratelimit_ip)
+                        google_recaptcha_configured, MultiFormatOutputMixin, ratelimit_ip,
+                        filter_url_sem_pagina)
 
 from .forms import (AcessorioEmLoteFilterSet, AcompanhamentoMateriaForm,
                     AnexadaEmLoteFilterSet, AdicionarVariasAutoriasFilterSet,
@@ -405,9 +406,7 @@ class PesquisarStatusTramitacaoView(FilterView):
         url = ''
 
         if data:
-            url = '&' + str(self.request.META["QUERY_STRING"])
-            if url.startswith("&page"):
-                url = ''
+            url = filter_url_sem_pagina(self.request.GET)
 
         if 'descricao' in self.request.META['QUERY_STRING'] or\
                 'page' in self.request.META['QUERY_STRING']:

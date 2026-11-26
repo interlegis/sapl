@@ -50,6 +50,7 @@ from sapl.sessao.forms import ExpedienteMateriaForm, OrdemDiaForm, OrdemExpedien
 from sapl.sessao.models import Correspondencia
 from sapl.settings import TIME_ZONE, RATE_LIMITER_RATE
 from sapl.utils import show_results_filter_set, remover_acentos, get_client_ip, \
+    filter_url_sem_pagina, \
     MultiFormatOutputMixin, PautaMultiFormatOutputMixin, ratelimit_ip, \
     filiacao_data
 
@@ -4234,11 +4235,7 @@ class PesquisarSessaoPlenariaView(MultiFormatOutputMixin, FilterView):
 
         data = self.filterset.data
         if data and data.get('data_inicio__year') is not None:
-            url = "&" + str(self.request.META['QUERY_STRING'])
-            if url.startswith("&page"):
-                ponto_comeco = url.find('data_inicio__year=') - 1
-                url = url[ponto_comeco:]
-            context['filter_url'] = url
+            context['filter_url'] = filter_url_sem_pagina(self.request.GET)
 
         context['numero_res'] = len(self.object_list)
 
@@ -4358,11 +4355,11 @@ class AdicionarVariasMateriasExpediente(PermissionRequiredForAppCrudMixin,
 
         self.filterset.form.fields['o'].label = _('Ordenação')
 
-        qr = self.request.GET.copy()
-
         form = AdicionarVariasMateriasForm
         context['form'] = form
-        context['filter_url'] = ('&' + qr.urlencode()) if len(qr) > 0 else ''
+        # O pai já define filter_url sem 'page'. Aqui show_results considera
+        # o GET inteiro: uma URL só com ?page=N também mostra os resultados.
+        context['show_results'] = show_results_filter_set(self.request.GET)
         context['pk_sessao'] = self.kwargs['pk']
 
         context["tipo_materia_sessao"] = self.tipo_materia_sessao
